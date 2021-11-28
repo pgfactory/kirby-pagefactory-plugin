@@ -152,7 +152,7 @@ EOT;
     private function valueToString($value)
     {
         if (is_array($value)) {
-            $value = var_r($value, '', true);
+            $value = \Usility\PageFactory\var_r($value, '', true);
         } elseif (is_bool($value)) {
             $value = $value? 'true': 'false';
         }

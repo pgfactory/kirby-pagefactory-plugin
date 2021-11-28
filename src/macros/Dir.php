@@ -107,7 +107,7 @@ class Dir extends Macros
                 if (is_array($this->pattern)) {
                     $dir = [];
                     foreach ($this->pattern as $pattern) {
-                        $dir = array_merge($dir, getDirDeep($path . $pattern));
+                        $dir = array_merge($dir, \Usility\PageFactory\getDirDeep($path . $pattern));
                     }
                 } else {
                     $dir = \Usility\PageFactory\getDirDeep($path . $this->pattern);
@@ -187,7 +187,7 @@ EOT;
             $maxAge = time() - 86400 * $this->maxAge;
         }
 
-        $dir = Usility\PageFactory\getDir("$path*");
+        $dir = \Usility\PageFactory\getDir("$path*");
         if (strpos($this->order, 'revers') !== false) {
             $dir = array_reverse($dir);
         }
@@ -205,7 +205,7 @@ EOT;
                 if (filemtime($file) < $maxAge) {   // check age, skip if too old
                     continue;
                 }
-                $name = base_name($file);
+                $name = \Usility\PageFactory\base_name($file);
                 $ext = \Usility\PageFactory\fileExt($file);
 
                 if ($this->pattern) {       // apply pattern:
@@ -220,7 +220,7 @@ EOT;
 
                 } elseif ($ext === 'webloc') {   // special case: file-ext 'webloc' -> extract link
                     $href = str_replace("\n", ' ', file_get_contents($file));
-                    if (preg_match('|\<string\>(https?\://.*)\</string\>|', $href, $m)) {
+                    if (preg_match('|<string>(https?://.*)</string>|', $href, $m)) {
                         $href = $m[1];
                     }
                     $name = basename($file, '.webloc');

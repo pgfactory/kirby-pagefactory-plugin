@@ -60,7 +60,7 @@ class Button extends Macros
         if ($type === 'toggle') {
             $textActive = $text;
             if (strpos($text, '|') !== false) {
-                list($text, $textActive) = explodeTrim('|', $text);
+                list($text, $textActive) = \Usility\PageFactory\explodeTrim('|', $text);
             }
             $class .= ' lzy-toggle-button';
             $aria = ' aria-pressed="false"';

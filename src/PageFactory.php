@@ -3,7 +3,7 @@
 namespace Usility\PageFactory;
 
 use Kirby;
-use \Kirby\Data\Yaml as Yaml;
+use Kirby\Data\Yaml as Yaml;
 use Kirby\Cms\Language;
 
 define('PFY_PLUGIN_PATH',           'site/plugins/pagefactory/');
@@ -139,7 +139,6 @@ class PageFactory
                 }
             }
             $mdStr = loadFile($file, 'cStyle');
-//            $mdStr = loadFile($fileObj->root(), 'cStyle');
             $mdStr = $this->extractFrontmatter($mdStr);
             $class = translateToClassName(basename($fileObj->id(), '.md'));
             $wrapperTag = @$this->frontmatter['wrapperTag'];
@@ -500,9 +499,13 @@ EOT;
     {
         $languagesObj = kirby()->languages();
         $supportedLanguages = $this->supportedLanguages = $languagesObj->codes();
-        if (!$lang = kirby()->language()->code()) {
-//        if (!$lang = kirby()->language()) {
-            $lang = kirby()->defaultLanguage();
+        if ($supportedLanguages) {
+            if (!$lang = kirby()->language()->code()) {
+                $lang = kirby()->defaultLanguage();
+            }
+        } else {
+            $lang = 'en';
+            $supportedLanguages[] = 'en';
         }
 
         if ($lang) {
