@@ -30,7 +30,7 @@ So, PageFactory provides a mechnism to separate them:
 First, you define a propre HTML template, that, as an exerpt might look like this:
 
     <div class="column" style="--columns: 8">
-      &#123;{ gallery }}
+      {{ gallery }}
     </div>
 
 Second, in PHP code, you'd define the content of this &#123;{ gallery }} variable:
@@ -61,7 +61,7 @@ In the example above you could see basic use of "Variables", meaning text-replac
 Similar to that there are "Macros". They look like this: &#123;{ mymacro( text: xy, id:my-macro ) }}.  
 So, syntactially, they are Variables with arguments. Thus, if convenient, the example above might have been implemented with a parameter "width", like
 
-	&#123;{ gallery( width: 800 ) }}
+	{{ gallery( width: 800 ) }}
 
 
 
