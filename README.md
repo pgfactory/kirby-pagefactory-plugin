@@ -67,13 +67,14 @@ So, syntactially, they are Variables with arguments. Thus, if convenient, the ex
 
 ### Markdown extensions
 
-Markdown is an excellent invention. Yet, when it comes do defining web pages, now and then you are bound to run into its limitations.
+Markdown is an excellently simple way to write HTML-content without bothering with HTML syntax. 
+Yet, when it comes do defining slightly more advanced web content, you are bound to run into limitations.
 
-Like if you want to define a block of content with special styling. One possibility would be applying a class to each and every element within this block (assuming your Markdown dialect supports that).
+For instance, if you want to define a block of content with special styling. 
+You could use some HTML like &lt;div class...> but that's ugly and you are bound to face additional problems.
+Another possibility would be applying a class to each and every element within this block (assuming your Markdown dialect supports that).
 
-In HTML you'd rather just wrap a DIV around your block.
-
-This you can do in PageFactory's Markdown extensions like this:
+With PageFactory's Markdown extensions for DIV-blocks you can do it more elegantly like this:
 
 	@@@ .box
 	...
@@ -96,7 +97,7 @@ Here is an example of a multilingual Variable definition (in this case from a YA
 
 Note that '_' defines the default language, i.e. if a language is to be rendered for which there is no translation.
 
-BTW, in a box definition you can specify a language, then the block will be rendered only if that langauge is active:
+BTW, for DIV-blocks you can specify a language, then that block will be rendered only if that langauge is active:
 
 	@@@ .box !lang=de
 	Beispiel
