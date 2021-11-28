@@ -33,7 +33,7 @@ First, you define a propre HTML template, that, as an exerpt might look like thi
       {{ gallery }}
     </div>
 
-Second, in PHP code, you'd define the content of this &#123;{ gallery }} variable:
+Second, in PHP code, you'd define the content of this msng gallery }} variable:
 
 	$html = "<ul class='album-gallery'>\n";
     foreach ($gallery as $image) {
@@ -58,7 +58,7 @@ Second, in PHP code, you'd define the content of this &#123;{ gallery }} variabl
 
 In the example above you could see basic use of "Variables", meaning text-replacement variables.
 
-Similar to that there are "Macros". They look like this: &#123;{ mymacro( text: xy, id:my-macro ) }}.  
+Similar to that there are "Macros". They look like this: {{ mymacro( text: xy, id:my-macro ) }}.  
 So, syntactially, they are Variables with arguments. Thus, if convenient, the example above might have been implemented with a parameter "width", like
 
 	{{ gallery( width: 800 ) }}
