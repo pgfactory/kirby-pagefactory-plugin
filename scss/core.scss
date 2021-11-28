@@ -1,0 +1,193 @@
+/* Lizzy Core CSS
+CSS-Variables:
+	--lzy-focus-color:
+
+*/
+
+@import 'definitions.scss';
+/*@import 'site/plugins/lizzy/scss/definitions.scss';*/
+
+/* === General =============================== */
+html {
+	height: -webkit-fill-available;
+}
+body {
+	min-width: 100vw;
+	min-height: 100vh;
+	min-height: -webkit-fill-available;
+}
+
+html, body, section {
+	position: relative;
+	padding: 0;
+}
+* {
+	box-sizing: border-box;
+}
+
+
+.lzy-dispno,
+.dispno,
+.disp-no,
+.disp_no {
+	display: none!important;
+}
+.dispblock {
+	display: block;
+}
+.sr-only,
+.lzy-invisible,
+.invisible,
+.visually-hidden {
+	position: absolute !important;
+	right: 10000px;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	display: inline;
+	clip: rect(1px, 1px, 1px, 1px);
+}
+.lzy-disabled {
+	filter: contrast(50%);
+	opacity: 0.7;
+}
+
+.lzy-no-decoration {
+	text-decoration: none;
+	border-bottom: none;
+}
+
+
+
+
+// === visible on focus only:
+.lzy-focus-only-visible {
+	display: none;
+	color: transparent;
+	background: transparent;
+	position: absolute;
+	right: -1000vw;
+}
+a:hover > .lzy-focus-only-visible,
+a:focus > .lzy-focus-only-visible {
+	display: inline-block;
+	color: black;
+//	background: beige;
+	position: relative;
+	right: unset;
+}
+
+
+
+.lzy-dimmed::before {
+	content: ' ';
+	background: rgba(0,0,0,0.5);
+	position: fixed;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	z-index: 999;
+}
+
+
+
+
+
+
+//.authors_directive_tag {
+//	display: inline-block;
+//	background: #fee;
+//	padding: 3px 6px;
+//	border: #aff;
+//	border-radius: 5px;
+//}
+
+
+
+
+.lzy-login-form .lzy-form-show-password input {
+    display: none;
+}
+
+
+
+.lzy-account-form-wrapper .lzy-delete-profile-popup {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    width: 20em;
+    height: 10em;
+    background: #ffe2c4;
+    border: 1px solid gray;
+    border-radius: 10px;
+    z-index: 999;
+}
+
+/* --- fade out effect --- */
+@-webkit-keyframes fadeOut { from { opacity:1; } to { opacity:0; } }
+@-moz-keyframes fadeOut { from { opacity:1; } to { opacity:0; } }
+@keyframes fadeOut { from { opacity:1; } to { opacity:0; } }
+
+
+
+/* --- Laguage Selection -------- */
+.lzy-lang-elem {
+//	margin: 0 2px;
+	position: relative;
+	line-height: 1.4em;
+	height: 1.4em;
+	width: 1.4em;
+	img {
+		height: 1.4em;
+		width: 1.4em;
+		border-radius: 50%;
+	}
+	a {
+		border-bottom: none;
+	}
+	&.lzy-active-lang img:before {
+		content: " ";
+		border-radius: 50%;
+		position: absolute;
+		z-index: -1;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		border: 5px solid red;
+	}
+	&.lzy-active-lang img {
+//		outline: 2px solid red;
+	}
+}
+
+
+/* --- Misc --------------------- */
+.lzy-album-error {
+    background: #fee;
+    border: 1px solid red;
+    padding: 1em 2em;
+}
+
+.lzy-src-code code strong {
+	font-weight: normal;
+	color: red;
+}
+
+.lzy-h-space {
+    display: inline-block;
+}
+
+
+
+/* === Unite Gallery ==================*/
+/* bug workaround */
+.lzy-gallery.ug-gallery-wrapper {
+	height: unset !important;
+}
+.ug-tiles-preloader {
+	display: none !important;
+}
+
+

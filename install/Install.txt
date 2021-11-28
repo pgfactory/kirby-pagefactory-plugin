@@ -1,0 +1,6 @@
+Install
+
+https://github.com/scssphp/scssphp.git scss
+
+
+copy site/plugins/pagefactory/assets/* media/pagefactory

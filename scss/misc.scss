@@ -1,0 +1,252 @@
+/* === Misc Styles (loaded asynchronously) =========== */
+
+// === Macro source code
+.lzy-src-html-wrapper,
+.lzy-src-code {
+  padding: 1em;
+  border: 1px solid #dbddcd;
+  background: #fdffee;
+  max-width: 40rem;
+  overflow-x: auto;
+  font-size: 10pt;
+  &.lzy-popup-wrapper {
+    padding: 1em;
+    border: none;
+    background: none;
+    h2 {
+      display: none;
+    }
+  }
+}
+.lzy-src-html-wrapper,
+.lzy-src-wrapper {
+  > div {
+    margin-bottom: 1em;
+    > h2 {
+      font-size: 14pt;
+      margin: 0 0 0.6em 0;
+    }
+  }
+  > h2 {
+    font-size: 14pt;
+    margin: 0 0 0.6em 0;
+  }
+}
+.lzy-src-html-wrapper {
+  code {
+    white-space: pre;
+  }
+}
+
+.lzy-src-code-popup {
+  position: relative;
+  border: 1px solid #dbddcd;
+  padding: 4px;
+  .lzy-src-output h2 {
+    display: none;
+  }
+}
+.lzy-show-source-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 0.3rem;
+  font-family: arial, sans-serif;
+  font-size: 10pt;
+}
+
+
+// DB
+.lzy-record-locked, .lzy-locked {
+  background: #dceeee;
+  background: repeating-linear-gradient(-55deg, #eeffff,#eeffff 10px,#edf8f8 10px,#edf8f8 15px);
+  cursor: not-allowed;
+}
+.lzy-locked { outline: 1px solid red; }
+.lzy-record-locked { outline: 1px dashed red; }
+
+
+#lzy .lzy-element-locked,
+#lzy .lzy-editable.lzy-element-locked {
+  background: #dceeee;
+  background: repeating-linear-gradient(-55deg, #eeffff,#eeffff 10px,#edf8f8 10px,#edf8f8 15px);
+  cursor: not-allowed !important;
+}
+.lzy-element-locked *,
+.lzy-editable.lzy-element-locked * {
+  cursor: not-allowed !important;
+}
+.lzy-element-frozen,
+.lzy-editable.lzy-element-frozen {
+  background: #eee;
+  cursor: not-allowed;
+}
+
+.lzy-overlay-background {
+    position: fixed;
+    top: 0; right: 0; bottom: 0; left: 0;
+    background: rgba(50,50,50,0.8);
+    width: 100vw;
+    height: 100vh;
+    z-index: 9999;
+  .lzy-timeout-img {
+    max-width: 40vw;
+  }
+}
+
+.lzy-overlay-background-frozen {
+  overflow: hidden;
+}
+
+
+.lzy-default-styling {
+  .lzy-inactive {
+    color: #888;
+  }
+}
+#lzy .lzy-login-menu .lzy-popup-container {
+  padding: 1.5em 1em;
+  li::before {
+    content: "\2192 ";
+  }
+}
+
+
+// === Tooltipster
+
+.lzy-tooltip {
+  border-bottom: 1px dashed #ddd;
+}
+.lzy-tooltip:hover {
+  border-bottom: 1px solid black;
+}
+
+
+// === Timeout / freezeWindowAfter
+.lzy-timedout {
+  cursor: pointer;
+}
+
+
+// === ?convert data ================
+.lzy-convert-data-response {
+  margin: 2em 0;
+  padding: 1em;
+  color: red;
+  background: #fee;
+  border: 1px solid gray;
+}
+
+
+// === List transvars ==============
+.lzy-list-line > span {
+  vertical-align: top;
+  margin-top: 0.3em;
+}
+.lzy-list-line:first-child {
+  margin-top: 0.8em;
+}
+.lzy-list-var {
+  font-weight: bold;
+  color: maroon;
+}
+.lzy-list-src {
+  color: #aaa;
+}
+.lzy-list-src:hover {
+  color: black;
+}
+.lzy-list-attr-value {
+  display: inline-block;
+  width: calc(100% - 6em);
+}
+#lzy .lzy-list-transvars {
+  font-size: 9pt;
+  .lzy-list-attr-name {
+    display: inline-block;
+    width: 4em;
+    color: gray;
+  }
+}
+
+// ===  button() -> toggle
+#lzy.lzy-default-styling .lzy-encapsulated,
+#lzy.lzy-default-styling {
+  .lzy-button-active { box-shadow: inset 0 0 4px red; }
+}
+
+
+// === Macro Help ===============
+#lzy .lzy-macro-help.lzy-encapsulated {
+    font-size: 9pt;
+    background: white;
+    color: black;
+    font-family: Verdana, sans-serif;
+    padding: 0 10px;
+    border: 1px solid gray;
+    margin: 2em 0;
+    h1 {
+        font-size: 14pt;
+    }
+    h2 {
+        font-size: 12pt;
+    }
+    dt {
+        font-weight: bold;
+        color: maroon;
+    }
+    dd {
+        margin-bottom: 1em;
+    }
+}
+
+/*
+.lzy-default-styling .lzy-macro-help {
+  background: #f7f7f7;
+  color: #333;
+  padding: 1em;
+  font-size: 9pt;
+  margin-top: 2em;
+  a, a:visited {
+    color: #333;
+  }
+  dt {
+    margin: 1em 0 0.2em 0;
+    color: blue;
+    span {
+      color: #999;
+      font-size: 70%;
+      &:hover {
+        color: black;
+      }
+    }
+  }
+  dd {
+    line-height: 1.3em;
+  }
+}
+*/
+
+
+// Macro -> showSource:
+#lzy .lzy-source-code.lzy-encapsulated,
+.lzy-source-code {
+    strong {
+        color: red;
+        font-weight: normal;
+    }
+    em {
+        color: blue;
+        font-style: normal;
+    }
+    pre {
+        padding: 0 10px;
+        background: white;
+        outline: 1px solid gray;
+    }
+    code {
+        font-size: 9pt;
+        font-family: "Input", "Menlo", monospace;
+        color: black;
+    }
+}

@@ -1,0 +1,92 @@
+/* === Printing Support ============================== */
+
+
+// === Media Queries:
+@media screen {
+  .print_only,
+  .print-only {
+    display: none;
+  }
+
+
+  .lzy-img-link {
+    background: none;
+    padding-left: 0;
+  }
+
+}
+
+
+
+body.lzy-print-preview {
+  background: #eee;
+  .pagedjs_pages {
+    width: var(--pagedjs-pagebox-width);
+    margin: 60px auto;
+  }
+
+  .pagedjs_sheet {
+    background: #fff;
+    margin: 5mm 0;
+    box-shadow: 0 0 5px 3px #bbb;
+  }
+  .lzy-skiplinks {
+    display: none;
+  }
+}
+.pagedjs_pages .page {
+  margin: 0;
+  padding: 0;
+}
+dd {
+  page-break-before: avoid;
+}
+.lzy-print-btns {
+  position: absolute;
+  top: -40px; left: 0;
+}
+.lzy-print-btns > a {
+  background: linear-gradient(#fff 0%,#fffbe0 60%,#fff7c2 100%);
+  font-size: 12pt;
+  padding: 0.7em 1.5em;
+  margin: 1em 0 0 1em;
+  box-shadow: 0 0 5px 1px gray;
+  cursor: pointer;
+  border-bottom: none; /* for <a> */
+}
+@page {
+  size: A4;
+}
+
+@media print {
+  header,
+  footer,
+  nav,
+  .dont-print,
+  .print_no,
+  .print-no,
+  #lzy-log,
+  .lzy-warning,
+  .lzy-msgbox,
+  #debugInfo,
+  .debugInfo,
+  .lzy-quickview-overlay,
+  .lzy-skiplinks,
+  .lzy-file-uploader-wrapper {
+    display: none!important;
+  }
+  .lzy-print-page-break,
+  .print-page-break {
+    page-break-after: always;
+  }
+  .lzy-print-page-break-before {
+    page-break-before: always;
+    margin-top: 1.5cm;
+  }
+}
+@media screen {
+  .print-only {
+    display: none!important;
+  }
+}
+

@@ -1,0 +1,114 @@
+/* ===  Texts ===================================== */
+
+@import 'definitions.scss';
+
+
+#lzy .lzy-encapsulated,
+& {
+
+  p {
+    padding: 0;
+    margin: 0.2em 0 0.5em 0;
+    line-height: 1.25em;
+    //color: #{$focus-color};
+  }
+
+  li {
+    padding: 0;
+    margin: 0.2em 0 0.2em 0;
+    line-height: 1.4em;
+  }
+
+  li > p {
+    margin: 0;
+  }
+
+  a {
+    text-decoration: none;
+    border-bottom: 1px dotted gray;
+  }
+
+  a:hover, a:focus {
+    border-bottom: 1px solid gray;
+  }
+
+  a:focus {
+    box-shadow: 0 0 5px $focus-color;
+    box-shadow: 0 0 5px var(--lzy-focus-color, $focus-color);
+  }
+
+  nav a {
+    border-bottom: none;
+  }
+
+  .lzy-logo a, .lzy-logo a:hover {
+    border-bottom: none;
+  }
+
+  kbd {
+    padding: 0 3px;
+    background: #ddd;
+    border-radius: 3px;
+  }
+
+  samp {
+    padding: 0 3px;
+    background: #efefff;
+    border-radius: 3px;
+  }
+
+  var {
+    padding: 2px 4px 0 4px;
+    background: #555;
+    color: #ffb;
+    border-radius: 3px;
+    font-weight: bold;
+    font-style: normal;
+  }
+
+  pre {
+    margin: 1.5rem 0;
+    tab-size: 4;
+    white-space: pre-wrap;
+  }
+
+  mark {
+    padding: 0 3px;
+  }
+
+  .no-underline,
+  figure a:hover,
+  figure a {
+    text-decoration: none;
+    border-bottom: none;
+  }
+
+  .sup {
+    vertical-align: super;
+    font-size: 60%;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+
+  // === Lizzy's tabulator:
+  .lzy-tabulator-wrapper span.c1,
+  .lzy-tabulator-wrapper span.c2,
+  .lzy-tabulator-wrapper span.c3,
+  .lzy-tabulator-wrapper span.c4 {
+    display: inline-block;
+    line-height: 1.3em;
+    vertical-align: top;
+  }
+
+  .lzy-tabulator-wrapper span:not(:last-child) {
+    width: 6em;
+  }
+
+  .lzy-vgap {
+    height: 0;
+  }
+
+}

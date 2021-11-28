@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="{{ lang }}">
+<head>
+	<meta charset="utf-8" />
+	<title>{{ lzy-page-title }}</title>
+
+	<meta name="viewport" content="width=device-width, user-scalable=yes, initial-scale=1" />
+    <meta name="referrer" content="no-referrer">
+    <meta name="generator" content="Kirby" />
+{{^ lzy-head-injections }}
+</head>
+
+
+<!-- default-template -->
+<body id='lzy' class='{{^ lzy-body-classes }} lzy-default-layout'{{^ lzy-body-tag-attributes }}>
+
+  <div class='lzy-page page'>
+
+ 		<header class='lzy-header'>
+
+{{^ header }}
+
+		</header>
+
+
+{{ nav }}
+
+
+<!-- === page content =============== -->
+		<main id='main' class='lzy-main'>
+
+{{ content }}
+
+		</main>
+<!-- === /page content =============== -->
+
+
+		<!-- <aside class="lzy-sidebar">{{#^ sidebar }}</aside> -->
+
+
+		<footer class="lzy-footer" data-iframe-height=''>
+			<div class="lzy-footer-left">
+{{^ lzy-logged-in-as-user }}
+{{^ footer }}
+				<div class="lzy-large-only">{{^ large-screen-footer-left }}</div>
+				<div class="lzy-small-only">{{^ small-screen-footer }}</div>
+			</div>
+
+			<div>
+				<div class="lzy-large-only">{{^ large-screen-footer }}</div>
+			</div>
+
+	        <div class='lzy-footer-right'>
+{{^ lzy-lang-selection }}
+
+{{^ lzy-login-button }}
+{{^ lzy-backend-link }}
+<!-- <a href='http://localhost:8888/kirby/panel/site'>Admin</a> -->
+	        </div><!-- /lzy-footer-right -->
+		</footer>
+
+{{^ lzy-login-menu }}
+
+
+{{^ nav( small-screen-header ) }}
+
+  </div><!-- /.lzy-page -->
+
+
+{{^ lzy-body-end-injections }}
+
+</body>
+</html>
+

@@ -1,0 +1,30 @@
+/* === Lzy-Buttons ========================= */
+#lzy .lzy-encapsulated,
+& {
+  .lzy-button {
+    color: #666;
+    font-family: helvetica, arial, sans-serif;
+    border-radius: 4px;
+    border: 1px solid #bcbcbc;
+    -webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    background: -webkit-linear-gradient(#FFF 0%, #EFEFEF 60%, #E1DFE2 100%);
+    background: -ms-linear-gradient(#FFF 0%, #EFEFEF 60%, #E1DFE2 100%);
+    background: linear-gradient(#FFF 0%, #EFEFEF 60%, #E1DFE2 100%);
+    padding: 0.3em 1.5em;
+  }
+  .lzy-slim-button,
+  .lzy-button-lean {
+    padding: 0.3em 0.5em;
+  }
+  .lzy-button a:visited,
+  a.lzy-button:visited,
+  .lzy-button a,
+  a.lzy-button {
+    color: inherit;
+  }
+  .lzy-button-submit {
+    color: #444;
+    border-color: #444;
+  }
+}

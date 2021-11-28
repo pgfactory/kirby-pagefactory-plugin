@@ -1,0 +1,12 @@
+{
+    "require": {
+        "scssphp/scssphp": "^1.8",
+        "cebe/markdown": "^1.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Usility\\PageFactory\\": "../src/",
+            "Usility\\PageFactory\\Macros\\": "../../pagefactory-macros/"
+        }
+    }
+}

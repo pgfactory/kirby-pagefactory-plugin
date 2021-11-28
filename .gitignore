@@ -1,0 +1,6 @@
+# ignore everything that starts with '#' (or '.#', the hidden variant):
+/**/[#]*
+/**/.[#]*
+
+# Note: any files with leading '#' are treated as 'commented out' by PageFactory
+
