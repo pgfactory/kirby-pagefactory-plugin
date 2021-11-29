@@ -8,7 +8,7 @@ $macroConfig =  [
         'min' => ['If set, defines the minimum number of random words to be rendered.', false],
         'max' => ['If set, defines the maximum number of random words to be rendered.', false],
         'dot' => ['If true, a dot will be appended at the end of all random words', false],
-        'class' => ['If true, a dot will be appended at the end of all random words', 'lzy-lorem'],
+        'class' => ['If true, a dot will be appended at the end of all random words', ''],
         'wrapper' => ['If true, a dot will be appended at the end of all random words', 'div'],
     ],
     'summary' => <<<EOT
@@ -38,7 +38,6 @@ class Lorem extends Macros
         $class = $args['class'];
         $wrapper = $args['wrapper'];
         $lorem = 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.';
-        $str = '';
         if (!$min && !$max) {
             $str = $lorem;
 
@@ -67,8 +66,9 @@ class Lorem extends Macros
             $class = trim("lzy-lorem lzy-lorem-$inx $class");
             $str = "<$wrapper class='$class'>" . ucfirst($str) . "</$wrapper>";
         }
-        return$str;
-    }
+
+        return $str;
+    } // render
 } // Lorem
 
 

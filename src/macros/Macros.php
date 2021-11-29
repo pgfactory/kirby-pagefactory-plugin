@@ -6,6 +6,19 @@ use Usility\PageFactory\PageFactory as PageFactory;
 
 class Macros
 {
+    protected $appRoot;
+    protected $absAppRoot;
+    protected $pagePath;
+    protected $slug;
+    protected $lang;
+    protected $langCode;
+    protected $debug;
+    protected $kirby;
+    protected $site;
+    protected $page;
+    protected $pages;
+    protected $trans;
+
     public function __construct($pfy = null)
     {
         $this->pfy = $pfy;
@@ -22,19 +35,6 @@ class Macros
             $this->page = $pfy->page;
             $this->pages = $pfy->pages;
             $this->trans = PageFactory::$trans;
-        } else {
-            $this->appRoot = null;
-            $this->absAppRoot = null;
-            $this->pagePath = null;
-            $this->slug = null;
-            $this->lang = null;
-            $this->langCode = null;
-            $this->debug = null;
-            $this->kirby = null;
-            $this->site = null;
-            $this->page = null;
-            $this->pages = null;
-            $this->trans = null;
         }
         $this->registeredMacros = [];
         $macroLocations = [
@@ -61,6 +61,7 @@ class Macros
     } // __construct
 
 
+
     public function execute($macroName, $args, $argStr)
     {
         $html = null;
@@ -68,12 +69,12 @@ class Macros
         $macroObj = null;
         $thisMacroName = 'Usility\\PageFactory\\Macros\\' . ucfirst( $macroName );
         if (isset($this->registeredMacros[ $macroName ])) {
-            $macroObj = $this->registeredMacros[ $macroName ]['macroObj'];
+            $macroObj = $this->registeredMacros[ $macroName ];
 
         } else {
             if (isset($this->availableMacros[ $macroName ])) {
                 $macroObj = include $this->availableMacros[ $macroName ];
-                $this->registeredMacros[ $macroName ]['macroObj'] = $macroObj;
+                $this->registeredMacros[ $macroName ] = $macroObj;
 
             } else {
                 return null;
@@ -94,10 +95,13 @@ class Macros
             }
             $html = $macroObj['macroObj']->render($args, $argStr);
 
-            if (@$macroObj['mdCompile']) {
+            // mdCompile if requested:
+            if (@$macroObj['mdCompile'] || $macroObj['macroObj']->get('mdCompile')) {
                 $html = \Usility\PageFactory\compileMarkdown($html);
             }
-            if (!isset($macroObj['wrapInComment']) || $macroObj['wrapInComment']) {
+
+            // wrap in comment if requested:
+            if (@$macroObj['wrapInComment'] || $macroObj['macroObj']->get('wrapInComment')) {
                 $html = <<<EOT
 
 <!-- $macroName() -->
@@ -158,4 +162,17 @@ EOT;
         }
         return $value;
     }
+
+
+    protected function get($key)
+    {
+        return @$this->$key;
+    } // get
+
+
+
+    protected function set($key, $value)
+    {
+        $this->$key = $value;
+    } // set
 } // Macros

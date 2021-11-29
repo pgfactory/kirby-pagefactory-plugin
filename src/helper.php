@@ -2,7 +2,7 @@
 
 namespace Usility\PageFactory;
 
-// Use helper functions with prefix '\Usility\PageFactory\'
+ // Use helper functions with prefix '\Usility\PageFactory\'
 use \Kirby\Data\Yaml as Yaml;
 use \Kirby\Data\Json as Json;
 use Kirby\Exception\Exception;
@@ -635,10 +635,14 @@ function indentLines($str, $width = 4)
 
 
 
-function parseArgumentStr($str, $delim = ',', $yamlCompatibility = false)
+function parseArgumentStr($str, $delim = ',')
 {
-    $str0 = $str;
-    $str = preg_replace(['/↵/', '/,\s*,/'], ',', $str);
+    // get indent of first indented element:
+    $indent = '';
+    if (preg_match('/\n(\s*)/m', $str, $m)) {
+        $indent = $m[1];
+    }
+    // terminate if string empty:
     if (!($str = trim($str))) {
         return [];
     }
@@ -648,164 +652,106 @@ function parseArgumentStr($str, $delim = ',', $yamlCompatibility = false)
         return [ $str ];
     }
 
-    $options = [];
+    // if string starts with { we assume it's json:
+    if ($str[0] === '{') {
+        return Json::decode($str);
+    }
 
-    if ($yamlCompatibility) {
-        // for compatibility with Yaml, the argument list may come enclosed in { }
-        if (preg_match('/^\s* {  (.*)  } \s* $/x', $str, $m)) {
-            $str = $m[1];
+    // otherwise, interpret as 'relaxed Yaml':
+    // (meaning: first elements may come without key, then they are interpreted by position)
+    $rest = ltrim($str, ", \n");
+    $out = '';
+    while ($rest) {
+        $key = parseArgKey($rest, $delim);
+        $ch = ltrim($rest);
+        $ch = @$ch[0];
+        if ($ch !== ':') {
+            $out .= "- $key\n";
+            $rest = ltrim($rest, " $delim\n");
+        } else {
+            $rest = substr($rest, 1);
+            $value = parseArgValue($rest, $delim);
+            if (trim($value)) {
+                $out .= "$key: $value\n";
+            } else {
+                $out .= "$key:\n";
+            }
         }
     }
-    $supportedBrackets1 = [
-        '"' => '"',
-        "'" => "'",
-    ];
-    $supportedBrackets2 = [
-        '"' => '"',
-        "'" => "'",
-        '(' => ')',
-        '[' => ']',
-        '<' => '>',
-    ];
 
-    $assoc = false;
-    while ($str || $assoc) {
-        $str = trim($str, '↵ ');
-        $c = (isset($str[0])) ? $str[0] : '';
-        $val = '';
-
-        // grab next value, can be bare or enclosed:
-        if ($assoc && !$yamlCompatibility) {
-            $supportedBrackets = &$supportedBrackets2;
-        } else {
-            $supportedBrackets = &$supportedBrackets1;
+    $pattern = "/^$indent/";
+    $yaml = '';
+    if ($indent) {
+        foreach (explode("\n", $out) as $line) {
+            $yaml .= preg_replace($pattern, '', rtrim($line, ', ')) . "\n";
         }
-        // extended brackets to enclose args: e.g. ## ... ##
-        // Note: special case '!!' -> skips translation to HTML-quotes
-        $cc = false;
-        if ($c && (strpos(TRANSVAR_ARG_QUOTES, $c) !== false)) {
-            $cc = preg_quote("$c$c");
-        }
-        if ($cc && preg_match("/^ $cc ([^$c]+) $cc (.*) $/x", $str, $m)) {
-            $val = $m[1];
-            $str = $m[2];
+    } else {
+        $yaml = $out;
+    }
 
-        } elseif (array_key_exists($c, $supportedBrackets)) {
-            $cEnd = $supportedBrackets[$c];
-            $p = findNextPattern($str, $cEnd, 1);
-            if ($p) {
-                $val = substr($str, 1, $p - 1);
-                $val = str_replace('\\"', '"', $val);
-                $str = trim(substr($str, $p + 1));
-                $str = preg_replace('/^\s*↵\s*$/', '', $str);
-            } else {
-                fatalError("Error in key-value string: '$str0'", 'File: '.__FILE__.' Line: '.__LINE__);
-            }
-
-        } elseif ($c === '{') {    // -> {
-            $p = findNextPattern($str, "}", 1);
-            if ($p) {
-                $val = substr($str, 1, $p - 1);
-                $val = str_replace("\\}", "}", $val);
-
-                $val = parseArgumentStr($val);
-
-                $str = trim(substr($str, $p + 1));
-                $str = preg_replace('/^\s*↵\s*$/', '', $str);
-            } else {
-                fatalError("Error in key-value string: '$str0'", 'File: '.__FILE__.' Line: '.__LINE__);
-            }
-
-        } else {    // -> bare value
-            $rest = strpbrk($str, ':'.$delim);
-            if ($rest) {
-                $val = substr($str, 0, strpos($str, $rest));
-            } else {
-                $val = $str;
-            }
-            $str = $rest;
-        }
-
-        // shape value:
-        $val = shapeValue($val, $cc);
-//        if ($val === 'true') {
-//            $val = true;
-//        } elseif ($val === 'false') {
-//            $val = false;
-//        } elseif (is_string($val)) {
-//            if (preg_match('/^ (!?) (isLoggedin|isPrivileged|isAdmin) $/x', $val, $m)) {
-//                $GLOBALS['lizzy']['cachingActive'] = false;
-//                $val = false;
-//                if ($m[2] === 'isAdmin') {
-//                    $val = $GLOBALS['lizzy']['isAdmin'];
-//                } elseif ($m[2] === 'isPrivileged') {
-//                    $val = $GLOBALS['lizzy']['isPrivileged'];
-//                } elseif ($m[2] === 'isLoggedin') {
-//                    $val = $GLOBALS['lizzy']['isLoggedin'];
-//                } elseif ($cc !== '\!\!') {
-//                    $val = str_replace(['"', "'"], ['&#34;', '&#39;'], $val);
-//                }
-//                if ($m[1]) {
-//                    $val = !$val;
-//                }
-//            } elseif ($cc !== '\!\!') {
-//                $val = str_replace(['"', "'"], ['&#34;', '&#39;'], $val);
-//            }
-//        }
-
-        // now, check whether it's a single value or a key:value pair
-        if ($str && ($str[0] === ':')) {         // -> key:value pair
-            $str = substr($str, 1);
-            $assoc = true;
-            $key = $val;
-
-        } elseif (!$str || ($str[0] === $delim)) {  // -> single value
-            if ($assoc) {
-                $options[$key] = $val;
-            } else {
-                $options[] = $val;
-            }
-            $assoc = false;
-            $str = ltrim(substr($str, 1));
-
-        } else {    // anything else is an error
-            fatalError("Error in argument string: '$str0'", 'File: '.__FILE__.' Line: '.__LINE__);
-        }
+    try {
+        $options = Yaml::decode($yaml);
+    } catch (Exception $e) {
+        die($e);
     }
 
     return $options;
 } // parseArgumentStr
 
-
-
-function shapeValue($val, $cc)
+function parseArgKey(&$rest, $delim)
 {
-    if ($val === 'true') {
-        $val = true;
-    } elseif ($val === 'false') {
-        $val = false;
-    } elseif (is_string($val)) {
-        if (preg_match('/^ (!?) (isLoggedin|isPrivileged|isAdmin) $/x', $val, $m)) {
-//            $GLOBALS['lizzy']['cachingActive'] = false;
-            $val = false;
-            if ($m[2] === 'isAdmin') {
-//                $val = $GLOBALS['lizzy']['isAdmin'];
-            } elseif ($m[2] === 'isPrivileged') {
-//                $val = $GLOBALS['lizzy']['isPrivileged'];
-            } elseif ($m[2] === 'isLoggedin') {
-//                $val = $GLOBALS['lizzy']['isLoggedin'];
-            } elseif ($cc !== '\!\!') {
-                $val = str_replace(['"', "'"], ['&#34;', '&#39;'], $val);
-            }
-            if ($m[1]) {
-                $val = !$val;
-            }
-        } elseif ($cc !== '\!\!') {
-            $val = str_replace(['"', "'"], ['&#34;', '&#39;'], $val);
+    $lead = '';
+    if (preg_match('/^(\s*)(.*)/', $rest, $m)) {
+        $lead = $m[1];
+        $rest = substr($rest, strlen($lead));
+    }
+    // case quoted key or value:
+    if ((($ch1 = $rest[0]) === '"') || ($ch1 === "'")) {
+        $pattern = "$ch1 (.*?) $ch1";
+        // case 'value' without key:
+        if (preg_match("/^ ($pattern) (.*)/xms", $rest, $m)) {
+            $key = $m[2];
+            $rest = $m[3];
+        }
+
+    // case naked key or value:
+    } else {
+        // case value without key:
+        $pattern = "[^$delim\n:]+";
+        if (preg_match("/^ ($pattern) (.*) /xms", $rest, $m)) {
+            $key = $m[1];
+            $rest = $m[2];
         }
     }
-    return $val;
-}
+    return "$lead'$key'";
+} // parseArgKey
+
+function parseArgValue(&$rest, $delim)
+{
+    // case quoted key or value:
+    $ch1 = ltrim($rest);
+    $ch1 = @$ch1[0];
+    if (($ch1 === '"') || ($ch1 === "'")) {
+        $pattern = "$ch1 (.*?) $ch1";
+        // case 'value' without key:
+        if (preg_match("/^ ($pattern) (.*)/xms", $rest, $m)) {
+            $value = $m[1];
+            $rest = $m[3];
+        }
+
+        // case naked key or value:
+    } else {
+        // case value without key:
+        $pattern = "[^$delim\n]+";
+        if (preg_match("/^ ($pattern) (.*) /xms", $rest, $m)) {
+            $value = $m[1];
+            $rest = $m[2];
+        }
+    }
+    $pattern = "^[$delim\n]+";
+    $rest = preg_replace("/$pattern/", '', $rest);
+    return $value;
+} // parseArgValue
 
 
 
@@ -1174,22 +1120,8 @@ function var_r($var, $varName = '', $flat = false)
 
 function reloadAgent($target = false, $getArg = false)
 {
-//    global $lizzy;
-//    if ($target === true) {
-//        $target = $lizzy['requestedUrl'];
-////        $target = $lizzy['requestedUrl'];
-//    } elseif ($target) {
-//        $target = resolvePath($target, false, true);
-//    } else {
-//        $target = $lizzy['pageUrl'];
-//        $target = preg_replace('|/[A-Z][A-Z0-9]{4,}/?$|', '/', $target);
-//    }
-//    if ($getArg) {
-//        setNotificationMsg($getArg);
-//    }
     if (!$target) {
         $target = page()->url();
-//        $target = $_SERVER['REQUEST_URI'];
     }
     header("Location: $target");
     exit;

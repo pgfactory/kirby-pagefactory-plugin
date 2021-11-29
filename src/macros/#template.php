@@ -8,7 +8,6 @@ $macroConfig =  [
         '' => ['', false],
     ],
     'mdCompile' => false,
-    'wrapInComment' => true,
     'summary' => <<<EOT
 [Short description of macro.]
 EOT,
@@ -32,7 +31,10 @@ class >replace with Classname< extends Macros
 
         $arg = $args['arg'];
         $str = '';
-        return$str;
+
+//        $this->mdCompile = true;
+
+    return$str;
     }
 }
 

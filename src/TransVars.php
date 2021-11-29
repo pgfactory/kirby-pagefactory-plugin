@@ -135,12 +135,12 @@ class TransVars
     {
         $html = '';
         $argStr0 = $argStr;
-//        $pfy = $this->pfy;
+        $argStr = str_replace('↵', "\n", $argStr);
         if (strpos($argStr, 'showSource') !== false) {
             $argStr = preg_replace(['/(?<!\\\\)<strong>/', '/(?<!\\\\)<\/strong>/'], '', $argStr);
             $argStr = preg_replace(['/(?<!\\\\)<em>/', '/(?<!\\\\)<\/em>/'], '', $argStr);
         }
-        $args = parseArgumentStr(trim($argStr, "↵\t "));
+        $args = parseArgumentStr($argStr);
 
         if (@$args['showSource']) {
             $html = $this->renderMacroSource($macroName, $argStr0);

@@ -473,22 +473,19 @@ EOT;
 
     private function setLanguageSelector()
     {
-//self::$trans->addVariable('lzy-lang-selection', 'TBD');
-//return;
         $out = '';
-//        $languages = explode(',', $this->supportedLanguages);
-//        if ($languages) {
-            foreach ($this->supportedLanguages as $lang) {
-                $langCode = substr($lang, 0,2);
-                if ($lang === self::$lang) {
-                    $out .= "<span class='lzy-lang-elem lzy-active-lang $langCode'>{{ lzy-lang-select $langCode }}</span>";
-                } else {
-                    $out .= "<span class='lzy-lang-elem $langCode'><a href='?lang=$lang'>{{ lzy-lang-select $langCode }}</a></span>";
-                }
-
+        foreach ($this->supportedLanguages as $lang) {
+            $langCode = substr($lang, 0,2);
+            if ($lang === self::$lang) {
+                $out .= "<span class='lzy-lang-elem lzy-active-lang $langCode'>{{ lzy-lang-select $langCode }}</span>";
+            } else {
+                $out .= "<span class='lzy-lang-elem $langCode'><a href='?lang=$lang'>{{ lzy-lang-select $langCode }}</a></span>";
             }
+
+        }
+        if ($out) {
             $out = "\t<div class='lzy-lang-selection'>$out</div>\n";
-//        }
+        }
 
         self::$trans->addVariable('lzy-lang-selection', $out);
     } // setLanguageSelector
@@ -573,7 +570,7 @@ EOT;
     {
         $content = '';
         if ($this->mdContent) {
-            $content = self::$trans->flattenMacroCalls($this->mdContent);
+            $content = self::$trans->flattenMacroCalls($this->mdContent); // need to flatten so MD doesn't get confused
             $content = $this->kirby->markdown($content);
         }
         $content = $this->content . $content;
@@ -593,15 +590,12 @@ EOT;
         if (!$templateFile) {
             if ($dir = getDir($this->page->root() . '/*.txt')) {
                 $templateFile = 'site/templates/' . basename(end($dir), '.txt') . '.html';
-                if (file_exists($templateFile)) {
-                    $this->templateFile = $templateFile;
-                } else {
-                    $this->templateFile = PFY_DEFAULT_TEMPLATE_FILE;
+                if (!file_exists($templateFile)) {
+                    $templateFile = false;
                 }
             }
-        } else {
-            $this->templateFile = PFY_DEFAULT_TEMPLATE_FILE;
         }
+        $this->templateFile = $templateFile ? $templateFile : PFY_DEFAULT_TEMPLATE_FILE;
     } // determineTemplateFile
 
 
