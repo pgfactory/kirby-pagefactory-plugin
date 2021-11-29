@@ -29,11 +29,14 @@ class Scss
             $i = 0;
             while (isset($files[$i])) {
                 $file = $files[$i];
+                $dir = true;
                 if ($file[strlen($file) - 1] === '*') {
                     $dir = getDir($file);
                     array_splice($files, $i, 1, $dir);
                 }
-                $i++;
+                if ($dir) {
+                    $i++;
+                }
             }
 
             if (!$files) {
