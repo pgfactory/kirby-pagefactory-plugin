@@ -2,12 +2,12 @@
 
 You successfully installed Kirby CMS and PageFactory plugin.
 
-To get started, edit file ``site/home/home.md``
+To modify this page, edit the file ``site/home/home.md``.
 
-{{ vgap }}
+{{ vgap( 2em ) }}
 
-Then, to add additional pages and administre your new website in general, 
+Then, to add additional pages and administer your new website in general, 
 
-&rarr; open {{ space }}[Panel](./panel/)
+&rarr; open the [Panel](./panel/)
 
 Have fun!
