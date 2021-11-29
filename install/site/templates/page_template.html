@@ -6,13 +6,13 @@
 
 	<meta name="viewport" content="width=device-width, user-scalable=yes, initial-scale=1" />
     <meta name="referrer" content="no-referrer">
-    <meta name="generator" content="Kirby" />
-{{^ lzy-head-injections }}
+    <meta name="generator" content="{{ generator }}" />
+{{@ lzy-head-injections }}
 </head>
 
 
 <!-- default-template -->
-<body id='lzy' class='{{^ lzy-body-classes }} lzy-default-layout'{{^ lzy-body-tag-attributes }}>
+<body id='lzy' class='{{@ lzy-body-classes }} lzy-default-layout'{{@ lzy-body-tag-attributes }}>
 
   <div class='lzy-page page'>
 
@@ -38,7 +38,7 @@
 		<!-- <aside class="lzy-sidebar">{{#^ sidebar }}</aside> -->
 
 
-		<footer class="lzy-footer" data-iframe-height=''>
+		<footer class="lzy-footer dispno" data-iframe-height=''>
 			<div class="lzy-footer-left">
 {{^ lzy-logged-in-as-user }}
 {{^ footer }}
@@ -67,7 +67,7 @@
   </div><!-- /.lzy-page -->
 
 
-{{^ lzy-body-end-injections }}
+{{@ lzy-body-end-injections }}
 
 </body>
 </html>
