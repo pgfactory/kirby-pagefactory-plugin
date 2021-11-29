@@ -6,7 +6,7 @@
 
 	<meta name="viewport" content="width=device-width, user-scalable=yes, initial-scale=1" />
     <meta name="referrer" content="no-referrer">
-    <meta name="generator" content="{{ generator }}" />
+    <meta name="generator" content="{{^ generator }}" />
 {{@ lzy-head-injections }}
 </head>
 
@@ -14,7 +14,7 @@
 <!-- default-template -->
 <body id='lzy' class='{{@ lzy-body-classes }} lzy-default-layout'{{@ lzy-body-tag-attributes }}>
 
-  <div class='lzy-page page'>
+  <div class='lzy-page'>
 
  		<header class='lzy-header'>
 
@@ -55,7 +55,6 @@
 
 {{^ lzy-login-button }}
 {{^ lzy-backend-link }}
-<!-- <a href='http://localhost:8888/kirby/panel/site'>Admin</a> -->
 	        </div><!-- /lzy-footer-right -->
 		</footer>
 
