@@ -65,6 +65,7 @@ function loadFile($file, $removeComments = true, $useCaching = false)
 
 
 function loadFiles($files, $removeComments = true, $useCaching = false) {
+    // Note: files of type string and structured data must not be mixed (first file wins).
     if (!$files || !is_array($files)) {
         return null;
     }
@@ -74,12 +75,15 @@ function loadFiles($files, $removeComments = true, $useCaching = false) {
             return $data;
         }
     }
+
     $file1 = @$files[0];
     $ext = fileExt($file1);
     if (strpos(',yaml,yml,json,csv', $ext) !== false) {
         $data = [];
         foreach ($files as $f) {
-            $data = array_merge($data, loadFile($f, $removeComments, false));
+            if ($newData = loadFile($f, $removeComments, false)) {
+                $data = array_merge($data, $newData);
+            }
         }
         if ($useCaching) {
             updateDataCache($file1, $data, '.0');
