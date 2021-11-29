@@ -112,7 +112,7 @@ class PageFactory
 
     public function render($templateFile = false)
     {
-        $this->templateFile = $templateFile? $templateFile : PFY_DEFAULT_TEMPLATE_FILE;
+        $this->determineTemplateFile($templateFile);
 
         $this->loadMdFiles();
 
@@ -588,7 +588,25 @@ EOT;
 
 
 
-    private function setTimezone()
+    private function determineTemplateFile($templateFile)
+    {
+        if (!$templateFile) {
+            if ($dir = getDir($this->page->root() . '/*.txt')) {
+                $templateFile = 'site/templates/' . basename(end($dir), '.txt') . '.html';
+                if (file_exists($templateFile)) {
+                    $this->templateFile = $templateFile;
+                } else {
+                    $this->templateFile = PFY_DEFAULT_TEMPLATE_FILE;
+                }
+            }
+        } else {
+            $this->templateFile = PFY_DEFAULT_TEMPLATE_FILE;
+        }
+    } // determineTemplateFile
+
+
+
+private function setTimezone()
     {
         // first try Session variable:
         $systemTimeZone = @$_SESSION['pfy']['systemTimeZone'];
