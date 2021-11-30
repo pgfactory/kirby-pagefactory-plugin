@@ -1,7 +1,7 @@
 /* Lizzy Core CSS
 CSS-Variables:
 	--lzy-focus-color:
-
+    --lzy-lang-icon-size
 */
 
 @import 'definitions.scss';
@@ -139,8 +139,8 @@ a:focus > .lzy-focus-only-visible {
 	height: 1.4em;
 	width: 1.4em;
 	img {
-		height: 1.4em;
-		width: 1.4em;
+		height: var(--lzy-lang-icon-size, 1.2em);
+		width: var(--lzy-lang-icon-size, 1.2em);
 		border-radius: 50%;
 	}
 	a {
