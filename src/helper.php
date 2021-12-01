@@ -575,7 +575,10 @@ function resolveLinks($html)
 
 function getGitTag($shortForm = true)
 {
-    $str = shell_exec('cd site/plugins/pagefactory/; git describe --tags --abbrev=0; git log --pretty="%ci" -n1 HEAD');
+    $str = shell_exec('cd site/plugins/pagefactory/; /usr/local/bin/git describe --tags --abbrev=0; git log --pretty="%ci" -n1 HEAD');
+    if ($str) {
+        $str = trim($str, "\n");
+    }
     if ($shortForm) {
         return preg_replace("/\n.*/", '', $str);
     } else {
