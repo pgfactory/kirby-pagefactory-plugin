@@ -9,6 +9,7 @@ use Kirby\Cms\Language;
 define('PFY_PLUGIN_PATH',           'site/plugins/pagefactory/');
 define('PFY_DEFAULT_TEMPLATE_FILE', 'site/templates/page_template.html');
 define('PFY_USER_ASSETS_PATH',      'content/assets/');
+define('PFY_CONFIG_FILE',           'site/config/pagefactory.yaml');
 define('PFY_USER_CODE_PATH',        'site/custom/');
 define('PFY_MACROS_PATH',           'site/plugins/pagefactory/src/macros/');
 define('PFY_MACROS_PLUGIN_PATH',    'site/plugins/pagefactory-macros/');
@@ -36,12 +37,11 @@ class PageFactory
 
     public function __construct($pages)
     {
-        //ToDo: How to start session the Kirby way?
-        session_start();
-
+        $this->kirby = kirby();
+        $this->session = $this->kirby->session();
+        $this->getPfyConfig();
         $this->determineDebugState();
 
-        $this->kirby = kirby();
         $this->page = page();
         $this->slug = $this->kirby->path();
         if (preg_match('|^(.*?) / ([A-Z]{5,15})$|x', $this->slug, $m)) {
@@ -54,9 +54,6 @@ class PageFactory
         self::$trans = new TransVars($this);
 
         $this->setTimezone();
-
-        // potentially useful info:
-        $this->visitor = $this->kirby->visitor();
 
         $this->pageParams = $this->page->content()->data();
         $this->determineLanguage();
@@ -178,7 +175,7 @@ EOT;
 
             if (@$this->frontmatter->variables) {
                 foreach ($this->frontmatter->variables as $varName => $value) {
-                    self::$trans->addVariable($varName, $value);
+                    self::$trans->setVariable($varName, $value);
                 }
             }
         }
@@ -194,7 +191,7 @@ EOT;
 
         $content = $this->getContent(); // content of all .md files in page folder
 
-        self::$trans->addVariable('content', $content);
+        self::$trans->setVariable('content', $content);
 
         // repeat until no more variables appear in html:
         while (preg_match('/(?<!\\\){{/', $html)) {
@@ -302,34 +299,42 @@ EOT;
 
     private function setStandardVariables()
     {
-        self::$trans->addVariable('nav', $this->getNav());
+        self::$trans->setVariable('nav', $this->getNav());
 
         $this->setBodyClasses();
         $this->setBodyAttributes();
         $this->setLanguageSelector();
 
         $appUrl = site()->url();
-        self::$trans->addVariable('lzy-backend-link', "<a href='$appUrl/panel' target='_blank'>Admin</a>");
         $siteTitle = site()->title()->value();
-        self::$trans->addVariable('lzy-site-title', $siteTitle);
-        self::$trans->addVariable('lzy-page-title', $this->page->title() . ' / ' . $siteTitle);
+        self::$trans->setVariable('lzy-site-title', $siteTitle);
+        self::$trans->setVariable('lzy-page-title', $this->page->title() . ' / ' . $siteTitle);
         $siteAttributes = site()->content()->data();
 
         foreach ($siteAttributes as $key => $value) {
             if ($key !== 'supportedlanguages') {
                 $key = str_replace('_', '-', $key);
-                self::$trans->addVariable($key , (string)$value);
+                self::$trans->setVariable($key , (string)$value);
             }
         }
 
-        //        $gitTag = @file_get_contents(PFY_CACHE_PATH.'gitTag.txt');
-        //        if (!$gitTag) {
-        //            $gitTag = getGitTag();
-        //            file_put_contents(PFY_CACHE_PATH.'gitTag.txt', $gitTag);
-        //        }
-        $version = 'Kirby v'. Kirby::version(). ' + PageFactory ';
-        // $version = 'Kirby v'. Kirby::version(). " + PageFactory $gitTag"; //ToDo: activate when checked in
-        self::$trans->addVariable('generator', $version);
+        $gitTag = @file_get_contents(PFY_CACHE_PATH.'gitTag.txt');
+        if ($gitTag === false) {
+            $gitTag = getGitTag();
+            file_put_contents(PFY_CACHE_PATH.'gitTag.txt', $gitTag);
+        }
+         $version = 'Kirby v'. Kirby::version(). " + PageFactory $gitTag";
+        self::$trans->setVariable('generator', $version);
+        $user = kirby()->user();
+        if ($user) {
+            $username = (string)$user->nameOrEmail();
+            self::$trans->setVariable('user', $username);
+        } else {
+            self::$trans->setVariable('lzy-logged-in-as-user', "<a href='$appUrl/login'>Login</a>");
+        }
+        if (isAdmin()) {
+            self::$trans->setVariable('lzy-backend-link', "<a href='$appUrl/panel' target='_blank'>Admin-Panel</a>");
+        }
     } // setStandardVariables
 
 
@@ -357,11 +362,36 @@ $css
 EOT;
         }
 
-        self::$trans->addVariable('lzy-head-injections', $out);
+        $out .= $this->getHeaderElem('description');
+        $out .= $this->getHeaderElem('keywords');
+        $out .= $this->getHeaderElem('author');
+
+        self::$trans->setVariable('lzy-head-injections', $out);
         $bodyClasses = $this->bodyTagClasses? $this->bodyTagClasses: 'lzy-large-screen';
-        self::$trans->addVariable('lzy-body-classes', $bodyClasses);
-        self::$trans->addVariable('lzy-body-tag-attributes', $this->bodyTagAttributes);
+        if (self::$debug) {
+            $bodyClasses = trim("debug $bodyClasses");
+        }
+        self::$trans->setVariable('lzy-body-classes', $bodyClasses);
+        self::$trans->setVariable('lzy-body-tag-attributes', $this->bodyTagAttributes);
     } // applyHeadInjections
+
+
+
+    private function getHeaderElem($name, $default = '')
+    {
+        // checks page-attrib, then site-attrib for requested keyword and returns it
+        if (!$out = $this->page->$name()->value()) {
+            $out = $this->site->$name()->value();
+        }
+        if ($out) {
+            $out = <<<EOT
+     <meta name="$name" content="$out">
+EOT;
+            return $out;
+        } else {
+            return $default;
+        }
+    } // getHeaderElem
 
 
 
@@ -428,7 +458,7 @@ $jq
 
 EOT;
         }
-        self::$trans->addVariable('lzy-body-end-injections', $out);
+        self::$trans->setVariable('lzy-body-end-injections', $out);
     } // applyBodyEndInjections
 
 
@@ -459,14 +489,14 @@ EOT;
 
     private function setBodyClasses()
     {
-        self::$trans->addVariable('lzy-body-classes', $this->bodyTagClasses);
+        self::$trans->setVariable('lzy-body-classes', $this->bodyTagClasses);
     } // setBodyClasses
 
 
 
     private function setBodyAttributes()
     {
-        self::$trans->addVariable('lzy-body-tag-attributes', $this->bodyTagAttributes);
+        self::$trans->setVariable('lzy-body-tag-attributes', $this->bodyTagAttributes);
     } // setBodyAttributes
 
 
@@ -484,22 +514,26 @@ EOT;
 
         }
         if ($out) {
-            $out = "\t<div class='lzy-lang-selection'>$out</div>\n";
+            $out = "\t<span class='lzy-lang-selection'>$out</span>\n";
         }
 
-        self::$trans->addVariable('lzy-lang-selection', $out);
+        self::$trans->setVariable('lzy-lang-selection', $out);
     } // setLanguageSelector
 
 
 
     private function determineLanguage(): void
     {
+        $lang = false;
         $languagesObj = kirby()->languages();
         $supportedLanguages = $this->supportedLanguages = $languagesObj->codes();
         if ($supportedLanguages) {
-            if (!$lang = kirby()->language()->code()) {
-                $lang = kirby()->defaultLanguage();
-            }
+            $lang = kirby()->language()->code();
+    //ToDo: how to take user's language preference into account?
+    //            $lang = $this->kirby->visitor()->acceptedLanguage()->code(); // lagunage prefered by user
+    //            if (!in_array($lang, $supportedLanguages)) {
+    //                $lang = (string)kirby()->defaultLanguage();
+    //            }
         } else {
             $lang = 'en';
             $supportedLanguages[] = 'en';
@@ -509,11 +543,13 @@ EOT;
             self::$lang = $lang;
             self::$langCode = $langCode = substr($lang, 0, 2);
             if (!in_array($langCode, $supportedLanguages)) {
-                die("Error: language not defined (see)");
+                die("Error: language not defined");
             }
         } else {
-            die("Error: language not defined (see)");
+            die("Error: language not defined");
         }
+
+        // check whether user requested a language explicitly via url-arg:
         if ($lang = @$_GET['lang']) {
             if (in_array($langCode, $supportedLanguages)) {
                 self::$lang = $lang;
@@ -521,22 +557,38 @@ EOT;
                 kirby()->setCurrentLanguage(self::$langCode);
             }
         }
-        self::$trans->addVariable('lang', self::$langCode);
+        self::$trans->setVariable('lang', self::$langCode);
     } // determineLanguage
 
 
 
     private function determineDebugState()
     {
-        self::$debug = @$_GET['debug'];
-        if (self::$debug === 'false') {
-            self::$debug = false;
-        } elseif ((self::$debug === null) && @$_SESSION['pfy']['debug']) {
-            self::$debug = true;
-        } else {
-            self::$debug = (self::$debug !== 'false');
+        // Note: PageFactory maintains its own "debug" state, which diverges slightly from Kirby's.
+        // enter debug state, if:
+        // - on localhost:
+        //      - true, unless $userDebugRequest or $kirbyDebugState explicitly false
+        // - on productive host:
+        //      - false unless
+        //          - $kirbyDebugState explicitly true
+        //          - logged in as admin and $userDebugRequest true -> remember as long as logged in
+        $debug = false;
+        $kirbyDebugState = @(kirby()->options())['debug'];
+        if ($kirbyDebugState !== null) {
+            $debug = $kirbyDebugState;
+
+        } elseif (isLocalhost() || isAdmin()) {
+            $debug = @$_GET['debug'];
+            if ($debug === 'false') {
+                $debug = false;
+            } elseif (($debug === null) && $this->session->get('pfy.debug')) {
+                $debug = true;
+            } else {
+                $debug = ($debug !== 'false');
+            }
         }
-        $_SESSION['pfy']['debug'] = self::$debug;
+        self::$debug = $debug;
+        $this->session->set('pfy.debug', $debug);
     } // determineDebugState
 
 
@@ -585,6 +637,16 @@ EOT;
 
 
 
+    private function getPfyConfig()
+    {
+        $this->config = loadFile('site/config/pagefactory.yaml');
+        if (!$this->config) {
+            $this->config = [];
+        }
+    } // getPfyConfig
+
+
+
     private function determineTemplateFile($templateFile)
     {
         if (!$templateFile) {
@@ -600,34 +662,20 @@ EOT;
 
 
 
-private function setTimezone()
+    private function setTimezone()
     {
-        // first try Session variable:
-        $systemTimeZone = @$_SESSION['pfy']['systemTimeZone'];
-
-        // if not defined, try to read it from config.yaml:
-        if (!$systemTimeZone) {
-            $config = file_get_contents('content/site.txt');
-            $config1 = zapFileEND($config);
-            $config1 = removeHashTypeComments($config1);
-            if (preg_match('|site_timeZone:\s*([\w/]*)|ms', $config1, $m)) {
-                $systemTimeZone = $m[1];
+        // check whether timezone is properly set (e.g. "UTC" is not sufficient):
+        $systemTimeZone = date_default_timezone_get();
+        if (!preg_match('|\w+/\w+|', $systemTimeZone)) {
+            // check whether timezone is defined in PageFactory's config settings:
+            $systemTimeZone = @$this->config['timezone'];
+            if (!$systemTimeZone) {
+                $systemTimeZone = $this->getServerTimezone();
+                appendFile(PFY_CONFIG_FILE, "\n# Autmatically set by PageFactory:\ntimezone: $systemTimeZone\n\n",
+                    "# Configuration file for PageFactory plugin\n\n");
             }
+            \Kirby\Toolkit\Locale::set($systemTimeZone);
         }
-        // if not defined yet, try to obtain it automatically:
-        if (!$systemTimeZone) {
-            $systemTimeZone = $this->getServerTimezone();
-            $config = "\n\n----\nsite_timeZone: $systemTimeZone     # autmatically set to timezone of webhost\n";
-            file_put_contents('content/site.txt', $config, FILE_APPEND);
-        }
-        if (!$systemTimeZone) {
-            die("Error: 'site_timeZone' entry missing in config/config.yaml");
-        }
-
-        // activate timezone:
-        \Kirby\Toolkit\Locale::set($systemTimeZone);
-        $_SESSION['pfy']['systemTimeZone'] = $systemTimeZone;
-
         return $systemTimeZone;
     } // setTimezone
 
