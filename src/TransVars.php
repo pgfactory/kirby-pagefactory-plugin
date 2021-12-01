@@ -24,20 +24,21 @@ class TransVars
 
 
 
-    public function addVariable($varName, $value, $lang = false)
+    public function setVariable($varName, $value, $lang = false)
     {
         $lang = $this->extractLang($varName, $lang);
 
         if (is_array($value)) {
             self::$transVars[$varName] = array_merge(self::$transVars[$varName], $value);
         } elseif (is_string($value)) {
+            unset(self::$transVars[$varName]);
             if (!$lang) {
                 self::$transVars[$varName]['_'] = $value;
             } else {
                 self::$transVars[$varName][$lang] = $value;
             }
         }
-    } // addVariable
+    } // setVariable
 
 
 
@@ -54,7 +55,7 @@ class TransVars
                 self::$transVars[$varName][$lang] .= $value;
             }
         }
-    } // addVariable
+    } // setVariable
 
 
 
