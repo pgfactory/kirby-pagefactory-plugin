@@ -4,7 +4,7 @@ namespace Usility\PageFactory;
 /*
  * MarkdownPlus extends \cebe\markdown\MarkdownExtra
  * Why not Kirby's native ParsedownExtra?
- *  -> no access to array of lines -> not possible to inject lines
+ *  -> no access to array of lines surrounding current line -> not possible to inject lines
  *  -> required by DivBlock pattern
  */
 
@@ -689,9 +689,8 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
         $files = page()->files()->filterBy('extension', 'jpg');
         $file = $files->find($src);
         $file = $file->resize(200);
-//ToDo; apply $alt attribute
-//ToDo: wrap <figure> if $caption
-        return (string) $file;
+        $html = $file->html(['alt' => $alt]);
+        return $html;
     } // renderImage
 
 
@@ -745,6 +744,14 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
 
         $str = $this->handleOLstart($str);
 
+        // check for smartypants, get them compiled:
+        if (@(kirby()->options())['smartypants']) {
+            // we need to hide MarkdownPlus' tabulator pattern "\t>> " from SmartyPants:
+            $str = preg_replace("/(\t|\s{4,})>>\s/", '@@gt@@', $str);
+            $str = smartypants($str);
+            $str = str_replace('@@gt@@', "\t>> ", $str); // revert shielding
+        }
+
         return $str;
     } // preprocess
 
@@ -755,6 +762,15 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
 
         // lines that contain but a variable or macro (e.g. "<p>{{ lorem( help ) }}</p>") -> remove enclosing P-tags:
         $str = preg_replace('|<p> ({{ .*? }}) </p>|xms', "$1", $str);
+
+        // check for kirbytags, get them compiled:
+        if (preg_match_all('/(\(\w*:.*?\))/ms', $str, $m)) {
+            foreach ($m[1] as $i => $value) {
+                $value = strip_tags(str_replace("\n",' ', $value));
+                $str1 = kirby()->kirbytags($value);
+                $str = str_replace($m[0][$i], $str1, $str);
+            }
+        }
 
         $str = $this->catchAndInjectTagAttributs($str); // ... {.cls}
 
@@ -933,7 +949,7 @@ EOT;
                     $withinEot = false;
                     $textBlock = str_replace("'", '&apos;', $textBlock); //??? check!
                     $textBlock = compileMarkdown($textBlock);
-                    $this->trans->addVariable($var, $textBlock);
+                    $this->trans->setVariable($var, $textBlock);
                 } else {
                     $textBlock .= $l."\n";
                 }
@@ -953,7 +969,7 @@ EOT;
                     $val = $this->trans->translate($val);
                 }
                 $val = $this->replaceMdVariables($val);
-                $this->trans->addVariable($var, $val);
+                $this->trans->setVariable($var, $val);
                 continue;
             }
             if ($l && (($p = strpos($l, '$')) !== false)) {
@@ -997,14 +1013,14 @@ EOT;
                             $p = $p - 2;
                             if (preg_match('/^-?[\d.]$/', $val)) {
                                 $val =  (string) (intval($val) + 1);
-                                $this->trans->addVariable($varName, $val);
+                                $this->trans->setVariable($varName, $val);
                             }
                         } elseif (($p > 2) && (substr($l, $p-2, 2) === '--')) {
                             $l = substr($l, 0, $p-2) . substr($l, $p);
                             $p = $p - 2;
                             if (preg_match('/^-?[\d.]$/', $val)) {
                                 $val = (string) (intval($val) - 1);
-                                $this->trans->addVariable($varName, $val);
+                                $this->trans->setVariable($varName, $val);
                             }
                         }
 
@@ -1012,12 +1028,12 @@ EOT;
                         if (strpos($rest, '++') === 0) {
                             $rest = substr($rest, 2);
                             if (preg_match('/^-?[\d.]$/', $val)) {
-                                $this->trans->addVariable($varName, (string) (intval($val) + 1));
+                                $this->trans->setVariable($varName, (string) (intval($val) + 1));
                             }
                         } elseif (strpos($rest, '--') === 0) {
                             $rest = substr($rest, 2);
                             if (preg_match('/^-?[\d.]$/', $val)) {
-                                $this->trans->addVariable($varName, (string) (intval($val) - 1));
+                                $this->trans->setVariable($varName, (string) (intval($val) - 1));
                             }
                         }
                         $l = substr($l, 0, $p) . $val . $rest;
@@ -1042,7 +1058,7 @@ EOT;
                     } elseif (preg_match('/^ (\w+?) \s* = \s* (.*)/x', $varName, $mmm)) {
                         $varName = $mmm[1];
                         $val = $mmm[2];
-                        $this->trans->addVariable($varName, $val);
+                        $this->trans->setVariable($varName, $val);
                         $rest = $mm[2];
 
                         // increment/decrement:
@@ -1057,17 +1073,17 @@ EOT;
                         $rest = $mm[4];
                         if ($op1 === '++') {
                             $val = (string)($val + 1);
-                            $this->trans->addVariable($varName, $val);
+                            $this->trans->setVariable($varName, $val);
                         } elseif ($op1 === '--') {
                             $val = (string)($val - 1);
-                            $this->trans->addVariable($varName, $val);
+                            $this->trans->setVariable($varName, $val);
                         }
 
                         if ($op2 === '++') {
-                            $this->trans->addVariable($varName, (string)($val + 1));
+                            $this->trans->setVariable($varName, (string)($val + 1));
 
                         } elseif ($op2 === '--') {
-                            $this->trans->addVariable($varName, (string)($val - 1));
+                            $this->trans->setVariable($varName, (string)($val - 1));
                         }
                     }
                     $l = substr($l, 0, $p) . $val . $rest;
