@@ -529,8 +529,8 @@ lzy-logged-in-as:
     _: Logged in as
 
 lzy-logged-in-as-user:
-    de: Angemeldet als {{ user }}
-    _: Logged in as {{ user }}
+    de: 'Angemeldet als <span class="lzy-user-name">{{^ user }}</span>'
+    _: 'Logged in as <span class="lzy-user-name">{{^ user }}</span>'
 
 lzy-not-logged-in:
     de: Nicht angemeldet

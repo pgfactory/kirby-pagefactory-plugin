@@ -6,7 +6,7 @@
 
 	<meta name="viewport" content="width=device-width, user-scalable=yes, initial-scale=1" />
     <meta name="referrer" content="no-referrer">
-    <meta name="generator" content="{{^ generator }}" />
+    <meta name="generator" content="{{ generator }}" />
 {{@ lzy-head-injections }}
 </head>
 
@@ -14,7 +14,7 @@
 <!-- default-template -->
 <body id='lzy' class='{{@ lzy-body-classes }} lzy-default-layout'{{@ lzy-body-tag-attributes }}>
 
-  <div class='lzy-page'>
+  <div class='lzy-page page'>
 
  		<header class='lzy-header'>
 
@@ -38,9 +38,9 @@
 		<!-- <aside class="lzy-sidebar">{{#^ sidebar }}</aside> -->
 
 
-		<footer class="lzy-footer dispno" data-iframe-height=''>
+		<footer class="lzy-footer" data-iframe-height=''>
 			<div class="lzy-footer-left">
-{{^ lzy-logged-in-as-user }}
+{{^ lzy-logged-in-as-user }} <!-- <a href='./logout'>Logout<a> -->
 {{^ footer }}
 				<div class="lzy-large-only">{{^ large-screen-footer-left }}</div>
 				<div class="lzy-small-only">{{^ small-screen-footer }}</div>
@@ -51,7 +51,7 @@
 			</div>
 
 	        <div class='lzy-footer-right'>
-{{^ lzy-lang-selection }} {{^ lzy-login-button }} {{^ lzy-backend-link }}
+{{^ lzy-lang-selection }}{{^ lzy-login-button }}{{^ lzy-backend-link }}
 	        </div><!-- /lzy-footer-right -->
 		</footer>
 
