@@ -17,6 +17,50 @@ function isLocalhost()
 
 
 
+function isLoggedIn()
+{
+    return (kirby()->user() !== null);
+} // isLoggedin
+
+
+
+function isAdmin()
+{
+    $user = kirby()->user();
+    if ($user !== null) {
+        $role = (string)$user->role();
+        if ($role === 'admin') {
+            return true;
+        }
+    }
+    return false;
+} // isAdmin
+
+
+
+function appendFile($file, $str, $headerIfEmpty = '')
+{
+    if (!$file || !is_string($file)) {
+        return '';
+    }
+
+    $file = resolvePath($file);
+    preparePath($file);
+    $data = @file_get_contents($file);
+    if (!$data) {
+        file_put_contents($file, $headerIfEmpty . $str);
+
+    } elseif (($p = strpos($data, '__END__')) === false) {
+        file_put_contents($file, $str, FILE_APPEND);
+
+    } else {
+        $str = substr($data, 0, $p) . $str . substr($data, $p);
+        file_put_contents($file, $str);
+    }
+} // appendFile
+
+
+
 function loadFile($file, $removeComments = true, $useCaching = false)
 {
     if (!$file || !is_string($file)) {
