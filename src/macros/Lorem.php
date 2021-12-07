@@ -60,7 +60,7 @@ class Lorem extends Macros
             if ($dot && ($n > 3)) {
                 $str .= '.';
             }
-            $str = strtoupper($str[0]).substr($str, 1);
+            $str = ucfirst($str);
         }
         if ($wrapper) {
             $class = trim("lzy-lorem lzy-lorem-$inx $class");

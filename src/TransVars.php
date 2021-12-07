@@ -10,6 +10,7 @@ class TransVars
     private $macros = null;
     public $lang;
     public $langCode;
+    private $extractedVars = [];
 
     public function __construct($pfy)
     {
@@ -59,92 +60,64 @@ class TransVars
 
 
 
-    public function translate($html, $unShield = false)
+    public function translate($str, $unShield = false)
     {
-        if (preg_match_all('/ (?<!\\\) {{ (.*?) }}/xms', $html, $m)) {
-            foreach ($m[1] as $i => $value) {
-                $this->hideIfNotDefined = false;
-                $varName = trim($m[1][$i]);
+        $str = PageFactory::$trans->reInjectVars($str);
+        list ($p1, $p2) = strPosMatching($str);
+        while ($p1) {
+            $s1 = substr($str, 0, $p1);
+            $s2 = substr($str, $p1+2, $p2-$p1-2);
+            $s2 = str_replace(["\n", "\t"], ['↵', '    '], $s2);
+            $s3 = substr($str, $p2+2);
 
-                // note: modifier '@' is handled by PageFactory->assembleHtml()
+            if (preg_match('/^([#^]*) \s* ([\w.-]+) (.*)/x', $s2, $m)) {
+                $modif = $m[1];
+                $varName = $m[2];
+                $argStr = $m[3];
 
-                if ($varName[0] === '#') {
-                    $html = str_replace($m[0][$i], '', $html);
+                if (@$modif[0] === '#') {
+                    $str = $s1.$s3;
                     continue;
 
-                } elseif ($varName[0] === '^') {
-                    $varName = trim(substr($varName,1));
+                } elseif ($modif === '^') {
                     $this->hideIfNotDefined = true;
                 }
-
-                // translate Macro:
-                if (preg_match('/^(\w+) \((.*) \) \s* $/xms', $varName, $mm)) {
-                    $macroRes = $this->translateMacro($mm[1], $mm[2]);
-                    $html = str_replace($m[0][$i], $macroRes, $html);
-
-                // translate Variable:
+                if (trim($argStr)) {
+                    $argStr = rtrim($argStr);
+                    $argStr = trim($argStr, '()↵');
+                    $s2 = $this->translateMacro($varName, $argStr);
                 } else {
-                    $val = $this->translateVariable($varName);
-                    if ($val !== false) {
-                        $html = str_replace($m[0][$i], $val, $html);
-
-                    // if not found among variables, maybe it was an macro without arguments:
-                    } elseif ($val = $this->translateMacro($varName, '' )) {
-                        $html = str_replace($m[0][$i], $val, $html);
-
-                    } elseif ($this->hideIfNotDefined) {
-                        $html = str_replace($m[0][$i], '', $html);
-                    } else {
-                        $html = str_replace($m[0][$i], $varName, $html);
-                    }
+                    $s2 = $this->translateVariable($varName);
                 }
-            }
-        } elseif (preg_match_all('/ \((\w+): (.*?) \)/xms', $html, $m)) {
-            foreach ($m[1] as $i => $ktName) {
-                $argStr = $m[2][$i];
-                if (preg_match('/(.*?) \[ (.*?) ] (.*)/x', $argStr, $mmm)) {
-                    $s1 = $mmm[1];
-                    $size = explode('x',$mmm[2]);
-                    $width = intval(@$size[0]);
-                    if (!$width) { $width = null; }
-                    $height = intval(@$size[1]);
-                    if (!$height) { $height = null; }
-                    $s3 = $mmm[3];
-                    $argStr = trim("$s1$s3");
-                    $file = preg_replace('/(\s+.*)/', '', $argStr);
-                    $imgFile = image($file);
-                    if ($imgFile && ($width || $height)) {
-                        $imgHtml = (string) $imgFile->resize($width, $height);
-                    } else {
-                        $imgHtml = (string)$imgFile;
-                    }
-              }
-                $html = str_replace($m[0][$i], $imgHtml, $html);
-            }
-        }
 
-
-        if ($unShield) {
-            $html = str_replace('\\{', '{', $html);
+            } else {
+                return $str;
+            }
+            $str = "$s1$s2$s3";
+            list ($p1, $p2) = strPosMatching($str);
         }
-        return $html;
+        return $str;
     } // translate
 
 
 
     private function translateMacro($macroName, $argStr)
     {
-        $html = '';
+        $macroName = strtolower(str_replace('-', '', $macroName));
+        $str = '';
         $argStr0 = $argStr;
-        $argStr = str_replace('↵', "\n", $argStr);
+        $argStr = str_replace(['↵',"\t"], ["\n",'    '], $argStr);
+
+        $showSource = false;
         if (strpos($argStr, 'showSource') !== false) {
             $argStr = preg_replace(['/(?<!\\\\)<strong>/', '/(?<!\\\\)<\/strong>/'], '', $argStr);
             $argStr = preg_replace(['/(?<!\\\\)<em>/', '/(?<!\\\\)<\/em>/'], '', $argStr);
+            $showSource = true;
         }
-        $args = parseArgumentStr($argStr);
+        $args = parseArgumentStr($argStr, ',', ['!!', '%%']);
 
-        if (@$args['showSource']) {
-            $html = $this->renderMacroSource($macroName, $argStr0);
+        if ($showSource) {
+            $str = $this->renderMacroSource($macroName, $argStr0);
         }
 
         // is it a KerbyText call?
@@ -154,19 +127,19 @@ class TransVars
                 $a .= " $k: $v";
             }
             $out = "($macroName: $a)";
-            $html .= kirbytext($out);
+            $str .= kirbytext($out);
 
         } else {
-            $html .= $this->macros->execute($macroName, $args, $argStr);
-            if ($html !== null) {
-                return  $html;
+            $str .= $this->macros->execute($macroName, $args, $argStr);
+            if ($str !== null) {
+                return  $str;
             } elseif ($this->hideIfNotDefined) {
                 return '';
             } else {
                 return null;
             }
         }
-        return $html;
+        return $str;
     } // translateMacro
 
 
@@ -200,17 +173,49 @@ class TransVars
 
 
 
+    public function extractVars($str)
+    {
+        $vars = &$this->extractedVars;
+        list($p1, $p2) = strPosMatching($str);
+        while ($p1) {
+            $s1 = substr($str, 0, $p1);
+            $s2 = substr($str, $p1+2, $p2-$p1-2);
+            $s3 = substr($str, $p2+2);
+            $s2 = str_replace(["\n", "\t"], ['↵', '    '], $s2);
+            $inx = crc32($s2);
+            $vars[$inx] = $s2;
+            $str = "$s1{!%$inx%!}$s3";
+            list($p1, $p2) = strPosMatching($str);
+        }
+        return $str;
+    } // extractVars
+
+
+
+    public function reInjectVars($str)
+    {
+        $vars = &$this->extractedVars;
+        if (preg_match_all('/{!%(\d+)%!}/', $str, $m)) {
+            foreach ($m[1] as $i => $s) {
+                $inx = $m[1][$i];
+                $var = "{{ {$vars[$inx]} }}";
+                $str = str_replace($m[0][$i], $var, $str);
+            }
+        }
+        return $str;
+    } // reInjectVars
+
+
     public function flattenMacroCalls($mdStr)
     {
-        // within macro arguments, replace all \n with ↵:
-        if (preg_match_all('/{{ (.*?) }}/xms', $mdStr, $m)) {
-            foreach ($m[1] as $i => $item) {
-                if (preg_match('/^ ([#^]? \s* [\w-]+) \((.*) \) \s* $/xms', $item, $mm)) {
-                    $macroName = str_replace('-', '', $mm[1]);
-                    $argStr = str_replace("\n", "↵", $mm[2]);
-                    $mdStr = str_replace($m[0][$i], '{{'."$macroName($argStr) }}", $mdStr);
-                }
-            }
+        list($p1, $p2) = strPosMatching($mdStr);
+        while ($p1) {
+            $s1 = substr($mdStr, 0, $p1);
+            $s2 = substr($mdStr, $p1+2, $p2-$p1-2);
+            $s3 = substr($mdStr, $p2+2);
+            $s2 = str_replace("\n", '↵', $s2);
+            $mdStr = "$s1{{{$s2}}}$s3";
+            list($p1, $p2) = strPosMatching($mdStr, $p2 + 2, '{{', '}}');
         }
         return $mdStr;
     } // flattenMacroCalls
@@ -227,7 +232,7 @@ class TransVars
     private function loadTransVarsFromFile($file)
     {
         $data = loadFiles($file, true, true);
-        self::$transVars = array_merge(self::$transVars, $data);
+        self::$transVars = array_merge_recursive(self::$transVars, $data);
     } // loadTransVarsFromFile
 
 

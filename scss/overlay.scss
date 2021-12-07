@@ -1,0 +1,40 @@
+/* ===  Overlays ================ */
+#lzy .lzy-encapsulated,
+& {
+
+  .lzy-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: calc(100vw - 30px);
+    height: calc(100vh - 20px);
+    margin: 10px;
+    padding: 20px;
+    color: black;
+    background: #eee;
+    border: 1px solid red;
+    box-shadow: 0 0 15px 5px #444;
+    box-sizing: border-box;
+    overflow: auto;
+    z-index: 100;
+  }
+
+  .lzy-close-overlay {
+    float: right;
+    margin: -15px -15px 10px 10px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16pt;
+    width: 2em;
+    height: 2em;
+  }
+
+
+  /* === Override page =================================== */
+  .lzy-overridden {
+    padding: 2em;
+  }
+
+}
+
+

@@ -4,8 +4,7 @@ CSS-Variables:
     --lzy-lang-icon-size
 */
 
-@import 'definitions.scss';
-/*@import 'site/plugins/lizzy/scss/definitions.scss';*/
+@import '--definitions.scss';
 
 /* === General =============================== */
 html {

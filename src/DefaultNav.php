@@ -5,7 +5,7 @@ namespace Usility\PageFactory;
 define('NAV_ARROW', '<span>&#9727;</span>');
 
 
-class Nav
+class DefaultNav
 {
     public function __construct($pfy)
     {
@@ -13,13 +13,17 @@ class Nav
         $this->page = $pfy->page;
         $this->site = $pfy->site;
         $this->arrow = NAV_ARROW;
-        $pfy->jsFiles[] = 'site/plugins/pagefactory/js/nav.js';
-        $pfy->js .= "var screenSizeBreakpoint = 480;\n";
+        $pfy->pg->addJqFiles('site/plugins/pagefactory/js/nav.js');
+//        $pfy->pg->addJs("var screenSizeBreakpoint = 480;");
     } // __construct
 
 
 
-    public function render()
+    /**
+     * Renders the default nav menu
+     * @return string
+     */
+    public function render(): string
     {
         $elem = $this->site->children();
         $out = $this->_render($elem);
@@ -29,7 +33,7 @@ class Nav
 
         $out = <<<EOT
 <div id='lzy-primary-nav' class='lzy-nav-wrapper lzy-primary-nav'>
-	  <nav class='lzy-nav lzy-nav-colored lzy-nav-top-horizontal lzy-nav-indented lzy-nav-accordion lzy-nav-collapsed lzy-nav-animated lzy-nav-hoveropen lzy-encapsulated lzy-nav-small-tree'>
+	  <nav class='lzy-nav lzy-nav-top-horizontal lzy-nav-indented lzy-nav-accordion lzy-nav-collapsed lzy-nav-animated lzy-nav-hoveropen lzy-encapsulated lzy-nav-small-tree'>
 $out
     </nav>
 </div>
@@ -39,7 +43,12 @@ EOT;
 
 
 
-    private function _render($subtree)
+    /**
+     * Recursively renders nav for a sub-tree
+     * @param $subtree
+     * @return string
+     */
+    private function _render($subtree): string
     {
         $out = '';
         foreach ($subtree->listed() as $p) {
@@ -75,6 +84,6 @@ EOT;
         $out = "\t<ol>\n".$out;
         $out .= "\t</ol>\n";
         return $out;
-    }
+    } // _render
 
-} // Nav
+} // DefaultNav

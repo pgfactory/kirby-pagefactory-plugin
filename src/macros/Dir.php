@@ -3,6 +3,7 @@
 namespace Usility\PageFactory\Macros;
 
 use \Usility\PageFactory;
+use Exception;
 
 $macroConfig =  [
     'name' => strtolower( $macroName ),
@@ -155,7 +156,8 @@ class Dir extends Macros
             }
             $url = $this->parseUrlFile($file);
             if ($url) { // it's a link file (.url or .webloc):
-                die("not implemented yet: Dir() -> .lnk/.webloc files");
+//ToDo:
+                throw new Exception("not implemented yet: Dir() -> .lnk/.webloc files");
 //                $name = base_name($file, false);
 //                require_once SYSTEM_PATH.'link.class.php';
 //                $lnk = new CreateLink($this->lzy);

@@ -3,6 +3,8 @@
 namespace Usility\PageFactory\Macros;
 
 use Usility\PageFactory\PageFactory as PageFactory;
+use function Usility\PageFactory\explodeTrim;
+
 
 class Macros
 {
@@ -18,6 +20,7 @@ class Macros
     protected $page;
     protected $pages;
     protected $trans;
+
 
     public function __construct($pfy = null)
     {
@@ -61,12 +64,19 @@ class Macros
     } // __construct
 
 
-
-    public function execute($macroName, $args, $argStr)
+    /**
+     * Executes the macro call, provided that a corresponding macro object could be found.
+     * @param string $macroName Name of the macro
+     * @param array $args       array of arguments
+     * @param string $argStr    arguments in string form (in case showSource is active)
+     * @return string|null
+     */
+    public function execute(string $macroName, array $args, string $argStr): ?string
     {
-        $html = null;
+        $str = null;
         $helpText = false;
         $macroObj = null;
+        $macroName = strtolower(str_replace('-', '', $macroName));
         $thisMacroName = 'Usility\\PageFactory\\Macros\\' . ucfirst( $macroName );
         if (isset($this->registeredMacros[ $macroName ])) {
             $macroObj = $this->registeredMacros[ $macroName ];
@@ -84,8 +94,8 @@ class Macros
         if ($macroObj) {
             if (@$args[0] === 'help') {
                 $helpText = $this->renderHelpText($macroObj);
-                $html = \Usility\PageFactory\compileMarkdown("\n$html\n\n\n$helpText");
-                return $html;
+                $str = \Usility\PageFactory\compileMarkdown("\n$str\n\n\n$helpText");
+                return $str;
 
             } else {
                 $args = $this->fixArgs($args, $macroObj['parameters']);
@@ -93,31 +103,48 @@ class Macros
             if (!method_exists($macroObj['macroObj'], 'render')) {
                 return null;
             }
-            $html = $macroObj['macroObj']->render($args, $argStr);
+            $str = $macroObj['macroObj']->render($args, $argStr);
+
+            // mdCompile if requested:
+            if (@$macroObj['assetsToLoad']) {
+                if (strpos($macroObj['assetsToLoad'], 'jquery') !== false) {
+                    $this->pfy->jQueryActive = true;
+                }
+                $assetsToLoad = explodeTrim(',', $macroObj['assetsToLoad']);
+                foreach ($assetsToLoad as $asset) {
+                    $this->pfy->pg->addAssets(basename($asset));
+                }
+            }
 
             // mdCompile if requested:
             if (@$macroObj['mdCompile'] || $macroObj['macroObj']->get('mdCompile')) {
-                $html = \Usility\PageFactory\compileMarkdown($html);
+                $str = \Usility\PageFactory\compileMarkdown($str);
             }
 
             // wrap in comment if requested:
             if (@$macroObj['wrapInComment'] || $macroObj['macroObj']->get('wrapInComment')) {
-                $html = <<<EOT
+                $str = <<<EOT
 
 <!-- $macroName() -->
-$html
+$str
 <!-- /$macroName() -->
 
 EOT;
             }
-            return $html;
+            return $str;
         }
         return null;
     } // execute
 
 
 
-    private function fixArgs($args, $argDefs)
+    /**
+     * Cycles through the args array: where key is missing, restores it based on the argument's position.
+     * @param array $args
+     * @param array $argDefs
+     * @return array
+     */
+    private function fixArgs(array $args, array $argDefs): array
     {
         $argKeys = array_keys($argDefs);
         foreach ($args as $k => $v) {
@@ -138,7 +165,12 @@ EOT;
 
 
 
-    private function renderHelpText($macroObj)
+    /**
+     * Renders help-test for given macro: the summary combined with the parameter descriptions.
+     * @param object $macroObj
+     * @return string
+     */
+    private function renderHelpText(array $macroObj): string
     {
         $macroName = @$macroObj['name'];
         $summary = @$macroObj['summary'];
@@ -153,7 +185,12 @@ EOT;
 
 
 
-    private function valueToString($value)
+    /**
+     * Renders an array in a short and readable form.
+     * @param mixed $value
+     * @return string
+     */
+    private function valueToString(mixed $value): string
     {
         if (is_array($value)) {
             $value = \Usility\PageFactory\var_r($value, '', true);
@@ -161,18 +198,29 @@ EOT;
             $value = $value? 'true': 'false';
         }
         return $value;
-    }
+    } // valueToString
 
 
-    protected function get($key)
+
+    /**
+     * Getter.
+     * @param string $key
+     * @return string
+     */
+    protected function get(string $key): mixed
     {
         return @$this->$key;
     } // get
 
 
-
-    protected function set($key, $value)
+    /**
+     * Setter.
+     * @param string $key
+     * @param mixed $value
+     */
+    protected function set(string $key, mixed $value): void
     {
         $this->$key = $value;
     } // set
+
 } // Macros

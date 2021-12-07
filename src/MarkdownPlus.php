@@ -1,6 +1,8 @@
 <?php
 namespace Usility\PageFactory;
 
+use Exception;
+
 /*
  * MarkdownPlus extends \cebe\markdown\MarkdownExtra
  * Why not Kirby's native ParsedownExtra?
@@ -241,7 +243,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
                 $rest = trim(str_replace(['{','}'], '', $rest));
             }
         } else {
-            die("Error in Markdown source line $current: $line");
+            throw new Exception("Error in Markdown source line $current: $line");
         }
         $attrs = parseInlineBlockArguments($rest);
 
@@ -691,6 +693,15 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
         $file = $file->resize(200);
         $html = $file->html(['alt' => $alt]);
         return $html;
+//ToDo; apply $alt attribute
+//ToDo: wrap <figure> if $caption
+//        $file->alt($alt);
+//        $html = (string) $file->html(['alt' => $alt]);
+        if ($caption) {
+            $figure = \Kirby\Cms\Html::figure($html, $caption);
+            return $figure;
+        }
+        return $html;
     } // renderImage
 
 
@@ -737,13 +748,16 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
 
         $str = $this->handleMdVariables($str);
 
+        $str = PageFactory::$trans->flattenMacroCalls($str); // need to flatten so MD doesn't get confused
+
         $str = $this->handleLineBreaks($str);
 
         // {{}} alone on line -> add NLs around it:
         $str = preg_replace('/(\n{{.*}}\n)/U', "\n$1\n", $str);
 
         $str = $this->handleOLstart($str);
-
+//ToDo: smartypants are not compatible with macro arguments.
+// -> place call after translation?
         // check for smartypants, get them compiled:
         if (@(kirby()->options())['smartypants']) {
             // we need to hide MarkdownPlus' tabulator pattern "\t>> " from SmartyPants:
@@ -890,7 +904,7 @@ EOT;
                 if (preg_match('/\w+/', substr($str0, $p), $mm)) {
                     $p += strlen($mm[0]) + 1;
                 } else {
-                    die('error');
+                    throw new Exception('error');
                 }
                 $str0 = substr($str0, 0, $p) . $attrsStr . substr($str0, $p);
             }

@@ -1,11 +1,10 @@
 /***************************
 **  Styles for macro nav()
-**      Template for custom styling: -> end of file
 ****************************/
 
 //=== Defaults:
 // dimensions:
-$nav-txt-size: 16pt;
+$nav-txt-size: 12pt;
 $nav-elem-height: 2em;
 $nav-line-height: 1.2em;	// -> space between wrapped lines
 $nav-sub-width: 10em;
@@ -81,9 +80,9 @@ $slidedownX6: calc(var(--lzy-nav-top-horizontal-first-indent, #{$nav-top-horizon
     .lzy-nav-arrow {
         width: 1em;
         height: 1em;
-        //outline: 1px solid blue;
-        //background: yellow;
-        //        min-width: 1.55em;
+//outline: 1px solid blue;
+//background: yellow;
+//        min-width: 1.55em;
         transform: rotate(45deg) translate(0.1em, -0.1em);
         transform-origin: 72% 72%;
         font-size: 75%;
@@ -92,10 +91,10 @@ $slidedownX6: calc(var(--lzy-nav-top-horizontal-first-indent, #{$nav-top-horizon
         display: inline-block;
         width: 1em;
         height: 1em;
-        //outline: 1px solid red;
+//outline: 1px solid red;
         transform: translate(0.1em, -0.1em);
-        //transform: rotate(45deg);
-        //transform-origin: 50% 50%;
+//transform: rotate(45deg);
+//transform-origin: 50% 50%;
     }
     .lzy-nav-menu-button {
         display: none;
@@ -138,11 +137,9 @@ $slidedownX6: calc(var(--lzy-nav-top-horizontal-first-indent, #{$nav-top-horizon
             padding-top: calc( (var(--lzy-nav-elem-height, #{$nav-elem-height}) - 1.2em) / 2);
             padding-bottom: calc( (var(--lzy-nav-elem-height, #{$nav-elem-height}) - 1.2em) / 2);
         }
-        &.lzy-nav-colored {
-            :focus,
-            a, a:visited, a:hover {
-                border-bottom: none;
-            }
+        :focus,
+        a, a:visited, a:hover {
+            border-bottom: none;
         }
         .lzy-nav-label {
             display: inline-block;
@@ -175,6 +172,45 @@ $slidedownX6: calc(var(--lzy-nav-top-horizontal-first-indent, #{$nav-top-horizon
         }
 
 
+        // :
+        li {
+            > a {
+                color:      var(--lzy-nav-txt-color);
+                background: var(--lzy-nav-elem-bg-color);
+            }
+        }
+
+        // lzy-curr:
+        li.lzy-curr.lzy-curr.lzy-curr {
+            > a {
+                color:      var(--lzy-nav-curr-txt-color, var(--lzy-nav-txt-color));
+                background: var(--lzy-nav-curr-bg-color, var(--lzy-nav-elem-bg-color));
+            }
+        }
+
+        // lzy-active:
+        .lzy-active.lzy-active {
+            > a {
+                color:      var(--lzy-nav-active-txt-color, var(--lzy-nav-txt-color));
+                background: var(--lzy-nav-active-bg-color, var(--lzy-nav-elem-bg-color));
+            }
+        }
+
+        // level dependent:
+        .lzy-lvl1 {
+            a {
+//                color: var(--lzy-nav-txt-color);
+//                background: var(--lzy-nav-elem-bg-color);
+            }
+        }
+        .lzy-lvl2 a {
+            color: var(--lzy-nav-sub-txt-color, var(--lzy-nav-txt-color, currentColor) );
+            background: var(--lzy-nav-sub-bg-color, white);
+        }
+
+        //.lzy-nav-sub-wrapper {
+        //    background-color: white;
+        //}
 
     } // generic .lzy-nav
 
@@ -631,9 +667,9 @@ $slidedownX6: calc(var(--lzy-nav-top-horizontal-first-indent, #{$nav-top-horizon
             margin-right: 0;
         }
         &.lzy-has-children {
-            > a {
-                padding-right: 0;
-            }
+//            > a {
+//                padding-right: 0;
+//            }
 
             > div {
                 position: absolute;

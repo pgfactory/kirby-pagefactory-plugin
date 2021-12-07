@@ -82,21 +82,21 @@
   cursor: not-allowed;
 }
 
-.lzy-overlay-background {
-    position: fixed;
-    top: 0; right: 0; bottom: 0; left: 0;
-    background: rgba(50,50,50,0.8);
-    width: 100vw;
-    height: 100vh;
-    z-index: 9999;
-  .lzy-timeout-img {
-    max-width: 40vw;
-  }
-}
-
-.lzy-overlay-background-frozen {
-  overflow: hidden;
-}
+//.lzy-overlay-background {
+//    position: fixed;
+//    top: 0; right: 0; bottom: 0; left: 0;
+//    background: rgba(50,50,50,0.8);
+//    width: 100vw;
+//    height: 100vh;
+//    z-index: 9999;
+//  .lzy-timeout-img {
+//    max-width: 40vw;
+//  }
+//}
+//
+//.lzy-overlay-background-frozen {
+//  overflow: hidden;
+//}
 
 
 .lzy-default-styling {
