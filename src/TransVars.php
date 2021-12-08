@@ -1,8 +1,6 @@
 <?php
 namespace Usility\PageFactory;
 
-use Usility\PageFactory\Macros\Macros as Macros;
-
 
 class TransVars
 {

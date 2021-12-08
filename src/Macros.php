@@ -1,9 +1,8 @@
 <?php
 
-namespace Usility\PageFactory\Macros;
+namespace Usility\PageFactory;
 
 use Usility\PageFactory\PageFactory as PageFactory;
-use function Usility\PageFactory\explodeTrim;
 
 
 class Macros
@@ -77,7 +76,7 @@ class Macros
         $helpText = false;
         $macroObj = null;
         $macroName = strtolower(str_replace('-', '', $macroName));
-        $thisMacroName = 'Usility\\PageFactory\\Macros\\' . ucfirst( $macroName );
+        $thisMacroName = 'Usility\\PageFactory\\' . ucfirst( $macroName );
         if (isset($this->registeredMacros[ $macroName ])) {
             $macroObj = $this->registeredMacros[ $macroName ];
 

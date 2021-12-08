@@ -1,15 +1,12 @@
 <?php
 
-namespace Usility\PageFactory\Macros;
-
-use \Usility\PageFactory;
-use Exception;
+namespace Usility\PageFactory;
 
 $macroConfig =  [
     'name' => strtolower( $macroName ),
     'parameters' => [
         'path' => ['Selects the folder to be read', false],
-        'pattern' => ['The search-pattern with which to look for files (-> \'glob style\'.)', false],
+        'pattern' => ['The search-pattern with which to look for files (-> \'glob style\'. e.g. "{&#92;&#42;.js,&#92;&#42;.css}")', '*'],
         'deep' => ['[false,true,flat] Whether to recursively descend into sub-folders. ("flat" means deep, but rendered as a non-hierarchical list.)', false],
         'showPath' => ['[false,true] Whether to render the entire path per file in deep:flat mode.', false],
         'order' => ['[reverse] Displays result in reversed order.', false],
@@ -19,7 +16,7 @@ $macroConfig =  [
         'exclude' => ['Pattern by which to exclude specific elements.', false],
         'maxAge' => ['[integer] Maximum age of file (in number of days).', false],
         'orderedList' => ['If true, renders found objects as an ordered list (&lt;ol>).', false],
-        'hierarchical' => ['.', false],
+        'download' => ['If true, renders download links.', false],
     ],
     'summary' => <<<EOT
 Renders the content of a directory.
@@ -31,6 +28,7 @@ EOT,
 class Dir extends Macros
 {
     public static $inx = 1;
+
     public function __construct($pfy = null)
     {
         $this->name = strtolower(__CLASS__);
@@ -43,7 +41,7 @@ class Dir extends Macros
         $inx = self::$inx++;
 
         $this->path = $args['path'];
-        $this->pattern = $args['pattern'];
+        $pattern = $args['pattern'];
         $this->deep = $args['deep'];
         $this->showPath = $args['showPath'];
         $this->order = $args['order'];
@@ -52,26 +50,16 @@ class Dir extends Macros
         $this->target = $args['target'];
         $this->exclude = $args['exclude'];
         $this->maxAge = $args['maxAge'];
-        $this->orderedList = $args['orderedList'];
-        if ($args['hierarchical']) {
-            $this->deep = true;
-        }
+        $this->download = $args['download'];
 
-        if ((strpos(\Usility\PageFactory\base_name($this->path), '*') === false)) {
-            if (!$this->pattern) {
-                $this->pattern = "*";
-            }
-        } else {
-            if (!$this->pattern) {
-                $this->pattern = \Usility\PageFactory\base_name($this->path);
-            }
-            $this->path = dirname($this->path);
+        $this->tag = $args['orderedList'] ? 'ol' : 'ul';
+
+        if ($this->download) {
+            $this->download = ' download';
         }
-        if (strpos($this->pattern, ',') !== false) {
-            $this->pattern = \Usility\PageFactory\explodeTrim(',', $this->pattern);
-        }
+        $this->path = dir_name($this->path);
         if ($this->path) {
-            $this->path = \Usility\PageFactory\fixPath($this->path);
+            $this->path = fixPath($this->path);
             if ($this->path[0] !== '~') {
                 $this->path = '~page/' . $this->path;
             }
@@ -102,34 +90,22 @@ class Dir extends Macros
             $this->linkClass = " class='lzy-link lzy-newwin_link'";
         }
 
-        $path = \Usility\PageFactory\resolvePath($this->path);
+        $path = resolvePath($this->path);
         if ($this->deep) {
+            $dir = getDirDeep($path . $pattern);
+            sort($dir);
             if ($this->deep === 'flat') {
-                if (is_array($this->pattern)) {
-                    $dir = [];
-                    foreach ($this->pattern as $pattern) {
-                        $dir = array_merge($dir, \Usility\PageFactory\getDirDeep($path . $pattern));
-                    }
-                } else {
-                    $dir = \Usility\PageFactory\getDirDeep($path . $this->pattern);
-                }
-                sort($dir);
                 $str = $this->straightList($dir);
             } else {
-                $this->pregPattern = '|'.str_replace(['.', '*'], ['\\.', '.*'], $this->pattern).'|';
-                $str = $this->_hierarchicalList($path);
+                $str = $this->hierarchicalList($path, $dir);
             }
+
         } else {
-            if (is_array($this->pattern)) {
-                $this->pattern = '{'.implode(',', $this->pattern).'}';
-            }
-            $dir = \Usility\PageFactory\getDir($path.$this->pattern);
+            $dir = getDir($path . $pattern);
             $str = $this->straightList($dir);
         }
-
-        return$str;
+        return $str;
     } // render
-
 
 
     private function straightList($dir)
@@ -150,107 +126,65 @@ class Dir extends Macros
                 continue;
             }
             if (!$this->showPath) {
-                $name = \Usility\PageFactory\base_name($file);
+                $name = base_name($file);
             } else {
                 $name = $file;
             }
-            $url = $this->parseUrlFile($file);
-            if ($url) { // it's a link file (.url or .webloc):
-//ToDo:
-                throw new Exception("not implemented yet: Dir() -> .lnk/.webloc files");
-//                $name = base_name($file, false);
-//                require_once SYSTEM_PATH.'link.class.php';
-//                $lnk = new CreateLink($this->lzy);
-//                $link = $lnk->render(['href' => $url, 'text' => $name, 'target' => $this->target]);
-//                $str .= "\t\t<li class='lzy-dir-file'>$link</li>\n";
-
+            $url = $this->parseUrlFile($file); // check whether it's a link file (.url or .webloc)
+            if ($url) {
+                $str .= "\t\t<li class='lzy-dir-file'><a href='$url'{$this->targetAttr}{$this->linkClass}{$this->download}>$url</a></li>\n";
             } else {    // it's regular local file:
-                $url = '~/'.$file;
-                $str .= "\t\t<li class='lzy-dir-file'><a href='$url'{$this->targetAttr}{$this->linkClass}>$name</a></li>\n";
+                $url = '~/' . $file;
+                $str .= "\t\t<li class='lzy-dir-file'><a href='$url'{$this->targetAttr}{$this->linkClass}{$this->download}>$name</a></li>\n";
             }
         }
-        $tag = $this->orderedList? 'ol': 'ul';
         $str = <<<EOT
 
-    <$tag{$this->id}{$this->class}>
+    <{$this->tag}{$this->id}{$this->class}>
 $str   
-    </$tag>
+    </{$this->tag}>
 EOT;
         return $str;
     } // straightList
 
 
-
-
-    private function _hierarchicalList($path, $lvl = 0)
+    private function hierarchicalList($path, $dir)
     {
-        $maxAge = 0;
-        if ($this->maxAge) {
-            $maxAge = time() - 86400 * $this->maxAge;
+        $skipLen = strlen($path);
+        $hierarchy = [];
+        foreach ($dir as $elem) {
+            $elem = substr($elem, $skipLen);
+            $expr = '$hierarchy[\'' . str_replace('/', "']['", $elem) . "'] = '$elem';";
+            eval($expr);
         }
+        ksort($hierarchy);
+        $out = $this->_hierarchicalList($hierarchy, 1);
+        return $out;
+    } // hierarchicalList
 
-        $dir = \Usility\PageFactory\getDir("$path*");
-        if (strpos($this->order, 'revers') !== false) {
-            $dir = array_reverse($dir);
-        }
-        $str = '';
-        $indent = str_pad('', $lvl, "\t");
-        foreach ($dir as $file) {   // loop over items on this level:
-
-            if (is_dir($file)) {        // it's a dir -> decend:
-                $name = basename($file);
-                $nextPath = \Usility\PageFactory\fixPath($file);
-                $str1 = $this->_hierarchicalList($nextPath, $lvl+1);
-                $str .= "\t\t$indent  <li class='lzy-dir-folder'><span>$name</span>\n$str1\n\t\t$indent  </li>\n";
-
-            } else {                    // it's a file
-                if (filemtime($file) < $maxAge) {   // check age, skip if too old
-                    continue;
-                }
-                $name = \Usility\PageFactory\base_name($file);
-                $ext = \Usility\PageFactory\fileExt($file);
-
-                if ($this->pattern) {       // apply pattern:
-                    if (!preg_match($this->pregPattern, $name)) {
-                        continue;
-                    }
-                }
-
-                if ($ext === 'url') {   // special case: file-ext 'url' -> render content as link
-                    $href = file_get_contents($file);
-                    $name = basename($file, '.url');
-
-                } elseif ($ext === 'webloc') {   // special case: file-ext 'webloc' -> extract link
-                    $href = str_replace("\n", ' ', file_get_contents($file));
-                    if (preg_match('|<string>(https?://.*)</string>|', $href, $m)) {
-                        $href = $m[1];
-                    }
-                    $name = basename($file, '.webloc');
-
-                } else {                // regular file:
-                    $href = '~/' . $path . basename($file);
-                }
-                $str .= "\t\t$indent  <li class='lzy-dir-file'><a href='$href'{$this->targetAttr}{$this->linkClass}>$name</a></li>\n";
+    private function _hierarchicalList($hierarchy, $level)
+    {
+        $indent = str_pad('', $level, "\t");
+        $out = "$indent<{$this->tag}>\n";
+        $sub = '';
+        foreach ($hierarchy as $name => $rec) {
+            if (is_array($rec)) {
+                $sub .= $this->_hierarchicalList($rec, $level+1);
+            } else {
+                $out .= "$indent  <li>$rec</li>\n";
             }
         }
-        $tag = $this->orderedList? 'ol': 'ul';
-        $str = <<<EOT
-
-\t\t$indent<$tag{$this->class}>
-$str   
-\t\t$indent</$tag>
-
-EOT;
-
-        return $str;
-
+        $out .= $sub;
+        $out .= "$indent</{$this->tag}>\n";
+        return $out;
     } // _hierarchicalList
 
 
 
     private function parseUrlFile($file)
     {
-        if (!file_exists($file)) {
+        $ext = fileExt($file);
+        if (!file_exists($file) || (strpos('webloc,lnk', $ext) === false)) {
             return false;
         }
         $str = file_get_contents($file);

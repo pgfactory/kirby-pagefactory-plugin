@@ -1,8 +1,7 @@
 <?php
 
-namespace Usility\PageFactory\Macros;
+namespace Usility\PageFactory;
 
-use Usility\PageFactory\DefaultNav;
 
 $macroConfig =  [
     'name' => strtolower( $macroName ),

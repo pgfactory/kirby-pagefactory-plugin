@@ -1,6 +1,6 @@
 <?php
 
-namespace Usility\PageFactory\Macros;
+namespace Usility\PageFactory;
 
 $macroConfig =  [
     'name' => strtolower( $macroName ),
@@ -8,6 +8,7 @@ $macroConfig =  [
         '' => ['', false],
     ],
     'mdCompile' => false,
+    'assetsToLoad' => '', // comma-separated list of scss,css or js files (incl. path from app-root)
     'summary' => <<<EOT
 [Short description of macro.]
 EOT,

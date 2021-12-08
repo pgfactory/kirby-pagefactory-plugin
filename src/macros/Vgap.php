@@ -1,6 +1,7 @@
 <?php
 
-namespace Usility\PageFactory\Macros;
+namespace Usility\PageFactory;
+
 
 $macroConfig =  [
     'name' => strtolower( $macroName ),
