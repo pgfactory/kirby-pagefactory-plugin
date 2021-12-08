@@ -501,6 +501,22 @@ use Exception;
 
 
  /**
+  * For each pattern runs getDir() and returns combined output.
+  * @param array $patterns
+  * @return array
+  */
+ function getDirs(array $patterns): array
+ {
+     $files = [];
+     foreach ($patterns as $pattern) {
+         $files = array_merge($files, getDir($pattern));
+     }
+     return $files;
+ } //
+
+
+
+ /**
   * Reads a directory recursively. Path can end with a glob-style pattern, e.g. '{*.js,*.css}'
   * @param string $path
   * @param bool $onlyDir    Returns only directories
