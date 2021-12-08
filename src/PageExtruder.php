@@ -703,6 +703,8 @@ EOT;
         $modified = false;
         $assetQueue = &$this->assetFiles;
         foreach ($assetQueue as $groupName => $files) {
+            // 0) make sure the target folder exists:
+            preparePath(PFY_USER_ASSETS_PATH);
 
             // 1) update from sources to cache:
             if (is_string($files)) {
