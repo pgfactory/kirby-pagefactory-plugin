@@ -501,7 +501,7 @@ use Exception;
 
 
  /**
-  * Reads a directory recursively
+  * Reads a directory recursively. Path can end with a glob-style pattern, e.g. '{*.js,*.css}'
   * @param string $path
   * @param bool $onlyDir    Returns only directories
   * @param bool $assoc      Returns an associative array basename => path
@@ -511,31 +511,38 @@ use Exception;
  function getDirDeep(string $path, bool $onlyDir = false, bool $assoc = false, bool $returnAll = false): array
 {
     $files = [];
-    $f = basename($path);
-    $pattern = '*';
-    if (strpos($f, '*') !== false) {
-        $pattern = basename($path);
+    $inclPat = base_name($path);
+    if ($inclPat && ($inclPat !== '*')) {
+        $inclPat = str_replace(['{',',','}','.','*','[!','-','/'],['(','|',')','\\.','.*','[^','\\-','\\/'], $inclPat);
+        $inclPat = "/^$inclPat$/";
         $path = dirname($path);
+    } else {
+        $path = rtrim($path, ' *');
+        $inclPat = false;
     }
-    $patt = '|/[_#]|';
-    $patt2 = '|/[._#]|';
-    if ($returnAll) {
-        $patt = '|/#|';
-        $patt2 = '|/[.#]|';
-    }
-    $it = new RecursiveDirectoryIterator($path);
-    foreach (new RecursiveIteratorIterator($it) as $fileRec) {
+
+    $it = new \RecursiveDirectoryIterator($path);
+    foreach (new \RecursiveIteratorIterator($it) as $fileRec) {
         $f = $fileRec->getFilename();
         $p = $fileRec->getPathname();
         if ($onlyDir) {
-            if (($f === '.') && !preg_match($patt, $p)) {
+            if (($f === '.') && !preg_match('|/#|', $p)) {
                 $files[] = rtrim($p, '.');
             }
             continue;
         }
-        if (!$returnAll && (preg_match($patt2, $p) || !fnmatch($pattern, $f))) {
-            continue;
+
+        // exclude hidden/commented files, unless returnAll:
+        if (!$returnAll) {
+            if (preg_match('|/[.#]|', $p)) {
+                continue;
+            }
+            // if inclPat is set, exclude everything that doesn't match:
+            if ($inclPat && !preg_match($inclPat, $f)) {
+                continue;
+            }
         }
+
         if ($assoc) {
             $files[$f] = $p;
         } else {
@@ -1023,7 +1030,7 @@ use Exception;
         // case 'value' without key:
         if (preg_match("/^ ($pattern) (.*)/xms", $rest, $m)) {
             $value = $m[1];
-            $rest = $m[3];
+            $rest = ltrim($m[3], ', ');
         }
 
         // case naked key or value:
@@ -1032,7 +1039,7 @@ use Exception;
         $pattern = "[^$delim\n]+";
         if (preg_match("/^ ($pattern) (.*) /xms", $rest, $m)) {
             $value = $m[1];
-            $rest = $m[2];
+            $rest = ltrim($m[2], ', ');
         }
     }
     $pattern = "^[$delim\n]+";
