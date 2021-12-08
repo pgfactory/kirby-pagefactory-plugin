@@ -380,8 +380,9 @@ EOT;
      */
     public function loadPfyConfig():void
     {
-        $this->pfy->config = loadFile(PFY_CONFIG_FILE);
-        if (!$this->pfy->config) {
+        if (file_exists(PFY_CONFIG_FILE)) {
+            $this->pfy->config = include(PFY_CONFIG_FILE);
+        } else {
             $this->pfy->config = [];
         }
         // add values from site/site.txt:
@@ -447,13 +448,43 @@ EOT;
             $systemTimeZone = @$this->pfy->config['timezone'];
             if (!$systemTimeZone) {
                 $systemTimeZone = $this->getServerTimezone();
-                appendFile(PFY_CONFIG_FILE, "\n# Autmatically set by PageFactory:\ntimezone: $systemTimeZone\n\n",
-                    "# Configuration file for PageFactory plugin\n\n");
+                $this->appendToConfigFile('timezone', $systemTimeZone, 'Automatically set by PageFactory');
             }
             \Kirby\Toolkit\Locale::set($systemTimeZone);
         }
         return $systemTimeZone;
     } // setTimezone
+
+
+
+    /**
+     * Injects a new key,value pair into PageFactory's config file site/config/pagefactory.php
+     * @param string $key
+     * @param string $value
+     * @param string|null $comment
+     */
+    private function appendToConfigFile(string $key, string $value, ?string $comment = ''): void
+    {
+        if ($comment) {
+            $comment = " // $comment";
+        }
+        $str = "\t'$key' => '$value',$comment\n";
+
+        $config = @file_get_contents(PFY_CONFIG_FILE);
+        if ($config) {
+           $config = str_replace('];', "$str];", $config);
+        } else {
+            $config = <<<EOT
+<?php
+// Configuration file for PageFactory plugin
+
+return [
+$str];
+
+EOT;
+        }
+        file_put_contents(PFY_CONFIG_FILE, $config);
+    } // appendToConfigFile
 
 
 
