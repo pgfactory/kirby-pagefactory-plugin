@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # assumes you are in your new web-app's root folder:
 
 
@@ -21,5 +21,8 @@ echo PageFactory installed
 if [ ! -e site/templates/page_template.html ]; then
 	cp -R site/plugins/pagefactory/install/site/*  site
 	cp -R site/plugins/pagefactory/install/content/*  content
-	echo Essential files to copied final location
+	echo Essential files copied to final location
 fi
+
+echo
+echo Now open this website in your browser.
