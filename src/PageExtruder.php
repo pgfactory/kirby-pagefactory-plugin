@@ -370,6 +370,7 @@ class PageExtruder
 
         // add CSS-Files loading instructions:
         $out .= $this->getFilesLoadingCode('css');
+        $out .= $this->getPageFolderAssetsCode('css');
 
         // add CSS-Code (compile if it's SCSS):
         $css = @$this->pageParams['css'] . @$this->frontmatter['css'] . $this->css;
@@ -436,6 +437,8 @@ EOT;
         if ($this->jQueryActive) {
             $jsFilesInjection = $this->getFileLoadingCode(basename(JQUERY), 'js').$jsFilesInjection;
         }
+        $jsFilesInjection .= $this->getPageFolderAssetsCode('js');
+
 
         if ($this->reloadRequired) {
             reloadAgent();
@@ -495,8 +498,12 @@ EOT;
             return '';
         }
         $siteFiles = $this->pfy->pages->files();
-        $targetFile = "assets/$filename";
-        $file = (string)$siteFiles->find($targetFile);
+        if (strpos($filename, '/') === false) {
+            $targetFile = "assets/$filename";
+            $file = (string)$siteFiles->find($targetFile);
+        } else {
+            $file = $filename;
+        }
         if ($file) {
             if ($type === 'css') {
                 if (strpos($file, '-async') !== false) {
@@ -511,6 +518,7 @@ EOT;
         } else {
             throw new Exception("Error: file '$filename' not found.");
         }
+
         return $out;
     } // getFileLoadingCode
 
@@ -585,7 +593,6 @@ EOT;
 
 
 
-
     /**
      * Cycles through the assets queue, expands entries with wildcards.
      * Note: assets queue entries may contain multiple files, in this case they are wrapped into one file for
@@ -650,8 +657,44 @@ EOT;
 
 
     /**
+     * Returns asset loading code for files in the current page folder of requested type
+     * @param string $type
+     * @return string
+     */
+    private function getPageFolderAssetsCode(string $type): string
+    {
+        $out = '';
+        $pageFiles = page()->files();
+
+        if ($type === 'css') {
+            $files = $pageFiles->filterBy('extension', 'css');
+            foreach ($files as $file) {
+                $f = (string)$file;
+                if (basename($f)[0] === '#') { // skip commented files
+                    continue;
+                }
+                $out .= $this->getFileLoadingCode($f, 'css');
+            }
+
+        } else {
+            $files = $pageFiles->filterBy('extension', 'js');
+            foreach ($files as $file) {
+                $f = (string)$file;
+                if (basename($f)[0] === '#') { // skip commented files
+                    continue;
+                }
+                $out .= $this->getFileLoadingCode($f, 'js');
+            }
+        }
+        return $out;
+    } // getPageFolderAssetsCode
+
+
+
+    /**
      * Runs through queued assetFiles, checks whether their copy in content/assets/ is up to date.
      * In case of SCSS files, it compiles them first.
+     * @return bool  files modified (browser reload required)
      */
     private function updateAssets(): bool
     {
@@ -681,6 +724,14 @@ EOT;
                 $this->aggregateFile($srcFile, $targetFile);
             }
         }
+
+        // update any scss files in page folder:
+        $targetPath = page()->root().'/';
+        $files = getDirs([$targetPath.'*.scss', $targetPath.'scss/*.scss']);
+        foreach ($files as $srcFile) {
+            $modified |= $this->updateFile($srcFile, $targetPath);
+        }
+
         return $modified;
     } // updateAssets
 
@@ -689,7 +740,7 @@ EOT;
      * Checks given file whether it's copy in content/assets/ is up-to-date, copies/compiles it if necessary.
      * @param string $srcFile
      * @param string $targetPath
-     * @return bool
+     * @return bool     files modified (browser reload required)
      */
     private function updateFile(string $srcFile, string $targetPath): bool
     {
@@ -721,7 +772,7 @@ EOT;
 
 
     /**
-     * Copies multiple source files into one target file.
+     * Copies content of multiple source files into one target file.
      * @param string $srcFolder
      * @param string $targetFile
      */
