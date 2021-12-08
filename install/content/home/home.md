@@ -5,6 +5,17 @@ scss: |
 	.lzy-page {
 		padding: 2em;
 	}
+	.lzy-primary-nav {
+		display: flex;
+		justify-content: flex-end;
+	}
+	.lzy-footer {
+		margin-top: 3em;
+		border-top: 1px solid #ccc;
+		padding-top: 1em;
+		display: flex;
+		justify-content: space-between;
+	}
 ---
 
 
@@ -20,7 +31,7 @@ To modify this page, edit the file ``site/home/home.md``.
 
 To add additional pages and administer your new website in general, 
 
-&rarr; open the [Panel](./panel/)
+&rarr; open the [Panel](./panel/).
 
 {{ vgap(2em) }}
 
