@@ -13,8 +13,7 @@ class DefaultNav
         $this->page = $pfy->page;
         $this->site = $pfy->site;
         $this->arrow = NAV_ARROW;
-        $pfy->pg->addJqFiles('site/plugins/pagefactory/js/nav.js');
-//        $pfy->pg->addJs("var screenSizeBreakpoint = 480;");
+        $pfy->pg->addJqFiles('site/plugins/pagefactory/js/nav.jq');
     } // __construct
 
 

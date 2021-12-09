@@ -9,7 +9,7 @@ $macroConfig =  [
         '' => ['', false],
     ],
     'mdCompile' => false,
-    'assetsToLoad' => 'site/plugins/pagefactory/js/nav.jq',
+//    'assetsToLoad' => 'site/plugins/pagefactory/js/nav.jq',
     'summary' => <<<EOT
 Renders a navigation menu that reflects the currently published pages.
 EOT,
