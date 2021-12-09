@@ -1,5 +1,16 @@
 <?php
 
+/**
+ *
+ * PageFactory for Kirby 3
+ *
+ * @version   0.1
+ * @author    Dieter Stokar <https://pagefactory.info>
+ * @copyright Usility GmbH <https://usility.ch>
+ * @link      https://pagefactory.info
+ * @license   MIT <http://opensource.org/licenses/MIT>
+ */
+
 require_once __DIR__ . '/src/PageFactory.php';
 require_once __DIR__ . '/src/MarkdownPlus.php';
 

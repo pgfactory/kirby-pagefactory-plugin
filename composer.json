@@ -1,0 +1,20 @@
+{
+  "name": "usility/pagefactory",
+  "description": "Kirby 3 - PageFactory",
+  "type": "kirby-plugin",
+  "version": "0.1",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Dieter Stokar",
+      "email": "info@pagefactory.info",
+      "homepage": "https://pagefactory.info"
+    }
+  ],
+  "require": {
+    "getkirby/composer-installer": "^1.2"
+  },
+  "config": {
+    "optimize-autoloader": true
+  }
+}
