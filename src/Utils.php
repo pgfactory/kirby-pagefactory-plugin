@@ -385,6 +385,12 @@ EOT;
         } else {
             $this->pfy->config = [];
         }
+
+        // propagate variables from config into TransVars:
+        if (isset($this->pfy->config['variables'])) {
+            PageFactory::$trans->setVariables($this->pfy->config['variables']);
+        }
+
         // add values from site/site.txt:
         if ($s = site()->title()->value()) {
             $this->pfy->config['title'] = $s;

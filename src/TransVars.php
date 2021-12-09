@@ -23,6 +23,14 @@ class TransVars
 
 
 
+    public function setVariables(array $array): void
+    {
+        foreach ($array as $key => $value) {
+            $this->setVariable($key, $value);
+        }
+    }
+
+
     public function setVariable($varName, $value, $lang = false)
     {
         $lang = $this->extractLang($varName, $lang);

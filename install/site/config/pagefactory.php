@@ -11,11 +11,14 @@ return [
         '-pagefactory-async.css' => [
             'site/plugins/pagefactory/scss/autoload-async/*',
         ],
-        '-styles.css' => [
+        '-app.css' => [
             PFY_USER_ASSETS_PATH . 'autoload/*',
         ],
-        '-styles-async.css' => [
+        '-app-async.css' => [
             PFY_USER_ASSETS_PATH . 'autoload-async/*',
+        ],
+        '-app.js' => [
+            PFY_USER_ASSETS_PATH . 'autoload/*',
         ],
 
         '-pagefactory.js' => [
@@ -28,6 +31,10 @@ return [
             'site/plugins/pagefactory/third_party/jquery/jquery-3.6.0.min.js',
             'site/plugins/pagefactory/js/*',
         ],
+    ],
+    'variables' => [
+        'lzy-page-title' => '{{ page-title }} / {{ site-title }}',
+        'webmaster-email' => 'webmaster@'.preg_replace('|^https?://([\w.-]+)(.*)|', "$1", site()->url()),
     ],
 
     // Options for dev phase:
