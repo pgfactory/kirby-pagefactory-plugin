@@ -22,7 +22,7 @@
 		</header>
 
 
-{{ nav() }}
+{{ nav('lzy-primary-nav lzy-horizontal') }}
 
 
 <!-- === page content =============== -->
@@ -47,7 +47,8 @@
 
 
 
-{{#^ nav( small-screen-header ) }}
+{{^ nav('lzy-small-screen-nav lzy-vertical') }}
+{{^ lzy-small-screen-header }}
 {{^ lzy-small-screen-footer }}
 
   </div><!-- /.lzy-page -->
