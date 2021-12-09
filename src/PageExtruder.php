@@ -26,7 +26,6 @@ class PageExtruder
     public $assetFiles = [];
     public $requestedAssetFiles = [];
     private $jQueryActive;
-    private $reloadRequired;
 
 
 
@@ -67,7 +66,7 @@ class PageExtruder
 
 
 
-
+    // === Helper methods: accept queuing requests from macros and other objects ============
 
     /**
      * Generic setter
@@ -261,7 +260,6 @@ class PageExtruder
     } // addJqFiles
 
 
-
     /**
      * Accepts js-file-name(s) and queues them for loading
      * @param mixed $str
@@ -272,14 +270,13 @@ class PageExtruder
     } // addJsFiles
 
 
-
     /**
      * Appends one or multiple asset to the asset loading queue.
      * Submit filepath to the source file, PageFactory will make sure that it will be loaded by the browser.
      * @param string $assets comma-separated-list (string) or array, each containing the filepath of the source file
-     * @param false $forceJq
+     * @param false $treatAsJq
      */
-    public function addAssets($assets, $forceJq = false):void
+    public function addAssets($assets, $treatAsJq = false): void
     {
         $assetQueue = &$this->assetFiles;
         if (!is_array($assets)) {
@@ -288,14 +285,18 @@ class PageExtruder
         foreach ($assets as $asset) {
             $asset = resolvePath($asset);
             $basename = basename($asset);
+            $ext = fileExt($asset);
 
             // handle special case 'scss' -> just change to css, will be compiled automatically:
-            if (fileExt($basename) === 'scss') {
+            if ($ext === 'scss') {
                 $basename = base_name($basename, false).'.css';
 
             // handle special case 'jq' -> it's a normal js-file, but requires jQuery to be loaded:
-            } elseif ($forceJq || fileExt($basename) === 'jq') {
+            } elseif ($ext === 'jq') {
                 $basename = base_name($basename, false).'.js';
+                $this->jQueryActive = true;
+                
+            } elseif (($ext === 'js') && $treatAsJq) {
                 $this->jQueryActive = true;
             }
 
@@ -311,7 +312,7 @@ class PageExtruder
 
 
 
-    // === Loads 'PageElements' i.e. higher level functionality: overlays, messages, popups ============
+    //  "PageElements" i.e. higher level functionality: overlays, messages, popups:
 
     /**
      * Renders content in an overlay.
@@ -347,6 +348,139 @@ class PageExtruder
         $pelem = new PagePopup($this->pfy, $this);
         $this->bodyEndInjections .= $pelem->render($str, $mdCompile);
     } // setPopup
+
+
+
+    // === Preparation methods ========================================
+    /**
+     * Cycles through the assets queue, expands entries with wildcards, prepares all assets for rendering.
+     * -> checks up-to-date, compiles/copies to content/assets/ if required.
+     */
+    public function prepareAssets(): void
+    {
+        $this->expandWildcards();
+        $modified = $this->updateAssets();
+
+        if ($modified) {
+            reloadAgent();
+        }
+    } // prepareAssets
+
+
+
+    /**
+     * Cycles through the assets queue, expands entries with wildcards.
+     * Note: assets queue entries may contain multiple files, in this case they are wrapped into one file for
+     * loading.
+     */
+    private function expandWildcards()
+    {
+        $assetGroups = $this->assetFiles;
+        foreach ($assetGroups as $target => $group) {
+            if ($target[0] === '*') { // copy to target with same name:
+                $gr = [];
+                foreach ($group as $elem) {
+                    if ($elem[strlen($elem)-1] === '*') {
+                        $dir = getDir($elem);
+                        foreach ($dir as $file) {
+                            if (is_file($file)) {
+                                $ext = fileExt($file);
+                                $basename = base_name($file, false);
+                                switch ($ext) {
+                                    case 'js':
+                                        $gr["$basename.js"] = $file;
+                                        break;
+                                    case 'scss':
+                                    case 'css':
+                                        $gr["$basename.css"] = $file;
+                                }
+                            }
+                        }
+                    } else {
+                        $gr[basename($elem)] = $elem;
+                    }
+                }
+                $assetGroups = array_merge($assetGroups, $gr);
+                unset($assetGroups['*']);
+
+            } else { // aggregate files into one
+                $i = 0;
+                $requestedType = fileExt($target);
+                while (isset($group[$i])) {
+                    $elem = $group[$i];
+                    $dir = true;
+                    if ($elem[strlen($elem)-1] === '*') {
+                        $dir = getDir($elem);
+                        foreach ($dir as $j => $f) {
+                            if (!is_file($f) || (strpos(fileExt($f), $requestedType) === false)) {
+                                unset($dir[$j]);
+                            }
+                        }
+                        array_splice($group, $i, 1, $dir);
+                    }
+                    if ($dir) {
+                        $i++;
+                    }
+                }
+                if ($group) {
+                    $assetGroups[$target] = $group;
+                } else {
+                    unset($assetGroups[$target]);
+                }
+
+            }
+        }
+        $this->assetFiles = $assetGroups;
+    } // expandWildcards
+
+
+    /**
+     * Runs through queued assetFiles, checks whether their copy in content/assets/ is up to date.
+     * In case of SCSS files, it compiles them first.
+     * @return bool  files modified (browser reload required)
+     */
+    private function updateAssets(): bool
+    {
+        $cachePath = PFY_CACHE_PATH . 'assets/';
+
+        $modified = false;
+        $assetQueue = &$this->assetFiles;
+        foreach ($assetQueue as $groupName => $files) {
+            // 0) make sure the target folder exists:
+            preparePath(PFY_USER_ASSETS_PATH);
+
+            // 1) update from sources to cache:
+            if (is_string($files)) {
+                $files = [$files];
+            }
+            $targetPath = "$cachePath$groupName/";
+            preparePath($targetPath);
+            foreach ($files as $srcFile) {
+                $modified |= $this->updateFile($srcFile, $targetPath);
+            }
+
+            // 2) aggregate from cache to target (content/assets/):
+            $srcFile = $targetPath;
+            $filename = basename($srcFile, '/');
+            $targetFile = PFY_USER_ASSETS_PATH . $filename;
+            $tTarget = lastModified($targetFile, false);
+            $tSrc = lastModified($srcFile, false);
+            if ($modified || ($tTarget < $tSrc)) {
+                $this->aggregateFile($srcFile, $targetFile);
+            }
+        }
+
+        // update any scss files in page folder:
+        $targetPath = page()->root().'/';
+        $files = getDirs([$targetPath.'*.scss', $targetPath.'scss/*.scss']);
+        foreach ($files as $srcFile) {
+            $modified |= $this->updateFile($srcFile, $targetPath);
+        }
+
+        return $modified;
+    } // updateAssets
+
+
 
 
 
@@ -440,10 +574,6 @@ EOT;
         $jsFilesInjection .= $this->getPageFolderAssetsCode('js');
 
 
-        if ($this->reloadRequired) {
-            reloadAgent();
-        }
-
         // now assemble final output for body end injection:
         $out = <<<EOT
 
@@ -457,6 +587,7 @@ EOT;
 
 
 
+    // === Helper methods ============================================
     /**
      * Cycles through the load-queue, renders loading code for each element.
      * Assets not starting with '-' and not queued explicitly will be skipped.
@@ -525,6 +656,41 @@ EOT;
 
 
     /**
+     * Returns asset loading code for files in the current page folder of requested type
+     * @param string $type
+     * @return string
+     */
+    private function getPageFolderAssetsCode(string $type): string
+    {
+        $out = '';
+        $pageFiles = page()->files();
+
+        if ($type === 'css') {
+            $files = $pageFiles->filterBy('extension', 'css');
+            foreach ($files as $file) {
+                $f = (string)$file;
+                if (basename($f)[0] === '#') { // skip commented files
+                    continue;
+                }
+                $out .= $this->getFileLoadingCode($f, 'css');
+            }
+
+        } else {
+            $files = $pageFiles->filterBy('extension', 'js');
+            foreach ($files as $file) {
+                $f = (string)$file;
+                if (basename($f)[0] === '#') { // skip commented files
+                    continue;
+                }
+                $out .= $this->getFileLoadingCode($f, 'js');
+            }
+        }
+        return $out;
+    } // getPageFolderAssetsCode
+
+
+
+    /**
      * Returns queued assets of given type (css or js).
      * @param string $type
      * @return array
@@ -575,167 +741,6 @@ EOT;
         }
     } // getHeaderElem
 
-
-
-    /**
-     * Cycles through the assets queue, expands entries with wildcards, prepares all assets for rendering.
-     * -> checks up-to-date, compiles/copies to content/assets/ if required.
-     */
-    public function prepareAssets(): void
-    {
-        $this->expandWildcards();
-        $modified = $this->updateAssets();
-
-        if ($modified) {
-            reloadAgent();
-        }
-    } // prepareAssets
-
-
-
-    /**
-     * Cycles through the assets queue, expands entries with wildcards.
-     * Note: assets queue entries may contain multiple files, in this case they are wrapped into one file for
-     * loading.
-     */
-    private function expandWildcards()
-    {
-        $assetGroups = $this->assetFiles;
-        foreach ($assetGroups as $target => $group) {
-            if ($target[0] === '*') { // copy to target with same name:
-                $gr = [];
-                foreach ($group as $elem) {
-                    if ($elem[strlen($elem)-1] === '*') {
-                        $dir = getDir($elem);
-                        foreach ($dir as $file) {
-                            if (is_file($file)) {
-                                $ext = fileExt($file);
-                                $basename = base_name($file, false);
-                                switch ($ext) {
-                                    case 'js':
-                                        $gr["$basename.js"] = $file;
-                                        break;
-                                    case 'scss':
-                                    case 'css':
-                                        $gr["$basename.css"] = $file;
-                                }
-                            }
-                        }
-                    } else {
-                        $gr[basename($elem)] = $elem;
-                    }
-                }
-                $assetGroups = array_merge($assetGroups, $gr);
-                unset($assetGroups['*']);
-
-            } else { // aggregate files into one
-                $i = 0;
-                $requestedType = fileExt($target);
-                while (isset($group[$i])) {
-                    $elem = $group[$i];
-                    $dir = true;
-                    if ($elem[strlen($elem)-1] === '*') {
-                        $dir = getDir($elem);
-                        foreach ($dir as $j => $f) {
-                            if (!is_file($f) || (strpos(fileExt($f), $requestedType) === false)) {
-                                unset($dir[$j]);
-                            }
-                        }
-                        array_splice($group, $i, 1, $dir);
-                    }
-                    if ($dir) {
-                        $i++;
-                    }
-                }
-                $assetGroups[$target] = $group;
-
-            }
-        }
-        $this->assetFiles = $assetGroups;
-    } // expandWildcards
-
-
-
-    /**
-     * Returns asset loading code for files in the current page folder of requested type
-     * @param string $type
-     * @return string
-     */
-    private function getPageFolderAssetsCode(string $type): string
-    {
-        $out = '';
-        $pageFiles = page()->files();
-
-        if ($type === 'css') {
-            $files = $pageFiles->filterBy('extension', 'css');
-            foreach ($files as $file) {
-                $f = (string)$file;
-                if (basename($f)[0] === '#') { // skip commented files
-                    continue;
-                }
-                $out .= $this->getFileLoadingCode($f, 'css');
-            }
-
-        } else {
-            $files = $pageFiles->filterBy('extension', 'js');
-            foreach ($files as $file) {
-                $f = (string)$file;
-                if (basename($f)[0] === '#') { // skip commented files
-                    continue;
-                }
-                $out .= $this->getFileLoadingCode($f, 'js');
-            }
-        }
-        return $out;
-    } // getPageFolderAssetsCode
-
-
-
-    /**
-     * Runs through queued assetFiles, checks whether their copy in content/assets/ is up to date.
-     * In case of SCSS files, it compiles them first.
-     * @return bool  files modified (browser reload required)
-     */
-    private function updateAssets(): bool
-    {
-        $cachePath = PFY_CACHE_PATH . 'assets/';
-
-        $modified = false;
-        $assetQueue = &$this->assetFiles;
-        foreach ($assetQueue as $groupName => $files) {
-            // 0) make sure the target folder exists:
-            preparePath(PFY_USER_ASSETS_PATH);
-
-            // 1) update from sources to cache:
-            if (is_string($files)) {
-                $files = [$files];
-            }
-            $targetPath = "$cachePath$groupName/";
-            preparePath($targetPath);
-            foreach ($files as $srcFile) {
-                $modified |= $this->updateFile($srcFile, $targetPath);
-            }
-
-            // 2) aggregate from cache to target (content/assets/):
-            $srcFile = $targetPath;
-            $filename = basename($srcFile, '/');
-            $targetFile = PFY_USER_ASSETS_PATH . $filename;
-            $tTarget = lastModified($targetFile, false);
-            $tSrc = lastModified($srcFile, false);
-            if ($modified || ($tTarget < $tSrc)) {
-                $this->aggregateFile($srcFile, $targetFile);
-            }
-        }
-
-        // update any scss files in page folder:
-        $targetPath = page()->root().'/';
-        $files = getDirs([$targetPath.'*.scss', $targetPath.'scss/*.scss']);
-        foreach ($files as $srcFile) {
-            $modified |= $this->updateFile($srcFile, $targetPath);
-        }
-
-        return $modified;
-    } // updateAssets
 
 
     /**
