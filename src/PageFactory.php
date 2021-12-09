@@ -3,22 +3,21 @@
 namespace Usility\PageFactory;
 
 use Kirby;
-use Exception;
 
 define('PFY_PLUGIN_PATH',           'site/plugins/pagefactory/');
 define('PFY_DEFAULT_TEMPLATE_FILE', 'site/templates/page_template.html');
 define('PFY_USER_ASSETS_PATH',      'content/assets/');
 define('PFY_CONFIG_FILE',           'site/config/pagefactory.php');
 define('PFY_USER_CODE_PATH',        'site/custom/');
-define('PFY_MACROS_PATH',           'site/plugins/pagefactory/src/macros/');
+define('PFY_MACROS_PATH',           PFY_PLUGIN_PATH.'src/macros/');
 define('PFY_MACROS_PLUGIN_PATH',    'site/plugins/pagefactory-macros/');
 define('PFY_CSS_PATH',              'assets/');
 define('PFY_ASSETS_PATHNAME',       'assets/');
 define('PFY_LOGS_PATH',             'site/logs/');
-define('PFY_CACHE_PATH',            'site/.#pfy-cache/');
+define('PFY_CACHE_PATH',            PFY_PLUGIN_PATH.'.#pfy-cache/');
 define('PFY_MKDIR_MASK',             0700); // permissions for file accesses by PageFactory
 define('PFY_DEFAULT_TRANSVARS',     'site/config/transvars.yaml');
-define('JQUERY',                    'site/plugins/pagefactory/third_party/jquery/jquery-3.6.0.min.js');
+define('JQUERY',                    PFY_PLUGIN_PATH.'/third_party/jquery/jquery-3.6.0.min.js');
 
 
 require_once __DIR__ . '/../third_party/vendor/autoload.php';
@@ -198,17 +197,26 @@ class PageFactory
 
         $this->utils->setLanguageSelector();
 
-        $appUrl = site()->url();
-        $siteTitle = site()->title()->value();
-        self::$trans->setVariable('site-title', $siteTitle);
-        self::$trans->setVariable('page-title', $this->page->title() . ' / ' . $siteTitle);
+        $siteTitle = '';
+        // Copy site field values to transvars:
         $siteAttributes = site()->content()->data();
-
         foreach ($siteAttributes as $key => $value) {
-            if ($key !== 'supportedlanguages') {
-                $key = str_replace('_', '-', $key);
-                self::$trans->setVariable($key , (string)$value);
+            if ($key === 'title') {
+                $key = 'site-title';
+                $siteTitle = $value;
             }
+            $key = str_replace('_', '-', $key);
+            self::$trans->setVariable($key , (string)$value);
+        }
+
+        // Copy page field values to transvars:
+        $pageAttributes = page()->content()->data();
+        foreach ($pageAttributes as $key => $value) {
+            if ($key === 'title') {
+                $key = 'page-title';
+            }
+            $key = str_replace('_', '-', $key);
+            self::$trans->setVariable($key , (string)$value);
         }
 
         // 'generator':
@@ -222,6 +230,7 @@ class PageFactory
         self::$trans->setVariable('generator', $version);
 
         // 'user', 'lzy-logged-in-as-user', 'lzy-backend-link':
+        $appUrl = site()->url();
         $user = kirby()->user();
         if ($user) {
             $username = (string)$user->nameOrEmail();
