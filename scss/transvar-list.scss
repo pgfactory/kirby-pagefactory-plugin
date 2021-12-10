@@ -1,0 +1,35 @@
+
+.lzy-transvar-list {
+	font-family: arial, sans-serif;
+	font-size: 9pt;
+	dt { 
+		color: red;
+		font-weight: bold;
+		&::after { 
+			content: ':';
+			color: black;
+		}
+		margin-top: 0.8em;
+		margin-bottom: 0.2em;
+	}
+	dd {
+		margin-bottom: 0.5em;
+		* {
+			vertical-align: top;
+		}
+	}
+	.lzy-transvar-lang {
+		display: inline-block;
+		width: 2em;
+		color: orange;
+		&::after { 
+			content: ':';
+			color: black;
+		}
+	}
+	span:nth-child(2) { 
+		color: navy;
+		max-width: 30em;
+		display: inline-block;
+	}
+}
