@@ -10,3 +10,19 @@ for (i=0;i<elem.length;i++) {
     console.log(elem[i]);
 }
 
+
+function adaptToWidth() {
+  if (window.innerWidth < screenSizeBreakpoint) {
+    document.body.classList.add('lzy-small-screen');
+    document.body.classList.remove('lzy-large-screen');
+  } else {
+    document.body.classList.add('lzy-large-screen');
+    document.body.classList.remove('lzy-small-screen');
+  }
+}
+window.onresize = function() {
+  adaptToWidth();
+}
+window.onload = function() {
+  adaptToWidth();
+}
