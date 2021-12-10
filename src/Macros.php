@@ -85,6 +85,14 @@ class Macros
                 $macroObj = include $this->availableMacros[ $macroName ];
                 $this->registeredMacros[ $macroName ] = $macroObj;
 
+            // workaround: if intendet macro name collides with PHP keyword, define macro as "_Macroname" instead.
+            //  -> example: list() => class _List() and file _List.php
+            } elseif (isset($this->availableMacros[ "_$macroName" ])) {
+                $macroName0 = $macroName;
+                $macroName = "_$macroName";
+                $thisMacroName = 'Usility\\PageFactory\\' . ucfirst( $macroName );
+                $macroObj = include $this->availableMacros[ $macroName ];
+                $this->registeredMacros[ $macroName0 ] = $macroObj;
             } else {
                 return null;
             }
