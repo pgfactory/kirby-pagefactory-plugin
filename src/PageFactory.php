@@ -14,7 +14,7 @@ define('PFY_MACROS_PLUGIN_PATH',    'site/plugins/pagefactory-macros/');
 define('PFY_CSS_PATH',              'assets/');
 define('PFY_ASSETS_PATHNAME',       'assets/');
 define('PFY_LOGS_PATH',             'site/logs/');
-define('PFY_CACHE_PATH',            PFY_PLUGIN_PATH.'.#pfy-cache/');
+define('PFY_CACHE_PATH',            PFY_PLUGIN_PATH.'.#cache/');
 define('PFY_MKDIR_MASK',             0700); // permissions for file accesses by PageFactory
 define('PFY_DEFAULT_TRANSVARS',     'site/config/transvars.yaml');
 define('JQUERY',                    PFY_PLUGIN_PATH.'/third_party/jquery/jquery-3.6.0.min.js');
@@ -197,13 +197,11 @@ class PageFactory
 
         $this->utils->setLanguageSelector();
 
-        $siteTitle = '';
         // Copy site field values to transvars:
         $siteAttributes = site()->content()->data();
         foreach ($siteAttributes as $key => $value) {
             if ($key === 'title') {
                 $key = 'site-title';
-                $siteTitle = $value;
             }
             $key = str_replace('_', '-', $key);
             self::$trans->setVariable($key , (string)$value);
