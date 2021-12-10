@@ -639,7 +639,7 @@ EOT;
             if ($type === 'css') {
                 if (strpos($file, '-async') !== false) {
                     $out = "\t<link href='$file' rel='stylesheet' media='print' class='lzy-onload-css' />\n";
-                    $out .= "\t<noscript<link href='$file' rel='stylesheet' /></noscript>\n";
+                    $out .= "\t<noscript><link href='$file' rel='stylesheet' /></noscript>\n";
                 } else {
                     $out = "\t<link href='$file' rel='stylesheet' />\n";
                 }

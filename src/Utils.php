@@ -474,7 +474,7 @@ EOT;
         if ($comment) {
             $comment = " // $comment";
         }
-        $str = "\t'$key' => '$value',$comment\n";
+        $str = "\t,'$key' => '$value',$comment\n";
 
         $config = @file_get_contents(PFY_CONFIG_FILE);
         if ($config) {
