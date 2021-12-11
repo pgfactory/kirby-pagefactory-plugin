@@ -33,7 +33,7 @@ class PageExtruder
     {
         $this->pfy = $pfy;
         $this->trans = $pfy::$trans;
-        $this->pgExtr = new PageElements($pfy, $this);
+        $this->pgExtr = new PageElements\PageElements($pfy, $this);
         $this->sc = new Scss($this->pfy);
         $this->assetFiles = &$pfy->assetFiles;
         $this->requestedAssetFiles = &$pfy->requestedAssetFiles;
@@ -322,7 +322,7 @@ class PageExtruder
      */
     public function setOverlay(string $str, $mdCompile = false): void
     {
-        $pelem = new PageOverlay($this->pfy, $this);
+        $pelem = new PageElements\PageOverlay($this->pfy, $this);
         $this->bodyEndInjections .= $pelem->render( $str, $mdCompile);
     } // setOverlay
 

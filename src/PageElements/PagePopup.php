@@ -1,14 +1,13 @@
 <?php
 
-namespace Usility\PageFactory;
+namespace Usility\PageFactory\PageElements;
 
-
-class PageMessage extends PageElements
+class PagePopup extends PageElements
 {
     public function render($str, $mdCompile)
     {
         if ($mdCompile) {
-            $str = compileMarkdown($str);
+            $str = \Usility\PageFactory\compileMarkdown($str);
         }
 //        $str = <<<EOT
 //    <div id='lzy-overlay' class='lzy-overlay'><button class='lzy-close-overlay'>✕</button>
@@ -17,6 +16,6 @@ class PageMessage extends PageElements
 //EOT;
 //    $this->pfy->pg->addAssets('site/plugins/pagefactory/js/overlay.scss, site/plugins/pagefactory/js/overlay.js');
 //    return $str;
-        return '"Message" not implemented yet';
+        return '"Popup" not implemented yet';
     } // render
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Usility\PageFactory;
+namespace Usility\PageFactory\PageElements;
 
 
 class PageOverlay extends PageElements
@@ -8,7 +8,7 @@ class PageOverlay extends PageElements
     public function render($str, $mdCompile)
     {
         if ($mdCompile) {
-            $str = compileMarkdown($str);
+            $str = \Usility\PageFactory\compileMarkdown($str);
         }
         $str = <<<EOT
     <div id='lzy-overlay' class='lzy-overlay'><button class='lzy-close-overlay'>✕</button>

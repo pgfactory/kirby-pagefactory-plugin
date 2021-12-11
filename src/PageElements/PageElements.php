@@ -1,6 +1,6 @@
 <?php
 
-namespace Usility\PageFactory;
+namespace Usility\PageFactory\PageElements;
 
 class PageElements
 {
