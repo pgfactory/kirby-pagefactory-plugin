@@ -429,9 +429,12 @@ EOT;
             }
         }
         if (!file_exists($templateFile)) {
-            $templateFile = $templatePath . $this->pfy->page->dirname() . '.html';
+            $templateFile = $templatePath.$templateFile;
             if (!file_exists($templateFile)) {
-                $templateFile = PFY_DEFAULT_TEMPLATE_FILE;
+                $templateFile = $templatePath . $this->pfy->page->dirname() . '.html';
+                if (!file_exists($templateFile)) {
+                    $templateFile = PFY_DEFAULT_TEMPLATE_FILE;
+                }
             }
         }
         $this->pfy->templateFile = $templateFile;
