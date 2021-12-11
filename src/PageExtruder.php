@@ -294,6 +294,7 @@ class PageExtruder
             // handle special case 'jq' -> it's a normal js-file, but requires jQuery to be loaded:
             } elseif ($ext === 'jq') {
                 $basename = base_name($basename, false).'.js';
+                $asset = fileExt($asset, true).'.js';
                 $this->jQueryActive = true;
                 
             } elseif (($ext === 'js') && $treatAsJq) {
