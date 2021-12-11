@@ -164,7 +164,7 @@ EOT;
         }
         foreach ($argDefs as $key => $def) {
             if (!isset($args[$key])) {
-                $args[$key] = $def[1];
+                $args[$key] = @$def[1];
             }
         }
         return $args;
