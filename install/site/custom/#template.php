@@ -33,20 +33,22 @@ class replace_with_filename extends Macros // <- modify classname (must be qual 
 
     /**
      * Macro rendering method
-     * @param $args                     // array of arguments
-     * @param $argStr                   // original argument string
-     * @return string                   // HTML or Markdown
+     * @param array $args
+     * @param string $argStr
+     * @return string
      */
-    public function render($args, $argStr)
+    public function render(array $args, string $argStr): string
     {
         $inx = self::$inx++;             // instantiation counter, e.g. to create unique element ids
 
 //        $arg = $args['my-arg'];        // <- how to access an argument
         $str = '';
 
+        // Your code goes here...
+
 //        $this->mdCompile = true;       // <- another way to request markdown compilatoin of output
     return $str;
-    }
+    } // render
 }
 
 
