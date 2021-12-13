@@ -370,6 +370,8 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
                     $style = " style='width:$w';";
                 } elseif ($n === 0) {
                     $style = " style='width:{$block['width']}';";
+                } elseif (($n === 1) && ($w = @$block['widths'][$n-1])) {
+                    $style = " style='width:calc(100% - $w - 0.4em)';";
                 }
                 $line .= "@/@lt@\\@span class='c".($n+1)."'$style@/@gt@\\@$elem@/@lt@\\@/span@/@gt@\\@";
             }
