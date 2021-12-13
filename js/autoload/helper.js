@@ -26,3 +26,8 @@ window.onresize = function() {
 window.onload = function() {
   adaptToWidth();
 }
+
+
+function mylog(str) {
+    console.log(str);
+}
