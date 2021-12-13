@@ -97,7 +97,6 @@ EOT;
             if ($options) {
                 $this->pfy->frontmatter = array_merge_recursive($this->pfy->frontmatter, $options);
             }
-//            $this->pfy->frontmatter = $this->extractKirbyFrontmatter($mdStr);
         }
 
         // if variables were defined in Frontmatter, propagate them into PFY's variables:
