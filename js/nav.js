@@ -20,18 +20,19 @@ LzyNav.prototype.init = function() {
     this.adaptMainMenuToScreenSize( isSmallScreen );
 
     let parent = this;
-    $(window).resize(function(){
+    $(window).resize(function() {
         let w = $(this).width();
         let isSmallScreen = (w < screenSizeBreakpoint);
         parent.adaptMainMenuToScreenSize(isSmallScreen);
         parent.setHightOnHiddenElements();
+        mylog('resize window');
     });
 
 
     if ($('.lzy-nav-collapsed, .lzy-nav-collapsible, .lzy-nav-top-horizontal').length) {
         this.setHightOnHiddenElements();
     }
-    // now make sure that all collapsed links are not focussable:
+    // now make sure that all collapsed links are not focusable:
     $('.lzy-nav [aria-hidden=true] a').attr('tabindex', -1);
 
     this.initEventHandlers();
@@ -231,7 +232,7 @@ LzyNav.prototype.closeAllAccordions = function( $parentLi, setOpenCls ) {
 
 
 LzyNav.prototype.openCurrentElement = function() {
-    $('.lzy-nav.lzy-nav-open-current .lzy-active').each(function () {
+    $('.lzy-nav-open-current .lzy-active, .lzy-nav-open-current .lzy-curr').each(function () {
         let $parentLi = $( this );
         $parentLi.addClass('lzy-open');
         $( 'div', $parentLi ).attr({'aria-hidden': 'false'});        // next div
@@ -292,11 +293,12 @@ LzyNav.prototype.operateMobileMenuPane = function( newState ) {
 
 
 LzyNav.prototype.setHightOnHiddenElements = function() {
+    $('.lzy-nav-collapsible .lzy-has-children').addClass('lzy-open');
+
     if (!($('html').hasClass('touchevents') || $('body').hasClass('touch'))) {
-        $('#lzy .lzy-nav-accordion .lzy-has-children, ' +
-            '#lzy .lzy-nav-top-horizontal .lzy-has-children, ' +
-            '#lzy .lzy-nav-collapsed .lzy-has-children, ' +
-            '#lzy .lzy-nav-collapsible .lzy-has-children').each(function () {
+        $('#lzy .lzy-nav-top-horizontal .lzy-has-children, ' +
+            '#lzy .lzy-nav-collapsible .lzy-has-children, ' +
+            '#lzy .lzy-nav-collapsed .lzy-has-children').each(function () {
             let h = $('>div>ol', this).height() + 20 + 'px';                // set height to optimize animation
             $('>div>ol', this).css('margin-top', '-' + h);
         });
@@ -347,8 +349,6 @@ LzyNav.prototype.setupKeyboardEvents = function() {
                 event.preventDefault();
                 let expanded = $this.closest('.lzy-open').hasClass('lzy-open');
                 if (expanded) {
-                    let $l = $this;
-                    console.log($l);
                     if ( $this.parent().is(':last-child') ) {
                         mylog('last-child');
                     }
@@ -407,7 +407,7 @@ LzyNav.prototype.setupKeyboardEvents = function() {
 
 
 function focusNextElement( reverse, activeElem ) {
-    /*check if an element is defined or use activeElement*/
+    // check if an element is defined or use activeElement:
     activeElem = activeElem instanceof HTMLElement ? activeElem : document.activeElement;
 
     let queryString = [
@@ -440,14 +440,8 @@ function focusNextElement( reverse, activeElem ) {
     let nextElem = null;
     if (reverse) {
         nextElem = (focusable[thisIndex - 1]);
-        // nextElem = (focusable[thisIndex - 1] || focusable[focusable.length - 1]);
     } else {
         nextElem = (focusable[thisIndex + 1] );
-        // nextElem = (focusable[thisIndex + 1] || focusable[0]);
     }
     $( nextElem ).focus();
-    /* if reverse is true return the previous focusable element
-       if reverse is false return the next focusable element */
-    // return reverse ? (focusable[focusable.indexOf(activeElem) - 1] || focusable[focusable.length - 1])
-    //     : (focusable[focusable.indexOf(activeElem) + 1] || focusable[0]);
 } // focusNextElement
