@@ -19,6 +19,7 @@ class Macros
     protected $page;
     protected $pages;
     protected $trans;
+    public static $registeredMacros = [];
 
 
     public function __construct($pfy = null)
@@ -38,7 +39,6 @@ class Macros
             $this->pages = $pfy->pages;
             $this->trans = PageFactory::$trans;
         }
-        $this->registeredMacros = [];
         $macroLocations = [
             PFY_USER_CODE_PATH,
             PFY_MACROS_PATH,
@@ -77,13 +77,13 @@ class Macros
         $macroObj = null;
         $macroName = strtolower(str_replace('-', '', $macroName));
         $thisMacroName = 'Usility\\PageFactory\\' . ucfirst( $macroName );
-        if (isset($this->registeredMacros[ $macroName ])) {
-            $macroObj = $this->registeredMacros[ $macroName ];
+        if (isset(self::$registeredMacros[ $macroName ])) {
+            $macroObj = self::$registeredMacros[ $macroName ];
 
         } else {
             if (isset($this->availableMacros[ $macroName ])) {
                 $macroObj = include $this->availableMacros[ $macroName ];
-                $this->registeredMacros[ $macroName ] = $macroObj;
+                self::$registeredMacros[ $macroName ] = $macroObj;
 
             // workaround: if intendet macro name collides with PHP keyword, define macro as "_Macroname" instead.
             //  -> example: list() => class _List() and file _List.php
@@ -92,7 +92,7 @@ class Macros
                 $macroName = "_$macroName";
                 $thisMacroName = 'Usility\\PageFactory\\' . ucfirst( $macroName );
                 $macroObj = include $this->availableMacros[ $macroName ];
-                $this->registeredMacros[ $macroName0 ] = $macroObj;
+                self::$registeredMacros[ $macroName0 ] = $macroObj;
             } else {
                 return null;
             }
@@ -180,15 +180,61 @@ EOT;
     private function renderHelpText(array $macroObj): string
     {
         $macroName = @$macroObj['name'];
+        if ($macroName[0] === '_') {
+            $macroName = substr($macroName, 1);
+        }
         $summary = @$macroObj['summary'];
         $argDefs = @$macroObj['parameters'];
         $out = "@@@ .lzy-macro-help.lzy-encapsulated\n# Macro ``$macroName()``\n$summary\n## Aruments:\n\n";
         foreach ($argDefs as $key => $rec) {
             $default = $this->valueToString($rec[1]);
+            if (is_bool($default)) {
+                $default = $default? 'true' : 'false';
+            }
+            if (!$default) {
+                $default = 'false';
+            }
             $out .= "$key:\n: {$rec[0]} (Default: $default)\n\n";
         }
         return $out."\n\n@@@\n";
     } // renderHelpText
+
+
+
+    /**
+     * Renders list of all available Macros including help texts.
+     * @return string
+     */
+    public function listMacros(): string
+    {
+        $str = '';
+        $registeredMacros = self::$registeredMacros;
+        $availableMacros = $this->availableMacros;
+        foreach ($availableMacros as $k => $rec) {
+            if ($k[0] === '_') {
+                $availableMacros[substr($k,1)] = $rec;
+                unset($availableMacros[$k]);
+            }
+        }
+        ksort($availableMacros);
+        foreach ($availableMacros as $macroName => $macroFile) {
+            $thisMacroName = 'Usility\\PageFactory\\' . ucfirst( $macroName );
+            if (@$registeredMacros[ $macroName ]) {
+                $macroObj = $registeredMacros[ $macroName ];
+            } elseif (@$registeredMacros[ substr($macroName,1) ]) {
+                $macroObj = $registeredMacros[ substr($macroName,1) ];
+            } else {
+                $macroObj = include $macroFile;
+            }
+            $str .= $this->renderHelpText($macroObj);
+        }
+        $str = compileMarkdown($str);
+        $str = <<<EOT
+    <div class="lzy-macro-list">
+$str    </div>
+EOT;
+        return $str;
+    } // listMacros
 
 
 
@@ -218,6 +264,7 @@ EOT;
     {
         return @$this->$key;
     } // get
+
 
 
     /**
