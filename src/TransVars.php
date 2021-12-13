@@ -19,6 +19,7 @@ class TransVars
             $this->macros = new Macros($pfy);
         }
         $this->loadTransVarsFromFile([ PFY_PLUGIN_PATH . 'config/transvars.yaml', PFY_DEFAULT_TRANSVARS]);
+        $this->hideIfNotDefined = false;
     } // __construct
 
 
@@ -173,6 +174,8 @@ class TransVars
                     $out = false;
                 }
             }
+        } elseif (!$this->hideIfNotDefined) {
+            $out = $varName;
         }
         return $out;
     } // translateVariable
