@@ -144,6 +144,7 @@ class PageFactory
 
         $html = $this->assembleHtml();
         $html = $this->utils->unshield($html);
+        $html = str_replace('~/', '', $html);
         return $html;
     } // render
 
