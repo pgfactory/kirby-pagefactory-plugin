@@ -4,6 +4,11 @@ namespace Usility\PageFactory;
 
 define('NAV_ARROW', '<span>&#9727;</span>');
 
+// classes:
+define('NAV_LIST_TAG',  'ol');          // the list tag to be used
+define('NAV_LEVEL',     'lzy-lvl-');    // identifies the nesting level
+define('NAV_CURRENT',   'lzy-curr');    // the currently opened page
+define('NAV_ACTIVE',    'lzy-active');  // currently open page and all its ancestors
 
 class DefaultNav
 {
@@ -13,6 +18,7 @@ class DefaultNav
         $this->page = $pfy->page;
         $this->site = $pfy->site;
         $this->arrow = NAV_ARROW;
+        $this->hidden = 'false';
         $pfy->pg->addJqFiles('site/plugins/pagefactory/js/nav.jq');
     } // __construct
 
@@ -22,20 +28,28 @@ class DefaultNav
      * Renders the default nav menu
      * @return string
      */
-    public function render(): string
+    public function render($args, $inx): string
     {
-        $elem = $this->site->children();
-        $out = $this->_render($elem);
+        $wrapperClass = $args['wrapperClass'];
+        $class = $args['class'];
+
+        if (strpos($wrapperClass, 'lzy-nav-collapsed')) {
+            $this->hidden = 'true';
+        }
+
+        $tree = $this->site->children();
+        $out = $this->_render($tree);
         if (!$out) {
             return '';
         }
 
         $out = <<<EOT
-<div id='lzy-primary-nav' class='lzy-nav-wrapper lzy-primary-nav'>
-	  <nav class='lzy-nav lzy-nav-top-horizontal lzy-nav-indented lzy-nav-accordion lzy-nav-collapsed lzy-nav-animated lzy-nav-hoveropen lzy-encapsulated lzy-nav-small-tree'>
+
+    <div id='lzy-nav-$inx' class='lzy-nav-wrapper $wrapperClass'>
+      <nav class='lzy-nav $class'>
 $out
-    </nav>
-</div>
+      </nav>
+    </div><!-- /lzy-nav-wrapper -->
 EOT;
         return $out;
     } // render
@@ -50,38 +64,39 @@ EOT;
     private function _render($subtree): string
     {
         $out = '';
-        foreach ($subtree->listed() as $p) {
-            $depth = $p->depth();
-            $indent = str_repeat('    ', $depth);
-            $curr = $p->isActive();
-            $class = "lzy-lvl$depth";
+        foreach ($subtree->listed() as $pg) {
+            $depth = $pg->depth();
+            $indent = '  '.str_repeat('    ', $depth+1);
+            $curr = $pg->isActive();
+            $class = NAV_LEVEL . $depth;
             if ($curr) {
-                $class .= " lzy-curr";
+                $class .= ' ' . NAV_CURRENT;
             }
-            $active = $p->isAncestorOf($this->page);
+            $active = $pg->isAncestorOf($this->page);
             if ($active) {
-                $class .= " lzy-active";
+                $class .= ' ' . NAV_ACTIVE;
             }
-            $url = $p->url();
-            $title = $p->title()->html();
-            $hasChildren = !$p->children()->listed()->isEmpty();
+            $url = $pg->url();
+            $title = $pg->title()->html();
+            $hasChildren = !$pg->children()->listed()->isEmpty();
             if ($hasChildren) {
-                $aElem = "<span class='lzy-nav-label'>$title</span><span class='lzy-nav-arrow' aria-hidden='true'>{$this->arrow}</span>";
+                $aElem = "<span class='lzy-nav-label'>$title</span><span class='lzy-nav-arrow' ".
+                         "aria-hidden='{$this->hidden}'>{$this->arrow}</span>";
                 $class .= ' lzy-has-children lzy-nav-has-content';
-                $out .= "\t$indent<li class='$class'><a href='$url'>$aElem</a>\n";
-                $out .= "\t$indent  <div class='lzy-nav-sub-wrapper' aria-hidden='true'>\n";
-                $out .= $this->_render($p->children());
-                $out .= "\t$indent  </div>\n";
-                $out .= "\t$indent</li>\n";
+                $out .= "  $indent<li class='$class'><a href='$url'>$aElem</a>\n";
+                $out .= "  $indent  <div class='lzy-nav-sub-wrapper' aria-hidden='{$this->hidden}'>\n";
+                $out .= $this->_render($pg->children());
+                $out .= "  $indent  </div>\n";
+                $out .= "  $indent</li>\n";
             } else {
-                $out .= "\t$indent<li class='$class'><a href='$url'>$title</a></li>\n";
+                $out .= "  $indent<li class='$class'><a href='$url'>$title</a></li>\n";
             }
         }
         if (!$out) {
             return '';
         }
-        $out = "\t<ol>\n".$out;
-        $out .= "\t</ol>\n";
+
+        $out = "$indent<" . NAV_LIST_TAG . ">\n$out$indent</" . NAV_LIST_TAG . ">\n";
         return $out;
     } // _render
 
