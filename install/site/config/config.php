@@ -4,7 +4,7 @@
 return [
 // uncomment as desired:
 //     'smartypants' => true,
-//     'languages' => true,
+    'languages' => true,
 //     'auth' => [
 //         'methods' => ['password','code']
 //     ],

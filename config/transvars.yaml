@@ -236,7 +236,7 @@ lzy-uploaded-files-title:
     en: "Uploaded files:"
 
 
-Loading: '<img class="lzy-loading-spinner" src="~/media/pagefactory/assets/loader.gif" alt="" />'
+Loading: '<img class="lzy-loading-spinner" src="~/media/pagefactory/icons/loader.gif" alt="" />'
 
 lzy-error-in-email-addr:
     de: "Diese E-Mail Adresse ist unvollständig oder enthält einen Tippfehler"
@@ -367,11 +367,12 @@ lzy-select-langauge:
     it: Seleziona la lingua
     es: Seleccionar idioma
 
-lzy-lang-select de: "<img src='~/media/pagefactory/assets/de.png' class='lzy-lang-icon' alt='{{ lzy-select-langauge }}: {{lzy-lang-de}}' title='{{ lzy-select-langauge }}: {{lzy-lang-de}}' /><span class='invisible'>Deutsch</span>"
-lzy-lang-select en: "<img src='~/media/pagefactory/assets/en.png' class='lzy-lang-icon' alt='{{ lzy-select-langauge }}: {{lzy-lang-en}}' title='{{ lzy-select-langauge }}: {{lzy-lang-en}}' /><span class='invisible'>English</span>"
-lzy-lang-select fr: "<img src='~/media/pagefactory/assets/fr.png' class='lzy-lang-icon' alt='{{ lzy-select-langauge }}: {{lzy-lang-fr}}' title='{{ lzy-select-langauge }}: {{lzy-lang-fr}}' /><span class='invisible'>Français</span>"
-lzy-lang-select it: "<img src='~/media/pagefactory/assets/it.png' class='lzy-lang-icon' alt='{{ lzy-select-langauge }}: {{lzy-lang-it}}' title='{{ lzy-select-langauge }}: {{lzy-lang-it}}' /><span class='invisible'>Italiano</span>"
-lzy-lang-select es: "<img src='~/media/pagefactory/assets/es.png' class='lzy-lang-icon' alt='{{ lzy-select-langauge }}: {{lzy-lang-es}}' title='{{ lzy-select-langauge }}: {{lzy-lang-es}}' /><span class='invisible'>Español</span>"
+lzy-lang-select-de: Deutsch
+lzy-lang-select-en: English
+lzy-lang-select-fr: Français
+lzy-lang-select-it: Italiano
+lzy-lang-select-es: Español
+
 
 lzy-lang-de:
     _:  German
@@ -909,6 +910,11 @@ lzy-editable-cancel-text:
     _:  'Cancel input'
 
 
+
+#--- macro List() -------------------
+lzy-user-list:
+    de: Liste der registrierten Benutzer
+    _:  List of Registered Users
 
 
 
