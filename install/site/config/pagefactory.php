@@ -1,6 +1,8 @@
 <?php
 // Configuration file for PageFactory plugin
 
+$menuIcon = svg('site/plugins/pagefactory/assets/menu.svg');
+
 return [
     'handleKirbyFrontmatter'  => true,
 
@@ -32,11 +34,19 @@ return [
             'site/plugins/pagefactory/js/*',
         ],
     ],
+
     'variables' => [
         'lzy-page-title' => '{{ page-title }} / {{ site-title }}',
         'webmaster-email' => 'webmaster@'.preg_replace('|^https?://([\w.-]+)(.*)|', "$1", site()->url()),
+        'lzy-small-screen-header' => <<<EOT
+
+        <h1>{{ site-title }}</h1>
+        <button id="lzy-nav-menu-icon">$menuIcon</button>
+EOT,
+        'lzy-footer' => ' Footer',
     ],
 
     // Options for dev phase:
-    'debug_compileScssWithLineNumbers'  => @(kirby()->options())['debug'],
+    'debug_compileScssWithLineNumbers'  => @(kirby()->options())['debug'],   // line numbers of original SCSS file
+    'timezone' => 'Europe/Zurich', // Automatically set by PageFactory
 ];

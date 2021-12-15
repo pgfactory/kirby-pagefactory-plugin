@@ -1,62 +1,55 @@
 <!doctype html>
 <html lang="{{ lang }}">
 <head>
-    <meta charset="utf-8" />
-    <title>{{ lzy-page-title }}</title>
+  <meta charset="utf-8" />
+  <title>{{ lzy-page-title }}</title>
 
-    <meta name="viewport" content="width=device-width, user-scalable=yes, initial-scale=1" />
-    <meta name="referrer" content="no-referrer">
-    <meta name="generator" content="{{ generator }}" />
-    {{@ lzy-head-injections }}
+  <meta name="viewport" content="width=device-width, user-scalable=yes, initial-scale=1" />
+  <meta name="referrer" content="no-referrer">
+  <meta name="generator" content="{{ generator }}" />
+  {{@ lzy-head-injections }}
 </head>
 
 
 <body id='lzy' class='{{@ lzy-body-classes }} lzy-default-layout'{{@ lzy-body-tag-attributes }}>
 
-  <div class='lzy-page page'>
+<div class='lzy-page page'>
 
-    <header class='lzy-header'>
-    </header>
+  <header class='lzy-header'>
+  </header>
 
-
-    {{ nav('lzy-primary-nav lzy-horizontal') }}
-
-
-    <!-- === page content =============== -->
-    <main id='main' class='lzy-main'>
-
-      {{ content }}
-
-    </main>
-    <!-- === /page content =============== -->
+  {{ nav('lzy-primary-nav lzy-horizontal') }}
 
 
+  <!-- === page content =============== -->
+  <main id='main' class='lzy-main'>
 
-    <footer class="lzy-footer">
-      <div class="lzy-footer-left">
-        {{^ lzy-logged-in-as-user }}
-      </div>
+    {{ content }}
 
-      <div class="lzy-footer-center">
-      </div>
+  </main>
+  <!-- === /page content =============== -->
 
-      <div class='lzy-footer-right'>
-        {{^ lzy-lang-selection }} {{^ lzy-login-button }} {{^ lzy-backend-link }}
-      </div><!-- /lzy-footer-right -->
-    </footer>
+
+  <footer class="lzy-footer">
+    <div class="lzy-footer-left">
+      {{^ lzy-lang-selection }}
+    </div>
+
+    <div class="lzy-footer-center">
+    </div>
+
+    <div class='lzy-footer-right'>
+      {{^ lzy-backend-link }} {{^ lzy-login-button }}
+    </div><!-- /lzy-footer-right -->
+  </footer>
 
 
 
+  <div class="lzy-small-screen-header lzy-small-screen-only">
+    {{^ lzy-small-screen-header }}
+  </div><!-- /lzy-small-screen-header -->
 
-    <div class="lzy-small-screen-nav" style="display: none;">
-      {{^ nav('lzy-small-screen-nav lzy-vertical') }}
-    </div><!-- /lzy-small-screen-nav -->
-
-    <div class="lzy-small-screen-header" style="display: none;">
-      {{^ lzy-small-screen-header }}
-    </div><!-- /lzy-small-screen-header -->
-
-  </div><!-- /.lzy-page -->
+</div><!-- /.lzy-page -->
 
 {{@ lzy-body-end-injections }}
 </body>
