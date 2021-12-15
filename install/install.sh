@@ -21,6 +21,7 @@ echo PageFactory installed
 if [ ! -e site/templates/page_template.html ]; then
 	cp -R site/plugins/pagefactory/install/site/*  site
 	cp -R site/plugins/pagefactory/install/content/*  content
+	cp -R site/plugins/pagefactory/install/media/*  media
 	echo Essential files copied to final location
 fi
 
