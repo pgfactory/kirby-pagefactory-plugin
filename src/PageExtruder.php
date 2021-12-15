@@ -54,6 +54,11 @@ class PageExtruder
         $this->trans->setVariable('lzy-head-injections', $out);
 
         $bodyClasses = $this->bodyTagClasses? $this->bodyTagClasses: 'lzy-large-screen';
+        if (isAdmin()) {
+            $bodyClasses .= ' lzy-admin';
+        } elseif (kirby()->user()) {
+            $bodyClasses .= ' lzy-loggedin';
+        }
         if (PageFactory::$debug) {
             $bodyClasses = trim("debug $bodyClasses");
         }

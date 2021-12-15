@@ -166,7 +166,8 @@ a:focus > .lzy-focus-only-visible {
     a.lzy-login-button {
         border-bottom: none;
     }
-    button.lzy-login-button {
+    .lzy-login-button {
+        display: inline-block;
         position: relative;
         background: none;
         border: none;
@@ -175,6 +176,7 @@ a:focus > .lzy-focus-only-visible {
         height: 1.2em;
         margin-left: 0.5em;
         svg {
+            display: inline-block;
             position: absolute;
             top: 0;
             left: 0;
