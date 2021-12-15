@@ -163,11 +163,35 @@ a:focus > .lzy-focus-only-visible {
     .lzy-lang-selection a {
         border-bottom: none;
     }
-    //.lzy-lang-selection * {
-    //    color: transparent;
-    //}
     a.lzy-login-button {
         border-bottom: none;
+    }
+    button.lzy-login-button {
+        position: relative;
+        background: none;
+        border: none;
+        padding: 0;
+        width: 1.2em;
+        height: 1.2em;
+        margin-left: 0.5em;
+        svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 1.2em;
+            transform: translateY(-0.3em);
+        }
+    }
+    a[target=_blank] {
+        position: relative;
+        padding-left: 1.1em;
+        &::before {
+            content: url(http://localhost:8888/KirbyDev/tmp/media/pagefactory/svg-icons/external.svg);
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform: translate(-0.5em, -0.3em) scale(0.56);
+        }
     }
 }
 

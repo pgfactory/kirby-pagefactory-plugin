@@ -232,18 +232,19 @@ class PageFactory
         self::$trans->setVariable('generator', $version);
 
         // 'user', 'lzy-logged-in-as-user', 'lzy-backend-link':
-        $appUrl = site()->url();
+        $appUrl = self::$appRoot;
         $user = kirby()->user();
+        $loginButton = svg('site/plugins/pagefactory/assets/user.svg');
         if ($user) {
             $username = (string)$user->nameOrEmail();
             self::$trans->setVariable('user', $username);
-            self::$trans->setVariable('lzy-login-button', "<button class='lzy-login-button' title='{{ lzy-edit-user-account }}>{{ lzy-login-icon }}</span></button>");
+            self::$trans->setVariable('lzy-login-button', "<button class='lzy-login-button' title='{{ lzy-edit-user-account }}'>$loginButton</span></button>");
         } else {
-            self::$trans->setVariable('lzy-logged-in-as-user', "<a href='$appUrl/login'>Login</a>");
-            self::$trans->setVariable('lzy-login-button', "<a href='$appUrl/login' class='lzy-login-button' title='{{ lzy-login-button-label }}'>{{ lzy-login-icon }}</a>");
+            self::$trans->setVariable('lzy-logged-in-as-user', "<a href='{$appUrl}login'>Login</a>");
+            self::$trans->setVariable('lzy-login-button', "<a href='{$appUrl}login' class='lzy-login-button' title='{{ lzy-login-button-label }}'>{{ lzy-login-icon }}</a>");
         }
         if (isAdmin()) {
-            self::$trans->setVariable('lzy-backend-link', "<a href='$appUrl/panel' target='_blank'>Admin-Panel</a>");
+            self::$trans->setVariable('lzy-backend-link', "<a href='{$appUrl}panel' target='_blank'>{{ lzy-admin-panel-link-text }}</a>");
         }
     } // setStandardVariables
 

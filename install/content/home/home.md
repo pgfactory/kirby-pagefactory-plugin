@@ -31,7 +31,7 @@ To modify this page, edit the file ``site/home/home.md``.
 
 To add additional pages and administer your new website in general, 
 
-&rarr; open the [Panel](./panel/).
+&rarr; open the {{ lzy-backend-link }} tool.
 
 {{ vgap(2em) }}
 

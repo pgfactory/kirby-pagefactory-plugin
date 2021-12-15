@@ -18,6 +18,9 @@ lzy-login-icon: "<span class='lzy-icon -user_male_circle'></span>"
 
 lzy-login-button-label: Login
 
+lzy-admin-panel-link-text:
+    _: 'Admin'
+
 lzy-edit-user-account:
     de: Benutzerkonto bearbeiten
     _:  Edit user account
