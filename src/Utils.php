@@ -281,15 +281,15 @@ EOT;
     public function setLanguageSelector():void
     {
         $out = '';
-        foreach ($this->pfy->supportedLanguages as $lang) {
-            $langCode = substr($lang, 0,2);
-            if ($lang === PageFactory::$lang) {
-                $out .= "<span class='lzy-lang-elem lzy-active-lang $langCode'><span>{{^ lzy-lang-select-$langCode }}</span></span> ";
-            } else {
-                $out .= "<span class='lzy-lang-elem $langCode'><a href='?lang=$lang' title='{{ lzy-lang-select-title-$langCode }}'>{{^ lzy-lang-select-$langCode }}</a></span> ";
+        if (sizeof($this->pfy->supportedLanguages) > 1) {
+            foreach ($this->pfy->supportedLanguages as $lang) {
+                $langCode = substr($lang, 0, 2);
+                if ($lang === PageFactory::$lang) {
+                    $out .= "<span class='lzy-lang-elem lzy-active-lang $langCode'><span>{{^ lzy-lang-select-$langCode }}</span></span> ";
+                } else {
+                    $out .= "<span class='lzy-lang-elem $langCode'><a href='?lang=$lang' title='{{ lzy-lang-select-title-$langCode }}'>{{^ lzy-lang-select-$langCode }}</a></span> ";
+                }
             }
-        }
-        if ($out) {
             $out = "\t<span class='lzy-lang-selection'>$out</span>\n";
         }
 
