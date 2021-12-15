@@ -205,7 +205,7 @@ EOT;
      * Renders list of all available Macros including help texts.
      * @return string
      */
-    public function listMacros(): string
+    public function listMacros($option = false): string
     {
         $str = '';
         $registeredMacros = self::$registeredMacros;
@@ -226,7 +226,11 @@ EOT;
             } else {
                 $macroObj = include $macroFile;
             }
-            $str .= $this->renderHelpText($macroObj);
+            if (stripos($option, 'short') !== false) {
+                $str .= "- $macroName()\n";
+            } else {
+                $str .= $this->renderHelpText($macroObj);
+            }
         }
         $str = compileMarkdown($str);
         $str = <<<EOT

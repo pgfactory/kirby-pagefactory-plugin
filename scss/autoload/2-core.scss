@@ -121,8 +121,11 @@ a:focus > .lzy-focus-only-visible {
     .lzy-lang-elem {
         position: relative;
         display: inline-block;
-        width: 1.4em;
+        padding: 0 0.1em;
+    }
+    .lzy-lang-flag .lzy-lang-elem {
         height: 1em;
+        width: 1.4em;
         &.lzy-active-lang > * {
             border: 2px solid gray;
             border-radius: 50%;
@@ -143,12 +146,14 @@ a:focus > .lzy-focus-only-visible {
             position: absolute;
             top: 0;
             left: 0;
-            color: transparent;
             background-repeat: no-repeat;
             background-position: center center;
             background-size: 1.2em 1.2em;
             height: 1.4em;
             width: 1.4em;
+        }
+        &.lzy-lang-elem > * {
+            color: transparent;
         }
         a {
             border-bottom: none;
@@ -156,6 +161,12 @@ a:focus > .lzy-focus-only-visible {
     }
 
     .lzy-lang-selection a {
+        border-bottom: none;
+    }
+    //.lzy-lang-selection * {
+    //    color: transparent;
+    //}
+    a.lzy-login-button {
         border-bottom: none;
     }
 }
@@ -189,3 +200,8 @@ a:focus > .lzy-focus-only-visible {
 }
 
 
+.lzy-large-screen {
+    .lzy-small-screen-only {
+        display: none;
+    }
+}

@@ -17,6 +17,7 @@ class PageExtruder
     public $bodyEndInjections;
     public $bodyTagClasses;
     public $bodyTagAttributes;
+    public $svg;
     public $css;
     public $scss;
     public $js;
@@ -541,6 +542,7 @@ EOT;
         $miscInjection = "\n$this->bodyEndInjections";
 
         $js = "var screenSizeBreakpoint = {$this->pfy->screenSizeBreakpoint}\n";
+        $js .= "const hostUrl = '" . PageFactory::$appRoot . "';\n";
         $js .= $this->js . @$this->frontmatter['js'];
         if ($js) {
             $js = "\t\t".str_replace("\n", "\n\t\t", rtrim($js, "\n"));

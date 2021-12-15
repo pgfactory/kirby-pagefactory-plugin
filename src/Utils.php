@@ -263,7 +263,11 @@ EOT;
             if (in_array($langCode, $supportedLanguages)) {
                 PageFactory::$lang = $lang;
                 PageFactory::$langCode = substr($lang, 0, 2);
-                kirby()->setCurrentLanguage(PageFactory::$langCode);
+                $slug = $this->pfy->slug;
+                $slug = $lang . substr($slug,2);
+                $appRoot = dirname(substr($_SERVER['SCRIPT_FILENAME'], -strlen($_SERVER['SCRIPT_NAME']))).'/';
+                $url = $appRoot.$slug;
+                reloadAgent($url);
             }
         }
     } // determineLanguage
@@ -280,11 +284,10 @@ EOT;
         foreach ($this->pfy->supportedLanguages as $lang) {
             $langCode = substr($lang, 0,2);
             if ($lang === PageFactory::$lang) {
-                $out .= "<span class='lzy-lang-elem lzy-active-lang $langCode'>{{ lzy-lang-select $langCode }}</span>";
+                $out .= "<span class='lzy-lang-elem lzy-active-lang $langCode'><span>{{^ lzy-lang-select-$langCode }}</span></span> ";
             } else {
-                $out .= "<span class='lzy-lang-elem $langCode'><a href='?lang=$lang'>{{ lzy-lang-select $langCode }}</a></span>";
+                $out .= "<span class='lzy-lang-elem $langCode'><a href='?lang=$lang' title='{{ lzy-lang-select-title-$langCode }}'>{{^ lzy-lang-select-$langCode }}</a></span> ";
             }
-
         }
         if ($out) {
             $out = "\t<span class='lzy-lang-selection'>$out</span>\n";
@@ -357,7 +360,7 @@ EOT;
      */
     public function getContent(): string
     {
-        $content = '';
+        $content = $this->pfy->mdContent;
         if ($this->pfy->mdContent) {
             $content = $this->pfy->kirby->markdown($this->pfy->mdContent);
         }

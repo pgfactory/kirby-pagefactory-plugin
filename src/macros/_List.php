@@ -10,6 +10,8 @@ $macroConfig =  [
     'name' => strtolower( $macroName ),
     'parameters' => [
         'type' => ['Selects the objects to be listed.', false],
+        'options' => ['[short] Specifies how to render the list.', false],
+        'option' => ['Synonym for "options".', false],
     ],
     'summary' => <<<EOT
 Renders a list of requested type.
@@ -48,13 +50,15 @@ class _List extends Macros
         $inx = self::$inx++;
 
         $type = $args['type'];
+        $options = $args['options'];
+        $options .= $args['option'];
         $str = '';
 
         if ($type === 'variables') {
             $str = PageFactory::$trans->render();
 
         } elseif ($type === 'macros') {
-            $str = parent::listMacros();
+            $str = parent::listMacros($options);
 
         } elseif ($type === 'users') {
             $users = $this->pfy->kirby->users();

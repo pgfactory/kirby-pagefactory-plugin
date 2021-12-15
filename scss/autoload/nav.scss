@@ -2,6 +2,8 @@
 **  Styles for macro nav()
 ****************************/
 
+@import '--definitions.scss';
+
 //=== Defaults:
 // dimensions:
 $nav-txt-size: 12pt;
@@ -27,9 +29,6 @@ $nav-curr-bg-color:  #444;
 $nav-hover-txt-color: #000;
 $nav-hover-bg-color: #ddd;
 
-// focus:
-$nav-focus-border-color: magenta;
-
 
 
 // mobile nav:
@@ -51,7 +50,7 @@ $nav-top-horizontal-first-indent: 1.25em;
 $nav-top-horizontal-indent-step: 1.25em;
 
 // lzy-nav-accordion:
-$nav-accordion-trans-speed: 0.2s;
+$nav-collapse-speed: 0.2s;
 
 // lzy-nav-indented-no-arrow:
 $nav-first-indent: 1em;
@@ -77,32 +76,12 @@ $slidedownX6: calc(var(--lzy-nav-top-horizontal-first-indent, #{$nav-top-horizon
 #lzy .lzy-nav-wrapper,
 .lzy-nav-wrapper {
     position: relative;
-    .lzy-nav-arrow {
-        width: 1em;
-        height: 1em;
-//outline: 1px solid blue;
-//background: yellow;
-//        min-width: 1.55em;
-        transform: rotate(45deg) translate(0.1em, -0.1em);
-        transform-origin: 72% 72%;
-        font-size: 75%;
-    }
-    .lzy-nav-arrow > span {
-        display: inline-block;
-        width: 1em;
-        height: 1em;
-//outline: 1px solid red;
-        transform: translate(0.1em, -0.1em);
-//transform: rotate(45deg);
-//transform-origin: 50% 50%;
-    }
     .lzy-nav-menu-button {
         display: none;
     }
-    a:focus {
-        box-shadow: inset 0 0 4px magenta;
-        box-shadow: inset 0 0 4px var(--lzy-nav-focus-border-color, #{$nav-focus-border-color});
-        outline: none;
+
+    .lzy-nav a:focus-visible {
+        box-shadow: inset 0 0 0 1px black, inset 0 0 0 2px white, inset 0 0 0 3px  #{$focus-color};
     }
 } // .lzy-nav-wrapper
 
@@ -110,15 +89,19 @@ $slidedownX6: calc(var(--lzy-nav-top-horizontal-first-indent, #{$nav-top-horizon
 
 #lzy .lzy-encapsulated,
 & {
-    &nav ul {
-        padding: 0;
+    nav,
+    &nav {
+        ul {
+            padding: 0;
+        }
+        li {
+            list-style-type: none;
+        }
     }
-    &nav li {
-        list-style-type: none;
-    }
 
 
 
+    .lzy-nav,
     &.lzy-nav {
         ol, li, a {
             display: block;
@@ -137,9 +120,11 @@ $slidedownX6: calc(var(--lzy-nav-top-horizontal-first-indent, #{$nav-top-horizon
             padding-top: calc( (var(--lzy-nav-elem-height, #{$nav-elem-height}) - 1.2em) / 2);
             padding-bottom: calc( (var(--lzy-nav-elem-height, #{$nav-elem-height}) - 1.2em) / 2);
         }
-        :focus,
-        a, a:visited, a:hover {
-            border-bottom: none;
+        &.lzy-nav {
+            :focus,
+            a, a:visited, a:hover {
+                border-bottom: none;
+            }
         }
         .lzy-nav-label {
             display: inline-block;
@@ -148,31 +133,25 @@ $slidedownX6: calc(var(--lzy-nav-top-horizontal-first-indent, #{$nav-top-horizon
             display: none;
             user-select: none;
             cursor: s-resize;
+            width: 1em;
+            height: 1em;
+            transform: rotate(-45deg) translate(0.1em, -0.1em);
+            transform-origin: 72% 72%;
+            font-size: 75%;
+            > span {
+                display: inline-block;
+                width: 1em;
+                height: 1em;
+                transform: translate(0.1em, -0.1em);
+            }
         }
 
         li.lzy-has-children > div {
             overflow: hidden;
         }
 
-        // collapsed:
-        &.lzy-nav-collapsible,
-        &.lzy-nav-collapsed {
-            .lzy-nav-arrow {
-                display: inline-block;
-                opacity: 1;
-            }
-        }
 
-
-        li.lzy-has-children > div > ol {
-            margin-top: -10000px;
-        }
-        li.lzy-has-children.lzy-open > div > ol {
-            margin-top: 0 !important;
-        }
-
-
-        // :
+        // all:
         li {
             > a {
                 color:      var(--lzy-nav-txt-color);
@@ -181,7 +160,7 @@ $slidedownX6: calc(var(--lzy-nav-top-horizontal-first-indent, #{$nav-top-horizon
         }
 
         // lzy-curr:
-        li.lzy-curr.lzy-curr.lzy-curr {
+        .lzy-curr {
             > a {
                 color:      var(--lzy-nav-curr-txt-color, var(--lzy-nav-txt-color));
                 background: var(--lzy-nav-curr-bg-color, var(--lzy-nav-elem-bg-color));
@@ -189,74 +168,78 @@ $slidedownX6: calc(var(--lzy-nav-top-horizontal-first-indent, #{$nav-top-horizon
         }
 
         // lzy-active:
-        .lzy-active.lzy-active {
+        .lzy-active {
             > a {
                 color:      var(--lzy-nav-active-txt-color, var(--lzy-nav-txt-color));
                 background: var(--lzy-nav-active-bg-color, var(--lzy-nav-elem-bg-color));
             }
         }
-
-        // level dependent:
-        .lzy-lvl1 {
-            a {
-//                color: var(--lzy-nav-txt-color);
-//                background: var(--lzy-nav-elem-bg-color);
-            }
-        }
-        .lzy-lvl2 a {
-            color: var(--lzy-nav-sub-txt-color, var(--lzy-nav-txt-color, currentColor) );
-            background: var(--lzy-nav-sub-bg-color, white);
-        }
-
-        //.lzy-nav-sub-wrapper {
-        //    background-color: white;
-        //}
-
     } // generic .lzy-nav
 
 
-    .lzy-nav-hoveropen {
+    .lzy-nav-collapsed,
+    &.lzy-nav-collapsed {
+        .lzy-nav-arrow {
+            display: inline-block;
+            transform: rotate(-45deg) translate(0.2em, 0.1em);
+            opacity: 1;
+        }
+        li.lzy-has-children > div > ol {
+            margin-top: -10000px;
+        }
+        li.lzy-has-children.lzy-open > div > ol {
+            margin-top: 0 !important;
+        }
+    }
+    .lzy-nav-collapsible,
+    &.lzy-nav-collapsible {
+        li.lzy-has-children.lzy-open > div > ol {
+            margin-top: 0 !important;
+        }
+    }
+
+
+    .lzy-nav-hoveropen,
+    &.lzy-nav-hoveropen {
         .lzy-hover ol {
             margin-top: 0 !important;
         }
     }
 
 
+    .lzy-nav-indented,
     &.lzy-nav-indented { // no-arrow indentation:
-        .lzy-nav-arrow {
-            display: inline-block;
-        }
-        .lzy-lvl1 {
+        .lzy-lvl-1 {
             > a {
                 padding-left: 1em;    // for IE
                 padding-left: var(--lzy-nav-first-indent, #{$nav-first-indent});
             }
         }
-        .lzy-lvl2 {
+        .lzy-lvl-2 {
             > a {
                 padding-left: 2em;    // for IE
                 padding-left: calc(var(--lzy-nav-first-indent, #{$nav-first-indent}) + var(--lzy-nav-indent-step, #{$nav-indent-step}));
             }
         }
-        .lzy-lvl3 {
+        .lzy-lvl-3 {
             > a {
                 padding-left: 3em;    // for IE
                 padding-left: calc(var(--lzy-nav-first-indent, #{$nav-first-indent}) + 2 * var(--lzy-nav-indent-step, #{$nav-indent-step}));
             }
         }
-        .lzy-lvl4 {
+        .lzy-lvl-4 {
             > a {
                 padding-left: 4em;    // for IE
                 padding-left: calc(var(--lzy-nav-first-indent, #{$nav-first-indent}) + 3 * var(--lzy-nav-indent-step, #{$nav-indent-step}));
             }
         }
-        .lzy-lvl5 {
+        .lzy-lvl-5 {
             > a {
                 padding-left: 5em;    // for IE
                 padding-left: calc(var(--lzy-nav-first-indent, #{$nav-first-indent}) + 4 * var(--lzy-nav-indent-step, #{$nav-indent-step}));
             }
         }
-        .lzy-lvl6 {
+        .lzy-lvl-6 {
             > a {
                 padding-left: 6em;    // for IE
                 padding-left: calc(var(--lzy-nav-first-indent, #{$nav-first-indent}) + 5 * var(--lzy-nav-indent-step, #{$nav-indent-step}));
@@ -265,26 +248,20 @@ $slidedownX6: calc(var(--lzy-nav-top-horizontal-first-indent, #{$nav-top-horizon
     } // indentation
 
 
+    .lzy-nav-animation-active,
     &.lzy-nav-animation-active {
         li.lzy-has-children {
             > div > ol {
-                transition: margin-top var(--lzy-nav-accordion-trans-speed, #{$nav-accordion-trans-speed});
+                transition: margin-top var(--lzy-nav-collapse-speed, #{$nav-collapse-speed});
             }
         }
-        &:not(.lzy-nav-top-horizontal) {
-            .lzy-has-children > * > .lzy-nav-arrow > .lzy-icon-triangle {
-                transition: transform var(--lzy-nav-accordion-trans-speed, #{$nav-accordion-trans-speed});
-                --lzy-triangle-angle: 0deg;
-            }
-
-            .lzy-has-children.lzy-open > * > .lzy-nav-arrow > .lzy-icon-triangle {
-                transition: transform var(--lzy-nav-accordion-trans-speed, #{$nav-accordion-trans-speed});
-                --lzy-triangle-angle: 90deg;
-            }
+        .lzy-nav-arrow {
+            transition: transform var(--lzy-nav-collapse-speed, #{$nav-collapse-speed});
         }
     } // animated
 
 
+    .lzy-nav-colored,
     &.lzy-nav-colored {
         // generic:
         a:visited,
@@ -295,7 +272,7 @@ $slidedownX6: calc(var(--lzy-nav-top-horizontal-first-indent, #{$nav-top-horizon
 
         // focus and hover:
         &.lzy-nav-colored.lzy-nav-colored.lzy-nav-colored {
-            a:focus {
+            a:focus-visible {
                 color:      #{$nav-hover-txt-color};
                 color:      var(--lzy-nav-focus-txt-color, var(--lzy-nav-hover-txt-color, #{$nav-hover-txt-color}));
                 background: #{$nav-hover-bg-color};
@@ -310,7 +287,7 @@ $slidedownX6: calc(var(--lzy-nav-top-horizontal-first-indent, #{$nav-top-horizon
         }
 
         // lzy-curr:
-        li.lzy-curr.lzy-curr.lzy-curr {
+        .lzy-curr {
             > a {
                 color:      #{$nav-curr-txt-color};
                 color:      var(--lzy-nav-curr-txt-color, var(--lzy-nav-txt-color, #{$nav-curr-txt-color}));
@@ -320,7 +297,7 @@ $slidedownX6: calc(var(--lzy-nav-top-horizontal-first-indent, #{$nav-top-horizon
         }
 
         // lzy-active:
-        .lzy-active.lzy-active {
+        .lzy-active {
             > a {
                 color:      #{$nav-txt-color};
                 color:      var(--lzy-nav-active-txt-color, var(--lzy-nav-txt-color, #{$nav-txt-color}));
@@ -336,13 +313,13 @@ $slidedownX6: calc(var(--lzy-nav-top-horizontal-first-indent, #{$nav-top-horizon
         }
 
         // level dependent:
-        .lzy-lvl1 {
+        .lzy-lvl-1 {
             > a {
                 background: #{$nav-elem-bg-color};
                 background: var(--lzy-nav-elem-bg-color, #{$nav-elem-bg-color});
             }
         }
-        .lzy-lvl2 a {
+        .lzy-lvl-2 a {
             color: black;
             color: var(--lzy-nav-sub-txt-color, var(--lzy-nav-txt-color, currentColor) );
             background: #{$nav-sub-bg-color};
@@ -365,18 +342,138 @@ $slidedownX6: calc(var(--lzy-nav-top-horizontal-first-indent, #{$nav-top-horizon
 
 
     // === Top Nav
-    &.lzy-nav-top-horizontal,
-    .lzy-nav-top-horizontal {
-        .lzy-icon-triangle.lzy-icon-triangle {
-            --lzy-triangle-angle: 90deg;
-            --lzy-icon-factor: 0.8;
-            transform-origin: center;
-            &:before {
-                top: 36%;
+    .lzy-nav-top-horizontal,
+    &.lzy-nav-top-horizontal {
+        // while in touch mode, the parent element can't be activated as it is reserved for opening/closing the accordion
+        // thus we need to repeat that element in the text sub-menu, but hide it while not in touch mode:
+        .lzy-nav-title {
+            display: none;
+        }
+        // default color & background (opt. overridden by lzy-nav-colored):
+        .lzy-lvl-2 a {
+            color: var(--lzy-nav-sub-txt-color, var(--lzy-nav-txt-color, currentColor) );
+            background: var(--lzy-nav-sub-bg-color, white);
+        }
+
+        li {
+            vertical-align: top;
+        }
+
+        a,
+        ol,
+        div {
+            font-size: 12pt;
+            font-size: var(--lzy-nav-txt-size, #{$nav-txt-size});
+        }
+
+        a {
+            padding-right: 2em;
+            padding-right: var(--lzy-nav-top-horizontal-padding, #{$nav-top-horizontal-padding});
+        }
+
+        .lzy-nav-arrow {
+            display: inline-block;
+        }
+
+        ol {
+            margin: 0;
+            padding: 0;
+        }
+
+        > ol {
+            font-size: 0;
+        }
+
+        li {
+            vertical-align: top;
+            position: relative;
+            margin: 0;
+        }
+
+        .lzy-lvl-1 {
+            display: inline-block;
+            margin: 0 2em 0 0;
+            margin-right: var(--lzy-nav-top-horizontal-col-gap, #{$nav-top-horizontal-col-gap});
+
+            > a {
+                border-left: none;
+            }
+
+            > a {
+                display: inline-block;
+            }
+
+            &:last-child {
+                margin-right: 0;
+            }
+
+            &.lzy-has-children {
+                > div {
+                    position: absolute;
+                    top: 100%; // push below top level elem
+                    left: 0;
+                    width: #{$nav-sub-width};
+                    width: var(--lzy-nav-sub-width, #{$nav-sub-width});
+                    z-index: 102;
+                    overflow: hidden;
+                }
             }
         }
+
+        .lzy-lvl-2 {
+            a {
+                margin-bottom: 1px;
+            }
+        }
+
+        &.lzy-nav-colored div {
+            background: white;
+        }
+
+        &:not(.lzy-nav-indented) {
+            a {
+                padding-left: #{$slidedownX2};
+            }
+        }
+
+        &.lzy-nav-indented {
+            .lzy-lvl-1 > a {
+                padding-left: var(--lzy-nav-top-horizontal-padding, #{$nav-top-horizontal-padding});
+            }
+
+            .lzy-lvl-2 .lzy-nav-arrow {
+                display: none;
+            }
+
+            .lzy-lvl-2 > a {
+                padding-left: 1em;
+                padding-left: #{$slidedownX2};
+            }
+
+            .lzy-lvl-3 > a {
+                padding-left: 2em;
+                padding-left: #{$slidedownX3};
+            }
+
+            .lzy-lvl-4 > a {
+                padding-left: 3em;
+                padding-left: #{$slidedownX4};
+            }
+
+            .lzy-lvl-5 > a {
+                padding-left: 4em;
+                padding-left: #{$slidedownX5};
+            }
+
+            .lzy-lvl-6 > a {
+                padding-left: 5em;
+                padding-left: #{$slidedownX6};
+            }
+        }
+
         .lzy-nav-arrow {
             padding: 0 0.4em 0 0.1em;
+            transform: rotate(45deg) translate(0.1em, -0.1em);
         }
 
         .lzy-nav-heading {
@@ -392,15 +489,29 @@ $slidedownX6: calc(var(--lzy-nav-top-horizontal-first-indent, #{$nav-top-horizon
 
 
     // === Vertical nav:
-    &.lzy-nav-vertical,
-    .lzy-nav-vertical {
-        a:visited,
-        a {
-            position: relative;
+    .lzy-nav-vertical,
+    &.lzy-nav-vertical {
+        .lzy-nav-collapsible,
+        &.lzy-nav-collapsible,
+        .lzy-nav-collapsed,
+        &.lzy-nav-collapsed {
             .lzy-nav-arrow {
+                display: inline-block;
+                transform: rotate(-45deg) translate(0.2em, 0.1em);
                 position: absolute;
                 top: 0.4em;
             }
+        }
+
+        .lzy-hover,
+        .lzy-open {
+            > a > span.lzy-nav-arrow {
+                transform: rotate(45deg) translate(0.2em, 0.1em);
+            }
+        }
+        a:visited,
+        a {
+            position: relative;
             .lzy-nav-label {
                 display: block;
                 hyphens: auto;
@@ -409,7 +520,7 @@ $slidedownX6: calc(var(--lzy-nav-top-horizontal-first-indent, #{$nav-top-horizon
                 width: 100%;
             }
         }
-        .lzy-lvl1 > a {
+        .lzy-lvl-1 > a {
             padding-left: 2em;
             padding-left: calc(var(--lzy-mobile-nav-first-indent, #{$nav-first-indent}) );
             .lzy-nav-arrow {
@@ -417,7 +528,7 @@ $slidedownX6: calc(var(--lzy-nav-top-horizontal-first-indent, #{$nav-top-horizon
                 left: calc(var(--lzy-mobile-nav-first-indent, #{$nav-first-indent}) - 1em );
             }
         }
-        .lzy-lvl2 > a {
+        .lzy-lvl-2 > a {
             padding-left: 3em;
             padding-left: calc(var(--lzy-mobile-nav-first-indent, #{$nav-first-indent}) + var(--lzy-mobile-nav-indent-step, #{$mobile-nav-indent-step}));
             .lzy-nav-arrow {
@@ -425,7 +536,7 @@ $slidedownX6: calc(var(--lzy-nav-top-horizontal-first-indent, #{$nav-top-horizon
                 left:     calc(var(--lzy-mobile-nav-first-indent, #{$nav-first-indent}) + var(--lzy-mobile-nav-indent-step, #{$mobile-nav-indent-step}) - 1em );
             }
         }
-        .lzy-lvl3 > a {
+        .lzy-lvl-3 > a {
             padding-left: 4em;
             padding-left: calc(var(--lzy-mobile-nav-first-indent, #{$nav-first-indent}) + 2 * var(--lzy-mobile-nav-indent-step, #{$mobile-nav-indent-step}));
             .lzy-nav-arrow {
@@ -433,7 +544,7 @@ $slidedownX6: calc(var(--lzy-nav-top-horizontal-first-indent, #{$nav-top-horizon
                 left:     calc(var(--lzy-mobile-nav-first-indent, #{$nav-first-indent}) + 2 * var(--lzy-mobile-nav-indent-step, #{$mobile-nav-indent-step}) - 1em );
             }
         }
-        .lzy-lvl4 > a {
+        .lzy-lvl-4 > a {
             padding-left: 5em;
             padding-left: calc(var(--lzy-mobile-nav-first-indent, #{$nav-first-indent}) + 3 * var(--lzy-mobile-nav-indent-step, #{$mobile-nav-indent-step}));
             .lzy-nav-arrow {
@@ -441,7 +552,7 @@ $slidedownX6: calc(var(--lzy-nav-top-horizontal-first-indent, #{$nav-top-horizon
                 left:     calc(var(--lzy-mobile-nav-first-indent, #{$nav-first-indent}) + 3 * var(--lzy-mobile-nav-indent-step, #{$mobile-nav-indent-step}) - 1em );
             }
         }
-        .lzy-lvl5 > a {
+        .lzy-lvl-5 > a {
             padding-left: 6em;
             padding-left: calc(var(--lzy-mobile-nav-first-indent, #{$nav-first-indent}) + 4 * var(--lzy-mobile-nav-indent-step, #{$mobile-nav-indent-step}));
             .lzy-nav-arrow {
@@ -449,7 +560,7 @@ $slidedownX6: calc(var(--lzy-nav-top-horizontal-first-indent, #{$nav-top-horizon
                 left:     calc(var(--lzy-mobile-nav-first-indent, #{$nav-first-indent}) + 4 * var(--lzy-mobile-nav-indent-step, #{$mobile-nav-indent-step}) - 1em );
             }
         }
-        .lzy-lvl6 > a {
+        .lzy-lvl-6 > a {
             padding-left: 7em;
             padding-left: calc(var(--lzy-mobile-nav-first-indent, #{$nav-first-indent}) + 5 * var(--lzy-mobile-nav-indent-step, #{$mobile-nav-indent-step}));
             .lzy-nav-arrow {
@@ -460,7 +571,18 @@ $slidedownX6: calc(var(--lzy-nav-top-horizontal-first-indent, #{$nav-top-horizon
     } // vertical nav
 
 
+    //// mobile nav:
+    //.lzy-small-screen-nav {
+    //    position: absolute;
+    //    top: 3em;
+    //    left: 0;
+    //    background: transparent;
+    //    background: var(--mobile-nav-bg-color, #{$mobile-nav-bg-color});
+    //    color: var(--mobile-nav-txt-color, #{$mobile-nav-txt-color});
+    //}
 
+
+/* for later use:
     //=== in-page nav:
     &.lzy-in-page-nav,
     .lzy-in-page-nav {
@@ -520,213 +642,8 @@ $slidedownX6: calc(var(--lzy-nav-top-horizontal-first-indent, #{$nav-top-horizon
             opacity: 0.6;
         }
     } // lzy-nav-breadcrumb
-
-
+*/
 
 } // lzy-encapsulated
-
-
-
-// === mobile menu:
-#lzy.lzy-small-screen .lzy-primary-nav .lzy-encapsulated,
-.lzy-small-screen .lzy-primary-nav {
-    background: $mobile-nav-bg-color;
-    padding-top: 0.6rem;
-    padding-left: 5px;
-    position: relative;
-    width: $mobile-nav-width;
-
-    a:visited,
-    a {
-        font-size: #{$mobile-nav-font-size};
-        font-size: var(--lzy-mobile-nav-font-size, #{$mobile-nav-font-size});
-        color: #{$mobile-nav-txt-color};
-        color: var(--lzy-mobile-nav-txt-color, #{$mobile-nav-txt-color});
-        position: relative;
-    }
-
-    .lzy-nav-title {
-        padding-left: 2em;
-        padding-left: var(--lzy-mobile-nav-title-indent, #{$mobile-nav-title-indent});
-    }
-
-    .lzy-lvl1 > a {
-        padding-left: 2em;
-        padding-left: calc(var(--lzy-mobile-nav-first-indent, #{$mobile-nav-first-indent}));
-
-        .lzy-nav-arrow {
-            left: 1em;
-            left: calc(var(--lzy-mobile-nav-first-indent, #{$mobile-nav-first-indent}) - 1em);
-            top: 0.4em;
-        }
-    }
-
-    .lzy-lvl2 > a {
-        padding-left: 3em;
-        padding-left: calc(var(--lzy-mobile-nav-first-indent, #{$mobile-nav-first-indent}) + var(--lzy-mobile-nav-indent-step, #{$mobile-nav-indent-step}));
-
-        .lzy-nav-arrow {
-            left: 2em;
-            left: calc(var(--lzy-mobile-nav-first-indent, #{$mobile-nav-first-indent}) + var(--lzy-mobile-nav-indent-step, #{$mobile-nav-indent-step}) - 1em);
-        }
-    }
-
-    .lzy-lvl3 > a {
-        padding-left: 4em;
-        padding-left: calc(var(--lzy-mobile-nav-first-indent, #{$mobile-nav-first-indent}) + 2 * var(--lzy-mobile-nav-indent-step, #{$mobile-nav-indent-step}));
-
-        .lzy-nav-arrow {
-            left: 3em;
-            left: calc(var(--lzy-mobile-nav-first-indent, #{$mobile-nav-first-indent}) + 2 * var(--lzy-mobile-nav-indent-step, #{$mobile-nav-indent-step}) - 1em);
-        }
-    }
-
-    .lzy-lvl4 > a {
-        padding-left: 5em;
-        padding-left: calc(var(--lzy-mobile-nav-first-indent, #{$mobile-nav-first-indent}) + 3 * var(--lzy-mobile-nav-indent-step, #{$mobile-nav-indent-step}));
-
-        .lzy-nav-arrow {
-            left: 4em;
-            left: calc(var(--lzy-mobile-nav-first-indent, #{$mobile-nav-first-indent}) + 3 * var(--lzy-mobile-nav-indent-step, #{$mobile-nav-indent-step}) - 1em);
-        }
-    }
-
-    .lzy-lvl5 > a {
-        padding-left: 6em;
-        padding-left: calc(var(--lzy-mobile-nav-first-indent, #{$mobile-nav-first-indent}) + 4 * var(--lzy-mobile-nav-indent-step, #{$mobile-nav-indent-step}));
-
-        .lzy-nav-arrow {
-            left: 5em;
-            left: calc(var(--lzy-mobile-nav-first-indent, #{$mobile-nav-first-indent}) + 4 * var(--lzy-mobile-nav-indent-step, #{$mobile-nav-indent-step}) - 1em);
-        }
-    }
-
-    .lzy-lvl6 > a {
-        padding-left: 7em;
-        padding-left: calc(var(--lzy-mobile-nav-first-indent, #{$mobile-nav-first-indent}) + 5 * var(--lzy-mobile-nav-indent-step, #{$mobile-nav-indent-step}));
-
-        .lzy-nav-arrow {
-            left: 6em;
-            left: calc(var(--lzy-mobile-nav-first-indent, #{$mobile-nav-first-indent}) + 5 * var(--lzy-mobile-nav-indent-step, #{$mobile-nav-indent-step}) - 1em);
-        }
-    }
-
-} // .lzy-small-screen
-
-
-#lzy.lzy-large-screen .lzy-nav-top-horizontal.lzy-encapsulated,
-.lzy-large-screen .lzy-nav-top-horizontal {
-    // while in touch mode, the parent element can't be activated as it is reserved for opening/closing the accordion
-    // thus we need to repeat that element in the text sub-menu, but hide it while not in touch mode:
-    .lzy-nav-title {
-        display: none;
-    }
-
-
-    li {
-        vertical-align: top;
-    }
-    a,
-    ol,
-    div {
-        font-size: 12pt;
-        font-size: var(--lzy-nav-txt-size, #{$nav-txt-size});
-    }
-    a {
-        padding-right: 2em;
-        padding-right: var(--lzy-nav-top-horizontal-padding, #{$nav-top-horizontal-padding});
-    }
-    .lzy-nav-arrow {
-        display: inline-block;
-    }
-    ol {
-        margin: 0;
-        padding: 0;
-    }
-    > ol {
-        font-size: 0;
-    }
-    li {
-        vertical-align: top;
-        position: relative;
-        margin: 0;
-    }
-
-    .lzy-lvl1 {
-        display: inline-block;
-        margin: 0 2em 0 0;
-        margin-right: var(--lzy-nav-top-horizontal-col-gap, #{$nav-top-horizontal-col-gap});
-
-        > a {
-            border-left: none;
-        }
-        > a {
-            display: inline-block;
-        }
-        &:last-child {
-            margin-right: 0;
-        }
-        &.lzy-has-children {
-//            > a {
-//                padding-right: 0;
-//            }
-
-            > div {
-                position: absolute;
-                top: 100%; // push below top level elem
-                left: 0;
-                width: #{$nav-sub-width};
-                width: var(--lzy-nav-sub-width, #{$nav-sub-width});
-                z-index: 102;
-                overflow: hidden;
-            }
-        }
-    } // lzy-lvl1
-
-    .lzy-lvl2 {
-        a {
-            margin-bottom: 1px;
-        }
-    }
-    &.lzy-nav-colored div {
-        background: white;
-    }
-
-    &:not(.lzy-nav-indented) {
-        a {
-            padding-left: #{$slidedownX2};
-        }
-    }
-    &.lzy-nav-indented {
-        .lzy-lvl1 > a {
-            padding-left: var(--lzy-nav-top-horizontal-padding, #{$nav-top-horizontal-padding});
-        }
-        .lzy-lvl2 .lzy-nav-arrow {
-            display: none;
-        }
-        .lzy-lvl2 > a {
-            padding-left: 1em;
-            padding-left: #{$slidedownX2};
-        }
-        .lzy-lvl3 > a {
-            padding-left: 2em;
-            padding-left: #{$slidedownX3};
-        }
-        .lzy-lvl4 > a {
-            padding-left: 3em;
-            padding-left: #{$slidedownX4};
-        }
-        .lzy-lvl5 > a {
-            padding-left: 4em;
-            padding-left: #{$slidedownX5};
-        }
-        .lzy-lvl6 > a {
-            padding-left: 5em;
-            padding-left: #{$slidedownX6};
-        }
-
-    } // lzy-nav-top-horizontal
-
-} // .lzy-large-screen
 
 

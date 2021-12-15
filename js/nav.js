@@ -14,7 +14,8 @@ LzyNav.prototype.init = function() {
     if (!$('#lzy').length) {
         alert("Warning: '#lzy'-Id missing within this page \n-> Lizzy's nav() objects not working.");
     }
-    this.largeScreenClasses = $('.lzy-primary-nav .lzy-nav').attr('class');
+    this.largeScreenClasses = $('.lzy-primary-nav').attr('class');
+    // this.largeScreenClasses = $('.lzy-primary-nav .lzy-nav').attr('class');
 
     var isSmallScreen = ($(window).width() < screenSizeBreakpoint);
     this.adaptMainMenuToScreenSize( isSmallScreen );
@@ -246,7 +247,8 @@ LzyNav.prototype.openCurrentElement = function() {
 LzyNav.prototype.adaptMainMenuToScreenSize = function( smallScreen ) {
     let parent = this;
     if (smallScreen) {
-        $('.lzy-primary-nav .lzy-nav')
+        $('.lzy-primary-nav')
+        // $('.lzy-primary-nav .lzy-nav')
             .removeClass('lzy-nav-top-horizontal lzy-nav-hover lzy-nav-colored lzy-nav-dark-theme lzy-nav-hoveropen')
             .addClass('lzy-nav-vertical lzy-nav-collapsed lzy-nav-open-current');
 
@@ -259,9 +261,12 @@ LzyNav.prototype.adaptMainMenuToScreenSize = function( smallScreen ) {
             });
         }
 
+        scrollIntoView('.lzy-curr', '.lzy-primary-nav');
+
     } else {
         // restore classes:
-        $('.lzy-primary-nav .lzy-nav').attr('class', this.largeScreenClasses);
+        $('.lzy-primary-nav').attr('class', this.largeScreenClasses);
+        // $('.lzy-primary-nav .lzy-nav').attr('class', this.largeScreenClasses);
         $('.lzy-primary-nav .lzy-has-children').removeClass('lzy-open');
         $('body').removeClass('lzy-nav-mobile-open');
     }

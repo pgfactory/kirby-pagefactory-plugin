@@ -1,4 +1,10 @@
 /* === Misc Styles (loaded asynchronously) =========== */
+/*
+ * Variables:
+ *  --lzy-icon-size
+ *  --lzy-icon-angle
+ */
+
 
 // === Macro source code
 .lzy-src-html-wrapper,
@@ -128,51 +134,92 @@
 }
 
 
-// === ?convert data ================
-.lzy-convert-data-response {
-  margin: 2em 0;
-  padding: 1em;
-  color: red;
-  background: #fee;
-  border: 1px solid gray;
-}
+//// === ?convert data ================
+//.lzy-convert-data-response {
+//  margin: 2em 0;
+//  padding: 1em;
+//  color: red;
+//  background: #fee;
+//  border: 1px solid gray;
+//}
 
 
 // === List transvars ==============
-.lzy-list-line > span {
-  vertical-align: top;
-  margin-top: 0.3em;
-}
-.lzy-list-line:first-child {
-  margin-top: 0.8em;
-}
-.lzy-list-var {
-  font-weight: bold;
-  color: maroon;
-}
-.lzy-list-src {
-  color: #aaa;
-}
-.lzy-list-src:hover {
-  color: black;
-}
-.lzy-list-attr-value {
-  display: inline-block;
-  width: calc(100% - 6em);
-}
-#lzy .lzy-list-transvars {
-  font-size: 9pt;
-  .lzy-list-attr-name {
-    display: inline-block;
-    width: 4em;
-    color: gray;
-  }
-}
+//.lzy-list-line > span {
+//  vertical-align: top;
+//  margin-top: 0.3em;
+//}
+//.lzy-list-line:first-child {
+//  margin-top: 0.8em;
+//}
+//.lzy-list-var {
+//  font-weight: bold;
+//  color: maroon;
+//}
+//.lzy-list-src {
+//  color: #aaa;
+//}
+//.lzy-list-src:hover {
+//  color: black;
+//}
+//.lzy-list-attr-value {
+//  display: inline-block;
+//  width: calc(100% - 6em);
+//}
+//#lzy .lzy-list-transvars {
+//  font-size: 9pt;
+//  .lzy-list-attr-name {
+//    display: inline-block;
+//    width: 4em;
+//    color: gray;
+//  }
+//}
 
 // ===  button() -> toggle
 #lzy.lzy-default-styling .lzy-encapsulated,
 #lzy.lzy-default-styling {
   .lzy-button-active { box-shadow: inset 0 0 4px red; }
+}
+
+
+//=== Icons ====================
+.lzy-icon {
+    position: relative;
+    width: 1em;
+    height: 1em;
+    margin: 0 calc((var(--lzy-icon-size, 1.8em) - 1em) * 0.5);
+    transform: translateY(0.15em);
+    > span {
+        display: inline-block;
+        position: relative;
+        width: 1em;
+        height: 1em;
+        transform: rotate(var(--lzy-icon-angle, 0deg));
+        transform-origin: 50% 50%;
+    }
+
+    > span > span,
+    svg {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        height: var(--lzy-icon-size, 1.8em);
+        width: var(--lzy-icon-size, 1.8em);
+        transform: translate(-54.5%, -49.5%);
+    }
+}
+
+// list of icons, i.e. output of ListIcons():
+.lzy-icon-row {
+    span {
+        display: inline-block;
+    }
+    .lzy-icon-label {
+        width: 12em;
+    }
+    .lzy-icon {
+        color: red;
+    }
 }
 
 
@@ -200,6 +247,11 @@
     }
     ul {
         padding-left: 2em;
+    }
+    pre {
+        border: 1px solid #ddd;
+        padding: 1em;
+        background: #fffce9;
     }
 }
 

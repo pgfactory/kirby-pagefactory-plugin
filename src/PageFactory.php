@@ -7,10 +7,12 @@ use Kirby;
 define('PFY_PLUGIN_PATH',           'site/plugins/pagefactory/');
 define('PFY_DEFAULT_TEMPLATE_FILE', 'site/templates/page_template.html');
 define('PFY_USER_ASSETS_PATH',      'content/assets/');
+//define('SVG_ICONS_PATH',            'site/plugins/pagefactory/assets/svg-icons/');
+define('SVG_ICONS_PATH',            'site/plugins/pagefactory/install/media/pagefactory/svg-icons/');
 define('PFY_CONFIG_FILE',           'site/config/pagefactory.php');
 define('PFY_USER_CODE_PATH',        'site/custom/');
 define('PFY_MACROS_PATH',           PFY_PLUGIN_PATH.'src/macros/');
-define('PFY_MACROS_PLUGIN_PATH',    'site/plugins/pagefactory-macros/');
+define('PFY_MACROS_PLUGIN_PATH',    'site/plugins/pagefactory-extensions/macros/');
 define('PFY_CSS_PATH',              'assets/');
 define('PFY_ASSETS_PATHNAME',       'assets/');
 define('PFY_LOGS_PATH',             'site/logs/');
@@ -36,6 +38,7 @@ class PageFactory
     public static $trans = null;
     public static $debug = null;
 
+    public $config;
     public $mdContent = '';
     public $css = '';
     public $scss = '';
@@ -234,8 +237,10 @@ class PageFactory
         if ($user) {
             $username = (string)$user->nameOrEmail();
             self::$trans->setVariable('user', $username);
+            self::$trans->setVariable('lzy-login-button', "<button class='lzy-login-button' title='{{ lzy-edit-user-account }}>{{ lzy-login-icon }}</span></button>");
         } else {
             self::$trans->setVariable('lzy-logged-in-as-user', "<a href='$appUrl/login'>Login</a>");
+            self::$trans->setVariable('lzy-login-button', "<a href='$appUrl/login' class='lzy-login-button' title='{{ lzy-login-button-label }}'>{{ lzy-login-icon }}</a>");
         }
         if (isAdmin()) {
             self::$trans->setVariable('lzy-backend-link', "<a href='$appUrl/panel' target='_blank'>Admin-Panel</a>");

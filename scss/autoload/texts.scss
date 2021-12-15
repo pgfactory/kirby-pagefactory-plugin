@@ -2,14 +2,18 @@
 
 @import '--definitions.scss';
 
-#lzy .lzy-encapsulated,
-& {
-
+#lzy.lzy-default-layout .lzy-encapsulated,
+.lzy-default-layout {
+    :focus-visible {
+        box-shadow: 0 0 0 1px black, 0 0 0 2px white, 0 0 0 3px  #{$focus-color};
+    }
+    :focus {
+        outline: none;
+    }
   p {
     padding: 0;
     margin: 0.2em 0 0.5em 0;
     line-height: 1.25em;
-    //color: #{$focus-color};
   }
 
   li {
@@ -29,11 +33,6 @@
 
   a:hover, a:focus {
     border-bottom: 1px solid gray;
-  }
-
-  a:focus {
-    box-shadow: 0 0 5px $focus-color;
-    box-shadow: 0 0 5px var(--lzy-focus-color, $focus-color);
   }
 
   nav a {

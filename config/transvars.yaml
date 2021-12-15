@@ -13,10 +13,14 @@ clear: '<div style="clear:both;"></div>'
 
 #section: "\n</section>\n<section>\n"
 
-lzy-login-icon: '<span class="lzy-icon lzy-icon-user"></span>'
+lzy-login-icon: "<span class='lzy-icon -user_male_circle'></span>"
+#lzy-login-icon: '<span class="lzy-icon lzy-icon-user"></span>'
 
 lzy-login-button-label: Login
 
+lzy-edit-user-account:
+    de: Benutzerkonto bearbeiten
+    _:  Edit user account
 
 
 #--- nexttime ------------------------------------
@@ -367,11 +371,17 @@ lzy-select-langauge:
     it: Seleziona la lingua
     es: Seleccionar idioma
 
-lzy-lang-select-de: Deutsch
-lzy-lang-select-en: English
-lzy-lang-select-fr: Français
-lzy-lang-select-it: Italiano
-lzy-lang-select-es: Español
+lzy-lang-select-de: 'de <span class="lzy-invisible">Deutsch</span>'
+lzy-lang-select-en: 'en <span class="lzy-invisible">English</span>'
+lzy-lang-select-fr: 'fr <span class="lzy-invisible">Français</span>'
+lzy-lang-select-it: 'it <span class="lzy-invisible">Italiano</span>'
+lzy-lang-select-es: 'es <span class="lzy-invisible">Español</span>'
+
+lzy-lang-select-title-de: 'Deutsch wählen'
+lzy-lang-select-title-en: 'Choose English'
+lzy-lang-select-title-fr: 'Choisissez français'
+lzy-lang-select-title-it: 'Scegli italiano'
+lzy-lang-select-title-es: 'Elige español'
 
 
 lzy-lang-de:

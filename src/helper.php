@@ -1091,6 +1091,9 @@ use Exception;
      }
 
      $p1 = $p0 = findNextPattern($str, $pat1, $p0);
+     if ($p1 === false) {
+         return [false, false];
+     }
      $cnt = 0;
      do {
          $p3 = findNextPattern($str, $pat1, $p1+$d); // next opening pat

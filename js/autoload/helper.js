@@ -3,12 +3,47 @@
  * Helper functions for Kirby PageFactory plugin
  */
 
+var lzyInitialNavConfig =document.getElementsByClassName('lzy-primary-nav').classList;
+
 var elem = document.getElementsByClassName('lzy-async-load');
 for (i=0;i<elem.length;i++) {
     elem[i].setAttribute('media', 'all');
     console.log('async load: ');
     console.log(elem[i]);
 }
+
+window.onresize = function() {
+    adaptToWidth();
+}
+window.onload = function() {
+    adaptToWidth();
+    loadIcons();
+}
+
+
+function loadIcons() {
+    const elems = document.querySelectorAll('.lzy-icon');
+    Array.from(elems).forEach(function (elem) {
+        let spanWrapper = document.createElement('span');
+        let span = document.createElement('span');
+        const iconClasses = elem.classList;
+        let icon = '';
+        for (let i in iconClasses) {
+            let el = iconClasses[i];
+            if ((typeof el === 'string') && (el.charAt(0) === '-')) {
+                icon = el.substr(1);
+                break;
+            }
+        }
+        if (!icon) {
+            return;
+        }
+        const url = hostUrl + 'media/pagefactory/svg-icons/' + icon + '.svg';
+        span.style.content = 'url('+url+')';
+        spanWrapper.append(span.cloneNode(true));
+        elem.append(spanWrapper.cloneNode(true));
+    });
+} // loadIcons
 
 
 function adaptToWidth() {
@@ -20,14 +55,22 @@ function adaptToWidth() {
     document.body.classList.remove('lzy-small-screen');
   }
 }
-window.onresize = function() {
-  adaptToWidth();
-}
-window.onload = function() {
-  adaptToWidth();
-}
 
 
 function mylog(str) {
     console.log(str);
 }
+
+
+
+function scrollIntoView( selector, container ) {
+    // if (typeof container !== 'undefined') {
+        let elem = document.querySelector( selector );
+        elem.scrollIntoView(false);
+
+    // } else {
+        // document.querySelector('html, body').animate({
+        //     scrollTop: document.querySelector( selector ).offset().top
+        // }, 500);
+    // }
+} // scrollIntoView

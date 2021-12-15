@@ -4,3 +4,37 @@
 $focus-color: orange;
 
 $dl-as-table-dt-width: 6em;
+
+// main page:
+$mobile-main-txt-color: black;
+$mobile-main-link-color: darkgray;
+$mobile-main-bg-color: white;
+
+// mobile header:
+$mobile-header-font-size: 6vw;
+$mobile-header-height:    11vw;
+$mobile-header-txt-color: #ddd;
+$mobile-header-bg-color:  #444;
+
+$mobile-page-font-size:   4.5vw;
+$mobile-nav-bg-color:     #333;
+$mobile-nav-txt-color:     #ddd;
+$mobile-nav-title-color:  #333;
+$mobile-nav-title-bg-color: #ddd;
+
+// mobile footer:
+//$mobile-footer-height:    3rem;
+$mobile-footer-height:    8vw;
+$mobile-footer-txt-color: #ddd;
+$mobile-footer-font-size: 4vw;
+
+// mobile nav:
+$mobile-nav-width:       18rem;     // must be same as _lizzy_nav.scss
+
+$yPadding: 0.4rem;
+
+$grid-gap: 10px;
+$box-width: 300px;
+
+$min-font-size: 15;
+$max-font-size: 24;
