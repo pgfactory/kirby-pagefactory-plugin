@@ -730,7 +730,6 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
         return [['text', '['], 1];
     }
 
-
     // rendering is the same as for block elements, we turn the abstract syntax array into a string.
     protected function renderLink($element)
     {
@@ -744,8 +743,47 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
 
 
 
+    /**
+     * @marker :
+     */
+    protected function parseIcon($markdown)
+    {
+        // check whether the marker really represents a strikethrough (i.e. there is a closing ~)
+        if (preg_match('/:(\w+):/', $markdown, $matches)) {
+            return [
+                // return the parsed tag as an element of the abstract syntax tree and call `parseInline()` to allow
+                // other inline markdown elements inside this tag
+                ['icon', $this->parseInline($matches[1])],
+                // return the offset of the parsed text
+                strlen($matches[0])
+            ];
+        }
+        // in case we did not find a closing ~~ we just return the marker and skip 1 character
+        return [['text', ':'], 1];
+    }
+
+    // rendering is the same as for block elements, we turn the abstract syntax array into a string.
+    protected function renderIcon($element)
+    {
+        $iconName = $element[1][0][1];
+        $file = SVG_ICONS_PATH . "$iconName.svg";
+        if (file_exists($file)) {
+            $svg = file_get_contents($file);
+            $icon = "<span class='lzy-icon'><span>$svg</span></span>";
+        } else {
+            $icon = "&#58;$iconName:";
+        }
+        return $icon;
+    }
+
+
+
+
+
+
     private function preprocess($str)
     {
+        $str = str_replace(['\\{{', '\\('], ['&#123;{', '&#40;'], $str);
         $str = $this->doMDincludes($str);
 
         $str = $this->handleMdVariables($str);
@@ -806,7 +844,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
     private function doMDincludes($str)
     {
         // pattern: (include: -incl.md)
-        while (preg_match('/(.*)  \(include: (.*?) \) (.*)/xms', $str, $m)) {
+        while (preg_match('/(.*) \n \(include: (.*?) \) (.*)/xms', $str, $m)) {
             $s1 = $m[1];
             $s2 = $m[3];
             $args = null;
