@@ -1481,11 +1481,23 @@ function parseInlineBlockArguments(string $str): array
 
 
  /**
+  * Converts character to HTML unicode representation, e.g. to hide it from markdown compilation
+  * @param string $char
+  * @return string
+  */
+ function charToHtmlUnicode(string $char): string
+{
+    return '&#'.ord($char).';';
+} // charToHtmlUnicode
+
+
+
+ /**
   * Helper for translateToFilename()
   * @param string $str
   * @return string
   */
- function strToASCII(string $str): string
+function strToASCII(string $str): string
 {
     // transliterate special characters (such as ä, ö, ü) into pure ASCII
     $specChars = array('ä','ö','ü','Ä','Ö','Ü','é','â','á','à',
