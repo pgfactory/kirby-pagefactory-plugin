@@ -47,23 +47,24 @@ class Utils
             }
             $mdStr = loadFile($file, 'cStyle');
             $mdStr = $this->extractFrontmatter($mdStr);
+            $html = $this->pfy->md->compile($mdStr);
             $class = translateToClassName(basename($fileObj->id(), '.md'));
             $wrapperTag = @$this->frontmatter['wrapperTag'];
             if ($wrapperTag === null) {
                 $wrapperTag = 'section';
             }
             if ($wrapperTag) {
-                $this->pfy->mdContent .= <<<EOT
+                $this->pfy->content .= <<<EOT
 
-@@@@@@@@@@ <$wrapperTag #lzy-section-$inx .lzy-section-wrapper .lzy-section-$inx .lzy-section-$class
+<$wrapperTag id='lzy-section-$inx' class='lzy-section-wrapper lzy-section-$inx lzy-section-$class'>
 
-$mdStr
+$html
 
-@@@@@@@@@@
+<$wrapperTag>
 
 EOT;
             } else {
-                $this->pfy->mdContent .= $mdStr;
+                $this->pfy->content .= $html;
             }
             $inx++;
         }

@@ -14,6 +14,7 @@ use Exception;
 class MarkdownPlus extends \cebe\markdown\MarkdownExtra
 {
     private static $asciiTableInx = 0;
+    private static $imageInx = 0;
     // skip is a pseudo tag:
     private $inlineTags = ',a,abbr,acronym,b,bdo,big,br,button,cite,code,dfn,em,i,img,input,kbd,label,'.
             'map,object,output,q,samp,script,select,small,span,strong,sub,sup,textarea,time,tt,var,skip,';
@@ -68,7 +69,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
             'args' => false
         ];
         $firstLine = $lines[$current];
-        if (preg_match('/^\|===*\s+(.+)$/', $firstLine, $m)) {
+        if (preg_match('/^\|===*\s+{?:?(.+?)}?$/', $firstLine, $m)) {
             $block['args'] = $m[1];
         }
         for($i = $current + 1, $count = count($lines); $i < $count; $i++) {
@@ -133,7 +134,8 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
         $id = $class = $style = $attr = $text = $tag = '';
         if ($block['args']) {
             $args = parseInlineBlockArguments($block['args'], true);
-            list($tag, $id, $class, $style, $attr, $text) = $args;
+            list($tag, $id, $class, $style, $attr, $text) = array_values($args);
+            $attr = $args['htmlAttrs'];
         }
         if (!$id) {
             $id = "lzy-table$inx";
@@ -162,7 +164,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
             $out .= "\t  <thead>\n";
             for ($col = 0; $col < $nCols; $col++) {
                 $cell = isset($table[0][$col]) ? $table[0][$col] : '';
-                $cell = compileMarkdownStr(trim($cell));
+                $cell = parent::parseParagraph(trim($cell));
                 $cell = trim($cell);
                 if (preg_match('|^<p>(.*)</p>$|', $cell, $m)) {
                     $cell = $m[1];
@@ -178,15 +180,11 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
             $colspan = 1;
             for ($col = 0; $col < $nCols; $col++) {
                 $cell = isset($table[$row][$col]) ? $table[$row][$col] : '';
-                if ($cell === '>') {    // colspan?
+                if ($cell === '>') {    // colspan?  e.g. |>|
                     $colspan++;
                     continue;
                 } elseif ($cell) {
-                    $cell = parent::parse(trim($cell));
-                    $cell = trim($cell);
-                    if (preg_match('|^<p>(.*)</p>$|', $cell, $m)) {
-                        $cell = $m[1];
-                    }
+                    $cell = parent::parseParagraph(trim($cell));
                 }
                 $colspanAttr = '';
                 if ($colspan > 1) {
@@ -293,7 +291,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
 
         } else {
             unset($block['content']);
-            $block['content'][0] = shieldStr($content,'md');
+            $block['content'][0] = parent::parseParagraph($content);
         }
         return [$block, $i];
     } // consumeDivBlock
@@ -361,8 +359,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
     {
         $out = '';
         foreach ($block['content'] as $l) {
-            $l = preg_replace('/([.\d]{1,3}\w{1,2})? >> [\s\t]/x', "@@tab@@", $l);
-            $parts = explode('@@tab@@', $l);
+            $parts = preg_split('/[\s\t]* ([.\d]{1,3}\w{1,2})? >> [\s\t]/x', $l);
             $line = '';
             foreach ($parts as $n => $elem) {
                 $style = '';
@@ -373,14 +370,11 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
                 } elseif (($n === 1) && ($w = @$block['widths'][$n-1])) {
                     $style = " style='width:calc(100% - $w - 0.4em)';";
                 }
-                $line .= "@/@lt@\\@span class='c".($n+1)."'$style@/@gt@\\@$elem@/@lt@\\@/span@/@gt@\\@";
+                $elem = parent::parseParagraph($elem);
+                $line .= "<span class='c".($n+1)."'$style>$elem</span>";
             }
-            $out .= "@/@lt@\\@div class='lzy-tabulator-wrapper'@/@gt@\\@$line@/@lt@\\@/div@/@gt@\\@\n";
+            $out .= "<div class='lzy-tabulator-wrapper'>$line</div>\n";
         }
-        $out = rtrim($out,"\n");
-        $out = parent::parse($out);
-        $out = str_replace(['<p>', '</p>'], '', $out);
-        $out = $this->unshieldChars($out);
         return $out;
     } // renderTabulator
 
@@ -651,31 +645,35 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
      */
     protected function parseImage($markdown)
     {
-        // check whether the marker really represents a strikethrough (i.e. there is a closing `)
-        if (preg_match('/^!\[ (.+?) ]\((.+?) \)/x', $markdown, $matches)) {
+        if (preg_match('/^!\[ (.+?) ]\( ( (.+?) (["\']) (.+?) \4) \s* \)/x', $markdown, $matches)) {
             return [
-                // return the parsed tag as an element of the abstract syntax tree and call `parseInline()` to allow
-                // other inline markdown elements inside this tag
                 ['image', $matches[1].']('.$matches[2]],
-                // return the offset of the parsed text
+                strlen($matches[0])
+            ];
+        } elseif (preg_match('/^!\[ (.+?) ]\( (.+?) \)/x', $markdown, $matches)) {
+            return [
+                ['image', $matches[1].']('.$matches[2]],
                 strlen($matches[0])
             ];
         }
-        // in case we did not find a closing) we just return the marker and skip 2 characters
         return [['text', '!['], 2];
     }
 
     // rendering is the same as for block elements, we turn the abstract syntax array into a string.
     protected function renderImage($element)
     {
-        list($alt, $src) = explode('](', $element[1]);
+        self::$imageInx++;
+        $imgInx = self::$imageInx;
+        $str = $element[1];
+        list($alt, $src) = explode('](', $str);
         if (preg_match('/^ (["\']) (.+) \1 \s* /x', $alt, $m)) {
             $alt = $m[2];
         }
         if (preg_match('/^ (["\']) (.+) \1 \s* /x', $src, $m)) {
             $src = $m[2];
         }
-        $alt = str_replace(['"', "'"], '&quot;', $alt);
+        $alt = str_replace(['"', "'"], ['&quot;','&apos;'], $alt);
+
         $caption = '';
         if (preg_match('/^ (.*?) \s+ (.*) /x', $src, $m)) {
             $src = $m[1];
@@ -686,22 +684,33 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
             if (preg_match('/^ (["\']) (.+) \1 \s* /x', $caption, $mm)) {
                 $caption = $mm[2];
             }
-            $caption = str_replace(['"', "'"], '&quot;', $caption);
+            $caption = str_replace(['"', "'"], ['&quot;','&apos;'], $caption);
+        }
+
+        $size = false;
+        if (preg_match('/(.*)\[(.*?)](\.\w+)/', $src, $m)) {
+            $src = $m[1].$m[3];
+            $size = $m[2];
+            list($maxWidth, $maxHeight) = explode('x', $size);
+            $maxWidth = $maxWidth? intval($maxWidth): null;
+            $maxHeight = $maxHeight? intval($maxHeight): null;
         }
 
         $src = trim($src);
         $files = page()->files()->filterBy('extension', 'jpg');
         $file = $files->find($src);
-        $file = $file->resize(200);
-        $html = $file->html(['alt' => $alt]);
-        return $html;
-//ToDo; apply $alt attribute
-//ToDo: wrap <figure> if $caption
-//        $file->alt($alt);
-//        $html = (string) $file->html(['alt' => $alt]);
+        if ($size) {
+            $file = $file->resize($maxWidth, $maxHeight);
+        }
+        $html = $file->html(['alt' => $alt, 'class' => "lzy-img lzy-img-$imgInx"]);
+
         if ($caption) {
-            $figure = \Kirby\Cms\Html::figure($html, $caption);
-            return $figure;
+            $html = <<<EOT
+    <figure class="lzy-figure lzy-figure-$imgInx">
+        $html
+        <figcaption>$caption</figcaption>
+    </figure>
+EOT;
         }
         return $html;
     } // renderImage
@@ -783,7 +792,8 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
 
     private function preprocess($str)
     {
-        $str = str_replace(['\\{{', '\\('], ['&#123;{', '&#40;'], $str);
+        $str = $this->handleShieldedCharacters($str);
+
         $str = $this->doMDincludes($str);
 
         $str = $this->handleMdVariables($str);
@@ -812,8 +822,6 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
 
     private function postprocess($str)
     {
-        $str = str_replace(['@/@\\lt@\\@','@/@[@\\@','@/@:@\\@','&#123;', '&#125;'], ['\\<','\\[[','\\:','\\{', '\\}'], $str);
-
         // lines that contain but a variable or macro (e.g. "<p>{{ lorem( help ) }}</p>") -> remove enclosing P-tags:
         $str = preg_replace('|<p> ({{ .*? }}) </p>|xms', "$1", $str);
 
@@ -833,11 +841,17 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
 
 
 
-    private function unshieldChars($str)
+    private function handleShieldedCharacters($str)
     {
-        $str = str_replace(['@/@lt@\\@','@/@gt@\\@'], ['<','>'], $str);
+        $p = 0;
+        while ($p=strpos($str, '\\', $p)) {
+            $o = ord($str[$p+1]);
+            $unicode = "&#$o;";
+            $str = substr($str, 0, $p) . $unicode . substr($str, $p+2);
+            $p += 2;
+        }
         return $str;
-    }
+    } // handleShieldedCharacters
 
 
 
@@ -908,7 +922,7 @@ EOT;
 
     private function catchAndInjectTagAttributs($str)
     {
-        while (preg_match('@^ (.*?) { ([.#][\w-]+ .*?) } \s* (\n|</\w+>) (.*)$@xms', $str, $m)) {
+        while (preg_match('@^ (.*?) {: ([.#][\w-]+ .*?) } \s* (\n|</\w+>) (.*)$@xms', $str, $m)) {
             $str0 = $m[1];
             $attrs0 = '&#123;' . substr($m[2],1) . '}';
             $attrs = parseInlineBlockArguments($m[2]);

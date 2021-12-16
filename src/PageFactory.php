@@ -7,7 +7,6 @@ use Kirby;
 define('PFY_PLUGIN_PATH',           'site/plugins/pagefactory/');
 define('PFY_DEFAULT_TEMPLATE_FILE', 'site/templates/page_template.html');
 define('PFY_USER_ASSETS_PATH',      'content/assets/');
-//define('SVG_ICONS_PATH',            'site/plugins/pagefactory/assets/svg-icons/');
 define('SVG_ICONS_PATH',            'site/plugins/pagefactory/install/media/pagefactory/svg-icons/');
 define('PFY_CONFIG_FILE',           'site/config/pagefactory.php');
 define('PFY_USER_CODE_PATH',        'site/custom/');
@@ -79,6 +78,7 @@ class PageFactory
 
         self::$trans = new TransVars($this);
 
+        $this->md = new MarkdownPlus();
         $this->pg = new PageExtruder($this);
         $this->pg->set('pageParams', $this->page->content()->data());
 
@@ -146,7 +146,6 @@ class PageFactory
         $this->setStandardVariables();
 
         $html = $this->assembleHtml();
-        $html = $this->utils->unshield($html);
         $html = str_replace('~/', '', $html);
         return $html;
     } // render
