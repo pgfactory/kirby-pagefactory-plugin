@@ -35,6 +35,7 @@ class PageFactory
     public static $lang = null;
     public static $langCode = null;
     public static $trans = null;
+    public static $siteOptions = null;
     public static $debug = null;
 
     public $config;
@@ -73,7 +74,7 @@ class PageFactory
         }
         $this->pages = $pages;
         $this->site = site();
-        $this->siteOptions = $this->kirby->options(); // from site/config/config.php
+        self::$siteOptions = $this->kirby->options(); // from site/config/config.php
         $this->pageOptions = $this->page->content()->data();
 
 
