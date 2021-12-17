@@ -47,6 +47,16 @@ use Exception;
 
 
  /**
+  * Checks whether visitor is admin or working on localhost
+  * @return bool
+  */
+ function isAdminOrLocalhost(): bool
+{
+    return isAdmin() || isLocalhost();
+} // isAdminOrLocalhost
+
+
+ /**
   * Appends string to a file.
   * @param string $file
   * @param string $str
@@ -1445,14 +1455,11 @@ function parseInlineBlockArguments(string $str): array
   * @param string $type
   * @return string
   */
- function shieldStr(string $str, $type = 'raw'): string
+ function shieldStr(string $str): string
 {
-    if ($type === 'md') {
-        return '{md{' . base64_encode($str) . '}md}';
-    } else {
-        return '{raw{' . base64_encode($str) . '}raw}';
-    }
+    return '{raw{' . base64_encode($str) . '}raw}';
 } // shieldStr
+
 
 
  /**
@@ -1468,14 +1475,6 @@ function parseInlineBlockArguments(string $str): array
             $str = str_replace($m[0][$i], $literal, $str);
         }
     }
-    if (preg_match_all('/{md{(.*?)}md}/m', $str, $m)) {
-        foreach ($m[1] as $i => $md) {
-            $md = base64_decode($md);
-            $html = kirby()->markdown($md);
-            $str = str_replace($m[0][$i], "\n\n$html\n\n", $str);
-        }
-        return true;
-    }
     return false;
 } // unshieldStr
 
@@ -1487,7 +1486,10 @@ function parseInlineBlockArguments(string $str): array
   */
  function charToHtmlUnicode(string $char): string
 {
-    return '&#'.ord($char).';';
+    if (!$char) {
+        return '';
+    }
+    return '&#'.ord($char[0]).substr($char,1).';';
 } // charToHtmlUnicode
 
 
