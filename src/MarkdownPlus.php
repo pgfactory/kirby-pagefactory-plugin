@@ -15,6 +15,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
 {
     private static $asciiTableInx = 0;
     private static $imageInx = 0;
+    private static $tabulatorInx = 1;
     // skip is a pseudo tag:
     private $inlineTags = ',a,abbr,acronym,b,bdo,big,br,button,cite,code,dfn,em,i,img,input,kbd,label,'.
             'map,object,output,q,samp,script,select,small,span,strong,sub,sup,textarea,time,tt,var,skip,';
@@ -91,8 +92,8 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
         $row = 0;
         $col = -1;
 
+        self::$asciiTableInx++;
         $inx = self::$asciiTableInx;
-        $inx++;
 
         for ($i = 0; $i < sizeof($block['content']); $i++) {
             $line = $block['content'][$i];
@@ -332,18 +333,31 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
         $block = [
             'tabulator',
             'content' => [],
-            'width' => '6em',
+            'widths' => [],
         ];
 
         $last = $current;
+        $nEmptyLines = 0;
         // consume following lines containing >>
         for($i = $current, $count = count($lines); $i <= $count-1; $i++) {
+            if (!preg_match('/\S/', $lines[$i])) {  // empty line
+                if ($nEmptyLines++ > 0) {
+                    break;
+                }
+            } else {
+                $nEmptyLines = 0;
+            }
             $line = $lines[$i];
-            if (preg_match('/([.\d]{1,3}\w{1,2})? >> [\s\t]/x', $line, $m)) {
+            if (preg_match('/([.\d]{1,3}\w{1,2})? >> [\s\t]/x', $line)) {
                 $block['content'][] = $line;
-                if (@$m[1]) {
-                    $j = sizeof($block['content'])-1;
-                    $block['widths'][ $j ] = $m[1];
+
+                preg_match_all('/([.\d]{1,3}\w{1,2})? >> [\s\t]/x', $line, $m);
+                foreach ($m[1] as $j => $width) {
+                    if ($width) {
+                        $block['widths'][$j] = $width;
+                    } elseif (!@$block['widths'][$j]) {
+                        $block['widths'][$j] = '6em';
+                    }
                 }
                 $last = $i;
             } elseif (empty($line)) {
@@ -357,27 +371,31 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
 
     protected function renderTabulator($block)
     {
+        $inx = self::$tabulatorInx++;
         $out = '';
         foreach ($block['content'] as $l) {
             $parts = preg_split('/[\s\t]* ([.\d]{1,3}\w{1,2})? >> [\s\t]/x', $l);
             $line = '';
+            $addedWidths = 0; // px
             foreach ($parts as $n => $elem) {
-                $style = '';
                 if ($w = @$block['widths'][$n]) {
                     $style = " style='width:$w';";
+                    $addedWidths += convertToPx($w);
+
                 } elseif ($n === 0) {
-                    $style = " style='width:{$block['width']}';";
-                } elseif (($n === 1) && ($w = @$block['widths'][$n-1])) {
-                    $style = " style='width:calc(100% - $w - 0.4em)';";
+                    $style = " style='width:6em';";
+                    $addedWidths += 16;
+
+                } else {
+                    $style = " style='width:calc(100% - {$addedWidths}px)';";
                 }
                 $elem = parent::parseParagraph($elem);
                 $line .= "<span class='c".($n+1)."'$style>$elem</span>";
             }
-            $out .= "<div class='lzy-tabulator-wrapper'>$line</div>\n";
+            $out .= "<div class='lzy-tabulator-wrapper lzy-tabulator-wrapper-$inx'>$line</div>\n";
         }
         return $out;
     } // renderTabulator
-
 
 
 
@@ -806,15 +824,6 @@ EOT;
         $str = preg_replace('/(\n{{.*}}\n)/U', "\n$1\n", $str);
 
         $str = $this->handleOLstart($str);
-//ToDo: smartypants are not compatible with macro arguments.
-// -> place call after translation?
-        // check for smartypants, get them compiled:
-        if (@(kirby()->options())['smartypants']) {
-            // we need to hide MarkdownPlus' tabulator pattern "\t>> " from SmartyPants:
-            $str = preg_replace("/(\t|\s{4,})>>\s/", '@@gt@@', $str);
-            $str = smartypants($str);
-            $str = str_replace('@@gt@@', "\t>> ", $str); // revert shielding
-        }
 
         return $str;
     } // preprocess
@@ -834,10 +843,46 @@ EOT;
             }
         }
 
+
+        // handle smartypants:
+        if (PageFactory::$siteOptions['smartypants']) {
+            $str = $this->smartypants($str);
+        }
+
         $str = $this->catchAndInjectTagAttributs($str); // ... {.cls}
 
         return $str;
     } // postprocess
+
+
+
+    private function smartypants($str)
+    {
+        $smartypants =    [
+                '/(?<!-)-&gt;/ms'  => '&rarr;',
+                '/(?<!=)=&gt;/ms'  => '&rArr;',
+                '/(?<!!)&lt;-/ms'  => '&larr;',
+                '/(?<!=)&lt;=/ms'  => '&lArr;',
+                '/(?<!\.)\.\.\.(?!\.)/ms'  => '&hellip;',
+                '/(?<!-)--(?!-)/ms'  => '&ndash;',
+                '/(?<!-)---(?!-)/ms'  => '&mdash;',
+                '/(?<!&lt;)&lt;&lt;(?!&lt;)/ms'  => '&#171;',
+                '/(?<!&gt;)&gt;&gt;(?!&gt;)/ms'  => '&#187;',
+                '/\bEURO\b/ms'  => '&euro;',
+                '/sS/ms'  => 'ß',
+                '|1/4|ms'  => '&frac14;',
+                '|1/2|ms'  => '&frac12;',
+                '|3/4|ms'  => '&frac34;',
+                '|0/00|ms'  => '&permil;',
+                '/(?<!,),,(?!,)/ms'  => '„',
+                "/(?<!')''(?!')/ms"  => '”',
+                "/(?<!`)``(?!`)/ms"  => '“',
+                "/(?<!~)~~(?!~)/ms"  => '≈',
+                '/\bINFINITY\b/ms'  => '∞',
+        ];
+            $str = preg_replace(array_keys($smartypants), array_values($smartypants), $str);
+        return $str;
+    } // msmartypants
 
 
 
