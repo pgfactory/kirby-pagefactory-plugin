@@ -48,6 +48,7 @@ class PageFactory
     public $requestedAssetFiles = [];
     public $cssFiles = [];
     public $jQueryActive = false;
+    public $noTranslate = false;
 
     public $headInjections = '';
     public $bodyTagClasses = '';
@@ -129,6 +130,12 @@ class PageFactory
                 ],
             ];
         }
+
+        if (isAdminOrLocalhost() && isset($_GET['notranslate'])) {
+            $notranslate = $_GET['notranslate'];
+            $this->noTranslate = $notranslate? intval($notranslate): 1;
+        }
+
     } // __construct
 
 
@@ -168,8 +175,9 @@ class PageFactory
         self::$trans->setVariable('content', $content);
 
         // repeat until no more variables appear in html:
+        $depth = 1;
         while (preg_match('/(?<!\\\){{/', $html)) {
-            $html = self::$trans->translate($html);
+            $html = self::$trans->translate($html, $depth++);
             unshieldStr($html);
         }
 

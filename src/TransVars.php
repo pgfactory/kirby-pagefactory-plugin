@@ -67,20 +67,26 @@ class TransVars
 
 
 
-    public function translate($str, $unShield = false)
+    public function translate($str, $depth = 0)
     {
-        $str = PageFactory::$trans->reInjectVars($str);
         list ($p1, $p2) = strPosMatching($str);
-        while ($p1) {
+        while ($p1 !== false) {
             $s1 = substr($str, 0, $p1);
             $s2 = substr($str, $p1+2, $p2-$p1-2);
             $s2 = str_replace(["\n", "\t"], ['↵', '    '], $s2);
             $s3 = substr($str, $p2+2);
 
-            if (preg_match('/^([#^]*) \s* ([\w.-]+) (.*)/x', $s2, $m)) {
+            if (preg_match('/^([#^mM]*) \s* ([\w.-]+) (.*)/x', $s2, $m)) {
                 $modif = $m[1];
                 $varName = $m[2];
                 $argStr = $m[3];
+
+                if (($this->pfy->noTranslate !== false) && ($depth > $this->pfy->noTranslate)) {
+                    $s2 = "<span style='background:#fffbbb;'>&#123;&#123;$s2}}</span>";
+                    $str = "$s1$s2$s3";
+                    list ($p1, $p2) = strPosMatching($str);
+                    continue;
+                }
 
                 if (@$modif[0] === '#') {
                     $str = $s1.$s3;
@@ -97,7 +103,20 @@ class TransVars
                     $s2 = $this->translateVariable($varName);
                 }
 
-            } else {
+                if (preg_match('/(?<!\\\\){{/', $s2)) {
+                    $s2 = $this->translate($s2, $depth+1);
+                }
+
+                // modifier 'm' -> md-compile inline-level:
+                if (@$modif[0] === 'm') {
+                    $s2 = $this->pfy->md->parseParagraph($s2);
+
+                // modifier 'M' -> md-compile block-level
+                } elseif (@$modif[0] === 'M') {
+                    $s2 = $this->pfy->md->parse($s2);
+                }
+
+            } else { // no more instances left, terminate now:
                 return $str;
             }
             $str = "$s1$s2$s3";
@@ -180,39 +199,6 @@ class TransVars
         return $out;
     } // translateVariable
 
-
-
-    public function extractVars($str)
-    {
-        $vars = &$this->extractedVars;
-        list($p1, $p2) = strPosMatching($str);
-        while ($p1) {
-            $s1 = substr($str, 0, $p1);
-            $s2 = substr($str, $p1+2, $p2-$p1-2);
-            $s3 = substr($str, $p2+2);
-            $s2 = str_replace(["\n", "\t"], ['↵', '    '], $s2);
-            $inx = crc32($s2);
-            $vars[$inx] = $s2;
-            $str = "$s1{!%$inx%!}$s3";
-            list($p1, $p2) = strPosMatching($str);
-        }
-        return $str;
-    } // extractVars
-
-
-
-    public function reInjectVars($str)
-    {
-        $vars = &$this->extractedVars;
-        if (preg_match_all('/{!%(\d+)%!}/', $str, $m)) {
-            foreach ($m[1] as $i => $s) {
-                $inx = $m[1][$i];
-                $var = "{{ {$vars[$inx]} }}";
-                $str = str_replace($m[0][$i], $var, $str);
-            }
-        }
-        return $str;
-    } // reInjectVars
 
 
     public function flattenMacroCalls($mdStr)
