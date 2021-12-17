@@ -1627,3 +1627,29 @@ function strToASCII(string $str): string
 } // reloadAgent
 
 
+function convertToPx(string $str): float
+{
+     $px = 0;
+     if (preg_match('/([\d.]+)(\w*)/', $str, $m)) {
+         $unit = $m[2];
+         $value = floatval($m[1]);
+         switch ($unit) {
+             case 'in':
+                $px = 96 * $value; break;
+             case 'cm':
+                $px = 37.7952755906 * $value; break;
+             case 'mm':
+                $px = 3.779527559 * $value; break;
+             case 'em':
+                $px = 12 * $value; break;
+             case 'ch':
+                $px = 6 * $value; break;
+             case 'pt':
+                $px = 1.3333333333 * $value; break;
+             case 'px':
+                $px = $value; break;
+         }
+         return $px;
+     }
+} // convertToPx
+
