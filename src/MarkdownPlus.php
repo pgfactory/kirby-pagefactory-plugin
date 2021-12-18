@@ -845,7 +845,7 @@ EOT;
 
 
         // handle smartypants:
-        if (PageFactory::$siteOptions['smartypants']) {
+        if (@PageFactory::$siteOptions['smartypants']) {
             $str = $this->smartypants($str);
         }
 
