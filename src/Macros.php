@@ -225,6 +225,7 @@ EOT;
                 $macroObj = $registeredMacros[ substr($macroName,1) ];
             } else {
                 $macroObj = include $macroFile;
+                self::$registeredMacros[ $macroName ] = $macroObj;
             }
             if (stripos($option, 'short') !== false) {
                 $str .= "- $macroName()\n";
