@@ -13,12 +13,13 @@ define('PFY_USER_CODE_PATH',        'site/custom/');
 define('PFY_MACROS_PATH',           PFY_PLUGIN_PATH.'src/macros/');
 define('PFY_MACROS_PLUGIN_PATH',    'site/plugins/pagefactory-extensions/macros/');
 define('PFY_CSS_PATH',              'assets/');
-define('PFY_ASSETS_PATHNAME',       'assets/');
+define('PFY_MEDIA_PATHNAME',        '~/media/pagefactory/');
 define('PFY_LOGS_PATH',             'site/logs/');
 define('PFY_CACHE_PATH',            PFY_PLUGIN_PATH.'.#cache/');
 define('PFY_MKDIR_MASK',             0700); // permissions for file accesses by PageFactory
 define('PFY_DEFAULT_TRANSVARS',     'site/config/transvars.yaml');
-define('JQUERY',                    PFY_PLUGIN_PATH.'/third_party/jquery/jquery-3.6.0.min.js');
+define('JQUERY',                    PFY_PLUGIN_PATH.'third_party/jquery/jquery-3.6.0.min.js');
+define('PAGED_POLYFILL_SCRIPT',     PFY_MEDIA_PATHNAME.'js/paged.polyfill.min.js');
 
 
 require_once __DIR__ . '/../third_party/vendor/autoload.php';
@@ -32,13 +33,17 @@ class PageFactory
     public static $pagePath = null;
     public static $pageRoot = null;
     public static $absPageRoot = null;
+    public static $pageUrl = null;
     public static $lang = null;
     public static $langCode = null;
     public static $trans = null;
     public static $siteOptions = null;
     public static $debug = null;
+    public static $localhostOverride = false;
+    public static $timer = null;
 
     public $config;
+    public $templateFile = '';
     public $mdContent = '';
     public $css = '';
     public $scss = '';
@@ -63,6 +68,7 @@ class PageFactory
 
     public function __construct($pages)
     {
+        self::$timer = microtime(true);
         $this->kirby = kirby();
         $this->session = $this->kirby->session();
 
@@ -98,6 +104,7 @@ class PageFactory
         self::$appRoot = dirname(substr($_SERVER['SCRIPT_FILENAME'], -strlen($_SERVER['SCRIPT_NAME']))).'/';
         self::$pageRoot = 'content/' . self::$pagePath;
         self::$absPageRoot = $this->page->root() . '/';
+        self::$pageUrl = (string)$this->page->url();
 
         $this->siteTitle = (string)site()->title()->value();
 
@@ -131,12 +138,6 @@ class PageFactory
                 ],
             ];
         }
-
-        if (isAdminOrLocalhost() && isset($_GET['notranslate'])) {
-            $notranslate = $_GET['notranslate'];
-            $this->noTranslate = $notranslate? intval($notranslate): 1;
-        }
-
     } // __construct
 
 
@@ -148,13 +149,18 @@ class PageFactory
      */
     public function render($templateFile = false): string
     {
+        $this->utils->handleSpecialRequests();
+
         $this->utils->determineTemplateFile($templateFile);
 
         $this->utils->loadMdFiles();
         $this->setStandardVariables();
 
         $html = $this->assembleHtml();
-        $html = str_replace('~/', '', $html);
+        $html = str_replace('~/', self::$appRoot, $html);
+
+        // report execution time (see result in browser/dev-tools/network -> main file):
+        header("Server-Timing: total;dur=" . readTimer());
         return $html;
     } // render
 
@@ -181,6 +187,8 @@ class PageFactory
             $html = self::$trans->translate($html, $depth++);
             unshieldStr($html);
         }
+
+        $this->utils->handleLastMomentSpecialRequests();
 
         // last pass: now replace injection variables:
         $html = $this->utils->unshieldLateTranslatationVariables($html);
