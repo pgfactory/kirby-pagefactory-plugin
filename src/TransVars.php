@@ -69,6 +69,9 @@ class TransVars
 
     public function translate($str, $depth = 0)
     {
+        if ($depth > 20) {
+            fatalError("TransVar: too many nesting levels.");
+        }
         list ($p1, $p2) = strPosMatching($str);
         while ($p1 !== false) {
             $s1 = substr($str, 0, $p1);
