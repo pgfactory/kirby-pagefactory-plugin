@@ -210,7 +210,9 @@
 }
 
 // list of icons, i.e. output of ListIcons():
-.lzy-icon-row {
+.lzy-icon-row.lzy-icon-row {
+    display: inline-block;
+    margin-right: 2em;
     span {
         display: inline-block;
     }
