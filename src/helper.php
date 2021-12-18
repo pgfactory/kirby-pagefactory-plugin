@@ -14,6 +14,9 @@ use Exception;
   */
  function isLocalhost(): bool
 {
+    if (PageFactory::$localhostOverride) {
+        return false;
+    }
     $remoteAddress = isset($_SERVER["REMOTE_ADDR"]) ? $_SERVER["REMOTE_ADDR"] : 'REMOTE_ADDR';
     return (($remoteAddress == 'localhost') || (strpos($remoteAddress, '192.') === 0) || ($remoteAddress == '::1'));
 } // isLocalhost
@@ -54,6 +57,16 @@ use Exception;
 {
     return isAdmin() || isLocalhost();
 } // isAdminOrLocalhost
+
+
+ /**
+  * Checks whether visitor is logged in or working on localhost
+  * @return bool
+  */
+ function isLoggedinOrLocalhost(): bool
+{
+    return isLoggedIn() || isLocalhost();
+} // isLoggedinOrLocalhost
 
 
  /**
@@ -538,7 +551,7 @@ use Exception;
 {
     $files = [];
     $inclPat = base_name($path);
-    if ($inclPat && ($inclPat !== '*')) {
+    if (!$returnAll && $inclPat && ($inclPat !== '*')) {
         $inclPat = str_replace(['{',',','}','.','*','[!','-','/'],['(','|',')','\\.','.*','[^','\\-','\\/'], $inclPat);
         $inclPat = "/^$inclPat$/";
         $path = dirname($path);
@@ -567,6 +580,8 @@ use Exception;
             if ($inclPat && !preg_match($inclPat, $f)) {
                 continue;
             }
+        } elseif (($f === '.') || ($f === '..')) {
+            continue;
         }
 
         if ($assoc) {
@@ -1652,4 +1667,51 @@ function convertToPx(string $str): float
          return $px;
      }
 } // convertToPx
+
+
+function clearCache(): void
+{
+    $files = getDirDeep(PFY_CACHE_PATH, false, false, true);
+    foreach ($files as $file) {
+        unlink($file);
+    }
+    $files = getDirDeep(PFY_CACHE_PATH, true, false, true);
+    rsort($files);
+    foreach ($files as $file) {
+        @rmdir($file);
+    }
+    reloadAgent();
+} // clearCache
+
+
+
+function readTimer( $verbose = false ) {
+     $t = (round((microtime(true) - PageFactory::$timer)*1000000) / 1000 - 0.005);
+     if ($verbose) {
+         return "Time: {$t}ms";
+     } else {
+         return $t;
+     }
+ } // readTimer
+
+
+function fatalError($str): void
+{
+    throw new Exception($str);
+} // fatalError
+
+
+
+function icon($iconName)
+{
+    $file = SVG_ICONS_PATH . "$iconName.svg";
+    if (file_exists($file)) {
+        $svg = file_get_contents($file);
+        $icon = "<span class='lzy-icon'><span>$svg</span></span>";
+    } else {
+        $icon = "&#58;$iconName:";
+    }
+    return $icon;
+} // icon
+
 
