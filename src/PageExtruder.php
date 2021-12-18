@@ -254,6 +254,7 @@ class PageExtruder
     public function addJq(string $str):void
     {
         $this->jq .= trim($str, "\t\n ")."\n";
+        $this->jQueryActive = true;
     }
 
     /**
