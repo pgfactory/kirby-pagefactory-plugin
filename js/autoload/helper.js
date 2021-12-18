@@ -74,3 +74,38 @@ function scrollIntoView( selector, container ) {
         // }, 500);
     // }
 } // scrollIntoView
+
+
+
+function execAjaxPromise(cmd, options, url) {
+    return new Promise(function(resolve) {
+
+        if (typeof url === 'undefined') {
+            url = appRoot + '';//ToDo
+        }
+        url = appendToUrl(url, cmd);
+        $.ajax({
+            method: 'POST',
+            url: url,
+            data: options
+        })
+            .done(function ( json ) {
+                resolve( json );
+            });
+    });
+} // execAjax
+
+
+
+function appendToUrl(url, arg) {
+    if (!arg) {
+        return url;
+    }
+    arg = arg.replace(/^[?&]/, '');
+    if (url.match(/\?/)) {
+        url = url + '&' + arg;
+    } else {
+        url = url + '?' + arg;
+    }
+    return url;
+} // appendToUrl
