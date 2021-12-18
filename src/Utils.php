@@ -25,6 +25,211 @@ class Utils
     }
 
 
+    /**
+     * Perform special admin actifities, e.g. show help to admins
+     * @return void
+     */
+    public function handleSpecialRequests()
+    {
+        if (!@$_GET) {
+            return;
+        }
+        $this->execAsAnon('login,logout,printpreview,print');
+        $this->execAsAdmin('help,localhost,timer,reset,notranslate');
+    } // handleSpecialRequests
+
+
+
+    private function execAsAnon($cmds)
+    {
+        foreach (explode(',', $cmds) as $cmd) {
+            if (!isset($_GET[$cmd])) {
+                continue;
+            }
+            $arg = $_GET[$cmd];
+            switch ($cmd) {
+                case 'login':
+                    break;
+                case 'logout':
+                    break;
+                case 'printpreview':
+                    $this->printPreview();
+                    break;
+                case 'print':
+                    $this->print();
+                    break;
+            }
+        }
+    } // execAsAnon
+
+
+
+    private function printPreview()
+    {
+        $pagedPolyfillScript = PAGED_POLYFILL_SCRIPT;
+        $url = './?print';
+        $jq = <<<EOT
+setTimeout(function() {
+    console.log('now running paged.polyfill.js');
+    $.getScript( '$pagedPolyfillScript' );
+}, 1000);
+setTimeout(function() {
+    console.log('now adding buttons');
+    $('body').append( "<div class='lzy-print-btns'><a href='$url' class='lzy-button' >{{ lzy-print-now }}</a><a href='./' onclick='window.close();' class='lzy-button' >{{ lzy-close }}</a></div>" ).addClass('lzy-print-preview');
+}, 1200);
+
+EOT;
+        $this->pfy->pg->addJq($jq);
+        $this->preparePrintVariables();
+    } // printPreview
+
+
+
+    private function print()
+    {
+        $pagedPolyfillScript = PAGED_POLYFILL_SCRIPT;
+        $jq = <<<EOT
+setTimeout(function() {
+    console.log('now running paged.polyfill.js'); 
+    $.getScript( '$pagedPolyfillScript' );
+}, 1000);
+setTimeout(function() {
+    window.print();
+}, 1200);
+
+EOT;
+        $this->pfy->pg->addJq($jq);
+        $this->preparePrintVariables();
+    } // print
+
+
+    private function preparePrintVariables()
+    {
+        // prepare css-variables:
+        $url = (string) page()->url().'/';
+        $pageTitle = (string) page()->title();
+        $siteTitle = (string) site()->title();
+        $css = <<<EOT
+body {
+    --lzy-page-title: '$pageTitle';
+    --lzy-site-title: '$siteTitle';
+    --lzy-url: '$url';
+}
+EOT;
+        $this->pfy->pg->addCss($css);
+    } // preparePrintVariables
+
+
+    private function execAsAdmin($cmds)
+    {
+        if (!isAdminOrLocalhost()) {
+            $str = <<<EOT
+# Help
+
+You need to be logged in as Admin to use.
+EOT;
+            $this->pg->setOverlay($str, true);
+            return;
+        }
+
+        // note: 'debug' handled in PageFactory->__construct() => Utils->determineDebugState()
+
+        foreach (explode(',', $cmds) as $cmd) {
+            if (!isset($_GET[$cmd])) {
+                continue;
+            }
+            $arg = $_GET[$cmd];
+            switch ($cmd) {
+                case 'help':
+                    $this->showHelp();
+                    break;
+                case 'notranslate':
+                    $this->noTranslate = $arg? intval($arg): 1;
+                    break;
+                case 'localhost':
+                    if ($arg === 'false') {
+                        PageFactory::$localhostOverride = true;
+                    }
+                    break;
+                case 'reset':
+                    $this->pfy->session->clear();
+                    clearCache();
+                    break;
+
+                case 'timer':
+                    $this->pfy->session->set('pfy.timer', (bool)$arg);
+                    break;
+            }
+        }
+    } // execAsAdmin
+
+
+    private function showHelp()
+    {
+        if (isset($_GET['help'])) {
+            if (isAdminOrLocalhost()) {
+                $str = <<<EOT
+# Help
+
+[?help](./?help)       12em>> this information 
+[?variables](./?variables)      >> show currently defined variables
+[?macros](./?macros)      >> show currently defined macros()
+[?lang=](./?lang)      >> activate given language
+[?debug](./?debug)      >> activate debug mode
+[?localhost=false](./?localhost=false)      >> simulate remote host
+[?notranslate](./?notranslate)      >> show variables instead of translating them
+[?login](./?login)      >> open login window
+[?logout](./?logout)      >> logout user
+[?print](./?print)		    	>> starts printing mode and launches the printing dialog
+[?printpreview](./?printpreview)  	>> presents the page in print-view mode    
+[?timer](./?timer)		    	>> switch timer on or off
+[?reset](./?reset)		    	>> resets all state-defining information: caches, tokens, session-vars.
+
+EOT;
+                $str = removeCStyleComments($str);
+            } else {
+                $str = <<<EOT
+# Help
+
+You need to be logged in as Admin to see requested information.
+
+EOT;
+            }
+            $this->pg->setOverlay($str, true);
+        }
+    } // showHelp
+
+
+
+    /**
+     * Show Variables or Macros in Overlay
+     * @return void
+     */
+    public function handleLastMinuteSpecialRequests(): void
+    {
+        if (!@$_GET) {
+            return;
+        }
+        // show variables:
+        if (isset($_GET['variables']) && isAdminOrLocalhost()) {
+            $str = <<<EOT
+<h1>Variables</h1>
+{{ list(variables) }}
+EOT;
+            $str = PageFactory::$trans->translate($str);
+            $this->pg->setOverlay($str);
+
+        // show macros:
+        } elseif (isset($_GET['macros']) && isAdminOrLocalhost()) {
+            $str = <<<EOT
+<h1>Macros</h1>
+{{ list(macros) }}
+EOT;
+            $str = PageFactory::$trans->translate($str);
+            $this->pg->setOverlay($str);
+        }
+    } // handleLastMinuteSpecialRequests
+
 
     /**
      * Loads .md files found inside the current page folder
@@ -317,18 +522,22 @@ EOT;
         if ($kirbyDebugState !== null) {
             $debug = $kirbyDebugState;
 
-        } elseif (isLocalhost() || isAdmin()) {
+        }
+        if (isAdminOrLocalhost()) {
             $debug = @$_GET['debug'];
-            if ($debug === 'false') {
-                $debug = false;
-            } elseif (($debug === null) && $this->pfy->session->get('pfy.debug')) {
+            if (($debug === null) && $this->pfy->session->get('pfy.debug')) {
                 $debug = true;
+            } elseif ($debug === 'false') {
+                $debug = false;
+                $this->pfy->session->remove('pfy.debug');
             } else {
                 $debug = ($debug !== 'false');
             }
+            if ($debug) {
+                $this->pfy->session->set('pfy.debug', $debug);
+            }
         }
         PageFactory::$debug = $debug;
-        $this->pfy->session->set('pfy.debug', $debug);
     } // determineDebugState
 
 
