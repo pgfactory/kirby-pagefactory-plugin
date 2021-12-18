@@ -210,7 +210,8 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
     protected function identifyDivBlock($line, $lines, $current)
     {
         // if a line starts with at least 3 colons it is identified as a div-block
-        if (preg_match('/^[:$@]{3,10}\s+\S/', $line)) {
+        // fence chars ':$@' -> block
+        if (preg_match('/^[:$@%]{3,10}\s+\S/', $line)) {
             return 'divBlock';
         }
         return false;
@@ -223,7 +224,6 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
         $block = [
             'divBlock',
             'content' => [],
-            'tag' => 'div',
             'marker' => $line[0],
             'attributes' => '',
             'literal' => false,
@@ -253,7 +253,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
             }
         }
 
-        $block['tag'] = $tag ? $tag : 'div';
+        $block['tag'] = $tag ? $tag : (($marker === '%') ? 'span' : 'div');
         $block['attributes'] = $attrs['htmlAttrs'];
         $block['lang'] = $attrs['lang'];;
         $block['literal'] = $attrs['literal'];;
@@ -292,7 +292,13 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
 
         } else {
             unset($block['content']);
-            $block['content'][0] = parent::parseParagraph($content);
+            // fence type '%' means parse inline only:
+            if ($fence[0] === '%') {
+                $block['content'][0] = parent::parseParagraph($content);
+
+            } else {
+                $block['content'][0] = parent::parse($content);
+            }
         }
         return [$block, $i];
     } // consumeDivBlock
@@ -793,13 +799,7 @@ EOT;
     protected function renderIcon($element)
     {
         $iconName = $element[1][0][1];
-        $file = SVG_ICONS_PATH . "$iconName.svg";
-        if (file_exists($file)) {
-            $svg = file_get_contents($file);
-            $icon = "<span class='lzy-icon'><span>$svg</span></span>";
-        } else {
-            $icon = "&#58;$iconName:";
-        }
+        $icon = icon($iconName);
         return $icon;
     }
 
@@ -1092,7 +1092,6 @@ EOT;
         }
         return $out;
     } // handleMdVariables
-
 
 
 
