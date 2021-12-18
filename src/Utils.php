@@ -205,7 +205,7 @@ EOT;
      * Show Variables or Macros in Overlay
      * @return void
      */
-    public function handleLastMinuteSpecialRequests(): void
+    public function handleLastMomentSpecialRequests(): void
     {
         if (!@$_GET) {
             return;
@@ -228,7 +228,7 @@ EOT;
             $str = PageFactory::$trans->translate($str);
             $this->pg->setOverlay($str);
         }
-    } // handleLastMinuteSpecialRequests
+    } // handleLastMomentSpecialRequests
 
 
     /**
