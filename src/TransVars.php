@@ -18,12 +18,32 @@ class TransVars
         if (!$this->macros) {
             $this->macros = new Macros($pfy);
         }
-        $this->loadTransVarsFromFile([ PFY_PLUGIN_PATH . 'config/transvars.yaml', PFY_DEFAULT_TRANSVARS]);
+
+        // load PageFactory's standard variables:
+        $this->loadTransVarsFromFiles(PFY_DEFAULT_TRANSVARS);
+
+        // load variables defined in extensons:
+        foreach (PageFactory::$extensionsPath as $extPath) {
+            $folder = $extPath.'variables/';
+            if (file_exists($folder)) {
+                $this->loadTransVarsFromFiles($folder);
+            }
+        }
+
+        // load custom variables:
+        if (file_exists(PFY_USER_CODE_PATH.'variables/')) {
+            $this->loadTransVarsFromFiles(PFY_USER_CODE_PATH.'variables/');
+        }
+
         $this->hideIfNotDefined = false;
     } // __construct
 
 
-
+    /**
+     * Accepts an array of variables, adds them to known variable definitions.
+     * @param array $array
+     * @return void
+     */
     public function setVariables(array $array): void
     {
         foreach ($array as $key => $value) {
@@ -32,7 +52,15 @@ class TransVars
     }
 
 
-    public function setVariable($varName, $value, $lang = false)
+    /**
+     * Adds a variable to known variable definitions.
+     * $value can be string or array of lang-specific variants
+     * @param string $varName
+     * @param $value
+     * @param $lang
+     * @return void
+     */
+    public function setVariable(string $varName, $value, $lang = false): void
     {
         $lang = $this->extractLang($varName, $lang);
 
@@ -49,8 +77,14 @@ class TransVars
     } // setVariable
 
 
-
-    public function addToVariable($varName, $value, $lang = false)
+    /**
+     * Appends to a variable
+     * @param string $varName
+     * @param $value
+     * @param $lang
+     * @return void
+     */
+    public function addToVariable(string $varName, $value, $lang = false): void
     {
         $lang = $this->extractLang($varName, $lang);
 
@@ -66,8 +100,14 @@ class TransVars
     } // setVariable
 
 
-
-    public function translate($str, $depth = 0)
+    /**
+     * Translates a string, which can contain {{ variables }} and {{ macros() }}.
+     * @param string $str
+     * @param $depth
+     * @return string
+     * @throws \Exception
+     */
+    public function translate(string $str, $depth = 0): string
     {
         if ($depth > 20) {
             fatalError("TransVar: too many nesting levels.");
@@ -129,8 +169,14 @@ class TransVars
     } // translate
 
 
-
-    private function translateMacro($macroName, $argStr)
+    /**
+     * Translates a macro identified by its name. Uppercase letters and dashes are ignored.
+     * @param string $macroName
+     * @param string $argStr
+     * @return string
+     * @throws \Kirby\Exception\InvalidArgumentException
+     */
+    private function translateMacro(string $macroName, string $argStr): string
     {
         $macroName = strtolower(str_replace('-', '', $macroName));
         $str = '';
@@ -172,8 +218,13 @@ class TransVars
     } // translateMacro
 
 
-
-    private function translateVariable($varName, $lang = false)
+    /**
+     * Translates a variable identified by its name. $varName may end in '.lang' (e.g. '.en') to select a specific lang.
+     * @param string $varName
+     * @param $lang
+     * @return string
+     */
+    private function translateVariable(string $varName, $lang = false): string
     {
         $lang = $this->extractLang($varName, $lang);
         if (!$lang) {
@@ -203,8 +254,13 @@ class TransVars
     } // translateVariable
 
 
-
-    public function flattenMacroCalls($mdStr)
+    /**
+     * Flattens an argument string, i.e. basically replacing "\n" with '↵'
+     * @param string $mdStr
+     * @return string
+     * @throws \Exception
+     */
+    public function flattenMacroCalls(string $mdStr): string
     {
         list($p1, $p2) = strPosMatching($mdStr);
         while ($p1) {
@@ -219,23 +275,50 @@ class TransVars
     } // flattenMacroCalls
 
 
-
-    public function getVariable($varName, $lang = false)
+    /**
+     * Looks up a variable and returns its content.
+     * @param string $varName
+     * @param $lang
+     * @return string
+     */
+    public function getVariable(string $varName, $lang = false): string
     {
         return $this->translateVariable($varName, $lang);
     } // getVariable
 
 
-
-    private function loadTransVarsFromFile($file)
+    /**
+     * Loads variables from given files.
+     * @param $files
+     * @return void
+     * @throws \Kirby\Exception\InvalidArgumentException
+     */
+    private function loadTransVarsFromFiles($files)
     {
-        $data = loadFiles($file, true, true);
+        if (is_array($files)) {
+            $data = loadFiles($files, true, true);
+
+        } elseif (is_dir($files)) {
+            $files = getDir($files.'*.yaml');
+            $data = loadFiles($files, true, true);
+
+        } elseif (is_string($files)) {
+            $data = loadFile($files, true, true);
+
+        } else {
+            throw new \Exception("loadTransVarsFromFiles() -> argument has unexpected type");
+        }
         self::$transVars = array_merge_recursive(self::$transVars, $data);
-    } // loadTransVarsFromFile
+    } // loadTransVarsFromFiles
 
 
-
-    private function extractLang(&$varName, $lang = false)
+    /**
+     * Looks for trailing '.lang' pattern and extracts it.
+     * @param string $varName
+     * @param $lang
+     * @return string
+     */
+    private function extractLang(string &$varName, $lang = false): string
     {
         $varName = trim($varName);
         if (preg_match('/^(.*)\.(\w\w\d?)$/', $varName, $m)) {
@@ -246,8 +329,13 @@ class TransVars
     } // extractLang
 
 
-
-    private function renderMacroSource($macroName, $argStr)
+    /**
+     * Renders to original source text of the macro call (for documentation purposes)
+     * @param string $macroName
+     * @param $argStr
+     * @return string
+     */
+    private function renderMacroSource(string $macroName, $argStr): string
     {
         $argStr = rtrim($argStr, "↵\t ");
         $argStr = str_replace('~', '&sim;', $argStr);
@@ -272,14 +360,22 @@ EOT;
     } // renderMacroSource
 
 
-
+    /**
+     * Getter
+     * @param $propertyName
+     * @return mixed
+     */
     public function get($propertyName)
     {
         return @$this->$propertyName;
-    }
+    } // get
 
 
-    public function render()
+    /**
+     * Renders all known variables.
+     * @return string
+     */
+    public function render(): string
     {
         $this->pfy->pg->addAssets('site/plugins/pagefactory/scss/transvar-list.scss');
         $out = "\t<dl class='lzy-transvar-list'>\n";
