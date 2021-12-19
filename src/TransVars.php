@@ -23,10 +23,12 @@ class TransVars
         $this->loadTransVarsFromFiles(PFY_DEFAULT_TRANSVARS);
 
         // load variables defined in extensons:
-        foreach (PageFactory::$extensionsPath as $extPath) {
-            $folder = $extPath.'variables/';
-            if (file_exists($folder)) {
-                $this->loadTransVarsFromFiles($folder);
+        if (PageFactory::$extensionsPath) {
+            foreach (PageFactory::$extensionsPath as $extPath) {
+                $folder = $extPath . 'variables/';
+                if (file_exists($folder)) {
+                    $this->loadTransVarsFromFiles($folder);
+                }
             }
         }
 

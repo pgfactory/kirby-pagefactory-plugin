@@ -43,10 +43,12 @@ class Macros
         // find macro folders in custom/, extensions and pagefactory:
         $macroLocations = [];
         $macroLocations[] = PFY_USER_CODE_PATH;
-        foreach (PageFactory::$extensionsPath as $extPath) {
-            $folder = $extPath.'macros/';
-            if (file_exists($folder)) {
-                $macroLocations[] = $folder;
+        if (PageFactory::$extensionsPath) {
+            foreach (PageFactory::$extensionsPath as $extPath) {
+                $folder = $extPath . 'macros/';
+                if (file_exists($folder)) {
+                    $macroLocations[] = $folder;
+                }
             }
         }
         $macroLocations[] = PFY_MACROS_PATH;

@@ -41,14 +41,16 @@ class PageExtruder
         $this->jQueryActive = &$pfy->jQueryActive;
 
         // check for and load extensions:
-        foreach (PageFactory::$extensionsPath as $extPath) {
-            $className = rtrim(substr($extPath, strlen(PFY_BASE_PATH)), '/');
-            $file = "{$extPath}src/$className.php";
-            if (file_exists($file)) {
-                require_once $file;
-                $dir = \Usility\PageFactory\getDir($extPath .'src/*.php');
-                foreach ($dir as $file) {
+        if (PageFactory::$extensionsPath) {
+            foreach (PageFactory::$extensionsPath as $extPath) {
+                $className = rtrim(substr($extPath, strlen(PFY_BASE_PATH)), '/');
+                $file = "{$extPath}src/$className.php";
+                if (file_exists($file)) {
                     require_once $file;
+                    $dir = \Usility\PageFactory\getDir($extPath . 'src/*.php');
+                    foreach ($dir as $file) {
+                        require_once $file;
+                    }
                 }
             }
         }
