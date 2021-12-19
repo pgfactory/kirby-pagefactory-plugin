@@ -94,6 +94,13 @@ class Macros
                 $macroObj = include $this->availableMacros[ $macroName ];
                 self::$registeredMacros[ $macroName0 ] = $macroObj;
             } else {
+                $error = "Error: macro '$macroName()' not found.";
+                if (PageFactory::$debug) {
+                    throw new \Exception($error);
+
+                } else {
+                    mylog($error);
+                }
                 return null;
             }
         }
