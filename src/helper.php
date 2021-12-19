@@ -1416,7 +1416,7 @@ function parseInlineBlockArguments(string $str): array
   * @param bool $excludeEmptyElems
   * @return array
   */
- function explodeTrim(string $sep, string $str, bool $excludeEmptyElems = false): array
+function explodeTrim(string $sep, string $str, bool $excludeEmptyElems = false): array
 {
     if (!is_string($str)) {
         return [];
@@ -1642,7 +1642,12 @@ function strToASCII(string $str): string
 } // reloadAgent
 
 
-function convertToPx(string $str): float
+ /**
+  * Converts string to a pixel value, e.g. '1em' -> 12[px]
+  * @param string $str
+  * @return float
+  */
+ function convertToPx(string $str): float
 {
      $px = 0;
      if (preg_match('/([\d.]+)(\w*)/', $str, $m)) {
@@ -1669,7 +1674,11 @@ function convertToPx(string $str): float
 } // convertToPx
 
 
-function clearCache(): void
+ /**
+  * Clears PageFactory's cache folder
+  * @return void
+  */
+ function clearCache(): void
 {
     $files = getDirDeep(PFY_CACHE_PATH, false, false, true);
     foreach ($files as $file) {
@@ -1684,8 +1693,12 @@ function clearCache(): void
 } // clearCache
 
 
-
-function readTimer( $verbose = false ) {
+ /**
+  * Returns the time since PageFactory started its execution.
+  * @param $verbose
+  * @return float|string
+  */
+ function readTimer($verbose = false ) {
      $t = (round((microtime(true) - PageFactory::$timer)*1000000) / 1000 - 0.005);
      if ($verbose) {
          return "Time: {$t}ms";
@@ -1695,14 +1708,24 @@ function readTimer( $verbose = false ) {
  } // readTimer
 
 
-function fatalError($str): void
+ /**
+  * Just forwards to Exception - better to use "throw new Exception($str)" directly
+  * @param $str
+  * @return void
+  * @throws Exception
+  */
+ function fatalError($str): void
 {
     throw new Exception($str);
 } // fatalError
 
 
-
-function icon($iconName)
+ /**
+  * Renders an icon
+  * @param $iconName
+  * @return string
+  */
+ function icon($iconName)
 {
     $file = SVG_ICONS_PATH . "$iconName.svg";
     if (file_exists($file)) {
