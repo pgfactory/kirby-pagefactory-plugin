@@ -4,21 +4,21 @@ namespace Usility\PageFactory;
 
 use Kirby;
 
-define('PFY_PLUGIN_PATH',           'site/plugins/pagefactory/');
+define('PFY_BASE_PATH',             'site/plugins/pagefactory/');
 define('PFY_DEFAULT_TEMPLATE_FILE', 'site/templates/page_template.html');
 define('PFY_USER_ASSETS_PATH',      'content/assets/');
 define('SVG_ICONS_PATH',            'site/plugins/pagefactory/install/media/pagefactory/svg-icons/');
 define('PFY_CONFIG_FILE',           'site/config/pagefactory.php');
-define('PFY_USER_CODE_PATH',        'site/custom/');
-define('PFY_MACROS_PATH',           PFY_PLUGIN_PATH.'src/macros/');
-define('PFY_MACROS_PLUGIN_PATH',    'site/plugins/pagefactory-extensions/macros/');
+define('PFY_USER_PATH',             'site/custom/');
+define('PFY_USER_CODE_PATH',        PFY_USER_PATH.'macros/');
+define('PFY_MACROS_PATH',           PFY_BASE_PATH.'macros/');
 define('PFY_CSS_PATH',              'assets/');
 define('PFY_MEDIA_PATHNAME',        '~/media/pagefactory/');
 define('PFY_LOGS_PATH',             'site/logs/');
-define('PFY_CACHE_PATH',            PFY_PLUGIN_PATH.'.#cache/');
+define('PFY_CACHE_PATH',            PFY_BASE_PATH.'.#cache/');
 define('PFY_MKDIR_MASK',             0700); // permissions for file accesses by PageFactory
-define('PFY_DEFAULT_TRANSVARS',     'site/config/transvars.yaml');
-define('JQUERY',                    PFY_PLUGIN_PATH.'third_party/jquery/jquery-3.6.0.min.js');
+define('PFY_DEFAULT_TRANSVARS',     PFY_BASE_PATH.'variables/pagefactory.yaml');
+define('JQUERY',                    PFY_BASE_PATH.'third_party/jquery/jquery-3.6.0.min.js');
 define('PAGED_POLYFILL_SCRIPT',     PFY_MEDIA_PATHNAME.'js/paged.polyfill.min.js');
 
 
@@ -38,6 +38,7 @@ class PageFactory
     public static $langCode = null;
     public static $trans = null;
     public static $siteOptions = null;
+    public static $extensionsPath = null;
     public static $debug = null;
     public static $localhostOverride = false;
     public static $timer = null;
@@ -83,6 +84,10 @@ class PageFactory
         self::$siteOptions = $this->kirby->options(); // from site/config/config.php
         $this->pageOptions = $this->page->content()->data();
 
+        $extensions = getDir(rtrim(PFY_BASE_PATH, '/').'-*');
+        foreach ($extensions as $extension) {
+            self::$extensionsPath[] = $extension;
+        }
 
         self::$trans = new TransVars($this);
 

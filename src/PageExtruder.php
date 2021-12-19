@@ -7,6 +7,7 @@
 
 namespace Usility\PageFactory;
 
+use Usility\PageFactory\PageElements as PageElements;
 use Exception;
 
 class PageExtruder
@@ -34,12 +35,24 @@ class PageExtruder
     {
         $this->pfy = $pfy;
         $this->trans = $pfy::$trans;
-        $this->pgExtr = new PageElements\PageElements($pfy, $this);
         $this->sc = new Scss($this->pfy);
         $this->assetFiles = &$pfy->assetFiles;
         $this->requestedAssetFiles = &$pfy->requestedAssetFiles;
         $this->jQueryActive = &$pfy->jQueryActive;
-    }
+
+        // check for and load extensions:
+        foreach (PageFactory::$extensionsPath as $extPath) {
+            $className = rtrim(substr($extPath, strlen(PFY_BASE_PATH)), '/');
+            $file = "{$extPath}src/$className.php";
+            if (file_exists($file)) {
+                require_once $file;
+                $dir = \Usility\PageFactory\getDir($extPath .'src/*.php');
+                foreach ($dir as $file) {
+                    require_once $file;
+                }
+            }
+        }
+    } // __construct
 
 
 
@@ -73,6 +86,16 @@ class PageExtruder
 
 
     // === Helper methods: accept queuing requests from macros and other objects ============
+
+    /**
+     * Tells PageExtruder to make sure jQuery will be loaded.
+     * @return void
+     */
+    public function requireJQuery(): void
+    {
+        $this->jQueryActive = true;
+    }
+
 
     /**
      * Generic setter
@@ -320,8 +343,8 @@ class PageExtruder
 
 
 
+//ToDo: move to extensions:
     //  "PageElements" i.e. higher level functionality: overlays, messages, popups:
-
     /**
      * Renders content in an overlay.
      * @param string $str
@@ -329,7 +352,10 @@ class PageExtruder
      */
     public function setOverlay(string $str, $mdCompile = false): void
     {
-        $pelem = new PageElements\PageOverlay($this->pfy, $this);
+        if (!PageFactory::$extensionsPath) {
+            throw new Exception("Error: PageFactory_extensions not available.");
+        }
+        $pelem = new PageElements\Overlay($this->pfy, $this);
         $this->bodyEndInjections .= $pelem->render( $str, $mdCompile);
     } // setOverlay
 
@@ -341,7 +367,7 @@ class PageExtruder
      */
     public function setMessage(string $str, $mdCompile = false): void
     {
-        $pelem = new PageMessage($this->pfy, $this);
+        $pelem = new PageElements\Message($this->pfy, $this);
         $this->bodyEndInjections .= $pelem->render($str, $mdCompile);
     } // setMessage
 
@@ -353,7 +379,10 @@ class PageExtruder
      */
     public function setPopup(string $str, $mdCompile = false): void
     {
-        $pelem = new PagePopup($this->pfy, $this);
+        if (!PageFactory::$extensionsPath) {
+            throw new Exception("Error: PageFactory_extensions not available.");
+        }
+        $pelem = new PageElements\Popup($this->pfy, $this);
         $this->bodyEndInjections .= $pelem->render($str, $mdCompile);
     } // setPopup
 

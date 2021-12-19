@@ -39,11 +39,18 @@ class Macros
             $this->pages = $pfy->pages;
             $this->trans = PageFactory::$trans;
         }
-        $macroLocations = [
-            PFY_USER_CODE_PATH,
-            PFY_MACROS_PATH,
-            PFY_MACROS_PLUGIN_PATH
-        ];
+
+        // find macro folders in custom/, extensions and pagefactory:
+        $macroLocations = [];
+        $macroLocations[] = PFY_USER_CODE_PATH;
+        foreach (PageFactory::$extensionsPath as $extPath) {
+            $folder = $extPath.'macros/';
+            if (file_exists($folder)) {
+                $macroLocations[] = $folder;
+            }
+        }
+        $macroLocations[] = PFY_MACROS_PATH;
+
         $this->availableMacros = [];
         foreach ($macroLocations as $location) {
             $dir = \Usility\PageFactory\getDir($location . '*');
@@ -121,12 +128,15 @@ class Macros
 
             // mdCompile if requested:
             if (@$macroObj['assetsToLoad']) {
-                if (strpos($macroObj['assetsToLoad'], 'jquery') !== false) {
-                    $this->pfy->jQueryActive = true;
+                $assetsToLoad = $macroObj['assetsToLoad'];
+                if (is_string($assetsToLoad)) {
+                    $assetsToLoad = [$assetsToLoad];
                 }
-                $assetsToLoad = explodeTrim(',', $macroObj['assetsToLoad']);
                 foreach ($assetsToLoad as $asset) {
-                    $this->pfy->pg->addAssets(basename($asset));
+                    if (strpos($asset, 'jquery') !== false) {
+                        $this->pfy->jQueryActive = true;
+                    }
+                    $this->pfy->pg->addAssets($asset);
                 }
             }
 
