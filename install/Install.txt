@@ -1,6 +1,43 @@
-Install
+# PageFactory Installation
+-> This assumes you are working in a linux/unix environment.
+-> Further, it assumes that you will install PageFactory in a subfolder of doc-root.
+-> In other cases you'll need to slightly adapt the Installation process.
 
-https://github.com/scssphp/scssphp.git scss
+1) download installation script from https://pagefactory.info/download/install.sh
+	(-> store it somewhere outside of your new web-app folder)
+
+2) cd into new web-app folder and run install.sh
+
+3) open page in your browser, e.g. http://localhost:8888//web-app/
 
 
-copy site/plugins/pagefactory/assets/* media/pagefactory
+
+
+## Manual Installation
+
+1) Cd to doc-root and create root folder of your new web-app, e.g. 'webapp/'
+
+> mkdir webapp
+> cd webapp
+
+
+2) Clone Kirby's plainkit:
+
+> git clone https://github.com/getkirby/plainkit.git .
+
+
+3) Clone PageFactory to folder 'site/plugins/pagefactory/':
+
+> git clone git@github.com:pgfactory/kirby-pagefactory-plugin site/plugins/pagefactory
+
+
+4) Copy some files to final location:
+
+> cp -R site/plugins/pagefactory/install/content/*  content
+> cp -R site/plugins/pagefactory/install/media/*    media
+> cp -R site/plugins/pagefactory/install/site/*     site
+
+
+5) open page in your browser, e.g. http://localhost:8888//web-app/
+
+
