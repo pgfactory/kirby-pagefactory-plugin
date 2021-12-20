@@ -1,4 +1,4 @@
-# kirby-pagefactory-plugin
+# Kirby-plugin *PageFactory*
 
 PageFactory plugin for Kirby CMS
 
