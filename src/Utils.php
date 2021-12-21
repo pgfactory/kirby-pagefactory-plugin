@@ -265,7 +265,7 @@ EOT;
 
 $html
 
-<$wrapperTag>
+</$wrapperTag>
 
 EOT;
             } else {
