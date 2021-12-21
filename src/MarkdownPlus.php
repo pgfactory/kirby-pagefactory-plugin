@@ -260,7 +260,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
         $block['meta'] = '';
         $block['mdCompile'] = ($attrs['mdCompile'] !== false);
 
-        // consume all lines until end-tag, i.e. :::...
+        // consume all lines until end-tag, e.g. @@@
         for($i = $current + 1, $count = count($lines); $i < $count; $i++) {
             $line = $lines[$i];
             if (preg_match("/^($marker{3,10})\s*(.*)/", $line, $m)) { // it's a potential fence line
@@ -297,7 +297,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
                 $block['content'][0] = parent::parseParagraph($content);
 
             } else {
-                $block['content'][0] = parent::parse($content);
+                $block['content'][0] = shieldStr($content, true);
             }
         }
         return [$block, $i];
@@ -319,7 +319,8 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
             return $out;
         }
 
-        return "\t\t<$tag $attrs>\n$out\n\t\t</$tag>\n\n";
+$aaa = "\t\t<$tag $attrs>\n$out\n\t\t</$tag>\n\n";
+        return "\n\n<$tag $attrs>\n$out\n</$tag>\n\n";
     } // renderDivBlock
 
 
@@ -786,7 +787,7 @@ EOT;
             return [
                 // return the parsed tag as an element of the abstract syntax tree and call `parseInline()` to allow
                 // other inline markdown elements inside this tag
-                ['icon', $this->parseInline($matches[1])],
+                ['icon', $matches[1]],
                 // return the offset of the parsed text
                 strlen($matches[0])
             ];
@@ -798,7 +799,7 @@ EOT;
     // rendering is the same as for block elements, we turn the abstract syntax array into a string.
     protected function renderIcon($element)
     {
-        $iconName = $element[1][0][1];
+        $iconName = $element[1];
         $icon = icon($iconName);
         return $icon;
     }
@@ -851,6 +852,9 @@ EOT;
 
         $str = $this->catchAndInjectTagAttributs($str); // ... {.cls}
 
+        // clean up shielded characters, e.g. '@#123;''@#123;' to '&#123;' :
+        $str = preg_replace('/@#(\d+);/ms', "&#$1;", $str);
+
         return $str;
     } // postprocess
 
@@ -891,7 +895,7 @@ EOT;
         $p = 0;
         while ($p=strpos($str, '\\', $p)) {
             $o = ord($str[$p+1]);
-            $unicode = "&#$o;";
+            $unicode = "@#$o;";
             $str = substr($str, 0, $p) . $unicode . substr($str, $p+2);
             $p += 2;
         }

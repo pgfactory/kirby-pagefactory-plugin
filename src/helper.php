@@ -1467,12 +1467,16 @@ function explodeTrim(string $sep, string $str, bool $excludeEmptyElems = false):
   * Shields a string from the markdown compiler, optionally instructing the unshielder to run the result through
   * the md-compiler separately.
   * @param string $str
-  * @param string $type
+  * @param string $mdCompile
   * @return string
   */
- function shieldStr(string $str): string
+ function shieldStr(string $str, $mdCompile = false): string
 {
-    return '{raw{' . base64_encode($str) . '}raw}';
+    if ($mdCompile) {
+        return '{md{' . base64_encode($str) . '}md}';
+    } else {
+        return '{raw{' . base64_encode($str) . '}raw}';
+    }
 } // shieldStr
 
 
@@ -1490,8 +1494,16 @@ function explodeTrim(string $sep, string $str, bool $excludeEmptyElems = false):
             $str = str_replace($m[0][$i], $literal, $str);
         }
     }
+    if (preg_match_all('/{md{(.*?)}md}/m', $str, $m)) {
+        foreach ($m[1] as $i => $item) {
+            $md = base64_decode($m[1][$i]);
+            $html = compileMarkdown($md);
+            $str = str_replace($m[0][$i], $html, $str);
+        }
+    }
     return false;
 } // unshieldStr
+
 
 
  /**
