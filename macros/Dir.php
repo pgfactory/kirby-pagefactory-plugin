@@ -7,8 +7,8 @@ $macroConfig =  [
     'parameters' => [
         'path' => ['Selects the folder to be read', false],
         'pattern' => ['The search-pattern with which to look for files (-> \'glob style\'. e.g. "{&#92;&#42;.js,&#92;&#42;.css}")', '*'],
-        'deep' => ['[false,true,flat] Whether to recursively descend into sub-folders. ("flat" means deep, but rendered as a non-hierarchical list.)', false],
-        'showPath' => ['[false,true] Whether to render the entire path per file in deep:flat mode.', false],
+        'deep' => ['[false,true,hierarchical] Whether to recursively descend into sub-folders. ("flat" means deep, but rendered as a non-hierarchical list.)', false],
+        'showPath' => ['[false,true] Whether to render the entire path per file in deep mode.', false],
         'order' => ['[reverse] Displays result in reversed order.', false],
         'id' => ['Id to be applied to the enclosing li-tag (Default: lzy-dir-#)', false],
         'class' => ['Class to be applied to the enclosing li-tag (Default: lzy-dir)', 'lzy-dir'],
@@ -94,11 +94,16 @@ class Dir extends Macros
         if ($this->deep) {
             $dir = getDirDeep($path . $pattern);
             sort($dir);
-            if ($this->deep === 'flat') {
+            if (($this->deep === true) || ($this->deep === 'flat')) {
                 $str = $this->straightList($dir);
             } else {
                 $str = $this->hierarchicalList($path, $dir);
             }
+//            if ($this->deep === 'flat') {
+//                $str = $this->straightList($dir);
+//            } else {
+//                $str = $this->hierarchicalList($path, $dir);
+//            }
 
         } else {
             $dir = getDir($path . $pattern);

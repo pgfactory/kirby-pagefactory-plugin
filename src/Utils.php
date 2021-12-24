@@ -7,17 +7,8 @@ use Kirby\Data\Yaml as Yaml;
 use Exception;
 
 
-/**
- *
- */
 class Utils
 {
-    public $frontmatter;
-
-
-    /**
-     * @param $pfy
-     */
     public function __construct($pfy)
     {
         $this->pfy = $pfy;
@@ -26,7 +17,8 @@ class Utils
 
 
     /**
-     * Perform special admin actifities, e.g. show help to admins
+     * Handles URL-commands, e.g. ?help, ?print etc.
+     * Checks privileges which are required for some commands.
      * @return void
      */
     public function handleSpecialRequests()
@@ -39,14 +31,18 @@ class Utils
     } // handleSpecialRequests
 
 
-
+    /**
+     * Execute those URL-commands that require no privileges: e.g. ?login, ?printpreview etc.
+     * @param $cmds
+     * @return void
+     */
     private function execAsAnon($cmds)
     {
         foreach (explode(',', $cmds) as $cmd) {
             if (!isset($_GET[$cmd])) {
                 continue;
             }
-            $arg = $_GET[$cmd];
+            //$arg = $_GET[$cmd];
             switch ($cmd) {
                 case 'login':
                     break;
@@ -63,7 +59,10 @@ class Utils
     } // execAsAnon
 
 
-
+    /**
+     * Renders the current page in print-preview mode.
+     * @return void
+     */
     private function printPreview()
     {
         $pagedPolyfillScript = PAGED_POLYFILL_SCRIPT;
@@ -84,7 +83,10 @@ EOT;
     } // printPreview
 
 
-
+    /**
+     * Renders the current page in print mode and initiates printing
+     * @return void
+     */
     private function print()
     {
         $pagedPolyfillScript = PAGED_POLYFILL_SCRIPT;
@@ -103,6 +105,11 @@ EOT;
     } // print
 
 
+    /**
+     * Helper for printPreview() and print():
+     * -> prepares default header and footer elements in printing layout.
+     * @return void
+     */
     private function preparePrintVariables()
     {
         // prepare css-variables:
@@ -120,6 +127,11 @@ EOT;
     } // preparePrintVariables
 
 
+    /**
+     * Execute those URL-commands that require admin privileges: e.g. ?help, ?notranslate etc.
+     * @param $cmds
+     * @return void
+     */
     private function execAsAdmin($cmds)
     {
         if (!isAdminOrLocalhost()) {
@@ -164,6 +176,10 @@ EOT;
     } // execAsAdmin
 
 
+    /**
+     * Handles ?help request
+     * @return void
+     */
     private function showHelp()
     {
         if (isset($_GET['help'])) {
@@ -202,7 +218,7 @@ EOT;
 
 
     /**
-     * Show Variables or Macros in Overlay
+     * Shows Variables or Macros in Overlay
      * @return void
      */
     public function handleLastMomentSpecialRequests(): void
@@ -252,12 +268,15 @@ EOT;
             }
             $mdStr = loadFile($file, 'cStyle');
             $mdStr = $this->extractFrontmatter($mdStr);
-            $html = $this->pfy->md->compile($mdStr);
+            $html = PageFactory::$md->compile($mdStr);
             $class = translateToClassName(basename($fileObj->id(), '.md'));
             $wrapperTag = @$this->frontmatter['wrapperTag'];
             if ($wrapperTag === null) {
                 $wrapperTag = 'section';
             }
+            $this->sectionClass = "lzy-section-$class";
+            $this->sectionId = "lzy-section-$inx";
+            $this->fixFrontmatterCss();
             if ($wrapperTag) {
                 $this->pfy->content .= <<<EOT
 
@@ -341,6 +360,21 @@ EOT;
         return $mdStr;
     } // extractFrontmatter
 
+
+    /**
+     * Replaces placeholders '#this' and '.this' with current values.
+     * @return void
+     */
+    private function fixFrontmatterCss(): void
+    {
+        $css = &$this->pg->frontmatter['css'];
+        $css = str_replace('.this', '.'.$this->sectionClass, $css);
+        $css = str_replace('#this', '#'.$this->sectionId, $css);
+
+        $scss = &$this->pg->frontmatter['scss'];
+        $scss = str_replace('.this', '.'.$this->sectionClass, $scss);
+        $scss = str_replace('#this', '#'.$this->sectionId, $scss);
+    } // fixFrontmatterCss
 
 
     /**

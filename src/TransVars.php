@@ -121,7 +121,7 @@ class TransVars
             $s2 = str_replace(["\n", "\t"], ['↵', '    '], $s2);
             $s3 = substr($str, $p2+2);
 
-            if (preg_match('/^([#^mM]*) \s* ([\w.-]+) (.*)/x', $s2, $m)) {
+            if (preg_match('/^([#^mM]*) \s* ([^(]+) (.*)/x', $s2, $m)) {
                 $modif = $m[1];
                 $varName = $m[2];
                 $argStr = $m[3];
@@ -154,11 +154,11 @@ class TransVars
 
                 // modifier 'm' -> md-compile inline-level:
                 if (@$modif[0] === 'm') {
-                    $s2 = $this->pfy->md->parseParagraph($s2);
+                    $s2 = PageFactory::$md->parseParagraph($s2);
 
                 // modifier 'M' -> md-compile block-level
                 } elseif (@$modif[0] === 'M') {
-                    $s2 = $this->pfy->md->parse($s2);
+                    $s2 = PageFactory::$md->parse($s2);
                 }
 
             } else { // no more instances left, terminate now:
@@ -178,7 +178,7 @@ class TransVars
      * @return string
      * @throws \Kirby\Exception\InvalidArgumentException
      */
-    private function translateMacro(string $macroName, string $argStr): string
+    private function translateMacro(string $macroName, string $argStr): mixed
     {
         $macroName = strtolower(str_replace('-', '', $macroName));
         $str = '';
@@ -347,14 +347,13 @@ class TransVars
         $end = ' }}';
         if (strpos($argStr, '↵') !== false) {
             $end = "\n}}";
+            $argStr = "\n".$argStr;
         }
         $argStr = str_replace('↵', "\n", $argStr);
         $html = <<<EOT
 
     <div class="lzy-source-code lzy-encapsulated">
-        <pre><code>
-&#123;{ $macroName($argStr)$end
-        </code></pre>
+        <pre><code>&#123;{ $macroName($argStr)$end</code></pre>
     </div>
 
 EOT;

@@ -1,4 +1,4 @@
-// Lizzy Nav.js
+// PageFactory Nav.js
 
 "use strict";
 
@@ -12,7 +12,7 @@ function LzyNav() {
 
 LzyNav.prototype.init = function() {
     if (!$('#lzy').length) {
-        alert("Warning: '#lzy'-Id missing within this page \n-> Lizzy's nav() objects not working.");
+        alert("Warning: '#lzy'-Id missing within this page \n-> PageFactory's nav() objects not working.");
     }
     this.largeScreenClasses = $('.lzy-primary-nav').attr('class');
     // this.largeScreenClasses = $('.lzy-primary-nav .lzy-nav').attr('class');

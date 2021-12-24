@@ -2,7 +2,10 @@
 
 ob_start();
 
-$html = $page->pageFactoryRender($pages, 'page_template.html' );
+$html = $page->pageFactoryRender($pages, [
+    'templateFile' =>'page_template.html',
+//    'mdVariant' => 'kirby', // or 'extra'
+]);
 
 if (ob_get_length()) {
     if (!file_exists(PFY_LOGS_PATH)) {

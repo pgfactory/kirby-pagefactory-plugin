@@ -891,11 +891,6 @@ use Exception;
   */
  function parseArgumentStr(string $str, string $delim = ',', $superBrackets = false): array
 {
-    // get indent of first indented element:
-    $indent = '';
-    if (preg_match('/\n(\s*)/m', $str, $m)) {
-        $indent = $m[1];
-    }
     // terminate if string empty:
     if (!($str = trim($str))) {
         return [];
@@ -940,18 +935,8 @@ use Exception;
         }
     }
 
-    $pattern = "/^$indent/";
-    $yaml = '';
-    if ($indent) {
-        foreach (explode("\n", $out) as $line) {
-            $yaml .= preg_replace($pattern, '', rtrim($line, ', ')) . "\n";
-        }
-    } else {
-        $yaml = $out;
-    }
-
     try {
-        $options = Yaml::decode($yaml);
+        $options = Yaml::decode($out);
     } catch (Exception $e) {
         throw new Exception($e);
     }
@@ -1027,10 +1012,7 @@ use Exception;
 {
     $lead = '';
     $key = '';
-    if (preg_match('/^(\s*)(.*)/', $rest, $m)) {
-        $lead = $m[1];
-        $rest = substr($rest, strlen($lead));
-    }
+    $rest = ltrim($rest);
     // case quoted key or value:
     if ((($ch1 = @$rest[0]) === '"') || ($ch1 === "'")) {
         $pattern = "$ch1 (.*?) $ch1";
@@ -1049,7 +1031,7 @@ use Exception;
             $rest = $m[2];
         }
     }
-    return "$lead'$key'";
+    return "'$key'";
 } // parseArgKey
 
 
@@ -1233,7 +1215,7 @@ function findNextPattern(string $str, string $pat, $p1 = 0)
 function parseInlineBlockArguments(string $str): array
 {
     $tag = $id = $class = $style = $text = $lang = '';
-    $literal = $mdCompile = null;
+    $literal = $mdCompile = 0;
     $attr = [];
 
     // catch quoted elements:
@@ -1276,7 +1258,7 @@ function parseInlineBlockArguments(string $str): array
         }
     }
 
-    if (preg_match_all('/([=!\w-]+) : ([^\s;]+) ;?/x', $str, $m)) {
+    if (preg_match_all('/([=!\w-]+) : ([^\s;,]+) ;?/x', $str, $m)) {
         foreach ($m[2] as $i => $t) {
             $ch1 = $m[1][$i][0];
             if (($ch1 === '!') || ($ch1 === '=')){
@@ -1317,6 +1299,12 @@ function parseInlineBlockArguments(string $str): array
                 break;
         }
     }
+    if ($literal === 0) {
+        $literal = null;
+    }
+    if ($mdCompile === 0) {
+        $mdCompile = null;
+    }
     $style = trim($style);
     list($htmlAttrs, $htmlAttrArray) = _assembleHtmlAttrs($id, $class, $style, $attr);
 
@@ -1345,7 +1333,7 @@ function parseInlineBlockArguments(string $str): array
   * @param string $style
   * @param string $tag
   */
- function _parseMetaCmds(string $arg, string &$lang, string &$literal, bool &$mdCompile, string &$style, string &$tag): void
+function _parseMetaCmds(string $arg, string &$lang, &$literal, &$mdCompile, string &$style, string &$tag): void
 {
     if (preg_match('/^([\w-]+) [=:]? (.*) /x', $arg, $m)) {
         $arg = strtolower($m[1]);
@@ -1356,6 +1344,9 @@ function parseInlineBlockArguments(string $str): array
             $mdCompile = true;
         } elseif ($arg === 'lang') {
             $lang = $param;
+            if (($lang === 'skip') || ($lang === 'none')) {
+                $tag = 'skip';
+            }
         } elseif (($arg === 'off') || (($arg === 'visible') && ($param !== 'true')))  {
             $style = $style? " $style display:none;" : 'display:none;';
         } elseif ($arg === 'showtill') {
@@ -1363,12 +1354,14 @@ function parseInlineBlockArguments(string $str): array
             if ($t < 0) {
                 $lang = 'none';
                 $tag = 'skip';
+                $style = $style? " $style display:none;" : 'display:none;';
             }
         } elseif ($arg === 'showfrom') {
             $t = strtotime($param) - time();
             if ($t > 0) {
                 $lang = 'none';
                 $tag = 'skip';
+                $style = $style? " $style display:none;" : 'display:none;';
             }
         }
     }
@@ -1459,7 +1452,7 @@ function explodeTrim(string $sep, string $str, bool $excludeEmptyElems = false):
   */
  function compileMarkdown(string $mdStr): string
 {
-    return kirby()->markdown($mdStr);
+    return PageFactory::$md->compile($mdStr);
 } // compileMarkdown
 
 
@@ -1486,9 +1479,9 @@ function explodeTrim(string $sep, string $str, bool $excludeEmptyElems = false):
   * @param string $str
   * @return bool
   */
- function unshieldStr(string &$str): bool
+ function unshieldStr(string &$str, bool $unshieldLiteral = false): bool
 {
-    if (preg_match_all('/{raw{(.*?)}raw}/m', $str, $m)) {
+    if ($unshieldLiteral && preg_match_all('/{raw{(.*?)}raw}/m', $str, $m)) {
         foreach ($m[1] as $i => $item) {
             $literal = base64_decode($m[1][$i]);
             $str = str_replace($m[0][$i], $literal, $str);
@@ -1737,7 +1730,7 @@ function strToASCII(string $str): string
   * @param $iconName
   * @return string
   */
- function icon($iconName)
+ function renderIcon($iconName)
 {
     $file = SVG_ICONS_PATH . "$iconName.svg";
     if (file_exists($file)) {
