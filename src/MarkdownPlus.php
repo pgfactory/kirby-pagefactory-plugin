@@ -1,6 +1,7 @@
 <?php
 namespace Usility\PageFactory;
 
+use cebe\markdown\MarkdownExtra;
 use Exception;
 
 /*
@@ -13,19 +14,23 @@ use Exception;
 
 class MarkdownPlus extends \cebe\markdown\MarkdownExtra
 {
-    private static $asciiTableInx = 0;
-    private static $imageInx = 0;
-    private static $tabulatorInx = 1;
-    // skip is a pseudo tag:
+    private static $asciiTableInx   = 1;
+    private static $imageInx        = 0;
+    private static $tabulatorInx    = 1;
+    public static $mdVariant        = 'plus';
     private $inlineTags = ',a,abbr,acronym,b,bdo,big,br,button,cite,code,dfn,em,i,img,input,kbd,label,'.
             'map,object,output,q,samp,script,select,small,span,strong,sub,sup,textarea,time,tt,var,skip,';
+    // 'skip' is a pseudo tag used by MarkdownPlus.
 
-    public function __construct()
+    public function __construct($mdVariant = false)
     {
         $this->kirby        = kirby();
         $this->lang         = PageFactory::$lang;
         $this->langCode     = PageFactory::$langCode;
         $this->trans        = PageFactory::$trans;
+        if ($mdVariant) {
+            self::$mdVariant = $mdVariant;
+        }
     }
 
 
@@ -35,19 +40,28 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
         if (!$str) {
             return '';
         }
-        $str = $this->preprocess($str);
-        $html = parent::parse($str);
-        $html = $this->postprocess($html);
+        if (self::$mdVariant === 'plus') {
+            $str = $this->preprocess($str);
+            $html = parent::parse($str);
+            $html = $this->postprocess($html);
+
+        } elseif (self::$mdVariant === 'extra') {
+            $md = new MarkdownExtra();
+            $html = $md->parse($str);
+
+        } else {
+            $html = kirby()->kirbytext($str);
+        }
         return $html;
-    }
+    } // compile
 
 
     // compile without pre- and postprocessing:
-    public function text($str)
+    public function compileStr($str)
     {
         $html = parent::parse($str);
         return $html;
-    }
+    } // compileStr
 
 
 
@@ -66,11 +80,10 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
         $block = [
             'asciiTable',
             'content' => [],
-            'caption' => false,
             'args' => false
         ];
         $firstLine = $lines[$current];
-        if (preg_match('/^\|===*\s+{?:?(.+?)}?$/', $firstLine, $m)) {
+        if (preg_match('/^\|===*\s+(.*)$/', $firstLine, $m)) {
             $block['args'] = $m[1];
         }
         for($i = $current + 1, $count = count($lines); $i < $count; $i++) {
@@ -78,7 +91,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
             if (strncmp($line, '|===', 4) !== 0) {
                 $block['content'][] = $line;
             } else {
-                // stop consuming when code block is over
+                // stop consuming when second '|===' found
                 break;
             }
         }
@@ -92,8 +105,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
         $row = 0;
         $col = -1;
 
-        self::$asciiTableInx++;
-        $inx = self::$asciiTableInx;
+        $inx = self::$asciiTableInx++;
 
         for ($i = 0; $i < sizeof($block['content']); $i++) {
             $line = $block['content'][$i];
@@ -131,30 +143,33 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
         $nRows = $row+1;
         unset($cells);
 
-
-        $id = $class = $style = $attr = $text = $tag = '';
-        if ($block['args']) {
-            $args = parseInlineBlockArguments($block['args'], true);
-            list($tag, $id, $class, $style, $attr, $text) = array_values($args);
-            $attr = $args['htmlAttrs'];
-        }
-        if (!$id) {
-            $id = "lzy-table$inx";
-        }
-        if (!$class) {
-            $class = "lzy-table$inx";
-        }
-        if ($style) {
-            $style = " style='$style'";
-        }
-        if ($tag) {
-            $text = $text ? "$tag $text": $tag;
+        // prepare table attributes:
+        $caption = $block['args'];
+        if (strpbrk($caption, '#.:=!') !== false) {
+            $attrs = parseInlineBlockArguments($caption);
+            if (($attrs['tag'] === 'skip') || ($attrs['lang'] && ($attrs['lang'] !== PageFactory::$lang))) {
+                return '';
+            }
+            $caption = $attrs['text'];
+            $attrsStr = $attrs['htmlAttrs'];
+            $attrsStr = preg_replace('/class=["\'].*?["\']/', '', $attrsStr);
+            $class = "lzy-table lzy-table-$inx";
+            if ($attrs['class']) {
+                $class .= ' '.$attrs['class'];
+            }
+            if (!$attrs['id']) {
+                $attrsStr = "id='lzy-table-$inx' ".$attrsStr;
+            }
+            $attrsStr .= " class='$class'";
+        } else {
+            $attrsStr = "id='lzy-table-$inx' class='lzy-table lzy-table-$inx'";
         }
 
         // now render the table:
-        $out = "\t<table id='$id' class='lzy-table $class'$style$attr><!-- asciiTable -->\n";
-        if ($text) {
-            $out .= "\t  <caption>$text</caption>\n";
+        $out = "\t<table $attrsStr>\n";
+        if ($caption) {
+            $caption = trim($caption,'"\'');
+            $out .= "\t  <caption>$caption</caption>\n";
         }
 
         // render header as defined in first row, e.g. |# H1|H2
@@ -185,7 +200,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
                     $colspan++;
                     continue;
                 } elseif ($cell) {
-                    $cell = parent::parseParagraph(trim($cell));
+                    $cell = parent::parse(trim($cell));
                 }
                 $colspanAttr = '';
                 if ($colspan > 1) {
@@ -319,8 +334,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
             return $out;
         }
 
-$aaa = "\t\t<$tag $attrs>\n$out\n\t\t</$tag>\n\n";
-        return "\n\n<$tag $attrs>\n$out\n</$tag>\n\n";
+        return "\n\n<$tag $attrs>\n$out</$tag><!-- $attrs -->\n\n\n";
     } // renderDivBlock
 
 
@@ -386,15 +400,15 @@ $aaa = "\t\t<$tag $attrs>\n$out\n\t\t</$tag>\n\n";
             $addedWidths = 0; // px
             foreach ($parts as $n => $elem) {
                 if ($w = @$block['widths'][$n]) {
-                    $style = " style='width:$w';";
+                    $style = " style='width:$w;'";
                     $addedWidths += convertToPx($w);
 
                 } elseif ($n === 0) {
-                    $style = " style='width:6em';";
+                    $style = " style='width:6em;'";
                     $addedWidths += 16;
 
                 } else {
-                    $style = " style='width:calc(100% - {$addedWidths}px)';";
+                    $style = " style='width:calc(100% - {$addedWidths}px);'";
                 }
                 $elem = parent::parseParagraph($elem);
                 $line .= "<span class='c".($n+1)."'$style>$elem</span>";
@@ -467,6 +481,57 @@ $aaa = "\t\t<$tag $attrs>\n$out\n\t\t</$tag>\n\n";
         $out = "\t<dl>\n$out\t</dl>\n";
         return $out;
     } // renderDefinitionList
+
+
+
+    // === OrderedList ==================
+    protected function identifyOrderedList($line, $lines, $current)
+    {
+        if (preg_match('/^\d+ !? \. /x', $line)) {
+            return 'orderedList';
+        }
+        return false;
+    } // identifyOrderedList
+
+    protected function consumeOrderedList($lines, $current)
+    {
+        // create block array
+        $block = [
+            'orderedList',
+            'content' => [],
+            'start' => false,
+        ];
+
+        // consume all lines until 2 empty line
+        for($i = $current, $count = count($lines); $i < $count; $i++) {
+            $line = $lines[$i];
+            if (!preg_match('/^\d+!?\./', $line)) {  // empty line
+                    break;
+            } elseif (preg_match('/^(\d+)!\.\s*(.*)/', $line, $m)) {
+                $block['start'] = $m[1];
+                $line = $m[2];
+            } elseif (preg_match('/^(\d+)\.\s*(.*)/', $line, $m)) {
+                $line = $m[2];
+            }
+            $block['content'][] = $line;
+        }
+        return [$block, $i];
+    } // consumeOrderedList
+
+    protected function renderOrderedList($block)
+    {
+        $out = '';
+        $start = '';
+        if ($block['start'] !== false) {
+            $start = " start='{$block['start']}'";
+        }
+        foreach ($block['content'] as $line) {
+                $line = parent::parse($line);
+                $out .= "\t\t<li>$line</li>\n";
+        }
+        $out = "\t<ol$start>\n$out\t</ol>\n";
+        return $out;
+    } // renderOrderedList
 
 
 
@@ -770,7 +835,10 @@ EOT;
         $link = $element[1];
         $linkText = $element[2];
         $title = preg_replace('/^ ([\'"]) (.*) \1 $/x', "$2", $element[3]);
-        return \html::link($link, ['text' => $linkText, 'title' => $title]);
+        if ($title) {
+            $title = " title='$title'";
+        }
+        return "<a href='$link'$title>$linkText</a>";
     } // renderLink
 
 
@@ -800,7 +868,7 @@ EOT;
     protected function renderIcon($element)
     {
         $iconName = $element[1];
-        $icon = icon($iconName);
+        $icon = renderIcon($iconName);
         return $icon;
     }
 
@@ -815,6 +883,8 @@ EOT;
 
         $str = $this->doMDincludes($str);
 
+        $str = $this->fixCebeBugs($str);
+
         $str = $this->handleMdVariables($str);
 
         $str = PageFactory::$trans->flattenMacroCalls($str); // need to flatten so MD doesn't get confused
@@ -823,8 +893,6 @@ EOT;
 
         // {{}} alone on line -> add NLs around it:
         $str = preg_replace('/(\n{{.*}}\n)/U', "\n$1\n", $str);
-
-        $str = $this->handleOLstart($str);
 
         return $str;
     } // preprocess
@@ -850,7 +918,7 @@ EOT;
             $str = $this->smartypants($str);
         }
 
-        $str = $this->catchAndInjectTagAttributs($str); // ... {.cls}
+        $str = $this->catchAndInjectTagAttributes($str); // ... {.cls}
 
         // clean up shielded characters, e.g. '@#123;''@#123;' to '&#123;' :
         $str = preg_replace('/@#(\d+);/ms', "&#$1;", $str);
@@ -868,7 +936,7 @@ EOT;
                 '/(?<!!)&lt;-/ms'  => '&larr;',
                 '/(?<!=)&lt;=/ms'  => '&lArr;',
                 '/(?<!\.)\.\.\.(?!\.)/ms'  => '&hellip;',
-                '/(?<!-)--(?!-)/ms'  => '&ndash;',
+                '/(?<!-|!)--(?!-|>)/ms'  => '&ndash;', // in particular: <!-- -->
                 '/(?<!-)---(?!-)/ms'  => '&mdash;',
                 '/(?<!&lt;)&lt;&lt;(?!&lt;)/ms'  => '&#171;',
                 '/(?<!&gt;)&gt;&gt;(?!&gt;)/ms'  => '&#187;',
@@ -969,53 +1037,98 @@ EOT;
 
 
 
-    private function catchAndInjectTagAttributs($str)
+    // Irregular behavior of cebe/markdown compiler:
+    // - ul and ol not recognized if no empty line before pattern
+    private function fixCebeBugs($str)
     {
-        while (preg_match('@^ (.*?) {: ([.#][\w-]+ .*?) } \s* (\n|</\w+>) (.*)$@xms', $str, $m)) {
-            $str0 = $m[1];
-            $attrs0 = '&#123;' . substr($m[2],1) . '}';
-            $attrs = parseInlineBlockArguments($m[2]);
-            $attrsStr = $attrs['htmlAttrs'];
-            $tag = $m[3];
-            if ($tag !== "\n") {
-                $tag = preg_replace('/\W/', '', $tag);
-                if (strpos(',h1,h2,h3,h4,h5,h6,', ",$tag,") !== false) {
-                    $attrsStr = $attrs0; // ignore, already handled by MD compiler
-                    $str = "$str0$attrsStr{$m[3]}{$m[4]}";
-                    continue;
-
-                } elseif (strpos(',p,div,', ",$tag,") !== false) {
-                    $p = strrpos($str0, "<$tag") + strlen($tag) + 1;
-                    $str0 = substr($str0, 0, $p) . $attrsStr . substr($str0, $p);
-
-                } elseif ($tag === 'li') {
-                    $p1 = strrpos($str0, "<ul");
-                    $p2 = strrpos($str0, "<ol");
-                    $p = max($p1,$p2) + 3;
-                    $str0 = substr($str0, 0, $p) . $attrsStr . substr($str0, $p);
-                    $m[2] = '';
-
-                } elseif ($tag === 'dt') {
-                    $p = strrpos($str0, "<dl") + 3;
-                    $str0 = substr($str0, 0, $p) . $attrsStr . substr($str0, $p);
-                    $m[2] = '';
-
+        $lines = explode("\n", $str);
+        foreach ($lines as $i => $line) {
+            if (strpos($line, '- ') === 0) {
+                if (preg_match('/^[^\-\s].*/',$lines[$i-1])) {
+                    $lines[$i-1] .= "\n";
                 }
-
-            } else {
-                $p = strrpos($str0, "<");
-                if (preg_match('/\w+/', substr($str0, $p), $mm)) {
-                    $p += strlen($mm[0]) + 1;
-                } else {
-                    throw new Exception('error');
+            } elseif (preg_match('/^\d+!?\./', $line, $m)) {
+                if (!preg_match('/^\d+!?\./', $lines[$i-1], $m)) {
+                    $lines[$i-1] .= "\n";
                 }
-                $str0 = substr($str0, 0, $p) . $attrsStr . substr($str0, $p);
             }
-            $str = str_replace($m[0], "$str0{$m[3]}{$m[4]}", $str);
         }
+        $str = implode("\n", $lines);
         return $str;
-    } // catchAndInjectTagAttributs
+    } // fixCebeBugs
 
+
+
+    private function catchAndInjectTagAttributes($str)
+    {
+        if (!strpos($str, '{:')) {
+            return $str;
+        }
+        
+        // run through HTML line by line:
+        $lines = explode("\n", $str);
+        $attribs = '';
+        $nLines = sizeof($lines);
+        for ($i=0; $i<$nLines; $i++) {
+            $line = &$lines[$i];
+            
+            // case attribs found and not consumed yet -> apply to following tag:
+            if ($attribs) {
+                if (preg_match_all('|<(\w+)|', $line, $m)) {
+                    $line = $this->applyAttrs($line, $attribs, $m[0][0]);
+                }
+                $attribs = false;
+            }
+            
+            // check whether there is anything to do:
+            if (strpos($line, '{:') === false) {
+                continue;
+            }
+            
+            // handle case of '{: }' on separate line -> to be applied to next tag:
+            if (preg_match('|<p>{:(.*?)}</p>|', $line, $m)) {
+                $attribs = $m[1];
+                unset($lines[$i]);
+                continue;
+            } elseif (preg_match('|<p>{:(.*?)}|', $line, $m)) {
+                $attrs = parseInlineBlockArguments($m[1]);
+                $attrsStr = $attrs['htmlAttrs'];
+                $line = str_replace($m[0], "<p$attrsStr>", $line);
+                continue;
+            }
+            
+            // handle all other cases -> apply to previous tag:
+            if (preg_match('|^(.*?)({:(.*?)})(.*)|', $line, $m)) {
+                $line = str_replace($m[2], '', $line);
+                if (preg_match('|<(\w+)|', $m[1], $mm)) {
+                    $line = $this->applyAttrs($line, $m[3], $mm[0]);
+                } else {
+                    for ($j=$i-1; $j>0; $j--) {
+                        $l = &$lines[$j];
+                        if (preg_match('|<(\w+)|', $l, $mm)) {
+                            $l = $this->applyAttrs($l, $m[3], $mm[0]);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        $str = implode("\n", $lines);
+        return $str;
+    } // catchAndInjectTagAttributes
+
+    private function applyAttrs($line, $attribs, $pattern)
+    {
+        $attrs = parseInlineBlockArguments($attribs);
+        if (preg_match('/(class=["\'])/', $line, $mm)) {
+            $line = str_replace($mm[0], "{$mm[1]}{$attrs['class']} ", $line);
+
+        } else {
+            $attrsStr = $attrs['htmlAttrs'];
+            $line = str_replace($pattern, "$pattern$attrsStr", $line);
+        }
+        return $line;
+    } // applyAttrs
 
 
     private function handleLineBreaks($str)
@@ -1023,34 +1136,6 @@ EOT;
         $str = preg_replace("/(\\\\\n|\s(?<!\\\)BR\s)/ms", "<br>\n", $str);
         return $str;
     } // handleLineBreaks
-
-
-
-    /**
-     * @param $str
-     * @return string
-     */
-    private function handleOLstart($str): string
-    {
-        while (preg_match('/^(.*?) \n(\d{1,2}) ! \. (.*) $/xms', $str, $m)) {
-            $str1 = $m[1];
-            $n = $m[2];
-            $str2 = $m[3];
-            $p = strpos($str2, "\n");
-            if ($p) {
-                $s1 = substr($str2, 0, $p);
-                $s2 = substr($str2, $p);
-                if (preg_match('/{ ([.#][\w-]+ .*?) }/x', $s1, $m)) {
-                    $s1 = str_replace($m[0], "{{$m[1]} start='$n'}", $s1);
-                } else {
-                    $s1 .= " {.lzy-list-start start='$n'}";
-                }
-                $str3 = "\n$n." . $s1 . $s2;
-                $str = $str1 . $str3;
-            }
-        }
-        return $str;
-    } // handleOLstart
 
 
 

@@ -29,6 +29,7 @@ require_once __DIR__ . '/helper.php';
 class PageFactory
 {
     public static $appRoot = null;
+    public static $appUrl = null;
     public static $absAppRoot = null;
     public static $pagePath = null;
     public static $pageRoot = null;
@@ -37,6 +38,7 @@ class PageFactory
     public static $lang = null;
     public static $langCode = null;
     public static $trans = null;
+    public static $md = null;
     public static $siteOptions = null;
     public static $extensionsPath = null;
     public static $debug = null;
@@ -91,7 +93,7 @@ class PageFactory
 
         self::$trans = new TransVars($this);
 
-        $this->md = new MarkdownPlus();
+        self::$md = new MarkdownPlus();
         $this->pg = new PageExtruder($this);
         $this->pg->set('pageParams', $this->page->content()->data());
 
@@ -107,6 +109,7 @@ class PageFactory
         self::$pagePath = substr($this->page->root(), strlen(site()->root())+1) . '/';
         self::$absAppRoot = dirname($_SERVER['SCRIPT_FILENAME']).'/';
         self::$appRoot = dirname(substr($_SERVER['SCRIPT_FILENAME'], -strlen($_SERVER['SCRIPT_NAME']))).'/';
+        self::$appUrl = $this->site->url().'/';
         self::$pageRoot = 'content/' . self::$pagePath;
         self::$absPageRoot = $this->page->root() . '/';
         self::$pageUrl = (string)$this->page->url();
@@ -152,17 +155,19 @@ class PageFactory
      * @param false $templateFile
      * @return string
      */
-    public function render($templateFile = false): string
+    public function render($options = false): string
     {
+        if (@$options['mdVariant']) {
+            MarkdownPlus::$mdVariant = $options['mdVariant'];
+        }
         $this->utils->handleSpecialRequests();
 
-        $this->utils->determineTemplateFile($templateFile);
+        $this->utils->determineTemplateFile($options['templateFile']);
 
         $this->utils->loadMdFiles();
         $this->setStandardVariables();
 
         $html = $this->assembleHtml();
-        $html = str_replace('~/', self::$appRoot, $html);
 
         // report execution time (see result in browser/dev-tools/network -> main file):
         header("Server-Timing: total;dur=" . readTimer());
@@ -201,10 +206,9 @@ class PageFactory
         $this->pg->preparePageVariables();
 
         $html = self::$trans->translate($html);
-        unshieldStr($html);
+        $html = str_replace(['~/', '~page/'], [self::$appUrl, self::$pageUrl], $html);
+        unshieldStr($html, true);
 
-        // remove shields in specific cases:
-        $html = preg_replace("/\\\BR/ms", "BR", $html);
         return $html;
     } // assembleHtml
 

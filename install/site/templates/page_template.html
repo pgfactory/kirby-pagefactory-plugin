@@ -15,10 +15,11 @@
 
 <div class='lzy-page page'>
 
-  <header class='lzy-header'>
+  <header class='reference-header header'>
+    <p>PageFactory</p>
+    {{ nav('lzy-primary-nav lzy-horizontal') }}
   </header>
 
-  {{ nav('lzy-primary-nav lzy-horizontal') }}
 
 
   <!-- === page content =============== -->
@@ -32,6 +33,7 @@
 
   <footer class="lzy-footer">
     <div class="lzy-footer-left">
+      {{ ShowSource() }}
       {{^ lzy-lang-selection }}
     </div>
 
@@ -49,6 +51,7 @@
     {{^ lzy-small-screen-header }}
   </div><!-- /lzy-small-screen-header -->
 
+{{ PrevNextLinks() }}
 </div><!-- /.lzy-page -->
 
 {{@ lzy-body-end-injections }}

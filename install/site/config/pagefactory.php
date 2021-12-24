@@ -4,7 +4,7 @@
 $menuIcon = svg('site/plugins/pagefactory/assets/menu.svg');
 
 return [
-    'handleKirbyFrontmatter'  => true,
+    'handleKirbyFrontmatter'  => false,
 
     'assetFiles' => [
         '-pagefactory.css' => [

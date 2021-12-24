@@ -4,7 +4,7 @@ namespace Usility\PageFactory;
 
 define('NAV_ARROW', '<span>&#9727;</span>');
 
-// classes:
+ // classes:
 define('NAV_LIST_TAG',  'ol');          // the list tag to be used
 define('NAV_LEVEL',     'lzy-lvl-');    // identifies the nesting level
 define('NAV_CURRENT',   'lzy-curr');    // the currently opened page

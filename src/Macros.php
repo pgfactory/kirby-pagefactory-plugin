@@ -37,7 +37,6 @@ class Macros
             $this->site = $pfy->site;
             $this->page = $pfy->page;
             $this->pages = $pfy->pages;
-            $this->trans = PageFactory::$trans;
         }
 
         // find macro folders in custom/, extensions and pagefactory:
@@ -81,6 +80,7 @@ class Macros
      */
     public function execute(string $macroName, array $args, string $argStr): ?string
     {
+        $this->trans = PageFactory::$trans;
         $str = null;
         $helpText = false;
         $macroObj = null;
@@ -102,7 +102,8 @@ class Macros
                 $thisMacroName = 'Usility\\PageFactory\\' . ucfirst( $macroName );
                 $macroObj = include $this->availableMacros[ $macroName ];
                 self::$registeredMacros[ $macroName0 ] = $macroObj;
-            } else {
+
+            } elseif (!$this->trans->hideIfNotDefined) {
                 $error = "Error: macro '$macroName()' not found.";
                 if (PageFactory::$debug) {
                     throw new \Exception($error);
@@ -204,7 +205,7 @@ EOT;
         }
         $summary = @$macroObj['summary'];
         $argDefs = @$macroObj['parameters'];
-        $out = "@@@ .lzy-macro-help.lzy-encapsulated\n# Macro ``$macroName()``\n$summary\n## Aruments:\n\n";
+        $out = "# Macro ``$macroName()``\n$summary\n## Aruments:\n\n";
         foreach ($argDefs as $key => $rec) {
             $default = $this->valueToString($rec[1]);
             if (is_bool($default)) {
@@ -215,7 +216,14 @@ EOT;
             }
             $out .= "$key:\n: {$rec[0]} (Default: $default)\n\n";
         }
-        return $out."\n\n@@@\n";
+        $out = compileMarkdown($out);
+        $out = <<<EOT
+<div class='lzy-macro-help lzy-encapsulated'>
+$out
+</div>
+EOT;
+
+        return $out;
     } // renderHelpText
 
 
