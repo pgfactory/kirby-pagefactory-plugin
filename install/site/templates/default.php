@@ -16,7 +16,7 @@ if (ob_get_length()) {
 }
 
 // if HTML contains <?php tags, we need to get that evaluated:
-if (strpos($html, '<?') !== false) {
+if ((strpos($html, '<?php') !== false) || (strpos($html, '<?=') !== false)) {
     eval(" ?>$html<?php ");
 } else {
     echo $html;
