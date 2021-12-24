@@ -8,11 +8,14 @@ $macroConfig =  [
         'min' => ['If set, defines the minimum number of random words to be rendered.', false],
         'max' => ['If set, defines the maximum number of random words to be rendered.', false],
         'dot' => ['If true, a dot will be appended at the end of all random words', false],
-        'class' => ['If true, a dot will be appended at the end of all random words', ''],
-        'wrapper' => ['If true, a dot will be appended at the end of all random words', 'div'],
+        'class' => ['Class to be applied to the wrapper element', ''],
+        'wrapper' => ['Allows to define the tag of the wrapper element', 'div'],
     ],
     'summary' => <<<EOT
-Renders filler text "Lorem ipsum...". If you set min or max values, rendered words are selected at random.
+Renders filler text "Lorem ipsum...". 
+
+If you set min or max values, rendered words are selected at random.
+
 EOT,
 ];
 
