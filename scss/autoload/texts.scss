@@ -2,8 +2,8 @@
 
 @import '--definitions.scss';
 
-#lzy.lzy-default-layout .lzy-encapsulated,
-.lzy-default-layout {
+#lzy.lzy-default-styling .lzy-encapsulated,
+.lzy-default-styling {
     :focus-visible {
         box-shadow: 0 0 0 1px black, 0 0 0 2px white, 0 0 0 3px  #{$focus-color};
     }

@@ -1,6 +1,7 @@
 /* === Lzy-Buttons ========================= */
-#lzy .lzy-encapsulated,
-& {
+
+#lzy.lzy-default-styling .lzy-encapsulated,
+.lzy-default-styling {
   .lzy-button {
     color: #666;
     font-family: helvetica, arial, sans-serif;

@@ -73,8 +73,8 @@ $slidedownX6: calc(var(--lzy-nav-top-horizontal-first-indent, #{$nav-top-horizon
 
 // === Generic Nav ===================
 
-#lzy .lzy-nav-wrapper,
-.lzy-nav-wrapper {
+#lzy.lzy-default-styling .lzy-nav-wrapper,
+.lzy-default-styling .lzy-nav-wrapper {
     position: relative;
     .lzy-nav-menu-button {
         display: none;
@@ -87,8 +87,8 @@ $slidedownX6: calc(var(--lzy-nav-top-horizontal-first-indent, #{$nav-top-horizon
 
 
 
-#lzy .lzy-encapsulated,
-& {
+#lzy.lzy-default-styling .lzy-encapsulated,
+.lzy-default-styling {
     nav,
     &nav {
         ul {
