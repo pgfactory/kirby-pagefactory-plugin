@@ -21,14 +21,14 @@ class Utils
      * Checks privileges which are required for some commands.
      * @return void
      */
-    public function handleSpecialRequests()
+    public function handleAgentRequests()
     {
         if (!@$_GET) {
             return;
         }
-        $this->execAsAnon('login,logout,printpreview,print');
+        $this->execAsAnon('printpreview,print');
         $this->execAsAdmin('help,localhost,timer,reset,notranslate');
-    } // handleSpecialRequests
+    } // handleAgentRequests
 
 
     /**
@@ -42,12 +42,7 @@ class Utils
             if (!isset($_GET[$cmd])) {
                 continue;
             }
-            //$arg = $_GET[$cmd];
             switch ($cmd) {
-                case 'login':
-                    break;
-                case 'logout':
-                    break;
                 case 'printpreview':
                     $this->printPreview();
                     break;
@@ -152,24 +147,20 @@ EOT;
             }
             $arg = $_GET[$cmd];
             switch ($cmd) {
-                case 'help':
+                case 'help': // ?help
                     $this->showHelp();
                     break;
-                case 'notranslate':
+                case 'notranslate': // ?notranslate
                     $this->noTranslate = $arg? intval($arg): 1;
                     break;
-                case 'localhost':
+                case 'localhost': // ?localhost
                     if ($arg === 'false') {
                         PageFactory::$localhostOverride = true;
                     }
                     break;
-                case 'reset':
+                case 'reset': // ?reset
                     $this->pfy->session->clear();
                     clearCache();
-                    break;
-
-                case 'timer':
-                    $this->pfy->session->set('pfy.timer', (bool)$arg);
                     break;
             }
         }
@@ -194,11 +185,10 @@ EOT;
 [?debug](./?debug)      >> activate debug mode
 [?localhost=false](./?localhost=false)      >> simulate remote host
 [?notranslate](./?notranslate)      >> show variables instead of translating them
-[?login](./?login)      >> open login window
-[?logout](./?logout)      >> logout user
+//[?login](./?login)      >> open login window
+//[?logout](./?logout)      >> logout user
 [?print](./?print)		    	>> starts printing mode and launches the printing dialog
 [?printpreview](./?printpreview)  	>> presents the page in print-view mode    
-[?timer](./?timer)		    	>> switch timer on or off
 [?reset](./?reset)		    	>> resets all state-defining information: caches, tokens, session-vars.
 
 EOT;
@@ -221,7 +211,7 @@ EOT;
      * Shows Variables or Macros in Overlay
      * @return void
      */
-    public function handleLastMomentSpecialRequests(): void
+    public function handleAgentRequestsOnRenderedPage(): void
     {
         if (!@$_GET) {
             return;
@@ -244,7 +234,7 @@ EOT;
             $str = PageFactory::$trans->translate($str);
             $this->pg->setOverlay($str);
         }
-    } // handleLastMomentSpecialRequests
+    } // handleAgentRequestsOnRenderedPage
 
 
     /**
@@ -604,6 +594,10 @@ EOT;
      */
     public function getContent(): string
     {
+        if ($content = $this->pg->overrideContent) {
+            return $content;
+        }
+
         $content = $this->pfy->mdContent;
         if ($this->pfy->mdContent) {
             $content = $this->pfy->kirby->markdown($this->pfy->mdContent);

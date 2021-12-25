@@ -27,6 +27,7 @@ class PageExtruder
     public $frontmatter = [];
     public $assetFiles = [];
     public $requestedAssetFiles = [];
+    public $overrideContent = false;
     private $jQueryActive;
 
 
@@ -147,6 +148,13 @@ class PageExtruder
     {
         $this->headInjections .= $str;
     }
+
+
+    public function overrideContent($str)
+    {
+        $this->overrideContent = $str;
+    } // overrideContent
+
 
 
     /**
@@ -580,6 +588,7 @@ EOT;
 
         $js = "var screenSizeBreakpoint = {$this->pfy->screenSizeBreakpoint}\n";
         $js .= "const hostUrl = '" . PageFactory::$appRoot . "';\n";
+        $js .= "const loggedinUser = '" . PageFactory::$user . "';\n";
         $js .= $this->js . @$this->frontmatter['js'];
         if ($js) {
             $js = "\t\t".str_replace("\n", "\n\t\t", rtrim($js, "\n"));

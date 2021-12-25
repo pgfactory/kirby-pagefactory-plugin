@@ -44,6 +44,7 @@ class PageFactory
     public static $debug = null;
     public static $localhostOverride = false;
     public static $timer = null;
+    public static $user = null;
 
     public $config;
     public $templateFile = '';
@@ -113,6 +114,9 @@ class PageFactory
         self::$pageRoot = 'content/' . self::$pagePath;
         self::$absPageRoot = $this->page->root() . '/';
         self::$pageUrl = (string)$this->page->url();
+        if ($user = $this->kirby->user()) {
+            self::$user = (string)$user->name();
+        }
 
         $this->siteTitle = (string)site()->title()->value();
 
@@ -160,7 +164,7 @@ class PageFactory
         if (@$options['mdVariant']) {
             MarkdownPlus::$mdVariant = $options['mdVariant'];
         }
-        $this->utils->handleSpecialRequests();
+        $this->utils->handleAgentRequests(); // login,logout,printpreview,print' and 'help,localhost,timer,reset,notranslate'
 
         $this->utils->determineTemplateFile($options['templateFile']);
 
@@ -198,7 +202,7 @@ class PageFactory
             unshieldStr($html);
         }
 
-        $this->utils->handleLastMomentSpecialRequests();
+        $this->utils->handleAgentRequestsOnRenderedPage(); // list variables, macros
 
         // last pass: now replace injection variables:
         $html = $this->utils->unshieldLateTranslatationVariables($html);
