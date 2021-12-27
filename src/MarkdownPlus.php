@@ -787,12 +787,22 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
         }
 
         $src = trim($src);
-        $files = page()->files()->filterBy('extension', 'jpg');
-        $file = $files->find($src);
-        if ($size) {
-            $file = $file->resize($maxWidth, $maxHeight);
+        $html = false;
+        if ($src && ($src[0] !== '~')) {
+            // if no leading '~' -> assume file under content/:
+            $files = page()->files()->filterBy('extension', 'jpg');
+            $file = $files->find($src);
+            if ($size) {
+                $file = $file->resize($maxWidth, $maxHeight);
+            }
+            if ($file) {
+                $html = $file->html(['alt' => $alt, 'class' => "lzy-img lzy-img-$imgInx"]);
+            }
         }
-        $html = $file->html(['alt' => $alt, 'class' => "lzy-img lzy-img-$imgInx"]);
+        if (!$html) {
+            $src = PageFactory::$appUrl . resolvePath($src);
+            $html = "<img src='$src' class='lzy-img lzy-img-$imgInx' alt='$alt'>";
+        }
 
         if ($caption) {
             $html = <<<EOT
