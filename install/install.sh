@@ -23,7 +23,7 @@ echo PageFactory installed
 ## Check/copy essential files to final location:
 if [ ! -e site/templates/page_template.html ]; then
 	cp -R site/plugins/pagefactory/install/content/*  content
-	cp -R site/plugins/pagefactory/install/media/*    media
+	cp -R site/plugins/pagefactory/install/assets/*    assets
 	cp -R site/plugins/pagefactory/install/site/*     site
 	echo Essential files copied to final location
 fi
