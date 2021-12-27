@@ -47,34 +47,72 @@ class PrevNextLinks extends Macros // <- modify classname (must be qual to name 
      */
     public function render($args, $argStr)
     {
-        $class = $args['class'];        // <- how to access an argument
+        $this->class = $args['class'];        // <- how to access an argument
 
+        $out = $this->renderPrevLink();
+        $out .= $this->renderNextLink();
+
+        return $out;
+    }
+
+
+    private function renderPrevLink()
+    {
         $out = '';
-        if ($this->page->hasPrevListed()) {
-            $prev = '~/'.$this->page->prevListed();
-            $prevLink ="<a href='$prev'>{{ lzy-previous-page-text }}";
-            $out .= <<<EOT
-    <div class="lzy-page-switcher-links lzy-previous-page-link $class">
+        $current = $this->page->url();
+        $next = $this->pages->first();
+        $prev = false;
+        while ($next && ($current !== $next->url())) {
+            $prev = $next->url();
+            if ($next->hasListedChildren()) {
+                     $next = $next->children()->listed()->first();
+
+            } elseif ($next->hasNextListed()) {
+                $next = $next->nextListed();
+
+            } elseif ($next->parent()->hasNextListed()) {
+                $next = $next->parent()->nextListed();
+            }
+        }
+
+        if ($prev) {
+            $prevLink = "<a href='$prev'>{{ lzy-previous-page-text }}";
+            $out = <<<EOT
+    <div class="lzy-page-switcher-links lzy-previous-page-link $this->class">
         $prevLink
     </div>
 
 EOT;
-
         }
+        return $out;
+    } // renderPrevLink
 
-        if ($this->page->hasNextListed()) {
-            $next = '~/'.$this->page->nextListed();
+
+
+    private function renderNextLink()
+    {
+        $out = '';
+        $next = '';
+        if ($this->page->hasListedChildren()) {
+            $next = $this->page->children()->listed()->first()->url();
+
+        } elseif ($this->page->hasNextListed()) {
+            $next = $this->page->nextListed()->url();
+
+        } elseif ($this->page->parent()->hasNextListed()) {
+            $next = $this->page->parent()->nextListed()->url();
+        }
+        if ($next) {
             $nextLink = "<a href='$next'>{{ lzy-next-page-text }}";
-            $out .= <<<EOT
-    <div class="lzy-page-switcher-links lzy-next-page-link $class">
+            $out = <<<EOT
+    <div class="lzy-page-switcher-links lzy-next-page-link $this->class">
         $nextLink
     </div>
 
 EOT;
         }
-
         return $out;
-    }
+    } // renderNextLink
 } // PrevNextLinks
 
 
