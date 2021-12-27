@@ -13,13 +13,12 @@ define('PFY_USER_PATH',             'site/custom/');
 define('PFY_USER_CODE_PATH',        PFY_USER_PATH.'macros/');
 define('PFY_MACROS_PATH',           PFY_BASE_PATH.'macros/');
 define('PFY_CSS_PATH',              'assets/');
-define('PFY_MEDIA_PATHNAME',        '~/media/pagefactory/');
+define('PFY_ASSETS_PATHNAME',        'assets/pagefactory/');
 define('PFY_LOGS_PATH',             'site/logs/');
 define('PFY_CACHE_PATH',            PFY_BASE_PATH.'.#cache/');
 define('PFY_MKDIR_MASK',             0700); // permissions for file accesses by PageFactory
 define('PFY_DEFAULT_TRANSVARS',     PFY_BASE_PATH.'variables/pagefactory.yaml');
 define('JQUERY',                    PFY_BASE_PATH.'third_party/jquery/jquery-3.6.0.min.js');
-define('PAGED_POLYFILL_SCRIPT',     PFY_MEDIA_PATHNAME.'js/paged.polyfill.min.js');
 
 
 require_once __DIR__ . '/../third_party/vendor/autoload.php';
@@ -29,6 +28,7 @@ require_once __DIR__ . '/helper.php';
 class PageFactory
 {
     public static $appRoot = null;
+    public static $appRootUrl = null;
     public static $appUrl = null;
     public static $absAppRoot = null;
     public static $pagePath = null;
@@ -111,6 +111,7 @@ class PageFactory
         self::$absAppRoot = dirname($_SERVER['SCRIPT_FILENAME']).'/';
         self::$appRoot = dirname(substr($_SERVER['SCRIPT_FILENAME'], -strlen($_SERVER['SCRIPT_NAME']))).'/';
         self::$appUrl = $this->site->url().'/';
+        self::$appRootUrl = kirby()->url().'/';
         self::$pageRoot = 'content/' . self::$pagePath;
         self::$absPageRoot = $this->page->root() . '/';
         self::$pageUrl = (string)$this->page->url();
@@ -210,7 +211,14 @@ class PageFactory
         $this->pg->preparePageVariables();
 
         $html = self::$trans->translate($html);
-        $html = str_replace(['~/', '~page/'], [self::$appUrl, self::$pageUrl], $html);
+        $patterns = [
+            '~/'        => self::$appUrl,
+            '~media/'   => self::$appRootUrl.'media/',
+            '~assets/'  => self::$appRootUrl.'assets/',
+            '~data/'    => self::$appRootUrl.'site/custom/data/',
+            '~page/'    => self::$pageUrl,
+        ];
+        $html = str_replace(array_keys($patterns), array_values($patterns), $html);
         unshieldStr($html, true);
 
         return $html;

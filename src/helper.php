@@ -651,7 +651,7 @@ use Exception;
 
  /**
   * Looks for special path patterns starting with '~'. If found replaces them with propre values.
-  *   Supported path patterns: ~/, ~page/, ~pagefactory/, ~assets/, ~data/
+  *   Supported path patterns: ~/, ~page/, ~pagefactory/, ~media/, ~assets/, ~data/
   * @param string $path
   * @param bool $absPath
   * @return string
@@ -670,11 +670,12 @@ use Exception;
     }
     $pageRoot = PageFactory::$pageRoot;
     $pathPatterns = [
-        '~/' =>             $appRoot,
-        '~page/' =>         $pageRoot,
-        '~pagefactory/' =>  $appRoot . 'site/plugins/pagefactory/',
-        '~assets/' =>       $appRoot . PFY_USER_ASSETS_PATH,
-        '~data/' =>         $appRoot . 'site/data/',
+        '~/'            => $absPath,
+        '~media/'       => $absPath.'media/',
+        '~assets/'      => $absPath.'assets/',
+        '~data/'        => $absPath.'site/custom/data/',
+        '~page/'        => $pageRoot,
+        '~pagefactory/' => $absPath.'site/plugins/pagefactory/',
     ];
     $path = str_replace(array_keys($pathPatterns), array_values($pathPatterns), $path);
 

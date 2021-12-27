@@ -6,6 +6,8 @@ use Kirby;
 use Kirby\Data\Yaml as Yaml;
 use Exception;
 
+define('PAGED_POLYFILL_SCRIPT', '~assets/pagefactory/js/paged.polyfill.min.js');
+
 
 class Utils
 {
@@ -26,7 +28,7 @@ class Utils
         if (!@$_GET) {
             return;
         }
-        $this->execAsAnon('printpreview,print');
+        $this->execAsAnon('printview,printpreview,print');
         $this->execAsAdmin('help,localhost,timer,reset,notranslate');
     } // handleAgentRequests
 
@@ -43,6 +45,7 @@ class Utils
                 continue;
             }
             switch ($cmd) {
+                case 'printview':
                 case 'printpreview':
                     $this->printPreview();
                     break;
@@ -84,7 +87,7 @@ EOT;
      */
     private function print()
     {
-        $pagedPolyfillScript = PAGED_POLYFILL_SCRIPT;
+        $pagedPolyfillScript = '~/'.PFY_ASSETS_PATHNAME.'js/paged.polyfill.min.js';
         $jq = <<<EOT
 setTimeout(function() {
     console.log('now running paged.polyfill.js'); 
