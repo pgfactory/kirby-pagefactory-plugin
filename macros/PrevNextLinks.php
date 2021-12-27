@@ -60,7 +60,7 @@ class PrevNextLinks extends Macros // <- modify classname (must be qual to name 
     {
         $out = '';
         $current = $this->page->url();
-        $next = $this->pages->first();
+        $next = $this->pages->listed()->first();
         $prev = false;
         while ($next && ($current !== $next->url())) {
             $prev = $next->url();
@@ -70,8 +70,10 @@ class PrevNextLinks extends Macros // <- modify classname (must be qual to name 
             } elseif ($next->hasNextListed()) {
                 $next = $next->nextListed();
 
-            } elseif ($next->parent()->hasNextListed()) {
-                $next = $next->parent()->nextListed();
+            } elseif (($parent = $next->parent()) && ($parent->hasNextListed())) {
+                $next = $parent->nextListed();
+            } else {
+                break;
             }
         }
 
@@ -99,7 +101,7 @@ EOT;
         } elseif ($this->page->hasNextListed()) {
             $next = $this->page->nextListed()->url();
 
-        } elseif ($this->page->parent()->hasNextListed()) {
+        } elseif (($parent = $this->page) && $parent->hasNextListed()) {
             $next = $this->page->parent()->nextListed()->url();
         }
         if ($next) {
