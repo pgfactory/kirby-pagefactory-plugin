@@ -1345,8 +1345,9 @@ function _parseMetaCmds(string $arg, string &$lang, &$literal, &$mdCompile, stri
             $mdCompile = true;
         } elseif ($arg === 'lang') {
             $lang = $param;
-            if (($lang === 'skip') || ($lang === 'none')) {
+            if (($lang === 'skip') || ($lang === 'none') || ($lang !== PageFactory::$langCode)) {
                 $tag = 'skip';
+                $style = $style? " $style display:none;" : 'display:none;';
             }
         } elseif (($arg === 'off') || (($arg === 'visible') && ($param !== 'true')))  {
             $style = $style? " $style display:none;" : 'display:none;';
