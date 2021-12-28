@@ -40,7 +40,11 @@ class PageExtruder
         $this->assetFiles = &$pfy->assetFiles;
         $this->requestedAssetFiles = &$pfy->requestedAssetFiles;
         $this->jQueryActive = &$pfy->jQueryActive;
+    } // __construct
 
+
+
+    public function loadExtensions() {
         // check for and load extensions:
         if (PageFactory::$extensionsPath) {
             foreach (PageFactory::$extensionsPath as $extPath) {
@@ -350,51 +354,6 @@ class PageExtruder
             $this->requestedAssetFiles[] = $basename;
         }
     } // addAssets
-
-
-
-//ToDo: move to extensions:
-    //  "PageElements" i.e. higher level functionality: overlays, messages, popups:
-    /**
-     * Renders content in an overlay.
-     * @param string $str
-     * @param false $mdCompile
-     */
-    public function setOverlay(string $str, $mdCompile = false): void
-    {
-        if (!PageFactory::$extensionsPath) {
-            throw new Exception("Error: PageFactory_extensions not available.");
-        }
-        $pelem = new PageElements\Overlay($this->pfy, $this);
-        $this->bodyEndInjections .= $pelem->render( $str, $mdCompile);
-    } // setOverlay
-
-
-    /**
-     * Renders cotent in a message that appears briefly in the upper right corner.
-     * @param string $str
-     * @param false $mdCompile
-     */
-    public function setMessage(string $str, $mdCompile = false): void
-    {
-        $pelem = new PageElements\Message($this->pfy, $this);
-        $this->bodyEndInjections .= $pelem->render($str, $mdCompile);
-    } // setMessage
-
-
-    /**
-     * Renders content in a popup window.
-     * @param string $str
-     * @param false $mdCompile
-     */
-    public function setPopup(string $str, $mdCompile = false): void
-    {
-        if (!PageFactory::$extensionsPath) {
-            throw new Exception("Error: PageFactory_extensions not available.");
-        }
-        $pelem = new PageElements\Popup($this->pfy, $this);
-        $this->bodyEndInjections .= $pelem->render($str, $mdCompile);
-    } // setPopup
 
 
 

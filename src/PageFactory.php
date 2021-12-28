@@ -48,6 +48,7 @@ class PageFactory
 
     public $config;
     public $templateFile = '';
+    public $pg = null;
     public $mdContent = '';
     public $css = '';
     public $scss = '';
@@ -162,6 +163,9 @@ class PageFactory
      */
     public function render($options = false): string
     {
+        // check for presence of site/plugins/pagefactory-*':
+        $this->pg->loadExtensions();
+
         if (@$options['mdVariant']) {
             MarkdownPlus::$mdVariant = $options['mdVariant'];
         }
