@@ -516,11 +516,9 @@ EOT;
             if (in_array($langCode, $supportedLanguages)) {
                 PageFactory::$lang = $lang;
                 PageFactory::$langCode = $langCode;
-                $slug = $this->pfy->slug;
-                $slug = $langCode . substr($slug,2);
-                $appRoot = dirname(substr($_SERVER['SCRIPT_FILENAME'], -strlen($_SERVER['SCRIPT_NAME']))).'/';
-                $url = $appRoot.$slug;
                 kirby()->session()->set('pfy.lang', $lang);
+                kirby()->setCurrentLanguage($langCode);
+                $url = $this->pfy->page->url();
                 reloadAgent($url);
             }
         }
