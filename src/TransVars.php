@@ -65,9 +65,10 @@ class TransVars
     public function setVariable(string $varName, $value, $lang = false): void
     {
         $lang = $this->extractLang($varName, $lang);
+        $transVars = &self::$transVars;
 
         if (is_array($value)) {
-            self::$transVars[$varName] = array_merge(self::$transVars[$varName], $value);
+            $transVars = array_merge($transVars, $value);
         } elseif (is_string($value)) {
             unset(self::$transVars[$varName]);
             if (!$lang) {
@@ -135,6 +136,7 @@ class TransVars
 
                 if (@$modif[0] === '#') {
                     $str = $s1.$s3;
+                    list ($p1, $p2) = strPosMatching($str);
                     continue;
 
                 } elseif ($modif === '^') {

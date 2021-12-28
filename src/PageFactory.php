@@ -238,6 +238,7 @@ class PageFactory
     private function setStandardVariables(): void
     {
         self::$trans->setVariable('lang', self::$langCode);
+        self::$trans->setVariable('lang-active', self::$lang);
         self::$trans->setVariable('lzy-body-tag-attributes', $this->bodyTagAttributes);
 
         $this->utils->setLanguageSelector();

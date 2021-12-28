@@ -338,7 +338,8 @@ EOT;
         // if variables were defined in Frontmatter, propagate them into PFY's variables:
         if (@$this->pfy->frontmatter['variables'] && is_array($this->pfy->frontmatter['variables'])) {
             foreach ($this->pfy->frontmatter['variables'] as $varName => $value) {
-                PageFactory::$trans->setVariable($varName, $value);
+                $array[$varName] = $value;
+                PageFactory::$trans->setVariable($varName, $array);
             }
         }
 
@@ -484,7 +485,6 @@ EOT;
      */
     public function determineLanguage(): void
     {
-        $lang = false;
         $languagesObj = kirby()->languages();
         $supportedLanguages = $this->pfy->supportedLanguages = $languagesObj->codes();
         if ($supportedLanguages) {
@@ -494,7 +494,8 @@ EOT;
             //            if (!in_array($lang, $supportedLanguages)) {
             //                $lang = (string)kirby()->defaultLanguage();
             //            }
-        } else {
+        }
+        if (!($lang = kirby()->session()->get('pfy.lang'))) {
             $lang = 'en';
             $supportedLanguages[] = 'en';
         }
@@ -511,13 +512,15 @@ EOT;
 
         // check whether user requested a language explicitly via url-arg:
         if ($lang = @$_GET['lang']) {
+            $langCode = substr($lang, 0, 2);
             if (in_array($langCode, $supportedLanguages)) {
                 PageFactory::$lang = $lang;
-                PageFactory::$langCode = substr($lang, 0, 2);
+                PageFactory::$langCode = $langCode;
                 $slug = $this->pfy->slug;
-                $slug = $lang . substr($slug,2);
+                $slug = $langCode . substr($slug,2);
                 $appRoot = dirname(substr($_SERVER['SCRIPT_FILENAME'], -strlen($_SERVER['SCRIPT_NAME']))).'/';
                 $url = $appRoot.$slug;
+                kirby()->session()->set('pfy.lang', $lang);
                 reloadAgent($url);
             }
         }

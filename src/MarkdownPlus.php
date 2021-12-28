@@ -25,8 +25,6 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
     public function __construct($mdVariant = false)
     {
         $this->kirby        = kirby();
-        $this->lang         = PageFactory::$lang;
-        $this->langCode     = PageFactory::$langCode;
         $this->trans        = PageFactory::$trans;
         if ($mdVariant) {
             self::$mdVariant = $mdVariant;
@@ -40,6 +38,8 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
         if (!$str) {
             return '';
         }
+        $this->lang         = PageFactory::$lang;
+        $this->langCode     = PageFactory::$langCode;
         if (self::$mdVariant === 'plus') {
             $str = $this->preprocess($str);
             $html = parent::parse($str);
@@ -59,6 +59,8 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
     // compile without pre- and postprocessing:
     public function compileStr($str)
     {
+        $this->lang         = PageFactory::$lang;
+        $this->langCode     = PageFactory::$langCode;
         $html = parent::parse($str);
         return $html;
     } // compileStr
