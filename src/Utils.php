@@ -30,6 +30,7 @@ class Utils
         }
         $this->execAsAnon('printview,printpreview,print');
         $this->execAsAdmin('help,localhost,timer,reset,notranslate');
+        $this->handleExtendedAgentRequests();
     } // handleAgentRequests
 
 
@@ -238,6 +239,23 @@ EOT;
             $this->pg->setOverlay($str);
         }
     } // handleAgentRequestsOnRenderedPage
+
+
+    private function handleExtendedAgentRequests()
+    {
+        $dir = getDir('site/plugins/pagefactory-*');
+        if (!$dir) {
+            return;
+        }
+        $handlers = [];
+        foreach($dir as $path) {
+            $indexFile = "$path/src/index.php";
+            if (file_exists($indexFile)) {
+                require $indexFile;
+            }
+        }
+    } // handleExtendedAgentRequests
+
 
 
     /**
