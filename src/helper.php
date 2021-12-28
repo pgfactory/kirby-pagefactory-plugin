@@ -1636,12 +1636,16 @@ function strToASCII(string $str): string
  /**
   * Forces the agent (broser) to reload the page.
   * @param false $target
-  * @param false $getArg
+  * @param false $message   if set, text will be briefly shown in message banner
   */
- function reloadAgent($target = false, $getArg = false): void
+function reloadAgent($target = false, $message = false): void
 {
     if (!$target) {
         $target = page()->url();
+    }
+    if ($message) {
+        $session = kirby()->session();
+        $session->set('pfy.message', $message);
     }
     header("Location: $target");
     exit;
@@ -1653,7 +1657,7 @@ function strToASCII(string $str): string
   * @param string $str
   * @return float
   */
- function convertToPx(string $str): float
+function convertToPx(string $str): float
 {
      $px = 0;
      if (preg_match('/([\d.]+)(\w*)/', $str, $m)) {

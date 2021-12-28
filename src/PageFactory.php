@@ -48,6 +48,7 @@ class PageFactory
 
     public $config;
     public $templateFile = '';
+    public $session = null;
     public $pg = null;
     public $mdContent = '';
     public $css = '';
