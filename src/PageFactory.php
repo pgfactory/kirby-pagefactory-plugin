@@ -172,7 +172,7 @@ class PageFactory
         }
         $this->utils->handleAgentRequests(); // login,logout,printpreview,print' and 'help,localhost,timer,reset,notranslate'
 
-        $this->utils->determineTemplateFile($options['templateFile']);
+        $this->utils->determineTemplateFile(@$options['templateFile']);
 
         $this->utils->loadMdFiles();
         $this->setStandardVariables();

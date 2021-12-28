@@ -678,9 +678,9 @@ EOT;
      *  b) html file in 'site/templates/' with name corresponding to .txt file in page folder
      *  c) html file in 'site/templates/' with name corresponding to page's dir-name
      *  d) default template 'site/templates/page_template.html'
-     * @param string $templateFile
+     * @param mixed $templateFile
      */
-    public function determineTemplateFile(string $templateFile):void
+    public function determineTemplateFile($templateFile = false): void
     {
         $templatePath = dir_name(PFY_DEFAULT_TEMPLATE_FILE);
         if (!$templateFile) {
