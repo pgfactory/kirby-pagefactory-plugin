@@ -40,6 +40,7 @@ class PageExtruder
         $this->assetFiles = &$pfy->assetFiles;
         $this->requestedAssetFiles = &$pfy->requestedAssetFiles;
         $this->jQueryActive = &$pfy->jQueryActive;
+        $this->definitions = require_once 'site/plugins/pagefactory/src/definitions.php';
     } // __construct
 
 
@@ -56,6 +57,12 @@ class PageExtruder
                     foreach ($dir as $file) {
                         require_once $file;
                     }
+                }
+                $cls = "\Usility\PageFactory\\$className\\$className";
+                $obj = new $cls($this->pfy);
+                if (method_exists($obj, 'getAssetDefs')) {
+                    $newAssets = $obj->getAssetDefs();
+                    $this->definitions = array_merge($this->definitions, ['assets' =>$newAssets]);
                 }
             }
         }
@@ -326,6 +333,19 @@ class PageExtruder
         if (!is_array($assets)) {
             $assets = explodeTrim(',', $assets, true);
         }
+
+        // get definitions from extensions:
+        if (@$this->definitions['assets']) {
+            $assetDefs = $this->definitions['assets'];
+            $assetDefKeys = array_keys($assetDefs);
+            foreach ($assets as $key => $asset) {
+                if (in_array($asset, $assetDefKeys)) {
+                    $assetsToAdd = explodeTrim(',', $assetDefs[$asset], true);
+                    array_splice($assets, $key, 1, $assetsToAdd);
+                }
+            }
+        }
+
         foreach ($assets as $asset) {
             $asset = resolvePath($asset);
             $basename = basename($asset);
