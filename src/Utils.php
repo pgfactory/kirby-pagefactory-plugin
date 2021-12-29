@@ -343,14 +343,20 @@ EOT;
             }
         }
 
-        if (@$this->pfy->frontmatter['overlay']) {
-            $this->pg->setOverlay($this->pfy->frontmatter['overlay'], true);
-        }
-        if (@$this->pfy->frontmatter['message']) {
-            $this->pg->setMessage($this->pfy->frontmatter['message'], true);
-        }
-        if (@$this->pfy->frontmatter['popup']) {
-            $this->pg->setPopup($this->pfy->frontmatter['popup'], true);
+        // if PageElements extension is loaded -> handle overlay,popup,message:
+        if (file_exists('site/plugins/pagefactory-PageElements')) {
+            if (@$this->pfy->frontmatter['overlay']) {
+                $pe = new \Usility\PageFactory\PageElements\Overlay($this->pfy);
+                $pe->set($this->pfy->frontmatter['overlay'], true);
+            }
+            if (@$this->pfy->frontmatter['message']) {
+                $pe = new \Usility\PageFactory\PageElements\Message($this->pfy);
+                $pe->set($this->pfy->frontmatter['message'], true);
+            }
+            if (@$this->pfy->frontmatter['popup']) {
+                $pe = new \Usility\PageFactory\PageElements\Popup($this->pfy);
+                $pe->set($this->pfy->frontmatter['popup'], true);
+            }
         }
 
         if (@$this->pfy->frontmatter['loadAssets']) {
