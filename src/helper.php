@@ -116,38 +116,13 @@ use Exception;
     if (!$file || !is_string($file)) {
         return '';
     }
-
-    $file = resolvePath($file);
-
     if ($useCaching) {
         $data = checkDataCache($file);
         if ($data !== null) {
             return $data;
         }
     }
-
-    $data = @file_get_contents($file);
-    if (!$data) {
-        return '';
-    }
-
-    // remove BOM
-    $data = str_replace("\xEF\xBB\xBF", '', $data);
-
-    if ($removeComments) {
-        $data = zapFileEND($data);
-    }
-    if (is_string($removeComments)) {
-        if (stripos($removeComments, 'cstyle') !== false) {
-            $data = removeCStyleComments($data);
-        }
-        if (stripos($removeComments, 'hash') !== false) {
-            $data = removeHashTypeComments($data);
-        }
-        if (stripos($removeComments, 'empty') !== false) {
-            $data = removeEmptyLines($data);
-        }
-    }
+    $data = getFile($file, $removeComments);
 
     // if it's data of a known format (i.e. yaml,json etc), decode it:
     $ext = fileExt($file);
@@ -202,6 +177,43 @@ use Exception;
     }
     return $data;
 } // loadFiles
+
+
+
+ function getFile(string $file, $removeComments = true)
+ {
+     if (!$file || !is_string($file)) {
+         return '';
+     }
+
+     $file = resolvePath($file);
+
+     $data = @file_get_contents($file);
+     if (!$data) {
+         return '';
+     }
+
+     // remove BOM
+     $data = str_replace("\xEF\xBB\xBF", '', $data);
+
+     if ($removeComments) {
+         $data = zapFileEND($data);
+     }
+     if (is_string($removeComments)) {
+         if (stripos($removeComments, 'cstyle') !== false) {
+             $data = removeCStyleComments($data);
+         }
+         if (stripos($removeComments, 'hash') !== false) {
+             $data = removeHashTypeComments($data);
+         }
+         if (stripos($removeComments, 'empty') !== false) {
+             $data = removeEmptyLines($data);
+         }
+     }
+     return $data;
+ } // getile
+
+
 
 
  /**
@@ -270,6 +282,14 @@ use Exception;
     $cacheFile = str_replace('/', '_', $cacheFile);
     return PFY_CACHE_PATH . $cacheFile . $tag .'.cache';
 } // cacheFileName
+
+
+
+ function convertToYaml($data, $level = 3)
+ {
+     return Yaml::dump($data, $level);
+ } // convertToYaml
+
 
 
  /**
