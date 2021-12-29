@@ -12,7 +12,8 @@ return [
         // create initial .md content file for newly created pages:
         'page.create:after' => function (Kirby\Cms\Page $page) {
             $filename = 'a_'.$page->dirname().'.md';
-            $md = "\n\n# ".site()->title()->value()."\n\n";
+            $pageTitle = $page->title();
+            $md = "\n\n# $pageTitle\n\n";
             file_put_contents($page->root().'/'.$filename, $md);
         }
     ],
