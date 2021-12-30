@@ -153,6 +153,7 @@ class PageFactory
                 ],
             ];
         }
+        preparePath(PFY_LOGS_PATH);
     } // __construct
 
 
