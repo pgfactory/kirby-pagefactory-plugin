@@ -14,6 +14,7 @@ $macroConfig =  [
             'If file-extension is ".md", loaded content will be markdown-compiled automatically.', false],
         'snippet' => ['[filename] Loads given Kirby snippet, compiles it and '.
             'injects the resulting string into the HTML output.', false],
+        'literal' => ['If true, file content will be rendered as is - i.e. in \<pre> tags.', false],
         'mdCompile' => ['If true, file content will be markdown-compiled before rendering.', false],
         'wrapperTag' => ['If defined, output will be wrapped in given tag.', false],
         'wrapperClass' => ['If defined, given class will be applied to the wrapper tag.', ''],
@@ -49,6 +50,7 @@ class Import extends Macros
 
         $file = $args['file'];
         $snippet = $args['snippet'];
+        $literal = $args['literal'];
         $wrapperTag = $args['wrapperTag'];
         $wrapperClass = $args['wrapperClass'];
         $this->mdCompile = $args['mdCompile'];
@@ -64,11 +66,15 @@ class Import extends Macros
             $str .= $this->importSnippet($snippet);
         }
 
+        if ($literal && !$wrapperTag) {
+            $wrapperTag = 'pre';
+        }
+
         if ($wrapperTag) {
             $str = <<<EOT
 
     <$wrapperTag class='lzy-imported lzy-imported-$inx $wrapperClass'>
-$str    </$wrapperTag><!-- lzy-imported -->
+$str</$wrapperTag><!-- lzy-imported -->
 
 EOT;
         }
