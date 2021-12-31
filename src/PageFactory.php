@@ -34,6 +34,7 @@ class PageFactory
     public static $pagePath = null;
     public static $pageRoot = null;
     public static $absPageRoot = null;
+    public static $hostUrl = null;
     public static $pageUrl = null;
     public static $lang = null;
     public static $langCode = null;
@@ -61,16 +62,11 @@ class PageFactory
     public $cssFiles = [];
     public $jQueryActive = false;
     public $noTranslate = false;
-
     public $headInjections = '';
     public $bodyTagClasses = '';
     public $bodyTagAttributes = '';
     public $bodyEndInjections = '';
-
     public $loadHelperJs = false;
-
-    public $screenSizeBreakpoint = 480;
-
 
     public function __construct($pages)
     {
@@ -111,6 +107,7 @@ class PageFactory
         $this->content = (string)$this->page->text()->kt();
         self::$pagePath = substr($this->page->root(), strlen(site()->root())+1) . '/';
         self::$absAppRoot = dirname($_SERVER['SCRIPT_FILENAME']).'/';
+        self::$hostUrl = $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].'/';
         self::$appRoot = dirname(substr($_SERVER['SCRIPT_FILENAME'], -strlen($_SERVER['SCRIPT_NAME']))).'/';
         self::$appUrl = $this->site->url().'/';
         self::$appRootUrl = kirby()->url().'/';
@@ -220,7 +217,7 @@ class PageFactory
         $patterns = [
             '~/'        => self::$appUrl,
             '~media/'   => self::$appRootUrl.'media/',
-            '~assets/'  => self::$appRootUrl.'assets/',
+            '~assets/'  => self::$appRootUrl.'content/assets/',
             '~data/'    => self::$appRootUrl.'site/custom/data/',
             '~page/'    => self::$pageUrl,
         ];

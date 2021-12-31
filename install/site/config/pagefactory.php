@@ -4,7 +4,10 @@
 $menuIcon = svg('site/plugins/pagefactory/assets/menu.svg');
 
 return [
-    'handleKirbyFrontmatter'  => false,
+    'handleKirbyFrontmatter'    => false,
+    'screenSizeBreakpoint'      => 480,
+//    'imageAutoQuickview'        => true,  // -> used by Img() macro
+//    'imageAutoSrcset'           => true,  // -> used by Img() macro
 
     'assetFiles' => [
         '-pagefactory.css' => [
