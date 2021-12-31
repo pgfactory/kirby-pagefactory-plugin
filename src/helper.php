@@ -287,7 +287,7 @@ use Exception;
 
  function convertToYaml($data, $level = 3)
  {
-     return Yaml::dump($data, $level);
+     return Yaml::decode($data, $level);
  } // convertToYaml
 
 
@@ -631,8 +631,8 @@ use Exception;
     if ($recursive) {
         foreach ($paths as $path) {
             $path = './' . rtrim($path, '*');
-            $it = new RecursiveDirectoryIterator($path);
-            foreach (new RecursiveIteratorIterator($it) as $fileRec) {
+            $it = new \RecursiveDirectoryIterator($path);
+            foreach (new \RecursiveIteratorIterator($it) as $fileRec) {
                 // ignore files starting with . or # or _
                 if (preg_match('|^[._#]|', $fileRec->getFilename())) {
                     continue;
@@ -673,40 +673,45 @@ use Exception;
   * Looks for special path patterns starting with '~'. If found replaces them with propre values.
   *   Supported path patterns: ~/, ~page/, ~pagefactory/, ~media/, ~assets/, ~data/
   * @param string $path
-  * @param bool $absPath
+  * @param bool $returnAbsPath
   * @return string
   */
- function resolvePath(string $path, bool $absPath = false): string
+ function resolvePath(string $path, bool $returnAbsPath = false): string
 {
     if (@$path[0] !== '~') {
         return $path;
     }
-    
+
+    // first check for root-paths defined by kirby:
+    if (@$path[1] !== '/') {
+        $path1 = preg_replace('|/.*|', '', substr($path, 1));
+        $kirbyRoots = kirby()->roots()->toArray();
+        $kirbyRootsPattern = ','.implode(',', array_keys($kirbyRoots)).',';
+
+        // '~assets/' is an exception: it shall point to 'content/assets/' rather than 'assets/':
+        if (($path1 !== 'assets') && (strpos($kirbyRootsPattern, ",$path1,") !== false)) {
+            $path = $kirbyRoots[$path1].substr($path, strlen($path1)+1);
+            return $path;
+        }
+    }
+
     // resolve PFY's specific folders:
-    if ($absPath) {
+    if ($returnAbsPath) {
         $appRoot = PageFactory::$absAppRoot;
     } else {
         $appRoot = '';
     }
     $pageRoot = PageFactory::$pageRoot;
     $pathPatterns = [
-        '~/'            => $absPath,
-        '~media/'       => $absPath.'media/',
-        '~assets/'      => $absPath.'assets/',
-        '~data/'        => $absPath.'site/custom/data/',
+        '~/'            => $appRoot,
+        '~media/'       => $appRoot.'media/',
+        '~assets/'      => $appRoot.'content/assets/',
+        '~data/'        => $appRoot.'site/custom/data/',
         '~page/'        => $pageRoot,
-        '~pagefactory/' => $absPath.'site/plugins/pagefactory/',
+        '~pagefactory/' => $appRoot.'site/plugins/pagefactory/',
     ];
     $path = str_replace(array_keys($pathPatterns), array_values($pathPatterns), $path);
 
-    // resolve Kirby's roots:
-    if (preg_match('|^~(\w+)/|', $path, $m)) {
-        $key = $m[1];
-        $s = kirby()->roots()->$key();
-        if ($s) {
-            $path = str_replace($m[0], "$s/", $path);
-        }
-    }
     return $path;
 } // resolvePath
 
@@ -930,6 +935,7 @@ use Exception;
     // otherwise, interpret as 'relaxed Yaml':
     // (meaning: first elements may come without key, then they are interpreted by position)
     $rest = ltrim($str, ", \n");
+    $rest = rtrim($rest, ", \n)");
 
     $rest = superBracketsEncode($rest, $superBrackets);
     if (preg_match('/^(.*?) \)\s*}}/msx', $rest, $mm)) {
@@ -956,11 +962,7 @@ use Exception;
         }
     }
 
-    try {
-        $options = Yaml::decode($out);
-    } catch (Exception $e) {
-        throw new Exception($e);
-    }
+    $options = Yaml::decode($out);
     if ($superBrackets) {
         $options = superBracketsDecode($options);
     }
