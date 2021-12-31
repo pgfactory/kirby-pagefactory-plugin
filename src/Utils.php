@@ -491,25 +491,26 @@ EOT;
      */
     public function determineLanguage(): void
     {
-        $languagesObj = kirby()->languages();
-        $supportedLanguages = $this->pfy->supportedLanguages = $languagesObj->codes();
-        if ($supportedLanguages) {
-            $lang = kirby()->language()->code();
-            //ToDo: how to take user's language preference into account?
-            //            $lang = $this->kirby->visitor()->acceptedLanguage()->code(); // lagunage prefered by user
-            //            if (!in_array($lang, $supportedLanguages)) {
-            //                $lang = (string)kirby()->defaultLanguage();
-            //            }
+        $supportedLanguages = $this->pfy->supportedLanguages = kirby()->languages()->codes();
+        if (!$supportedLanguages) {
+            if ($langObj = kirby()->language()) {
+                $lang = $langObj->code();
+            } elseif (!($lang = kirby()->defaultLanguage())) {
+                $lang = 'en';
+            }
+            PageFactory::$lang = $lang;
+            PageFactory::$langCode = substr($lang, 0, 2);
+            return;
         }
+
         if (!($lang = kirby()->session()->get('pfy.lang'))) {
-            $lang = 'en';
-            $supportedLanguages[] = 'en';
+            $lang = kirby()->defaultLanguage()->code();
         }
 
         if ($lang) {
             PageFactory::$lang = $lang;
             PageFactory::$langCode = $langCode = substr($lang, 0, 2);
-            if (!in_array($langCode, $supportedLanguages)) {
+            if (!in_array($lang, $supportedLanguages) && !in_array($langCode, $supportedLanguages)) {
                 throw new Exception("Error: language not defined");
             }
         } else {
@@ -519,7 +520,7 @@ EOT;
         // check whether user requested a language explicitly via url-arg:
         if ($lang = @$_GET['lang']) {
             $langCode = substr($lang, 0, 2);
-            if (in_array($langCode, $supportedLanguages)) {
+            if (in_array($lang, $supportedLanguages) || in_array($langCode, $supportedLanguages)) {
                 PageFactory::$lang = $lang;
                 PageFactory::$langCode = $langCode;
                 kirby()->session()->set('pfy.lang', $lang);
