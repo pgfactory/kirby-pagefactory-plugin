@@ -1,0 +1,52 @@
+/*
+**	Quickview Styles
+*/
+
+.lzy-quickview {
+	/*cursor: url(../rsc/enlarge.png), auto;*/
+    cursor: url(../../../../assets/pagefactory/icons/enlarge.png), auto;
+}
+#lzy .lzy-quickview-overlay {
+	position: fixed;
+	opacity: 0;
+	display: none;
+	top: 0;
+	right: 0;
+	width: 100vw;
+	height: 100vh;
+	z-index: -1;
+	background-color: rgba(200, 200, 200, 0.8);
+	cursor: url(../../../../assets/pagefactory/icons/reduce.png), auto;
+	/*cursor: url(../rsc/reduce.png), auto;*/
+}
+#lzy .lzy-quickview-overlay img {
+	position: absolute;
+	opacity: 0;
+	padding: 0;
+	margin: 0;
+	max-width: 100vw;
+}
+#lzy .lzy-quickview-overlay-active {
+	display: block;
+	opacity: 1;
+	z-index: 999;
+}
+
+.sr-only {
+	position: absolute !important;
+	display: inline;
+	right: 200vw;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip: rect(1px, 1px, 1px, 1px);
+}
+
+.lzy-laziest-load,
+.lzy-late-loading {
+	position: relative;
+	background: #444;
+	background-image: url( ../rsc/loader_white.gif );
+	background-repeat: no-repeat;
+	background-position: center;
+}

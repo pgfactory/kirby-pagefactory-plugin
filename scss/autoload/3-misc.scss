@@ -118,6 +118,25 @@
 }
 
 
+// === Images ==========
+#lzy.lzy-default-styling .lzy-encapsulated,
+& {
+    a.lzy-img-link.lzy-img-link {
+        display: inline-block;
+        padding: 0;
+    }
+    .lzy-img-link::before {
+        display: none;
+    }
+    .lzy-img {
+        max-width: 100%;
+    }
+    .lzy-figure {
+        margin: 0;
+    }
+}
+
+
 // === Tooltipster
 
 .lzy-tooltip {
