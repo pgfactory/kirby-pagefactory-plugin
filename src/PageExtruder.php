@@ -62,7 +62,7 @@ class PageExtruder
                 $obj = new $cls($this->pfy);
                 if (method_exists($obj, 'getAssetDefs')) {
                     $newAssets = $obj->getAssetDefs();
-                    $this->definitions = array_merge($this->definitions, ['assets' =>$newAssets]);
+                    $this->definitions = array_merge_recursive($this->definitions, ['assets' => $newAssets]);
                 }
             }
         }
@@ -565,7 +565,7 @@ EOT;
         $jqInjection = '';
         $miscInjection = "\n$this->bodyEndInjections";
 
-        $js = "var screenSizeBreakpoint = {$this->pfy->screenSizeBreakpoint}\n";
+        $js = "var screenSizeBreakpoint = {$this->pfy->config['screenSizeBreakpoint']}\n";
         $js .= "const hostUrl = '" . PageFactory::$appRoot . "';\n";
         $js .= "const loggedinUser = '" . PageFactory::$user . "';\n";
         $js .= $this->js . @$this->frontmatter['js'];
