@@ -8,6 +8,12 @@ use \Kirby\Data\Json as Json;
 use Exception;
 
 
+ function pagefactory()
+ {
+     return PageFactory::instance();
+ }
+
+
  /**
   * Checks whether agent is in the same subnet as IP 192.x.x.x
   * @return bool
@@ -676,9 +682,16 @@ use Exception;
   * @param bool $returnAbsPath
   * @return string
   */
- function resolvePath(string $path, bool $returnAbsPath = false): string
+function resolvePath(string $path, bool $returnAbsPath = false, $relativeToPage = false): string
 {
     if (@$path[0] !== '~') {
+        if ($relativeToPage) {
+            if ($returnAbsPath) {
+                $path = PageFactory::$absPageRoot.$path;
+            } else {
+                $path = PageFactory::$pageRoot.$path;
+            }
+        }
         return $path;
     }
 
@@ -715,7 +728,7 @@ use Exception;
     return $path;
 } // resolvePath
 
-
+ 
  /**
   * Runs an array of paths through resolvePath()
   * @param $paths
@@ -1469,25 +1482,25 @@ function explodeTrim(string $sep, string $str, bool $excludeEmptyElems = false):
 } // explodeTrim
 
 
- /**
-  * Shorthand to run a string through the 'MarkdownPlus' compiler
-  * @param string $mdStr
-  * @return string
-  */
- function compileMarkdown(string $mdStr): string
+/**
+* Shorthand to run a string through the 'MarkdownPlus' compiler
+* @param string $mdStr
+* @return string
+*/
+function compileMarkdown(string $mdStr): string
 {
     return PageFactory::$md->compile($mdStr);
 } // compileMarkdown
 
 
- /**
-  * Shields a string from the markdown compiler, optionally instructing the unshielder to run the result through
-  * the md-compiler separately.
-  * @param string $str
-  * @param string $mdCompile
-  * @return string
-  */
- function shieldStr(string $str, $mdCompile = false): string
+/**
+* Shields a string from the markdown compiler, optionally instructing the unshielder to run the result through
+* the md-compiler separately.
+* @param string $str
+* @param string $mdCompile
+* @return string
+*/
+function shieldStr(string $str, $mdCompile = false): string
 {
     if ($mdCompile) {
         return '{md{' . base64_encode($str) . '}md}';
@@ -1498,12 +1511,12 @@ function explodeTrim(string $sep, string $str, bool $excludeEmptyElems = false):
 
 
 
- /**
-  * Un-shields shielded strings, optionally running the result through the md-compiler
-  * @param string $str
-  * @return bool
-  */
- function unshieldStr(string &$str, bool $unshieldLiteral = false): bool
+/**
+* Un-shields shielded strings, optionally running the result through the md-compiler
+* @param string $str
+* @return string
+*/
+function unshieldStr(string $str, bool $unshieldLiteral = false): string
 {
     if ($unshieldLiteral && preg_match_all('/{raw{(.*?)}raw}/m', $str, $m)) {
         foreach ($m[1] as $i => $item) {
@@ -1518,8 +1531,22 @@ function explodeTrim(string $sep, string $str, bool $excludeEmptyElems = false):
             $str = str_replace($m[0][$i], $html, $str);
         }
     }
-    return false;
+    return $str;
 } // unshieldStr
+
+
+
+ /**
+  * Un-shields shielded strings -> variant returning 'modified'
+  * @param string $str
+  * @return bool
+  */
+function _unshieldStr(string &$str, bool $unshieldLiteral = false): bool
+{
+    $str0 = $str;
+    $str = unshieldStr($str, $unshieldLiteral);
+    return ($str0 !== $str);
+} // _unshieldStr
 
 
 

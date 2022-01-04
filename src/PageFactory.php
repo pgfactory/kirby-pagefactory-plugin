@@ -7,7 +7,7 @@ use Kirby;
 define('PFY_BASE_PATH',             'site/plugins/pagefactory/');
 define('PFY_DEFAULT_TEMPLATE_FILE', 'site/templates/page_template.html');
 define('PFY_USER_ASSETS_PATH',      'content/assets/');
-define('SVG_ICONS_PATH',            'site/plugins/pagefactory/install/media/pagefactory/svg-icons/');
+define('SVG_ICONS_PATH',            'site/plugins/pagefactory/install/assets/pagefactory/svg-icons/');
 define('PFY_CONFIG_FILE',           'site/config/pagefactory.php');
 define('PFY_USER_PATH',             'site/custom/');
 define('PFY_USER_CODE_PATH',        PFY_USER_PATH.'macros/');
@@ -109,7 +109,7 @@ class PageFactory
         self::$absAppRoot = dirname($_SERVER['SCRIPT_FILENAME']).'/';
         self::$hostUrl = $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].'/';
         self::$appRoot = dirname(substr($_SERVER['SCRIPT_FILENAME'], -strlen($_SERVER['SCRIPT_NAME']))).'/';
-        self::$appUrl = $this->site->url().'/';
+        self::$appUrl = dirname(substr($_SERVER['SCRIPT_FILENAME'], -strlen($_SERVER['SCRIPT_NAME']))).'/';
         self::$appRootUrl = kirby()->url().'/';
         self::$pageRoot = 'content/' . self::$pagePath;
         self::$absPageRoot = $this->page->root() . '/';
@@ -203,7 +203,7 @@ class PageFactory
         $depth = 1;
         while (preg_match('/(?<!\\\){{/', $html)) {
             $html = self::$trans->translate($html, $depth++);
-            unshieldStr($html);
+            $html = unshieldStr($html);
         }
 
         $this->utils->handleAgentRequestsOnRenderedPage(); // list variables, macros
@@ -214,15 +214,8 @@ class PageFactory
         $this->pg->preparePageVariables();
 
         $html = self::$trans->translate($html);
-        $patterns = [
-            '~/'        => self::$appUrl,
-            '~media/'   => self::$appRootUrl.'media/',
-            '~assets/'  => self::$appRootUrl.'content/assets/',
-            '~data/'    => self::$appRootUrl.'site/custom/data/',
-            '~page/'    => self::$pageUrl,
-        ];
-        $html = str_replace(array_keys($patterns), array_values($patterns), $html);
-        unshieldStr($html, true);
+        $html = $this->utils->resolveUrls($html);
+        $html = unshieldStr($html, true);
 
         return $html;
     } // assembleHtml
@@ -272,7 +265,7 @@ class PageFactory
         self::$trans->setVariable('generator', $version);
 
         // 'user', 'lzy-logged-in-as-user', 'lzy-backend-link':
-        $appUrl = self::$appRoot;
+        $appUrl = self::$appUrl;
         $loginIcon = svg('site/plugins/pagefactory/assets/user.svg');
         $user = kirby()->user();
         if ($user) {
@@ -285,5 +278,12 @@ class PageFactory
         }
         self::$trans->setVariable('lzy-backend-link', "<a href='{$appUrl}panel' target='_blank'>{{ lzy-admin-panel-link-text }}</a>");
     } // setStandardVariables
+
+
+
+    public static function instance()
+    {
+        return static::$instance ?? new static(pages());
+    }
 
 } // PageFactory

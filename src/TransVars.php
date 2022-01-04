@@ -5,10 +5,10 @@ namespace Usility\PageFactory;
 class TransVars
 {
     public static $transVars = [];
+    private static $filesLoaded = [];
     private $macros = null;
     public $lang;
     public $langCode;
-    private $extractedVars = [];
 
     public function __construct($pfy)
     {
@@ -200,7 +200,7 @@ class TransVars
         }
 
         // is it a KerbyText call?
-        if (strpos(',date,email,file,gist,image,link,tel,twitter,video,', $macroName) !== false) {
+        if (strpos(',date,email,file,gist,tel,twitter,video,', $macroName) !== false) {
             $a = array_shift($args);
             foreach ($args as $k => $v) {
                 $a .= " $k: $v";
@@ -280,18 +280,6 @@ class TransVars
 
 
     /**
-     * Looks up a variable and returns its content.
-     * @param string $varName
-     * @param $lang
-     * @return string
-     */
-    public function getVariable(string $varName, $lang = false): string
-    {
-        return $this->translateVariable($varName, $lang);
-    } // getVariable
-
-
-    /**
      * Loads variables from given files.
      * @param $files
      * @return void
@@ -299,20 +287,19 @@ class TransVars
      */
     private function loadTransVarsFromFiles($files)
     {
-        if (is_array($files)) {
-            $data = loadFiles($files, true, true);
-
-        } elseif (is_dir($files)) {
+        if (is_dir($files)) {
             $files = getDir($files.'*.yaml');
-            $data = loadFiles($files, true, true);
-
-        } elseif (is_string($files)) {
-            $data = loadFile($files, true, true);
-
-        } else {
-            throw new \Exception("loadTransVarsFromFiles() -> argument has unexpected type");
+        } elseif (!is_array($files)) {
+            $files = [$files];
         }
-        self::$transVars = array_merge_recursive(self::$transVars, $data);
+
+        foreach ($files as $file) {
+            if (!isset(self::$filesLoaded[$file])) {
+                $data = loadFile($file, true, true);
+                self::$transVars = array_merge_recursive(self::$transVars, $data);
+            }
+            self::$filesLoaded[$file] = true;
+        }
     } // loadTransVarsFromFiles
 
 
@@ -364,17 +351,6 @@ EOT;
 
 
     /**
-     * Getter
-     * @param $propertyName
-     * @return mixed
-     */
-    public function get($propertyName)
-    {
-        return @$this->$propertyName;
-    } // get
-
-
-    /**
      * Renders all known variables.
      * @return string
      */
@@ -405,5 +381,28 @@ EOT;
         $out .= "\t</dl>\n";
         return $out;
     } // render
+
+
+    /**
+     * Looks up a variable and returns its content.
+     * @param string $varName
+     * @param $lang
+     * @return string
+     */
+    public function getVariable(string $varName, $lang = false): string
+    {
+        return $this->translateVariable($varName, $lang);
+    } // getVariable
+
+
+    /**
+     * Getter
+     * @param $propertyName
+     * @return mixed
+     */
+    public function get($propertyName)
+    {
+        return @$this->$propertyName;
+    } // get
 
 } // TransVars

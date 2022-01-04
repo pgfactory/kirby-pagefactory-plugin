@@ -439,6 +439,20 @@ EOT;
 
 
 
+    public function resolveUrls($html)
+    {
+        $patterns = [
+            '~/'        => PageFactory::$appUrl,
+            '~media/'   => PageFactory::$appRootUrl.'media/',
+            '~assets/'  => PageFactory::$appRootUrl.'content/assets/',
+            '~data/'    => PageFactory::$appRootUrl.'site/custom/data/',
+            '~page/'    => PageFactory::$pageUrl,
+        ];
+        $html = str_replace(array_keys($patterns), array_values($patterns), $html);
+        return $html;
+    } // resolveUrls
+
+
     /**
      * Removes any remaining '\' in front of '{' and '~'  from the HTML output
      * @param string $html
@@ -637,7 +651,7 @@ EOT;
         $content = preg_replace('|<skip.*?</skip>|ms', '', $content);
 
         // recover elements shielded from md-compilation:
-        while (unshieldStr($content)) {};
+        while (_unshieldStr($content)) {};
         return $content;
     } // getContent
 

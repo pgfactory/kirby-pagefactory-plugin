@@ -69,10 +69,11 @@ class Img extends Macros
         $inx = self::$inx++;
         $this->args = $args;
 
-        if ($args['src']) {
-            $src = $this->parseSrcFilename($args['src']);
+        if (!$args['src']) {
+           throw new \Exception("Error in Img(): argument 'src' not defined.");
         }
 
+        $src = $this->parseSrcFilename($args['src']);
         $attributes = '';
         if ($args['id']) {
             $attributes .= " id='{$args['id']}'";
@@ -85,7 +86,8 @@ class Img extends Macros
             $this->class = "lzy-img lzy-img-$inx";
         }
         if ($args['alt']) {
-            $attributes .= " alt='{$args['alt']}'";
+            $alt = str_replace("'", '&#39;', $args['alt']);
+            $attributes .= " alt='$alt'";
         }
         if ($args['imgTagAttributes']) {
             $attributes .= " {$args['imgTagAttributes']}";
@@ -288,7 +290,8 @@ EOT;
             $linkAttr .= " target='{$this->args['linkTarget']}'";
         }
         if ($this->args['linkTitle']) {
-            $linkAttr .= " title='{$this->args['linkTitle']}'";
+            $linkTitle = str_replace("'", '&#39;', $this->args['linkTitle']);
+            $linkAttr .= " title='$linkTitle'";
         }
         if ($this->args['linkAttributes']) {
             $linkAttr .= " {$this->args['linkAttributes']}";

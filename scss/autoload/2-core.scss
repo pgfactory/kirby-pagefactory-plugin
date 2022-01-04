@@ -184,17 +184,6 @@ a:focus > .lzy-focus-only-visible {
             transform: translateY(-0.3em);
         }
     }
-    a[target=_blank] {
-        position: relative;
-        padding-left: 1.1em;
-        &::before {
-            content: url(../../../../assets/pagefactory/svg-icons/external.svg);
-            position: absolute;
-            top: 0;
-            left: 0;
-            transform: translate(-0.5em, -0.3em) scale(0.56);
-        }
-    }
 }
 
 

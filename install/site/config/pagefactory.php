@@ -6,6 +6,8 @@ $menuIcon = svg('site/plugins/pagefactory/assets/menu.svg');
 return [
     'handleKirbyFrontmatter'    => false,
     'screenSizeBreakpoint'      => 480,
+    'autoIdentifyTLDs'          => 'com,org,net,biz,uk,de,fr,ch,at,it,es,li,',
+    'externalLinksIToNewwin'     => true,
 //    'imageAutoQuickview'        => true,  // -> used by Img() macro
 //    'imageAutoSrcset'           => true,  // -> used by Img() macro
 

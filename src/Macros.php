@@ -82,37 +82,9 @@ class Macros
     {
         $this->trans = PageFactory::$trans;
         $str = null;
-        $helpText = false;
-        $macroObj = null;
-        $macroName = strtolower(str_replace('-', '', $macroName));
-        $thisMacroName = 'Usility\\PageFactory\\' . ucfirst( $macroName );
-        if (isset(self::$registeredMacros[ $macroName ])) {
-            $macroObj = self::$registeredMacros[ $macroName ];
-
-        } else {
-            if (isset($this->availableMacros[ $macroName ])) {
-                $macroObj = include $this->availableMacros[ $macroName ];
-                self::$registeredMacros[ $macroName ] = $macroObj;
-
-            // workaround: if intendet macro name collides with PHP keyword, define macro as "_Macroname" instead.
-            //  -> example: list() => class _List() and file _List.php
-            } elseif (isset($this->availableMacros[ "_$macroName" ])) {
-                $macroName0 = $macroName;
-                $macroName = "_$macroName";
-                $thisMacroName = 'Usility\\PageFactory\\' . ucfirst( $macroName );
-                $macroObj = include $this->availableMacros[ $macroName ];
-                self::$registeredMacros[ $macroName0 ] = $macroObj;
-
-            } elseif (!$this->trans->hideIfNotDefined) {
-                $error = "Error: macro '$macroName()' not found.";
-                if (PageFactory::$debug) {
-                    throw new \Exception($error);
-
-                } else {
-                    mylog($error);
-                }
-                return null;
-            }
+        $macroObj = $this->loadMacro($macroName);
+        if ($macroObj === null) {
+            return null;
         }
 
         if ($macroObj) {
@@ -165,13 +137,53 @@ EOT;
 
 
 
+    public function loadMacro($macroName)
+    {
+        $this->trans = PageFactory::$trans;
+        $str = null;
+        $helpText = false;
+        $macroObj = null;
+        $macroName = strtolower(str_replace('-', '', $macroName));
+        $thisMacroName = 'Usility\\PageFactory\\' . ucfirst( $macroName );
+        if (isset(self::$registeredMacros[ $macroName ])) {
+            $macroObj = self::$registeredMacros[ $macroName ];
+
+        } else {
+            if (isset($this->availableMacros[ $macroName ])) {
+                $macroObj = include $this->availableMacros[ $macroName ];
+                self::$registeredMacros[ $macroName ] = $macroObj;
+
+                // workaround: if intendet macro name collides with PHP keyword, define macro as "_Macroname" instead.
+                //  -> example: list() => class _List() and file _List.php
+            } elseif (isset($this->availableMacros[ "_$macroName" ])) {
+                $macroName0 = $macroName;
+                $macroName = "_$macroName";
+                $thisMacroName = 'Usility\\PageFactory\\' . ucfirst( $macroName );
+                $macroObj = include $this->availableMacros[ $macroName ];
+                self::$registeredMacros[ $macroName0 ] = $macroObj;
+
+            } elseif (!$this->trans->hideIfNotDefined) {
+                $error = "Error: macro '$macroName()' not found.";
+                if (PageFactory::$debug) {
+                    throw new \Exception($error);
+
+                } else {
+                    mylog($error);
+                }
+                return null;
+            }
+        }
+        return $macroObj;
+    } // preloadMacro
+
+
     /**
      * Cycles through the args array: where key is missing, restores it based on the argument's position.
      * @param array $args
      * @param array $argDefs
      * @return array
      */
-    private function fixArgs(array $args, array $argDefs): array
+    public function fixArgs(array $args, array $argDefs): array
     {
         $argKeys = array_keys($argDefs);
         foreach ($args as $k => $v) {

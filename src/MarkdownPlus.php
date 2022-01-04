@@ -755,7 +755,6 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
     protected function renderImage($element)
     {
         self::$imageInx++;
-        $imgInx = self::$imageInx;
         $str = $element[1];
         list($alt, $src) = explode('](', $str);
         if (preg_match('/^ (["\']) (.+) \1 \s* /x', $alt, $m)) {
@@ -779,42 +778,9 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
             $caption = str_replace(['"', "'"], ['&quot;','&apos;'], $caption);
         }
 
-        $size = false;
-        if (preg_match('/(.*)\[(.*?)](\.\w+)/', $src, $m)) {
-            $src = $m[1].$m[3];
-            $size = $m[2];
-            list($maxWidth, $maxHeight) = explode('x', $size);
-            $maxWidth = $maxWidth? intval($maxWidth): null;
-            $maxHeight = $maxHeight? intval($maxHeight): null;
-        }
-
-        $src = trim($src);
-        $html = false;
-        if ($src && ($src[0] !== '~')) {
-            // if no leading '~' -> assume file under content/:
-            $files = page()->files()->filterBy('extension', 'jpg');
-            $file = $files->find($src);
-            if ($size) {
-                $file = $file->resize($maxWidth, $maxHeight);
-            }
-            if ($file) {
-                $html = $file->html(['alt' => $alt, 'class' => "lzy-img lzy-img-$imgInx"]);
-            }
-        }
-        if (!$html) {
-            $src = PageFactory::$appUrl . resolvePath($src);
-            $html = "<img src='$src' class='lzy-img lzy-img-$imgInx' alt='$alt'>";
-        }
-
-        if ($caption) {
-            $html = <<<EOT
-    <figure class="lzy-figure lzy-figure-$imgInx">
-        $html
-        <figcaption>$caption</figcaption>
-    </figure>
-EOT;
-        }
-        return $html;
+        $attr = "src:'$src', alt:'$alt', caption:'$caption'";
+        $str = $this->processByMacro('img', $attr);
+        return $str;
     } // renderImage
 
 
@@ -829,10 +795,11 @@ EOT;
         if (preg_match('/^\[ ([^]]+) ]\(([^)]+) \)/x', $markdown, $matches)) {
             $linkText = $matches[1];
             $link = $matches[2];
-            if (strpos($link, ' ') !== false) {
-                list($link, $title) = explodeTrim(' ', $link);
-            } else {
-                $title = '';
+            $title = '';
+            // extract optional title:
+            if (preg_match('/(.*?)\s+(.*)/', $link, $m)) {
+                $link = $m[1];
+                $title = trim($m[2], '"\'');
             }
             return [
                 ['link', $link, $linkText, $title], strlen($matches[0])
@@ -847,10 +814,13 @@ EOT;
         $link = $element[1];
         $linkText = $element[2];
         $title = preg_replace('/^ ([\'"]) (.*) \1 $/x', "$2", $element[3]);
-        if ($title) {
-            $title = " title='$title'";
-        }
-        return "<a href='$link'$title>$linkText</a>";
+        $attr = "url:'$link', ";
+        $q = (strpos($linkText, "'") === false)? "'": '"';
+        $attr .= "text:$q$linkText$q, ";
+        $q = (strpos($title, "'") === false)? "'": '"';
+        $attr .= "title:$q$title$q";
+        $str = $this->processByMacro('link', $attr);
+        return $str;
     } // renderLink
 
 
@@ -916,13 +886,7 @@ EOT;
         $str = preg_replace('|<p> ({{ .*? }}) </p>|xms', "$1", $str);
 
         // check for kirbytags, get them compiled:
-        if (preg_match_all('/(\(\w*:.*?\))/ms', $str, $m)) {
-            foreach ($m[1] as $i => $value) {
-                $value = strip_tags(str_replace("\n",' ', $value));
-                $str1 = kirby()->kirbytags($value);
-                $str = str_replace($m[0][$i], $str1, $str);
-            }
-        }
+        $str = $this->handleKirbyTags($str);
 
 
         // handle smartypants:
@@ -1087,7 +1051,7 @@ EOT;
             // case attribs found and not consumed yet -> apply to following tag:
             if ($attribs) {
                 if (preg_match_all('|<(\w+)|', $line, $m)) {
-                    $line = $this->applyAttrs($line, $attribs, $m[0][0]);
+                    $line = $this->applyAttributes($line, $attribs, $m[0][0]);
                 }
                 $attribs = false;
             }
@@ -1113,12 +1077,12 @@ EOT;
             if (preg_match('|^(.*?)({:(.*?)})(.*)|', $line, $m)) {
                 $line = str_replace($m[2], '', $line);
                 if (preg_match('|<(\w+)|', $m[1], $mm)) {
-                    $line = $this->applyAttrs($line, $m[3], $mm[0]);
+                    $line = $this->applyAttributes($line, $m[3], $mm[0]);
                 } else {
                     for ($j=$i-1; $j>0; $j--) {
                         $l = &$lines[$j];
                         if (preg_match('|<(\w+)|', $l, $mm)) {
-                            $l = $this->applyAttrs($l, $m[3], $mm[0]);
+                            $l = $this->applyAttributes($l, $m[3], $mm[0]);
                             break;
                         }
                     }
@@ -1129,7 +1093,9 @@ EOT;
         return $str;
     } // catchAndInjectTagAttributes
 
-    private function applyAttrs($line, $attribs, $pattern)
+    
+    
+    private function applyAttributes($line, $attribs, $pattern)
     {
         $attrs = parseInlineBlockArguments($attribs);
         if (preg_match('/(class=["\'])/', $line, $mm)) {
@@ -1140,8 +1106,9 @@ EOT;
             $line = str_replace($pattern, "$pattern$attrsStr", $line);
         }
         return $line;
-    } // applyAttrs
+    } // applyAttributes
 
+    
 
     private function handleLineBreaks($str)
     {
@@ -1155,6 +1122,7 @@ EOT;
     {
         $out = '';
         $withinEot = false;
+        $mdCompileTextBlock = false;
         $textBlock = '';
         $var = '';
         foreach (explode(PHP_EOL, $str) as $l) {
@@ -1162,8 +1130,13 @@ EOT;
                 if (preg_match('/^EOT\s*$/', $l)) {
                     $withinEot = false;
                     $textBlock = str_replace("'", '&apos;', $textBlock); //??? check!
-                    $textBlock = compileMarkdown($textBlock);
+                    if ($mdCompileTextBlock) {
+                        $textBlock = compileMarkdown($textBlock);
+                    } else {
+                        $textBlock = shieldStr($textBlock);
+                    }
                     $this->trans->setVariable($var, $textBlock);
+                    $mdCompileTextBlock = false;
                 } else {
                     $textBlock .= $l."\n";
                 }
@@ -1175,7 +1148,20 @@ EOT;
                 if ($val === '<<<EOT') {         // handle <<<EOT
                     $withinEot = true;
                     $textBlock = '';
+                    $mdCompileTextBlock = true;
                     continue;
+                } elseif ($val === "<<<'EOT'") {         // handle <<<'EOT' i.e. no md-compile
+                    $withinEot = true;
+                    $textBlock = '';
+                    continue;
+                } elseif (preg_match('/<<<IMPORT\((.*?)\)/', $val, $m)) { // handle <<<IMPORT
+                    $file = trim($m[1], '"\'');
+                    $file = resolvePath($file, false, true);
+                    $val = loadFile($file);
+                } elseif (preg_match('/<<<\'IMPORT\((.*?)\)/', $val, $m)) { // handle <<<'IMPORT
+                    $file = trim($m[1], '"\'');
+                    $file = resolvePath($file, false, true);
+                    $val = shieldStr(loadFile($file));
                 }
                 // translate transvar/macro if there is any:
                 if (strpos($val, '{{') !== false) {
@@ -1309,5 +1295,81 @@ EOT;
         }
         return $l;
     } // replaceMdVariables
+
+
+    /**
+     * @param $str
+     * @return string
+     */
+    private function handleKirbyTags($str): string
+    {
+        if (preg_match_all('/(\(\w*:.*?\))/ms', $str, $m)) {
+            foreach ($m[1] as $i => $value) {
+                $value = strip_tags(str_replace("\n", ' ', $value));
+                
+                // intercept '(link:' and process by link() macro:
+                if (strpos($value, '(link:') === 0) {
+                    $value = 'url:' . substr($value, 7, strlen($value) - 8);
+                    $str1 = $this->processByMacro('link', $value);
+                    $str = str_replace($m[0][$i], $str1, $str);
+
+                // intercept '(image:' and process by img() macro:
+                } elseif (strpos($value, '(image:') === 0) {
+                    $value = 'src:' . substr($value, 8, strlen($value) - 9);
+                    $str1 = $this->processByMacro('img', $value);
+                    $str = str_replace($m[0][$i], $str1, $str);
+
+                } else {
+                    $str1 = kirby()->kirbytags($value);
+                    $str = str_replace($m[0][$i], $str1, $str);
+                }
+            }
+        }
+        return $str;
+    } // handleKirbyTags
+
+
+    /**
+     * @param string $value
+     * @return string
+     * @throws \Kirby\Exception\InvalidArgumentException
+     */
+    private function processByMacro(string $macroName, string $argStr): string
+    {
+        if (strpos($argStr, ',') === false) {
+            $s = $argStr;
+            $argStr = '';
+            while ($s) {
+                if (preg_match('/^\s* (\w+:) \s* (["\']) (.*)/x', $s, $m)) {
+                    $p = strpos($s, $m[2], strlen($m[1]) + 1);
+                    if ($p) {
+                        $argStr .= substr($s, 0, $p + 1) . ',';
+                        $s = substr($s, $p + 1);
+                    } else {
+                        $argStr .= $s . $m[2];
+                        $s = '';
+                    }
+
+                } elseif (preg_match('/^\s* (\w+:) (.*)/x', $s, $m)) {
+                    if (preg_match('/(.*?) (\w+:.*)/x', $m[2], $mm)) {
+                        $argStr .= ' ' . $m[1] . $mm[1] . ',';
+                        $s = $mm[2];
+                    } else {
+                        $argStr .= $s;
+                        $s = '';
+                    }
+                } else {
+                    $argStr .= $s;
+                    $s = '';
+                }
+            }
+        }
+        $args = parseArgumentStr($argStr);
+        $mac = new Macros(pagefactory());
+        $macroObj = $mac->loadMacro($macroName);
+        $args = $mac->fixArgs($args, $macroObj['parameters']);
+        $str = $macroObj['macroObj']->render($args, $argStr);
+        return $str;
+    } // processByMacro
 
 } // MarkdownPlus

@@ -20,6 +20,7 @@ lzy-login-icon: "<span class='lzy-icon -user_male_circle'></span>"
 lzy-login-button-label: Login
 
 lzy-admin-panel-link-text:
+    de: 'Admin'
     _: 'Admin'
 
 lzy-edit-user-account:
