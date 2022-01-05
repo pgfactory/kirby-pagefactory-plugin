@@ -8,17 +8,21 @@ use \Kirby\Data\Json as Json;
 use Exception;
 
 
- function pagefactory()
- {
-     return PageFactory::instance();
- }
+/**
+* Returns the PageFactory object
+* @return object
+*/
+function pagefactory(): object
+{
+    return PageFactory::instance();
+} // pagefactory
 
 
  /**
   * Checks whether agent is in the same subnet as IP 192.x.x.x
   * @return bool
   */
- function isLocalhost(): bool
+function isLocalhost(): bool
 {
     if (PageFactory::$localhostOverride) {
         return false;
@@ -32,7 +36,7 @@ use Exception;
   * Checks whether visitor is logged in.
   * @return bool
   */
- function isLoggedIn(): bool
+function isLoggedIn(): bool
 {
     return (kirby()->user() !== null);
 } // isLoggedin
@@ -42,7 +46,7 @@ use Exception;
   * Checks whether visitor is logged with role=admin
   * @return bool
   */
- function isAdmin(): bool
+function isAdmin(): bool
 {
     $user = kirby()->user();
     if ($user !== null) {
@@ -59,7 +63,7 @@ use Exception;
   * Checks whether visitor is admin or working on localhost
   * @return bool
   */
- function isAdminOrLocalhost(): bool
+function isAdminOrLocalhost(): bool
 {
     return isAdmin() || isLocalhost();
 } // isAdminOrLocalhost
@@ -69,7 +73,7 @@ use Exception;
   * Checks whether visitor is logged in or working on localhost
   * @return bool
   */
- function isLoggedinOrLocalhost(): bool
+function isLoggedinOrLocalhost(): bool
 {
     return isLoggedIn() || isLocalhost();
 } // isLoggedinOrLocalhost
@@ -82,7 +86,7 @@ use Exception;
   * @param string $headerIfEmpty    If the file is empty, $headerIfEmpty will be written at the top.
   * @throws Exception
   */
- function appendFile(string $file, string $str, string $headerIfEmpty = ''): void
+function appendFile(string $file, string $str, string $headerIfEmpty = ''): void
 {
     if (!$file || !is_string($file)) {
         return;
@@ -117,7 +121,7 @@ use Exception;
   * @return array|mixed|string|string[]
   * @throws \Kirby\Exception\InvalidArgumentException
   */
- function loadFile(string $file, $removeComments = true, bool $useCaching = false)
+function loadFile(string $file, $removeComments = true, bool $useCaching = false)
 {
     if (!$file || !is_string($file)) {
         return '';
@@ -185,7 +189,11 @@ use Exception;
 } // loadFiles
 
 
-
+ /**
+  * @param string $file
+  * @param bool $removeComments
+  * @return array|false|string|string[]
+  */
  function getFile(string $file, $removeComments = true)
  {
      if (!$file || !is_string($file)) {
@@ -227,7 +235,7 @@ use Exception;
   * @param $file
   * @return mixed|null
   */
- function checkDataCache($file)
+function checkDataCache($file)
 {
     if (is_array($file)) {
         $file1 = @$file[0];
@@ -267,7 +275,7 @@ use Exception;
   * @param string $tag
   * @throws Exception
   */
- function updateDataCache(string $file, $data, string $tag = '')
+function updateDataCache(string $file, $data, string $tag = '')
 {
     $raw = serialize($data);
     $cacheFile = cacheFileName($file, $tag);
@@ -282,7 +290,7 @@ use Exception;
   * @param string $tag
   * @return string
   */
- function cacheFileName(string $file, string $tag = ''): string
+function cacheFileName(string $file, string $tag = ''): string
 {
     $cacheFile = localPath($file);
     $cacheFile = str_replace('/', '_', $cacheFile);
@@ -290,12 +298,27 @@ use Exception;
 } // cacheFileName
 
 
-
- function convertToYaml($data, $level = 3)
+ /**
+  * Decodes Yaml to an array
+  * @param string $str
+  * @return array
+  * @throws \Kirby\Exception\InvalidArgumentException
+  */
+ function decodeYaml(string $str): array
  {
-     return Yaml::decode($data, $level);
- } // convertToYaml
+     return Yaml::decode($str);
+ } // decodeYaml
 
+
+ /**
+  * Encodes data to Yaml
+  * @param array $data
+  * @return string
+  */
+ function encodeYaml(array $data): string
+ {
+     return Yaml::encode($data);
+ } // encodeYaml
 
 
  /**
@@ -304,7 +327,7 @@ use Exception;
   * @param bool $reverse    Returns path&filename without extension
   * @return string
   */
- function fileExt(string $file0, bool $reverse = false): string
+function fileExt(string $file0, bool $reverse = false): string
 {
     $file = basename($file0);
     //$file = preg_replace(['|^\w{1,6}://|', '/[#?&:].*/'], '', $file); // If ever needed for URLs as well
@@ -329,7 +352,7 @@ use Exception;
   * @param bool $incl_args
   * @return string
   */
- function base_name(string $file, bool $incl_ext = true, bool $incl_args = false): string
+function base_name(string $file, bool $incl_ext = true, bool $incl_args = false): string
 {
     if (!$incl_args && ($pos = strpos($file, '?'))) {
         $file = substr($file, 0, $pos);
@@ -357,7 +380,7 @@ use Exception;
   * @param string $absPath
   * @return string
   */
- function localPath(string $absPath): string
+function localPath(string $absPath): string
 {
     if (@$absPath[0] === '/') {
         return substr($absPath, strlen(PageFactory::$absAppRoot));
@@ -373,7 +396,7 @@ use Exception;
   * @param string $path
   * @return string
   */
- function dir_name(string $path): string
+function dir_name(string $path): string
 {
     // last element considered a filename, if doesn't end in '/' and contains a dot
     if (!$path) {
@@ -398,7 +421,7 @@ use Exception;
   * @param string $path
   * @return string
   */
- function fixPath(string $path): string
+function fixPath(string $path): string
 {
     if ($path) {
         $path = rtrim($path, '/').'/';
@@ -412,7 +435,7 @@ use Exception;
   * @param string $str
   * @return string
   */
- function zapFileEND(string $str): string
+function zapFileEND(string $str): string
 {
     $p = strpos($str, "__END__");
     if ($p === false) {
@@ -439,7 +462,7 @@ use Exception;
   * @param string $str
   * @return string
   */
- function removeEmptyLines(string $str): string
+function removeEmptyLines(string $str): string
 {
     $lines = explode(PHP_EOL, $str);
     foreach ($lines as $i => $l) {
@@ -456,7 +479,7 @@ use Exception;
   * @param string $str
   * @return string
   */
- function removeHashTypeComments(string $str): string
+function removeHashTypeComments(string $str): string
 {
     if (!$str) {
         return '';
@@ -481,7 +504,7 @@ use Exception;
   * @param string $str
   * @return string
   */
- function removeCStyleComments(string $str): string
+function removeCStyleComments(string $str): string
 {
     $p = 0;
     while (($p = strpos($str, '/*', $p)) !== false) {        // /* */ style comments
@@ -527,7 +550,7 @@ use Exception;
   * @param string $pat  Optional glob-style pattern
   * @return array
   */
- function getDir(string $pat): array
+function getDir(string $pat): array
 {
     if (strpos($pat, '{') === false) {
         $files = glob($pat);
@@ -564,7 +587,6 @@ use Exception;
  } //
 
 
-
  /**
   * Reads a directory recursively. Path can end with a glob-style pattern, e.g. '{*.js,*.css}'
   * @param string $path
@@ -573,7 +595,7 @@ use Exception;
   * @param bool $returnAll  Returns all elements, including those starting with '#'
   * @return array
   */
- function getDirDeep(string $path, bool $onlyDir = false, bool $assoc = false, bool $returnAll = false): array
+function getDirDeep(string $path, bool $onlyDir = false, bool $assoc = false, bool $returnAll = false): array
 {
     $files = [];
     $inclPat = base_name($path);
@@ -626,7 +648,7 @@ use Exception;
   * @param bool $recursive  Deep dives into sub-folders
   * @return int
   */
- function lastModified($paths, bool $recursive = true): int
+function lastModified($paths, bool $recursive = true): int
 {
     $newest = 0;
     $paths = resolvePath($paths);
@@ -663,7 +685,7 @@ use Exception;
   * Deletes all files in given array in one go (use carefully...)
   * @param $files
   */
- function deleteFiles($files): void
+function deleteFiles($files): void
 {
     if (is_string($files)) {
         @unlink($files);
@@ -728,13 +750,13 @@ function resolvePath(string $path, bool $returnAbsPath = false, $relativeToPage 
     return $path;
 } // resolvePath
 
- 
+
  /**
   * Runs an array of paths through resolvePath()
   * @param $paths
   * @return mixed|string
   */
- function resolvePaths($paths)
+function resolvePaths($paths)
 {
     if (is_string($paths)) {
         $paths = resolvePath($paths);
@@ -753,7 +775,7 @@ function resolvePath(string $path, bool $returnAbsPath = false, $relativeToPage 
   * @param bool $shortForm
   * @return string
   */
- function getGitTag(bool $shortForm = true): string
+function getGitTag(bool $shortForm = true): string
 {
     $str = shell_exec('cd site/plugins/pagefactory/; /usr/local/bin/git describe --tags --abbrev=0; git log --pretty="%ci" -n1 HEAD');
     if ($str) {
@@ -774,7 +796,7 @@ function resolvePath(string $path, bool $returnAbsPath = false, $relativeToPage 
   * @param int $args        e.e. FILE_APPEND
   * @throws Exception
   */
- function writeFile(string $file, string $content, int $args = 0): void
+function writeFile(string $file, string $content, int $args = 0): void
 {
     $file = resolvePath($file);
     preparePath($file);
@@ -788,7 +810,7 @@ function resolvePath(string $path, bool $returnAbsPath = false, $relativeToPage 
   * @param false $accessRights
   * @throws Exception
   */
- function preparePath(string $path0, $accessRights = false): void
+function preparePath(string $path0, $accessRights = false): void
 {
     if ($path0 && ($path0[0] === '~')) {
         $path0 = resolvePath($path0);
@@ -840,7 +862,7 @@ function resolvePath(string $path, bool $returnAbsPath = false, $relativeToPage 
   * @param string $path
   * @return string
   */
- function normalizePath(string $path): string
+function normalizePath(string $path): string
 {
      $hdr = '';
      if (preg_match('|^ ((\.\./)+) (.*)|x', $path, $m)) {
@@ -864,7 +886,7 @@ function resolvePath(string $path, bool $returnAbsPath = false, $relativeToPage 
   * @param string $str
   * @throws Exception
   */
- function mylog(string $str): void
+function mylog(string $str): void
 {
     $logFile = PFY_LOGS_PATH. 'log.txt';
     $logMaxWidth = 80;
@@ -890,7 +912,7 @@ function resolvePath(string $path, bool $returnAbsPath = false, $relativeToPage 
   * @param bool $short
   * @return string
   */
- function timestampStr(bool $short = false): string
+function timestampStr(bool $short = false): string
 {
     if (!$short) {
         return date('Y-m-d H:i:s');
@@ -906,7 +928,7 @@ function resolvePath(string $path, bool $returnAbsPath = false, $relativeToPage 
   * @param int $width
   * @return string
   */
- function indentLines(string $str, int $width = 4): string
+function indentLines(string $str, int $width = 4): string
 {
     $str1 = '';
     $indent = str_pad('', $width, ' ');
@@ -928,7 +950,7 @@ function resolvePath(string $path, bool $returnAbsPath = false, $relativeToPage 
   * @return array
   * @throws \Kirby\Exception\InvalidArgumentException
   */
- function parseArgumentStr(string $str, string $delim = ',', $superBrackets = false): array
+function parseArgumentStr(string $str, string $delim = ',', $superBrackets = false): array
 {
     // terminate if string empty:
     if (!($str = trim($str))) {
@@ -989,7 +1011,7 @@ function resolvePath(string $path, bool $returnAbsPath = false, $relativeToPage 
   * @param $superBrackets
   * @return array|mixed|string|string[]
   */
- function superBracketsEncode(string $str, $superBrackets)
+function superBracketsEncode(string $str, $superBrackets)
 {
     if ($superBrackets) {
         if (is_string($superBrackets)) {
@@ -1014,7 +1036,7 @@ function resolvePath(string $path, bool $returnAbsPath = false, $relativeToPage 
   * @param $item
   * @return array|mixed|string|string[]
   */
- function superBracketsDecode($item)
+function superBracketsDecode($item)
 {
     if (is_string($item)) {
         if (preg_match_all('/@@b64@ (.*?) @b64@@/xms', $item, $m)) {
@@ -1044,7 +1066,7 @@ function resolvePath(string $path, bool $returnAbsPath = false, $relativeToPage 
   * @param string $delim
   * @return string
   */
- function parseArgKey(string &$rest, string $delim): string
+function parseArgKey(string &$rest, string $delim): string
 {
     $lead = '';
     $key = '';
@@ -1077,7 +1099,7 @@ function resolvePath(string $path, bool $returnAbsPath = false, $relativeToPage 
   * @param string $delim
   * @return string
   */
- function parseArgValue(string &$rest, string $delim): string
+function parseArgValue(string &$rest, string $delim): string
 {
     // case quoted key or value:
     $value = '';
@@ -1413,7 +1435,7 @@ function _parseMetaCmds(string $arg, string &$lang, &$literal, &$mdCompile, stri
   * @param $attr
   * @return array
   */
- function _assembleHtmlAttrs(string $id, string $class, string $style, $attr): array
+function _assembleHtmlAttrs(string $id, string $class, string $style, $attr): array
 {
     $out = '';
     $htmlAttrArray = [];
@@ -1555,7 +1577,7 @@ function _unshieldStr(string &$str, bool $unshieldLiteral = false): bool
   * @param string $char
   * @return string
   */
- function charToHtmlUnicode(string $char): string
+function charToHtmlUnicode(string $char): string
 {
     if (!$char) {
         return '';
@@ -1589,7 +1611,7 @@ function strToASCII(string $str): string
   * @param bool $appendExt
   * @return string
   */
- function translateToFilename(string $str, $appendExt = true): string
+function translateToFilename(string $str, $appendExt = true): string
 {
     // translates special characters (such as , , ) into "filename-safe" non-special equivalents (a, o, U)
     $str = strToASCII(trim(mb_strtolower($str)));	// replace special chars
@@ -1617,7 +1639,7 @@ function strToASCII(string $str): string
   * @param bool $toLowerCase
   * @return string
   */
- function translateToIdentifier(string $str, bool $removeDashes = false, bool $removeNonAlpha = false,
+function translateToIdentifier(string $str, bool $removeDashes = false, bool $removeNonAlpha = false,
                                 bool   $toLowerCase = true): string
 {
     // translates special characters (such as , , ) into identifier which contains but safe characters:
@@ -1646,7 +1668,7 @@ function strToASCII(string $str): string
   * @param string $str
   * @return string
   */
- function translateToClassName(string $str): string
+function translateToClassName(string $str): string
 {
     $str = strip_tags($str);					// strip any html tags
     $str = strToASCII(mb_strtolower($str));		// replace special chars
@@ -1666,7 +1688,7 @@ function strToASCII(string $str): string
   * @param bool $flat
   * @return string
   */
- function var_r($var, string $varName = '', bool $flat = false): string
+function var_r($var, string $varName = '', bool $flat = false): string
 {
     if ($flat) {
         $out = preg_replace("/" . PHP_EOL . "/", '', var_export($var, true));
@@ -1738,7 +1760,7 @@ function convertToPx(string $str): float
   * Clears PageFactory's cache folder
   * @return void
   */
- function clearCache(): void
+function clearCache(): void
 {
     $files = getDirDeep(PFY_CACHE_PATH, false, false, true);
     foreach ($files as $file) {
@@ -1758,7 +1780,8 @@ function convertToPx(string $str): float
   * @param $verbose
   * @return float|string
   */
- function readTimer($verbose = false ) {
+ function readTimer($verbose = false )
+ {
      $t = (round((microtime(true) - PageFactory::$timer)*1000000) / 1000 - 0.005);
      if ($verbose) {
          return "Time: {$t}ms";
@@ -1774,7 +1797,7 @@ function convertToPx(string $str): float
   * @return void
   * @throws Exception
   */
- function fatalError($str): void
+function fatalError($str): void
 {
     throw new Exception($str);
 } // fatalError
@@ -1785,7 +1808,7 @@ function convertToPx(string $str): float
   * @param $iconName
   * @return string
   */
- function renderIcon($iconName)
+function renderIcon($iconName)
 {
     $file = SVG_ICONS_PATH . "$iconName.svg";
     if (file_exists($file)) {
