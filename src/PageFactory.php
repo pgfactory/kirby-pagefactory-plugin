@@ -92,7 +92,7 @@ class PageFactory
 
         self::$trans = new TransVars($this);
 
-        self::$md = new MarkdownPlus();
+        self::$md = new MarkdownPlus($this);
         $this->pg = new PageExtruder($this);
         $this->pg->set('pageParams', $this->page->content()->data());
 

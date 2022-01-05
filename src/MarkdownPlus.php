@@ -22,18 +22,20 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
             'map,object,output,q,samp,script,select,small,span,strong,sub,sup,textarea,time,tt,var,skip,';
     // 'skip' is a pseudo tag used by MarkdownPlus.
 
-    public function __construct($mdVariant = false)
+    public function __construct($pfy = false)
     {
+        $this->pfy          = $pfy;
         $this->kirby        = kirby();
         $this->trans        = PageFactory::$trans;
-        if ($mdVariant) {
-            self::$mdVariant = $mdVariant;
-        }
     }
 
 
-    // compile including pre- and postprocessing:
-    public function compile($str)
+    /**
+     * Compiles a markdown string to HTML:
+     * @param string $str
+     * @return string
+     */
+    public function compile(string $str):string
     {
         if (!$str) {
             return '';
@@ -56,8 +58,12 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
     } // compile
 
 
-    // compile without pre- and postprocessing:
-    public function compileStr($str)
+    /**
+     * Compiles a markdown string to HTML without pre- and postprocessing
+     * @param string $str
+     * @return string
+     */
+    public function compileStr(string $str): string
     {
         $this->lang         = PageFactory::$lang;
         $this->langCode     = PageFactory::$langCode;
@@ -68,7 +74,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
 
 
     // === AsciiTable ==================
-    protected function identifyAsciiTable($line, $lines, $current)
+    protected function identifyAsciiTable($line)
     {
         // asciiTable starts with '|==='
         if (strncmp($line, '|===', 4) === 0) {
@@ -224,7 +230,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
 
 
     // === DivBlock ==================
-    protected function identifyDivBlock($line, $lines, $current)
+    protected function identifyDivBlock($line)
     {
         // if a line starts with at least 3 colons it is identified as a div-block
         // fence chars ':$@' -> block
@@ -343,7 +349,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
 
 
     // === Tabulator ==================
-    protected function identifyTabulator($line, $lines, $current)
+    protected function identifyTabulator($line)
     {
         if (preg_match('/(\s\s|\t) ([.\d]{1,3}\w{1,2})? >> [\s\t]/x', $line)) { // identify patterns like '{{ tab( 7em ) }}'
             return 'tabulator';
@@ -487,7 +493,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
 
 
     // === OrderedList ==================
-    protected function identifyOrderedList($line, $lines, $current)
+    protected function identifyOrderedList($line)
     {
         if (preg_match('/^\d+ !? \. /x', $line)) {
             return 'orderedList';
@@ -641,7 +647,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
     }
 
     // rendering is the same as for block elements, we turn the abstract syntax array into a string.
-    protected function renderMarked($element)
+    protected function renderMarked(array $element): string
     {
         return '<mark>' . $this->renderAbsy($element[1]) . '</mark>';
     }
@@ -858,8 +864,14 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
 
 
 
-
-    private function preprocess($str)
+    //=== Pre- and Post-Processing ===================================
+    /**
+     * Applies Pre-Processing: shielding chars, includes, handling variables, fixing HTML
+     * @param string $str
+     * @return string
+     * @throws Exception
+     */
+    private function preprocess(string $str): string
     {
         $str = $this->handleShieldedCharacters($str);
 
@@ -880,7 +892,12 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
     } // preprocess
 
 
-    private function postprocess($str)
+    /**
+     * Applies Post-Processing: kirbyTags, SmartyPants, fixing HTML, attribute injection
+     * @param string $str
+     * @return string
+     */
+    private function postprocess(string $str): string
     {
         // lines that contain but a variable or macro (e.g. "<p>{{ lorem( help ) }}</p>") -> remove enclosing P-tags:
         $str = preg_replace('|<p> ({{ .*? }}) </p>|xms', "$1", $str);
@@ -903,8 +920,12 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
     } // postprocess
 
 
-
-    private function smartypants($str)
+    /**
+     * Applies (PageFactory-)SmartyPants translation:
+     * @param string $str
+     * @return string
+     */
+    private function smartypants(string $str): string
     {
         $smartypants =    [
                 '/(?<!-)-&gt;/ms'  => '&rarr;',
@@ -933,8 +954,12 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
     } // msmartypants
 
 
-
-    private function handleShieldedCharacters($str)
+    /**
+     * Converts shielded characters (\c) to their unicode equivalent
+     * @param string $str
+     * @return string
+     */
+    private function handleShieldedCharacters(string $str): string
     {
         $p = 0;
         while ($p=strpos($str, '\\', $p)) {
@@ -947,75 +972,32 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
     } // handleShieldedCharacters
 
 
-
-    private function doMDincludes($str)
+    /**
+     * Executes embedded include instructions, e.g. (include: xy)
+     * @param string $str
+     * @return string
+     */
+    private function doMDincludes(string $str): string
     {
-        // pattern: (include: -incl.md)
+        // pattern: "(include: -incl.md)"
         while (preg_match('/(.*) \n \(include: (.*?) \) (.*)/xms', $str, $m)) {
             $s1 = $m[1];
             $s2 = $m[3];
-            $args = null;
-            if (preg_match('/^(.*?)\s+(.*)/', trim($m[2]), $mm)) {
-                $file = trim($mm[1]);
-                $args = $mm[2];
-            } else {
-                $file = trim($m[2]);
-            }
-            if (!$file) {
-                return $s1.$s2;
-            }
-
-            if ($args) {
-                $args = parseArgumentStr($args, ' ');
-            }
-            if (@$file[0] !== '~') {
-                $file = "~page/$file";
-            }
-            $file = resolvePath($file);
-
-            // include folder:
-            if (is_dir($file)) {
-                $s = '';
-                $dir = getDir("$file*.md");
-
-                // includes files from folder, wrap them in an element:
-                if ($tag = @$args['wrapperTag']) {
-                    if ($class = @$args['class']) {
-                        $class = " class='$class'";
-                    }
-                    foreach ($dir as $file) {
-                        $tmp = loadFile($file, 'cstyle');
-                        $s .= <<<EOT
-
-:::::::::: <$tag$class
-$tmp
-::::::::::
-
-EOT;
-                    }
-                // include files from folder as they are, without a wrapper element:
-                } else {
-                    foreach ($dir as $file) {
-                        $s .= loadFile($file, 'cstyle');
-                    }
-                }
-
-            // include single file
-            } elseif (file_exists($file)) {
-                $s = loadFile($file, 'cstyle');
-            } else {
-                $s = "[include file '$file' not found]";
-            }
-            $str = $s1.$s.$s2;
+            $val = $this->handleInclude($m[2], ' ');
+            $str = $s1.$val.$s2;
         }
         return $str;
     } // doMDincludes
 
 
 
-    // Irregular behavior of cebe/markdown compiler:
-    // - ul and ol not recognized if no empty line before pattern
-    private function fixCebeBugs($str)
+    /**
+     * Fixes irregular behavior of cebe/markdown compiler:
+     * -> ul and ol not recognized if no empty line before pattern
+     * @param string $str
+     * @return string
+     */
+    private function fixCebeBugs(string $str): string
     {
         $lines = explode("\n", $str);
         foreach ($lines as $i => $line) {
@@ -1034,8 +1016,12 @@ EOT;
     } // fixCebeBugs
 
 
-
-    private function catchAndInjectTagAttributes($str)
+    /**
+     * Intercepts and applies attribute injection instructions of type "{: }"
+     * @param string $str
+     * @return string
+     */
+    private function catchAndInjectTagAttributes(string $str): string
     {
         if (!strpos($str, '{:')) {
             return $str;
@@ -1093,9 +1079,15 @@ EOT;
         return $str;
     } // catchAndInjectTagAttributes
 
-    
-    
-    private function applyAttributes($line, $attribs, $pattern)
+
+    /**
+     * Helper for catchAndInjectTagAttributes()
+     * @param string $line
+     * @param string $attribs
+     * @param string $pattern
+     * @return array|string|string[]
+     */
+    private function applyAttributes(string $line, string $attribs, string $pattern)
     {
         $attrs = parseInlineBlockArguments($attribs);
         if (preg_match('/(class=["\'])/', $line, $mm)) {
@@ -1108,17 +1100,26 @@ EOT;
         return $line;
     } // applyAttributes
 
-    
 
-    private function handleLineBreaks($str)
+    /**
+     * Translates line-break code ' BR ' to HTML <br>
+     * @param string $str
+     * @return string
+     */
+    private function handleLineBreaks(string $str): string
     {
         $str = preg_replace("/(\\\\\n|\s(?<!\\\)BR\s)/ms", "<br>\n", $str);
         return $str;
     } // handleLineBreaks
 
 
-
-    private function handleMdVariables($str)
+    /**
+     * Parses given string and intercepts instances of MD-Variables, e.g. "$var"
+     * @param string $str
+     * @return string
+     * @throws Exception
+     */
+    private function handleMdVariables(string $str): string
     {
         $out = '';
         $withinEot = false;
@@ -1145,29 +1146,14 @@ EOT;
             if (preg_match('/^\$([\w.]+)\s?=\s*(.*)/', $l, $m)) { // transVars definition
                 $var = trim($m[1]);
                 $val = trim($m[2]);
-                if ($val === '<<<EOT') {         // handle <<<EOT
-                    $withinEot = true;
-                    $textBlock = '';
-                    $mdCompileTextBlock = true;
+                if ($this->handleHeredoc($val, $withinEot, $textBlock, $mdCompileTextBlock)) {
                     continue;
-                } elseif ($val === "<<<'EOT'") {         // handle <<<'EOT' i.e. no md-compile
-                    $withinEot = true;
-                    $textBlock = '';
-                    continue;
-                } elseif (preg_match('/<<<IMPORT\((.*?)\)/', $val, $m)) { // handle <<<IMPORT
-                    $file = trim($m[1], '"\'');
-                    $file = resolvePath($file, false, true);
-                    $val = loadFile($file);
-                } elseif (preg_match('/<<<\'IMPORT\((.*?)\)/', $val, $m)) { // handle <<<'IMPORT
-                    $file = trim($m[1], '"\'');
-                    $file = resolvePath($file, false, true);
-                    $val = shieldStr(loadFile($file));
                 }
-                // translate transvar/macro if there is any:
                 if (strpos($val, '{{') !== false) {
                     $val = $this->replaceMdVariables($val);
                     $val = $this->trans->translate($val);
                 }
+
                 $val = $this->replaceMdVariables($val);
                 $this->trans->setVariable($var, $val);
                 continue;
@@ -1181,8 +1167,135 @@ EOT;
     } // handleMdVariables
 
 
+    /**
+     * Helper for handleMdVariables(): handles patterns "<<<EOT"
+     * @param string $val
+     * @param bool $withinEot
+     * @param string $textBlock
+     * @param bool $mdCompileTextBlock
+     * @return bool
+     */
+    private function handleHeredoc(string &$val, bool &$withinEot, string &$textBlock, bool &$mdCompileTextBlock): bool
+    {
+        // handle <<<EOT
+        if ($val === '<<<EOT') {
+            $withinEot = true;
+            $textBlock = '';
+            $mdCompileTextBlock = true;
+            return true;
 
-    private function replaceMdVariables($l, $p = false)
+        // handle <<<'EOT' i.e. no md-compile
+        } elseif ($val === "<<<'EOT'") {
+            $withinEot = true;
+            $textBlock = '';
+            return true;
+
+        // handle <<<INCLUDE
+        } elseif (preg_match('/<<<INCLUDE\((.*?)\)/', $val, $m)) {
+            $val = $this->handleInclude($m[1]);
+        }
+        return false;
+    } // handleHeredoc
+
+
+    /**
+     * Executes include instructions
+     * @param string $file
+     * @param string $delim
+     * @return string
+     * @throws \Kirby\Exception\InvalidArgumentException
+     */
+    private function handleInclude(string $file, string $delim = ','): string
+    {
+        $out = '';
+        $argsStr = $file;
+        $mdCompile = false;
+        $mdCompileOverride = null;
+        $file = trim($file, '"\'');
+        $args = parseArgumentStr($file, $delim);
+        $file = $args[0];
+        if (in_array('literal', $args)) {
+            $mdCompileOverride = false;
+        } elseif (isset($args['literal'])) {
+            $mdCompileOverride = $args['literal'];
+        }
+
+        if (strpos($file, '.php') !== false) {
+            $out = $this->execAndIncludePhpFile($file, $args, $mdCompileOverride, $mdCompile);
+
+        } else {
+            $file = resolvePath($file, false, true);
+            if (is_dir($file)) {
+                $wrapperTag = false;
+                $wrapperClass = '';
+                if (isset($args['wrapperTag'])) {
+                    $wrapperTag = $args['wrapperTag'];
+                }
+                if (isset($args['wrapperClass'])) {
+                    $wrapperClass = $args['wrapperClass'].' ';
+                    $wrapperTag = $wrapperTag? $wrapperTag : 'div';
+                }
+                $files = getDir("$file*");
+                $i = 0;
+                foreach ($files as $file) {
+                    if ($wrapperTag) {
+                        $i++;
+                        $class = " class='{$wrapperClass}lzy-included-$i'";
+                        $str = $this->includeFile($file, false);
+                        $out .= <<<EOT
+
+:::::::::: <$wrapperTag$class
+$str
+::::::::::
+
+EOT;
+                    } else {
+                        $str = $this->includeFile($file, $mdCompileOverride);
+                        $out .= $str;
+                    }
+                }
+                $out = compileMarkdown($out);
+
+            } else {
+                $out = $this->includeFile($file, $mdCompileOverride);
+            }
+        }
+        return $out;
+    } // handleInclude
+
+
+    /**
+     * Helper for handleInclude(): includes files of type md, txt and html
+     * @param string $file
+     * @param null $mdCompileOverride
+     * @return string
+     * @throws \Kirby\Exception\InvalidArgumentException
+     */
+    private function includeFile(string $file, $mdCompileOverride = null): string
+    {
+        if (strpos(',txt,md,html,', fileExt($file)) === false) {
+            throw new \Exception("Error: unsupported file type '$file'");
+        }
+        $str = loadFile($file, 'cstyle');
+        $str = $this->pfy->utils->extractFrontmatter($str);
+        if (!file_exists($file)) {
+            throw new \Exception("Error: file '$file' not found for including.");
+        }
+        if ((($mdCompileOverride === null) && (fileExt($file) === 'md')) || $mdCompileOverride) {
+            $str = compileMarkdown($str);
+        }
+        return $str;
+    } // includeFile
+
+
+    /**
+     * Helper for handleInclude(): intercepts instances of MD-Variables
+     * @param $l
+     * @param false $p
+     * @return string
+     * @throws Exception
+     */
+    private function replaceMdVariables($l, $p = false): string
     {
         // replaces $var or ${var} with its content, unless shielded as \$var
         //  if variable is not defined, leaves source string untouched. exception: one of below
@@ -1298,10 +1411,38 @@ EOT;
 
 
     /**
+     * Helper for handleInclude(): executes PHP-code and injects result
+     * @param $file
+     * @param $mdCompileOverride
+     * @param bool $mdCompile
+     * @return string
+     * @throws Exception
+     */
+    private function execAndIncludePhpFile(string $file, $args, $mdCompileOverride = null, $mdCompile = false): string
+    {
+        if (!@$this->pfy->config['allowCustomCode']) {
+            throw new \Exception("Error: execution of custom-code not allowed. (→ to enable add 'allowCustomCode' to 'site/config/pagefactory.php'.)");
+        }
+
+        $file = PFY_USER_PATH . basename($file);
+        if (!file_exists($file)) {
+            throw new \Exception("Error: php file '$file' not found for including.");
+        }
+        $out = (string)require($file);
+        if ((($mdCompileOverride === null) && $mdCompile) || $mdCompileOverride) {
+            $out = compileMarkdown($out);
+        }
+        return $out;
+    } // execAndIncludePhpFile
+
+
+    /**
+     * Intercepts kirbytag patterns and sends them to Kirby.
+     * Exceptions are 'link' and 'image', they are executed by corresponding macros
      * @param $str
      * @return string
      */
-    private function handleKirbyTags($str): string
+    private function handleKirbyTags(string $str): string
     {
         if (preg_match_all('/(\(\w*:.*?\))/ms', $str, $m)) {
             foreach ($m[1] as $i => $value) {
@@ -1330,6 +1471,7 @@ EOT;
 
 
     /**
+     * Helper for handleKirbyTags(): calls macros
      * @param string $value
      * @return string
      * @throws \Kirby\Exception\InvalidArgumentException
