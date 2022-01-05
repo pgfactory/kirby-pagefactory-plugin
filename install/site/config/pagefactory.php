@@ -8,6 +8,7 @@ return [
     'screenSizeBreakpoint'      => 480,
     'autoIdentifyTLDs'          => 'com,org,net,biz,uk,de,fr,ch,at,it,es,li,',
     'externalLinksIToNewwin'     => true,
+//    'allowCustomCode'           => true,  // -> used by Macro and Include
 //    'imageAutoQuickview'        => true,  // -> used by Img() macro
 //    'imageAutoSrcset'           => true,  // -> used by Img() macro
 

@@ -150,7 +150,11 @@ EOT;
 
         } else {
             if (isset($this->availableMacros[ $macroName ])) {
-                $macroObj = include $this->availableMacros[ $macroName ];
+                $macroFile = $this->availableMacros[ $macroName ];
+                if ((strpos($macroFile, 'site/plugins/pagefactory') === false) && !@$this->pfy->config['allowCustomCode']) {
+                    throw new \Exception("Error: execution of custom-code not allowed. (→ to enable add 'allowCustomCode' to 'site/config/pagefactory.php'.)");
+                }
+                $macroObj = include $macroFile;
                 self::$registeredMacros[ $macroName ] = $macroObj;
 
                 // workaround: if intendet macro name collides with PHP keyword, define macro as "_Macroname" instead.
@@ -159,7 +163,11 @@ EOT;
                 $macroName0 = $macroName;
                 $macroName = "_$macroName";
                 $thisMacroName = 'Usility\\PageFactory\\' . ucfirst( $macroName );
-                $macroObj = include $this->availableMacros[ $macroName ];
+                $macroFile = $this->availableMacros[ $macroName ];
+                if ((strpos($macroFile, 'site/plugins/pagefactory') === false) && !@$this->pfy->config['allowCustomCode']) {
+                    throw new \Exception("Error: execution of custom-code not allowed. (→ to enable add 'allowCustomCode' to 'site/config/pagefactory.php'.)");
+                }
+                $macroObj = include $macroFile;
                 self::$registeredMacros[ $macroName0 ] = $macroObj;
 
             } elseif (!$this->trans->hideIfNotDefined) {
