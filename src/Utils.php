@@ -241,7 +241,10 @@ EOT;
     } // handleAgentRequestsOnRenderedPage
 
 
-    private function handleExtendedAgentRequests()
+    /**
+     * Checks available extension modules and calls their agent-request handlers
+     */
+    private function handleExtendedAgentRequests(): void
     {
         $dir = getDir('site/plugins/pagefactory-*');
         if (!$dir) {
@@ -325,9 +328,9 @@ EOT;
             $p = strpos($mdStr, "\n", $p);
             $mdStr = substr($mdStr, $p+1);
             $this->pfy->frontmatter = Yaml::decode($frontmatter, 'yaml');
+        }
 
         // extract Kirby-Frontmatter: blocks at top of page, each one ending with '----':
-        }
         if (@$this->pfy->config['handleKirbyFrontmatter']) {
             $options = $this->extractKirbyFrontmatter($mdStr);
             if ($options) {
@@ -438,8 +441,12 @@ EOT;
     } // extractKirbyFrontmatter
 
 
-
-    public function resolveUrls($html)
+    /**
+     * Resolves path patterns of type '~x/' to correct urls
+     * @param string $html
+     * @return string
+     */
+    public function resolveUrls(string $html): string
     {
         $patterns = [
             '~/'        => PageFactory::$appUrl,
