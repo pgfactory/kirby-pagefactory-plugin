@@ -124,3 +124,24 @@ function unTransvar( str ) {
     }
     return str;
 } // unTransvar
+
+
+
+function pfyReload( arg, url, confirmMsg ) {
+    let newUrl = window.location.pathname.replace(/\?.*/, '');
+    if (typeof url !== 'undefined') {
+        newUrl = url.trim();
+    }
+    if (typeof arg !== 'undefined') {
+        newUrl = appendToUrl(newUrl, arg);
+    }
+    if (typeof confirmMsg !== 'undefined') {
+        lzyConfirm(confirmMsg).then(function() {
+            console.log('initiating page reload: "' + newUrl + '"');
+            window.location.replace(newUrl);
+        });
+    } else {
+        console.log('initiating page reload: "' + newUrl + '"');
+        window.location.replace(newUrl);
+    }
+} // pfyReload
