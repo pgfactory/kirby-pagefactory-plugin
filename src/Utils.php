@@ -6,7 +6,7 @@ use Kirby;
 use Kirby\Data\Yaml as Yaml;
 use Exception;
 
-define('PAGED_POLYFILL_SCRIPT', '~assets/pagefactory/js/paged.polyfill.min.js');
+define('PAGED_POLYFILL_SCRIPT', '~/assets/pagefactory/js/paged.polyfill.min.js');
 
 
 class Utils
@@ -14,7 +14,6 @@ class Utils
     public function __construct($pfy)
     {
         $this->pfy = $pfy;
-        $this->pg = $pfy->pg;
     }
 
 
@@ -65,7 +64,6 @@ class Utils
     private function printPreview()
     {
         $pagedPolyfillScript = PAGED_POLYFILL_SCRIPT;
-        $url = './?print';
         $jq = <<<EOT
 setTimeout(function() {
     console.log('now running paged.polyfill.js');
@@ -73,11 +71,11 @@ setTimeout(function() {
 }, 1000);
 setTimeout(function() {
     console.log('now adding buttons');
-    $('body').append( "<div class='lzy-print-btns'><a href='$url' class='lzy-button' >{{ lzy-print-now }}</a><a href='./' onclick='window.close();' class='lzy-button' >{{ lzy-close }}</a></div>" ).addClass('lzy-print-preview');
+    $('body').append( "<div class='lzy-print-btns'><a href='./?print' class='lzy-button' >{{ lzy-print-now }}</a><a href='./' class='lzy-button' >{{ lzy-close }}</a></div>" ).addClass('lzy-print-preview');
 }, 1200);
 
 EOT;
-        $this->pfy->pg->addJq($jq);
+        PageFactory::$pg->addJq($jq);
         $this->preparePrintVariables();
     } // printPreview
 
@@ -99,7 +97,7 @@ setTimeout(function() {
 }, 1200);
 
 EOT;
-        $this->pfy->pg->addJq($jq);
+        PageFactory::$pg->addJq($jq);
         $this->preparePrintVariables();
     } // print
 
@@ -122,7 +120,7 @@ body {
     --lzy-url: '$url';
 }
 EOT;
-        $this->pfy->pg->addCss($css);
+        PageFactory::$pg->addCss($css);
     } // preparePrintVariables
 
 
@@ -137,9 +135,9 @@ EOT;
             $str = <<<EOT
 # Help
 
-You need to be logged in as Admin to use.
+You need to be logged in as Admin to use system commands.
 EOT;
-            $this->pg->setOverlay($str, true);
+            PageFactory::$pg->setOverlay($str, true);
             return;
         }
 
@@ -156,11 +154,6 @@ EOT;
                     break;
                 case 'notranslate': // ?notranslate
                     $this->noTranslate = $arg? intval($arg): 1;
-                    break;
-                case 'localhost': // ?localhost
-                    if ($arg === 'false') {
-                        PageFactory::$localhostOverride = true;
-                    }
                     break;
                 case 'reset': // ?reset
                     $this->pfy->session->clear();
@@ -187,7 +180,7 @@ EOT;
 [?macros](./?macros)      >> show currently defined macros()
 [?lang=](./?lang)      >> activate given language
 [?debug](./?debug)      >> activate debug mode
-[?localhost=false](./?localhost=false)      >> simulate remote host
+[?localhost=false](./?localhost=false)      >> mimicks running on a remote host (for testing)
 [?notranslate](./?notranslate)      >> show variables instead of translating them
 //[?login](./?login)      >> open login window
 //[?logout](./?logout)      >> logout user
@@ -205,7 +198,7 @@ You need to be logged in as Admin to see requested information.
 
 EOT;
             }
-            $this->pg->setOverlay($str, true);
+            PageFactory::$pg->setOverlay($str, true);
         }
     } // showHelp
 
@@ -227,7 +220,7 @@ EOT;
 {{ list(variables) }}
 EOT;
             $str = PageFactory::$trans->translate($str);
-            $this->pg->setOverlay($str);
+            PageFactory::$pg->setOverlay($str);
 
         // show macros:
         } elseif (isset($_GET['macros']) && isAdminOrLocalhost()) {
@@ -236,7 +229,7 @@ EOT;
 {{ list(macros) }}
 EOT;
             $str = PageFactory::$trans->translate($str);
-            $this->pg->setOverlay($str);
+            PageFactory::$pg->setOverlay($str);
         }
     } // handleAgentRequestsOnRenderedPage
 
@@ -363,20 +356,20 @@ EOT;
         }
 
         if (@$this->pfy->frontmatter['loadAssets']) {
-            $this->pg->addAssets($this->pfy->frontmatter['loadAssets'], true);
+            PageFactory::$pg->addAssets($this->pfy->frontmatter['loadAssets'], true);
         }
         if (@$this->pfy->frontmatter['assets']) {
-            $this->pg->addAssets($this->pfy->frontmatter['assets'], true);
+            PageFactory::$pg->addAssets($this->pfy->frontmatter['assets'], true);
         }
         if (@$this->pfy->frontmatter['jqFile']) {
-            $this->pg->addAssets($this->pfy->frontmatter['jqFile'], true);
+            PageFactory::$pg->addAssets($this->pfy->frontmatter['jqFile'], true);
         }
         if (@$this->pfy->frontmatter['jqFiles']) {
-            $this->pg->addJqFiles($this->pfy->frontmatter['jqFiles'], true);
+            PageFactory::$pg->addJqFiles($this->pfy->frontmatter['jqFiles'], true);
         }
 
         // save frontmatter for further use (e.g. by macros):
-        $this->pg->set('frontmatter', $this->pfy->frontmatter);
+        PageFactory::$pg->set('frontmatter', $this->pfy->frontmatter);
 
         return $mdStr;
     } // extractFrontmatter
@@ -388,11 +381,11 @@ EOT;
      */
     private function fixFrontmatterCss(): void
     {
-        $css = &$this->pg->frontmatter['css'];
+        $css = &PageFactory::$pg->frontmatter['css'];
         $css = str_replace('.this', '.'.$this->sectionClass, $css);
         $css = str_replace('#this', '#'.$this->sectionId, $css);
 
-        $scss = &$this->pg->frontmatter['scss'];
+        $scss = &PageFactory::$pg->frontmatter['scss'];
         $scss = str_replace('.this', '.'.$this->sectionClass, $scss);
         $scss = str_replace('#this', '#'.$this->sectionId, $scss);
     } // fixFrontmatterCss
@@ -644,7 +637,7 @@ EOT;
      */
     public function getContent(): string
     {
-        if ($content = $this->pg->overrideContent) {
+        if ($content = PageFactory::$pg->overrideContent) {
             return $content;
         }
 

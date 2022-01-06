@@ -990,7 +990,6 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
     } // doMDincludes
 
 
-
     /**
      * Fixes irregular behavior of cebe/markdown compiler:
      * -> ul and ol not recognized if no empty line before pattern
@@ -1507,7 +1506,7 @@ EOT;
             }
         }
         $args = parseArgumentStr($argStr);
-        $mac = new Macros(pagefactory());
+        $mac = new Macros($this->pfy);
         $macroObj = $mac->loadMacro($macroName);
         $args = $mac->fixArgs($args, $macroObj['parameters']);
         $str = $macroObj['macroObj']->render($args, $argStr);

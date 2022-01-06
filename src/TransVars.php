@@ -23,8 +23,8 @@ class TransVars
         $this->loadTransVarsFromFiles(PFY_DEFAULT_TRANSVARS);
 
         // load variables defined in extensons:
-        if (PageFactory::$extensionsPath) {
-            foreach (PageFactory::$extensionsPath as $extPath) {
+        if (PageFactory::$availableExtensions) {
+            foreach (PageFactory::$availableExtensions as $extPath) {
                 $folder = $extPath . 'variables/';
                 if (file_exists($folder)) {
                     $this->loadTransVarsFromFiles($folder);
@@ -356,7 +356,7 @@ EOT;
      */
     public function render(): string
     {
-        $this->pfy->pg->addAssets('site/plugins/pagefactory/scss/transvar-list.scss');
+        PageFactory::$pg->addAssets('site/plugins/pagefactory/scss/transvar-list.scss');
         $out = "\t<dl class='lzy-transvar-list'>\n";
         $vars = self::$transVars;
         ksort($vars);

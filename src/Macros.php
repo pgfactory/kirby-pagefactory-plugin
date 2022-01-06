@@ -25,25 +25,23 @@ class Macros
     public function __construct($pfy = null)
     {
         $this->pfy = $pfy;
-        if ($pfy) {
-            $this->appRoot = PageFactory::$appRoot;
-            $this->absAppRoot = PageFactory::$absAppRoot;
-            $this->pagePath = PageFactory::$pagePath;
-            $this->slug = $pfy->slug;
-            $this->lang = PageFactory::$lang;
-            $this->langCode = PageFactory::$langCode;
-            $this->debug = PageFactory::$debug;
-            $this->kirby = $pfy->kirby;
-            $this->site = $pfy->site;
-            $this->page = $pfy->page;
-            $this->pages = $pfy->pages;
-        }
+        $this->appRoot = PageFactory::$appRoot;
+        $this->absAppRoot = PageFactory::$absAppRoot;
+        $this->pagePath = PageFactory::$pagePath;
+        $this->slug = $pfy->slug;
+        $this->lang = PageFactory::$lang;
+        $this->langCode = PageFactory::$langCode;
+        $this->debug = PageFactory::$debug;
+        $this->kirby = $pfy->kirby;
+        $this->site = $pfy->site;
+        $this->page = $pfy->page;
+        $this->pages = PageFactory::$pages;
 
         // find macro folders in custom/, extensions and pagefactory:
         $macroLocations = [];
         $macroLocations[] = PFY_USER_CODE_PATH;
-        if (PageFactory::$extensionsPath) {
-            foreach (PageFactory::$extensionsPath as $extPath) {
+        if (PageFactory::$availableExtensions) {
+            foreach (PageFactory::$availableExtensions as $extPath) {
                 $folder = $extPath . 'macros/';
                 if (file_exists($folder)) {
                     $macroLocations[] = $folder;
@@ -81,58 +79,40 @@ class Macros
     public function execute(string $macroName, array $args, string $argStr): ?string
     {
         $this->trans = PageFactory::$trans;
-        $str = null;
+
+        // load macro code:
         $macroObj = $this->loadMacro($macroName);
-        if ($macroObj === null) {
+        if (!$macroObj || !method_exists($macroObj['macroObj'], 'render')) {
             return null;
         }
 
-        if ($macroObj) {
-            if (@$args[0] === 'help') {
-                $helpText = $this->renderHelpText($macroObj);
-                $str = \Usility\PageFactory\compileMarkdown("\n$str\n\n\n$helpText");
-                return $str;
+        // handle help request:
+        if (@$args[0] === 'help') {
+            return $this->renderHelpText($macroObj);
+        }
 
-            } else {
-                $args = $this->fixArgs($args, $macroObj['parameters']);
-            }
-            if (!method_exists($macroObj['macroObj'], 'render')) {
-                return null;
-            }
-            $str = $macroObj['macroObj']->render($args, $argStr);
+        // prepare arguments before execution:
+        $args = $this->fixArgs($args, $macroObj['parameters']);
 
-            // mdCompile if requested:
-            if (@$macroObj['assetsToLoad']) {
-                $assetsToLoad = $macroObj['assetsToLoad'];
-                if (is_string($assetsToLoad)) {
-                    $assetsToLoad = [$assetsToLoad];
-                }
-                foreach ($assetsToLoad as $asset) {
-                    if (strpos($asset, 'jquery') !== false) {
-                        $this->pfy->jQueryActive = true;
-                    }
-                    $this->pfy->pg->addAssets($asset);
-                }
-            }
+        // === Execute the macro now:
+        $str = $macroObj['macroObj']->render($args, $argStr);
 
-            // mdCompile if requested:
-            if (@$macroObj['mdCompile'] || $macroObj['macroObj']->get('mdCompile')) {
-                $str = \Usility\PageFactory\compileMarkdown($str);
-            }
+        // mdCompile if requested:
+        if (@$macroObj['mdCompile'] || $macroObj['macroObj']->get('mdCompile')) {
+            $str = \Usility\PageFactory\compileMarkdown($str);
+        }
 
-            // wrap in comment if requested:
-            if (@$macroObj['wrapInComment'] || $macroObj['macroObj']->get('wrapInComment')) {
-                $str = <<<EOT
+        // wrap in comment if requested:
+        if (@$macroObj['wrapInComment'] || $macroObj['macroObj']->get('wrapInComment')) {
+            $str = <<<EOT
 
 <!-- $macroName() -->
 $str
 <!-- /$macroName() -->
 
 EOT;
-            }
-            return $str;
         }
-        return null;
+        return $str;
     } // execute
 
 
@@ -154,6 +134,8 @@ EOT;
                 if ((strpos($macroFile, 'site/plugins/pagefactory') === false) && !@$this->pfy->config['allowCustomCode']) {
                     throw new \Exception("Error: execution of custom-code not allowed. (→ to enable add 'allowCustomCode' to 'site/config/pagefactory.php'.)");
                 }
+
+                // ===> Load the macro object now:
                 $macroObj = include $macroFile;
                 self::$registeredMacros[ $macroName ] = $macroObj;
 
@@ -167,6 +149,8 @@ EOT;
                 if ((strpos($macroFile, 'site/plugins/pagefactory') === false) && !@$this->pfy->config['allowCustomCode']) {
                     throw new \Exception("Error: execution of custom-code not allowed. (→ to enable add 'allowCustomCode' to 'site/config/pagefactory.php'.)");
                 }
+
+                // ===> Load the macro object now:
                 $macroObj = include $macroFile;
                 self::$registeredMacros[ $macroName0 ] = $macroObj;
 
@@ -181,6 +165,31 @@ EOT;
                 return null;
             }
         }
+
+        // Check whether macro requires any extensions:
+        if (@$macroObj['requiredExtensions']) {
+            foreach ($macroObj['requiredExtensions'] as $requiredExtension) {
+                $ext = "pagefactory-$requiredExtension";
+                if (!file_exists("site/plugins/$ext")) {
+                    throw new \Exception("Error: extension '$ext' required by  macro '$macroName' is missing.");
+                }
+            }
+        }
+
+        // Load assets if requested by macro:
+        if (@$macroObj['assetsToLoad']) {
+            $assetsToLoad = $macroObj['assetsToLoad'];
+            if (is_string($assetsToLoad)) {
+                $assetsToLoad = [$assetsToLoad];
+            }
+            foreach ($assetsToLoad as $asset) {
+                if (strpos($asset, 'jquery') !== false) {
+                    $this->pfy->jQueryActive = true;
+                }
+                PageFactory::$pg->addAssets($asset);
+            }
+        }
+
         return $macroObj;
     } // preloadMacro
 
@@ -242,7 +251,6 @@ EOT;
 $out
 </div>
 EOT;
-
         return $out;
     } // renderHelpText
 

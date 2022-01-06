@@ -8,15 +8,6 @@ use \Kirby\Data\Json as Json;
 use Exception;
 
 
-/**
-* Returns the PageFactory object
-* @return object
-*/
-function pagefactory(): object
-{
-    return PageFactory::instance();
-} // pagefactory
-
 
  /**
   * Checks whether agent is in the same subnet as IP 192.x.x.x
@@ -24,7 +15,8 @@ function pagefactory(): object
   */
 function isLocalhost(): bool
 {
-    if (PageFactory::$localhostOverride) {
+    // url-arg ?localhost=false let's you mimick a remote host:
+    if (@$_GET['localhost'] === 'false') {
         return false;
     }
     $remoteAddress = isset($_SERVER["REMOTE_ADDR"]) ? $_SERVER["REMOTE_ADDR"] : 'REMOTE_ADDR';
@@ -155,7 +147,7 @@ function loadFile(string $file, $removeComments = true, bool $useCaching = false
   * @return array|mixed|string|null
   * @throws \Kirby\Exception\InvalidArgumentException
   */
- function loadFiles($files, $removeComments = true, bool $useCaching = false) {
+function loadFiles($files, $removeComments = true, bool $useCaching = false) {
     if (!$files || !is_array($files)) {
         return null;
     }
@@ -194,7 +186,7 @@ function loadFile(string $file, $removeComments = true, bool $useCaching = false
   * @param bool $removeComments
   * @return array|false|string|string[]
   */
- function getFile(string $file, $removeComments = true)
+function getFile(string $file, $removeComments = true)
  {
      if (!$file || !is_string($file)) {
          return '';
@@ -1751,8 +1743,8 @@ function convertToPx(string $str): float
              case 'px':
                 $px = $value; break;
          }
-         return $px;
      }
+    return $px;
 } // convertToPx
 
 

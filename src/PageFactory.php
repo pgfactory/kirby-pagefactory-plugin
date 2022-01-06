@@ -27,6 +27,8 @@ require_once __DIR__ . '/helper.php';
 
 class PageFactory
 {
+    public static $pages = null;
+    public static $siteFiles;
     public static $appRoot = null;
     public static $appRootUrl = null;
     public static $appUrl = null;
@@ -39,18 +41,18 @@ class PageFactory
     public static $lang = null;
     public static $langCode = null;
     public static $trans = null;
+    public static $pg = null;
     public static $md = null;
     public static $siteOptions = null;
-    public static $extensionsPath = null;
+    public static $availableExtensions = [];
+    public static $loadedExtensions = [];
     public static $debug = null;
-    public static $localhostOverride = false;
     public static $timer = null;
     public static $user = null;
 
     public $config;
     public $templateFile = '';
     public $session = null;
-    public $pg = null;
     public $mdContent = '';
     public $css = '';
     public $scss = '';
@@ -71,6 +73,8 @@ class PageFactory
     public function __construct($pages)
     {
         self::$timer = microtime(true);
+        self::$pages = $pages;
+        self::$siteFiles = $pages->files();
         $this->kirby = kirby();
         $this->session = $this->kirby->session();
 
@@ -80,21 +84,21 @@ class PageFactory
             $this->slug = $m[1];
             $this->urlToken = $m[2];
         }
-        $this->pages = $pages;
         $this->site = site();
         self::$siteOptions = $this->kirby->options(); // from site/config/config.php
         $this->pageOptions = $this->page->content()->data();
 
         $extensions = getDir(rtrim(PFY_BASE_PATH, '/').'-*');
         foreach ($extensions as $extension) {
-            self::$extensionsPath[] = $extension;
+            $extensionName = rtrim(substr($extension, 25), '/');
+            self::$availableExtensions[$extensionName] = $extension;
         }
 
         self::$trans = new TransVars($this);
 
         self::$md = new MarkdownPlus($this);
-        $this->pg = new PageExtruder($this);
-        $this->pg->set('pageParams', $this->page->content()->data());
+        self::$pg = new PageExtruder($this);
+        self::$pg->set('pageParams', $this->page->content()->data());
 
         $this->utils = new Utils($this);
         $this->utils->loadPfyConfig();
@@ -163,7 +167,7 @@ class PageFactory
     public function render($options = false): string
     {
         // check for presence of site/plugins/pagefactory-*':
-        $this->pg->loadExtensions();
+        self::$pg->loadExtensions();
 
         if (@$options['mdVariant']) {
             MarkdownPlus::$mdVariant = $options['mdVariant'];
@@ -211,7 +215,7 @@ class PageFactory
         // last pass: now replace injection variables:
         $html = $this->utils->unshieldLateTranslatationVariables($html);
 
-        $this->pg->preparePageVariables();
+        self::$pg->preparePageVariables();
 
         $html = self::$trans->translate($html);
         $html = $this->utils->resolveUrls($html);

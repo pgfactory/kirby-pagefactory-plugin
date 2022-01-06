@@ -9,7 +9,7 @@ class Scss
     public function __construct($pfy)
     {
         $this->pfy = $pfy;
-        $this->pages = $pfy->pages;
+        $this->pages = PageFactory::$pages;
         $this->sourceDirs = $pfy->cssFiles;
         $this->individualFiles = [];
         $this->scssphp = new Compiler;

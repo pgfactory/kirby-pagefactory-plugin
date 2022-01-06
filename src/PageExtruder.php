@@ -44,19 +44,26 @@ class PageExtruder
     } // __construct
 
 
-
-    public function loadExtensions() {
+    /**
+     * Loads extensions, i.e. plugins with names "pagefactory-*":
+     */
+    public function loadExtensions(): void {
         // check for and load extensions:
-        if (PageFactory::$extensionsPath) {
-            foreach (PageFactory::$extensionsPath as $extPath) {
+        if (PageFactory::$availableExtensions) {
+            foreach (PageFactory::$availableExtensions as $extPath) {
                 $className = rtrim(substr($extPath, strlen(PFY_BASE_PATH)), '/');
                 $file = "{$extPath}src/$className.php";
                 if (file_exists($file)) {
+
+                    // === load extension now:
                     require_once $file;
+
                     $dir = \Usility\PageFactory\getDir($extPath . 'src/*.php');
                     foreach ($dir as $file) {
                         require_once $file;
                     }
+                    $extensionName = '';
+                    PageFactory::$loadedExtensions[] = $extensionName;
                 }
                 $cls = "\Usility\PageFactory\\$className\\$className";
                 $obj = new $cls($this->pfy);
@@ -161,11 +168,30 @@ class PageExtruder
     }
 
 
-    public function overrideContent($str)
+    /**
+     * Accepts a string which will replace the original page content.
+     * @param string $str
+     */
+    public function overrideContent(string $str): void
     {
         $this->overrideContent = $str;
     } // overrideContent
 
+
+    /**
+     * Proxy for extension PageElements -> Overlay -> overrides page if Overlay not available.
+     * @param string $str
+     */
+    public function setOverlay(string $str): void
+    {
+        if (isset(PageFactory::$availableExtensions['PageElements'])) {
+            $pe = new \Usility\PageFactory\PageElements\Overlay($this->pfy);
+            $pe->set($str, true);
+        } else {
+            $str = compileMarkdown($str);
+            $this->overrideContent($str);
+        }
+    } // setOverlay
 
 
     /**
@@ -335,16 +361,7 @@ class PageExtruder
         }
 
         // get definitions from extensions:
-        if (@$this->definitions['assets']) {
-            $assetDefs = $this->definitions['assets'];
-            $assetDefKeys = array_keys($assetDefs);
-            foreach ($assets as $key => $asset) {
-                if (in_array($asset, $assetDefKeys)) {
-                    $assetsToAdd = explodeTrim(',', $assetDefs[$asset], true);
-                    array_splice($assets, $key, 1, $assetsToAdd);
-                }
-            }
-        }
+        $assets = $this->lookupAssetDefinitions($assets);
 
         foreach ($assets as $asset) {
             $asset = resolvePath($asset);
@@ -660,7 +677,7 @@ EOT;
         } elseif (fileExt($filename) !== $type) {
             return '';
         }
-        $siteFiles = $this->pfy->pages->files();
+        $siteFiles = PageFactory::$siteFiles;
         if (strpos($filename, '/') === false) {
             $targetFile = "assets/$filename";
             $file = (string)$siteFiles->find($targetFile);
@@ -784,7 +801,11 @@ EOT;
     private function updateFile(string $srcFile, string $targetPath): bool
     {
         if (!file_exists($srcFile)) {
-            return false;
+            if (PageFactory::$debug) {
+                throw new \Exception("Error: asset file '$srcFile' not found.");
+            } else {
+                return false;
+            }
         }
         $modified = false;
         $targetFile = $targetPath . basename($srcFile);
@@ -832,6 +853,27 @@ EOT;
             file_put_contents($targetFile, $str, FILE_APPEND);
         }
     } // aggregateFile
+
+
+    /**
+     * @param $assets
+     * @return array
+     */
+    private function lookupAssetDefinitions(array $assets): array
+    {
+        if (!@$this->definitions['assets']) {
+            return $assets;
+        }
+        $assetDefs = $this->definitions['assets'];
+        $assetDefKeys = array_keys($assetDefs);
+        foreach ($assets as $key => $asset) {
+            if (in_array($asset, $assetDefKeys)) {
+                $assetsToAdd = explodeTrim(',', $assetDefs[$asset], true);
+                array_splice($assets, $key, 1, $assetsToAdd);
+            }
+        }
+        return $assets;
+    } // lookupAssetDefinitions
 
 } // PageExtruder
 

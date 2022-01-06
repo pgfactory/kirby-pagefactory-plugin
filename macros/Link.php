@@ -217,14 +217,14 @@ class Link extends Macros
             } else {
                 // homepage?
                 if (($this->url === '') || ($this->url === '/') || ($this->url === '~/')) {
-                    $pg = $this->pfy->pages->first();
+                    $pg = PageFactory::$pages->first();
                     $this->url = $pg->url();
                     if (!$this->args['text']) {
                         $this->text = $pg->title();
                     }
 
                 // fine page within site:
-                } elseif ($pg = $this->pfy->pages->find(ltrim($this->url, '~/'))) {
+                } elseif ($pg = PageFactory::$pages->find(ltrim($this->url, '~/'))) {
                     $this->url = $pg->url();
                     if (!$this->args['text']) {
                         $this->text = $pg->title();
