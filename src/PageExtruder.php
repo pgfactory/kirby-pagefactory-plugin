@@ -564,8 +564,12 @@ EOT;
         $jsInjection = '';
         $jqInjection = '';
         $miscInjection = "\n$this->bodyEndInjections";
+        $screenSizeBreakpoint = @$this->pfy->config['screenSizeBreakpoint'];
+        if (!$screenSizeBreakpoint) {
+            $screenSizeBreakpoint = 480;
+        }
 
-        $js = "var screenSizeBreakpoint = {$this->pfy->config['screenSizeBreakpoint']}\n";
+        $js = "var screenSizeBreakpoint = $screenSizeBreakpoint\n";
         $js .= "const hostUrl = '" . PageFactory::$appRoot . "';\n";
         $js .= "const loggedinUser = '" . PageFactory::$user . "';\n";
         $js .= $this->js . @$this->frontmatter['js'];
