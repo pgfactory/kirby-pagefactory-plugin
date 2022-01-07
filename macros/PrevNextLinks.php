@@ -10,13 +10,18 @@ $macroConfig =  [
     'name' => strtolower( $macroName ), // <- don't modify
     'parameters' => [
         'class' => ['Class to be applied to the element', false],
-        'wrapperClass' => ['Class to be applied to the wrapper element', false],
+        'wrapperClass' => ['Class to be applied to the wrapper element. '.
+            'Predefined: ".lzy-show-as-text" and ".lzy-show-as-arrows".', false],
     ],
     'summary' => <<<EOT
 Renders two links, one to the next page, one to the previous page. Activates scripts to trigger on cursor 
 keys <- (left) and  -> (right).
 
-Place these links using classes ``.lzy-previous-page-link`` and ``.lzy-next-page-link``.
+Classes:
+- .lzy-previous-page-link
+- .lzy-next-page-link
+- .lzy-show-as-text     13em>> predefined styles
+- .lzy-show-as-arrows     13em>> predefined styles
 
 Use variables ``\{{ lzy-previous-page-text }}`` and ``\{{ lzy-next-page-text }}`` to define the text (visible and invisible parts).
 
@@ -65,7 +70,7 @@ class PrevNextLinks extends Macros // <- modify classname (must be qual to name 
      */
     private function renderPrevLink(): string
     {
-        $out = '';
+        $out = '<div></div>';
         $current = $this->page->url();
         $next = $this->pages->listed()->first();
         $prev = false;
@@ -96,7 +101,7 @@ EOT;
      */
     private function renderNextLink(): string
     {
-        $out = '';
+        $out = '<div></div>';
         $next = $this->findNext(page());
         if ($next) {
             PageFactory::$trans->setVariable('lzy-next-page-title', (string)$next->title());
@@ -116,9 +121,9 @@ EOT;
     /**
      * Finds the next page relative to given one.
      * @param object $page
-     * @return object
+     * @return object|null
      */
-    private function findNext(object $page): object
+    private function findNext(object $page)
     {
         if ($page->hasListedChildren()) {     // down:
             $next = $page->children()->listed()->first();
