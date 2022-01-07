@@ -5,7 +5,7 @@
 
 var lzyInitialNavConfig =document.getElementsByClassName('lzy-primary-nav').classList;
 
-var elem = document.getElementsByClassName('lzy-async-load');
+var elem = document.getElementsByClassName('lzy-onload-css');
 for (i=0;i<elem.length;i++) {
     elem[i].setAttribute('media', 'all');
     console.log('async load: ');
