@@ -1,58 +1,70 @@
 // === Page Switcher Links
 
 .lzy-default-styling {
-    .lzy-page-switcher-links a {
-        position: absolute;
-        top: 0;
-        border-bottom: none;
-        z-index: 10000;
-        opacity: 0.4;
-        color: black;
-        display: block;
-        //font-size: 2rem;
-        height: 3rem;
-        line-height: 3rem;
-    }
+  .lzy-page-switcher-wrapper.lzy-show-as-text {
+    display: flex;
+    justify-content: space-between;
+    flex-flow: row nowrap;
+    margin: 1em 0;
+  }
 
+  .lzy-page-switcher-wrapper.lzy-show-as-arrows {
+    .lzy-page-switcher-links a {
+      position: absolute;
+      top: 0;
+      border-bottom: none;
+      z-index: 10000;
+      opacity: 0.4;
+      color: black;
+      display: block;
+      //font-size: 2rem;
+      height: 3rem;
+      line-height: 3rem;
+    }
+    .lzy-prev-page-title,
+    .lzy-next-page-title {
+      display: none;
+    }
     .lzy-page-switcher-links a:focus,
     .lzy-page-switcher-links a:hover {
-        opacity: 1;
+      opacity: 1;
     }
 
     .lzy-previous-page-link a {
-        padding-right: 0.5rem;
-        left: 0;
+      padding-right: 0.5rem;
+      left: 0;
     }
 
     .lzy-next-page-link a {
-        padding-left: 0.5rem;
-        right: 0;
+      padding-left: 0.5rem;
+      right: 0;
     }
 
     .lzy-page-switcher-links a::before {
-        content: ' ';
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        z-index: -1;
-        width: 2rem;
-        height: 3rem;
+      content: ' ';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      z-index: -1;
+      width: 2rem;
+      height: 3rem;
     }
 
     .lzy-previous-page-link a::before {
-        left: 0;
+      left: 0;
     }
     .lzy-next-page-link a::before {
-        right: 0;
+      right: 0;
     }
 
     .lzy-page-switcher-links a:focus::before,
     .lzy-page-switcher-links a:hover::before {
-        background: rgba(169, 227, 255, 0.75);
+      background: rgba(169, 227, 255, 0.75);
     }
 
     .lzy-page-switcher-arrow {
-        font-size: 16pt;
-        vertical-align: top;
+      font-size: 16pt;
+      vertical-align: top;
     }
+  }
 } // .lzy-default-styling

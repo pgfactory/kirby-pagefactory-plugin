@@ -9,7 +9,8 @@ namespace Usility\PageFactory;
 $macroConfig =  [
     'name' => strtolower( $macroName ), // <- don't modify
     'parameters' => [
-        'class' => ['Class to be applied to the element', false],              // <- add your arguments here
+        'class' => ['Class to be applied to the element', false],
+        'wrapperClass' => ['Class to be applied to the wrapper element', false],
     ],
     'summary' => <<<EOT
 Renders two links, one to the next page, one to the previous page. Activates scripts to trigger on cursor 
@@ -47,10 +48,12 @@ class PrevNextLinks extends Macros // <- modify classname (must be qual to name 
      */
     public function render(array $args): string
     {
-        $this->class = $args['class'];        // <- how to access an argument
+        $this->class = $args['class'];
 
-        $out = $this->renderPrevLink();
+        $out = "\n    <div class='lzy-page-switcher-wrapper {$args['wrapperClass']}'>\n";
+        $out .= $this->renderPrevLink();
         $out .= $this->renderNextLink();
+        $out .= "    </div>\n";
 
         return $out;
     } // render
@@ -75,11 +78,11 @@ class PrevNextLinks extends Macros // <- modify classname (must be qual to name 
         if ($prev) {
             PageFactory::$trans->setVariable('lzy-prev-page-title', (string)$prev->title());
             $url = $prev->url();
-            $prevLink = "<a href='$url'>{{ lzy-previous-page-text }}</a>";
+            $prevLink = "<a href='$url'>\n\t\t{{ lzy-previous-page-text }}\n\t\t</a>";
             $out = <<<EOT
-    <div class="lzy-page-switcher-links lzy-previous-page-link $this->class">
+      <div class="lzy-page-switcher-links lzy-previous-page-link $this->class">
         $prevLink
-    </div>
+      </div>
 
 EOT;
         }
@@ -98,11 +101,11 @@ EOT;
         if ($next) {
             PageFactory::$trans->setVariable('lzy-next-page-title', (string)$next->title());
             $nextUrl = $next->url();
-            $nextLink = "<a href='$nextUrl'>{{ lzy-next-page-text }}</a>";
+            $nextLink = "<a href='$nextUrl'>\n\t\t{{ lzy-next-page-text }}\n\t\t</a>";
             $out = <<<EOT
-    <div class="lzy-page-switcher-links lzy-next-page-link $this->class">
+      <div class="lzy-page-switcher-links lzy-next-page-link $this->class">
         $nextLink
-    </div>
+      </div>
 
 EOT;
         }
