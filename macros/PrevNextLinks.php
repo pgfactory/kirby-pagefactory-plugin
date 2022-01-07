@@ -40,12 +40,12 @@ class PrevNextLinks extends Macros // <- modify classname (must be qual to name 
 
 
     /**
-     * Macro rendering method
+     * Renders HTML for elements pointing to next and previous page. No element rendered if
+     * corresponding page does not exist (e.g. beyond first/last page)
      * @param $args                     // array of arguments
-     * @param $argStr                   // original argument string
      * @return string                   // HTML or Markdown
      */
-    public function render($args, $argStr)
+    public function render(array $args): string
     {
         $this->class = $args['class'];        // <- how to access an argument
 
@@ -53,32 +53,29 @@ class PrevNextLinks extends Macros // <- modify classname (must be qual to name 
         $out .= $this->renderNextLink();
 
         return $out;
-    }
+    } // render
 
 
-    private function renderPrevLink()
+    /**
+     * Renders HTML element for previous page link.
+     * @return string
+     */
+    private function renderPrevLink(): string
     {
         $out = '';
         $current = $this->page->url();
         $next = $this->pages->listed()->first();
         $prev = false;
+        // parse sitemap till current page found:
         while ($next && ($current !== $next->url())) {
-            $prev = $next->url();
-            if ($next->hasListedChildren()) {
-                     $next = $next->children()->listed()->first();
-
-            } elseif ($next->hasNextListed()) {
-                $next = $next->nextListed();
-
-            } elseif (($parent = $next->parent()) && ($parent->hasNextListed())) {
-                $next = $parent->nextListed();
-            } else {
-                break;
-            }
+            $prev = $next;
+            $next = $this->findNext($next);
         }
 
         if ($prev) {
-            $prevLink = "<a href='$prev'>{{ lzy-previous-page-text }}";
+            PageFactory::$trans->setVariable('lzy-prev-page-title', (string)$prev->title());
+            $url = $prev->url();
+            $prevLink = "<a href='$url'>{{ lzy-previous-page-text }}</a>";
             $out = <<<EOT
     <div class="lzy-page-switcher-links lzy-previous-page-link $this->class">
         $prevLink
@@ -90,22 +87,18 @@ EOT;
     } // renderPrevLink
 
 
-
-    private function renderNextLink()
+    /**
+     * Renders HTML element for next page link.
+     * @return string
+     */
+    private function renderNextLink(): string
     {
         $out = '';
-        $next = '';
-        if ($this->page->hasListedChildren()) {
-            $next = $this->page->children()->listed()->first()->url();
-
-        } elseif ($this->page->hasNextListed()) {
-            $next = $this->page->nextListed()->url();
-
-        } elseif (($parent = $this->page) && $parent->hasNextListed()) {
-            $next = $this->page->parent()->nextListed()->url();
-        }
+        $next = $this->findNext(page());
         if ($next) {
-            $nextLink = "<a href='$next'>{{ lzy-next-page-text }}";
+            PageFactory::$trans->setVariable('lzy-next-page-title', (string)$next->title());
+            $nextUrl = $next->url();
+            $nextLink = "<a href='$nextUrl'>{{ lzy-next-page-text }}</a>";
             $out = <<<EOT
     <div class="lzy-page-switcher-links lzy-next-page-link $this->class">
         $nextLink
@@ -115,6 +108,37 @@ EOT;
         }
         return $out;
     } // renderNextLink
+
+
+    /**
+     * Finds the next page relative to given one.
+     * @param object $page
+     * @return object
+     */
+    private function findNext(object $page): object
+    {
+        if ($page->hasListedChildren()) {     // down:
+            $next = $page->children()->listed()->first();
+
+        } elseif ($page->hasNextListed()) {   // next sibling:
+            $next = $page->nextListed();
+
+        } else {                             // next uncle:
+            $next = $page;
+            while ($next) {
+                $next = $next->parent();
+                if (!$next) {
+                    break;
+                }
+                if ($next->hasNextListed()) {
+                    $next = $next->nextListed();
+                    break;
+                }
+            }
+        }
+        return $next;
+    } // findNext
+
 } // PrevNextLinks
 
 

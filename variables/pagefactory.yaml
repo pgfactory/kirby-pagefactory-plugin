@@ -36,12 +36,20 @@ lzy-edit-user-account:
 
 #--- Page Switcher Links ------------------------
 lzy-previous-page-text:
-    de: "<span class='lzy-page-switcher-arrow'>⟨</span><span class='lzy-invisible'> zur nächsten Seite</span></a>"
-    _:  "<span class='lzy-page-switcher-arrow'>⟨</span><span class='lzy-invisible'> to the next page</span></a>"
+    de: |
+        <span class='lzy-page-switcher-arrow'>⟨</span><span class='lzy-invisible'> zur nächsten Seite</span>
+        <span class='lzy-prev-page-title'>vorheriges Thema: {{^ lzy-prev-page-title }}</span>
+    _:  |
+        <span class='lzy-prev-page-title'>previous topic: {{^ lzy-prev-page-title }}</span>
+        <span class='lzy-page-switcher-arrow'>⟨</span><span class='lzy-invisible'> to the next page</span>
 
 lzy-next-page-text:
-    de: "<span class='lzy-invisible'>zur vorherigen Seite </span><span class='lzy-page-switcher-arrow'>⟩</span></a>"
-    _:  "<span class='lzy-invisible'>to the previeous page </span><span class='lzy-page-switcher-arrow'>⟩</span></a>"
+    de: |
+        <span class='lzy-next-page-title'>nächstes Thema: {{^ lzy-next-page-title }}</span>
+        <span class='lzy-invisible'>zur vorherigen Seite </span><span class='lzy-page-switcher-arrow'>⟩</span>
+    _:  |
+        <span class='lzy-next-page-title'>next topic: {{^ lzy-next-page-title }}</span>
+        <span class='lzy-invisible'>to the previeous page </span><span class='lzy-page-switcher-arrow'>⟩</span>
 
 
 #--- Forms -----------------------------------------------
