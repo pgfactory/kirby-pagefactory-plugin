@@ -18,7 +18,7 @@ $macroConfig =  [
         'attr' => ['Generic attribute applied to the &lt;a> Tag.', false],
         'download' => ['If true, just adds "download" to tag attributes.', false],
         'altText' => ['Text appended to "text", but made visually hidden. I.e. text only available to assistive technologies.', false],
-        'target' => ['[newwin] Target attribute to be applied to the &lt;a> Tag. "newwin" means opening page in new window (or tab).', false],
+        'target' => ['[newwin] Target attribute to be applied to the &lt;a> Tag. "newwin" means opening page in new window (or tab).', null],
         'subject' => ['In case of "mail" and "sms": subject to be preset.', false],
         'body' => ['In case of "mail": mail body to be preset.', false],
     ],
@@ -195,8 +195,10 @@ class Link extends Macros
 
         // url beginning with 'http':
         } elseif (stripos($this->url, 'http') === 0) {
-            if ($this->text) {
+            if ($this->args['text']) {
                 $this->class .= ' lzy-print-url';
+            } else {
+                $this->text = $this->url;
             }
             $this->isExternalLink = true;
 
@@ -289,14 +291,14 @@ class Link extends Macros
         if (@$this->url[0] !== '~') {
             if ($file = page()->file($this->url)) {
                 $this->url = $file->url();
-                if (!$this->args['target']) {
+                if ($this->args['target'] === null) {
                     $this->args['target'] = true;
                 }
             } else {
                 throw new \Exception("Error: file for '$this->url' not found.");
             }
         }
-        if (!$this->args['target']) {
+        if ($this->args['target'] === null) {
             $this->args['target'] = true;
         }
     } // renderPdfLink
@@ -316,14 +318,14 @@ class Link extends Macros
         if (@$this->url[0] !== '~') {
             if ($file = page()->file($this->url)) {
                 $this->url = $file->url();
-                if (!$this->args['target']) {
+                if ($this->args['target'] === null) {
                     $this->args['target'] = true;
                 }
             } else {
                 throw new \Exception("Error: file for '$this->url' not found.");
             }
         }
-        if (!$this->args['target']) {
+        if ($this->args['target'] === null) {
             $this->args['target'] = true;
         }
         if (!$this->args['attr']) {
@@ -398,21 +400,23 @@ class Link extends Macros
         // see: https://developers.google.com/web/tools/lighthouse/audits/noopener
         if (($args['target'] === true) || ($args['target'] === 'true') || ($args['target'] === 'newwin')) {
             $attributes .= " target='_blank' rel='noreferrer'";
+            if (strpos($this->class, 'lzy-external-link') === false) {
+                $this->class .= ' lzy-external-link lzy-icon-external';
+            }
         } elseif ($args['target']) {
             $attributes .= " target='{$args['target']}' rel='noreferrer'";
+            if (strpos($this->class, 'lzy-external-link') === false) {
+                $this->class .= ' lzy-external-link lzy-icon-external';
+            }
         }
 
         // if config var 'externalLinksIToNewwin' is true, add target
         if ($this->isExternalLink && $this->pfy->config['externalLinksIToNewwin']) {
-            if (strpos($attributes, 'target=') === false) {
+            if (($this->args['target'] === null) && strpos($attributes, 'target=') === false) {
                 $attributes .= " target='_blank' rel='noreferrer'";
-            }
-        }
-
-        // for external links, add classes:
-        if ($this->isExternalLink) {
-            if (strpos($this->class, 'lzy-external-link') === false) {
-                $this->class .= ' lzy-external-link lzy-icon-external';
+                if (strpos($this->class, 'lzy-external-link') === false) {
+                    $this->class .= ' lzy-external-link lzy-icon-external';
+                }
             }
         }
 
