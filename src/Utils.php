@@ -153,7 +153,7 @@ EOT;
                     $this->showHelp();
                     break;
                 case 'notranslate': // ?notranslate
-                    $this->noTranslate = $arg? intval($arg): 1;
+                    $this->pfy->noTranslate = $arg? intval($arg): 1;
                     break;
                 case 'reset': // ?reset
                     $this->pfy->session->clear();
