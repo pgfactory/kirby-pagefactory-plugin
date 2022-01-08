@@ -1478,34 +1478,10 @@ EOT;
     private function processByMacro(string $macroName, string $argStr): string
     {
         if (strpos($argStr, ',') === false) {
-            $s = $argStr;
-            $argStr = '';
-            while ($s) {
-                if (preg_match('/^\s* (\w+:) \s* (["\']) (.*)/x', $s, $m)) {
-                    $p = strpos($s, $m[2], strlen($m[1]) + 1);
-                    if ($p) {
-                        $argStr .= substr($s, 0, $p + 1) . ',';
-                        $s = substr($s, $p + 1);
-                    } else {
-                        $argStr .= $s . $m[2];
-                        $s = '';
-                    }
-
-                } elseif (preg_match('/^\s* (\w+:) (.*)/x', $s, $m)) {
-                    if (preg_match('/(.*?) (\w+:.*)/x', $m[2], $mm)) {
-                        $argStr .= ' ' . $m[1] . $mm[1] . ',';
-                        $s = $mm[2];
-                    } else {
-                        $argStr .= $s;
-                        $s = '';
-                    }
-                } else {
-                    $argStr .= $s;
-                    $s = '';
-                }
-            }
+            $args = parseArgumentStr($argStr, ' ');
+        } else {
+            $args = parseArgumentStr($argStr);
         }
-        $args = parseArgumentStr($argStr);
         $mac = new Macros($this->pfy);
         $macroObj = $mac->loadMacro($macroName);
         $args = $mac->fixArgs($args, $macroObj['parameters']);
