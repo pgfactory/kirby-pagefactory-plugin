@@ -817,7 +817,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
     // rendering is the same as for block elements, we turn the abstract syntax array into a string.
     protected function renderLink($element)
     {
-        $link = $element[1];
+        $link = trim($element[1], '"\'');
         $linkText = $element[2];
         $title = preg_replace('/^ ([\'"]) (.*) \1 $/x', "$2", $element[3]);
         $attr = "url:'$link', ";
@@ -1448,14 +1448,14 @@ EOT;
                 $value = strip_tags(str_replace("\n", ' ', $value));
                 
                 // intercept '(link:' and process by link() macro:
-                if (strpos($value, '(link:') === 0) {
-                    $value = 'url:' . substr($value, 7, strlen($value) - 8);
+                if (preg_match('/^ \(link: \s* ["\']? ([^\s"\']+) ["\']? (.*) \) /x', $value, $mm)) {
+                    $value = "url:'{$mm[1]}' {$mm[2]}";
                     $str1 = $this->processByMacro('link', $value);
                     $str = str_replace($m[0][$i], $str1, $str);
 
                 // intercept '(image:' and process by img() macro:
-                } elseif (strpos($value, '(image:') === 0) {
-                    $value = 'src:' . substr($value, 8, strlen($value) - 9);
+                } elseif (preg_match('/^ \(image: \s* ["\']? ([^\s"\']+) ["\']? (.*) \) /x', $value, $mm)) {
+                    $value = "src:'{$mm[1]}' {$mm[2]}";
                     $str1 = $this->processByMacro('img', $value);
                     $str = str_replace($m[0][$i], $str1, $str);
 
