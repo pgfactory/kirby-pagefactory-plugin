@@ -1807,7 +1807,7 @@ function renderIcon($iconName)
         $svg = file_get_contents($file);
         $icon = "<span class='lzy-icon'><span>$svg</span></span>";
     } else {
-        $icon = "&#58;$iconName:";
+        $icon = ":$iconName:";
     }
     return $icon;
 } // icon
