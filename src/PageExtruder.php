@@ -866,11 +866,14 @@ EOT;
         }
         $assetDefs = $this->definitions['assets'];
         $assetDefKeys = array_keys($assetDefs);
+        $i = 0;
         foreach ($assets as $key => $asset) {
             if (in_array($asset, $assetDefKeys)) {
                 $assetsToAdd = explodeTrim(',', $assetDefs[$asset], true);
-                array_splice($assets, $key, 1, $assetsToAdd);
+                array_splice($assets, $i, 1, $assetsToAdd);
+                $i += sizeof($assetsToAdd) - 1;
             }
+            $i++;
         }
         return $assets;
     } // lookupAssetDefinitions
