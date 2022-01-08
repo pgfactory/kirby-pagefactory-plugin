@@ -182,14 +182,31 @@ class PageExtruder
      * Proxy for extension PageElements -> Overlay -> overrides page if Overlay not available.
      * @param string $str
      */
-    public function setOverlay(string $str): void
+    public function setOverlay(string $str, $mdCompile = true): void
     {
         if (isset(PageFactory::$availableExtensions['PageElements'])) {
             $pe = new \Usility\PageFactory\PageElements\Overlay($this->pfy);
-            $pe->set($str, true);
+            $pe->set($str, $mdCompile);
+
+        // if PageElements are not loaded, we need to create bare page and exit immediately:
         } else {
-            $str = compileMarkdown($str);
-            $this->overrideContent($str);
+            if ($mdCompile) {
+                $str = compileMarkdown($str);
+            }
+            $html = <<<EOT
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<title></title>
+</head>
+<body>
+$str
+</body>
+</html>
+
+EOT;
+            exit($html);
         }
     } // setOverlay
 

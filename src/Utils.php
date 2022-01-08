@@ -198,7 +198,7 @@ You need to be logged in as Admin to see requested information.
 
 EOT;
             }
-            PageFactory::$pg->setOverlay($str, true);
+            PageFactory::$pg->setOverlay($str);
         }
     } // showHelp
 
@@ -220,7 +220,7 @@ EOT;
 {{ list(variables) }}
 EOT;
             $str = PageFactory::$trans->translate($str);
-            PageFactory::$pg->setOverlay($str);
+            PageFactory::$pg->setOverlay($str, false);
 
         // show macros:
         } elseif (isset($_GET['macros']) && isAdminOrLocalhost()) {
