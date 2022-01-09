@@ -320,14 +320,15 @@ EOT;
             $frontmatter = substr($mdStr, 0, $p);
             $p = strpos($mdStr, "\n", $p);
             $mdStr = substr($mdStr, $p+1);
-            $this->pfy->frontmatter = Yaml::decode($frontmatter, 'yaml');
+            $frontmatter = Yaml::decode($frontmatter, 'yaml');
+            $this->addToFrontmatter($frontmatter);
         }
 
         // extract Kirby-Frontmatter: blocks at top of page, each one ending with '----':
         if (@$this->pfy->config['handleKirbyFrontmatter']) {
             $options = $this->extractKirbyFrontmatter($mdStr);
             if ($options) {
-                $this->pfy->frontmatter = array_merge_recursive($this->pfy->frontmatter, $options);
+                $this->addToFrontmatter($options);
             }
         }
 
@@ -373,6 +374,29 @@ EOT;
 
         return $mdStr;
     } // extractFrontmatter
+
+
+    /**
+     * Adds new frontmatter values to $this->pfy->frontmatter
+     * @param array $frontmatter
+     */
+    private function addToFrontmatter(array $frontmatter): void
+    {
+        if (!$this->pfy->frontmatter) {
+            $this->pfy->frontmatter = $frontmatter;
+        } else {
+            foreach ($frontmatter as $key => $value) {
+                if (@$this->pfy->frontmatter[$key] && is_string($value)) {
+                    $this->pfy->frontmatter[$key] .= $value;
+
+                } elseif (@$this->pfy->frontmatter[$key] && is_array($value)) {
+                    $this->pfy->frontmatter[$key] = array_merge($this->pfy->frontmatter[$key], $value);
+                } else {
+                    $this->pfy->frontmatter[$key] = $value;
+                }
+            }
+        }
+    } // addToFrontmatter
 
 
     /**
