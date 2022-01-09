@@ -519,6 +519,7 @@ lzy-login-username-info-title:
 
 login-email-prompt:
     de: Ihre E-Mail Adresse
+    de2: Deine E-Mail Adresse
     en: Your e-mail address
 
 #lzy-login-send:
@@ -715,6 +716,8 @@ Login-Email:
     de: Ihre E-Mail Adresse
     de2: Deine E-Mail Adresse
     en: Your e-mail address
+    fr: Votre adresse e-mail
+    fr2: Ton adresse e-mail
 
 onetime-link-send:
     de: Absenden
