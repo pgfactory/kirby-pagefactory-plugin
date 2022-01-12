@@ -15,6 +15,8 @@ $macroConfig =  [
         'id' => ['ID to be applied to the &lt;a> Tag.', false],
         'class' => ['Class to be applied to the &lt;a> Tag.', false],
         'title' => ['Title attribute to be applied to the &lt;a> Tag.', false],
+        'icon' => ['Icon to be added to the link text.', false],
+        'iconPosition' => ['[before,after] Where to add the icon.', 'before'],
         'attr' => ['Generic attribute applied to the &lt;a> Tag.', false],
         'download' => ['If true, just adds "download" to tag attributes.', false],
         'altText' => ['Text appended to "text", but made visually hidden. I.e. text only available to assistive technologies.', false],
@@ -59,6 +61,7 @@ class Link extends Macros
         $this->text = @$args['text'];
         $this->title = '';
         $this->class = '';
+        $this->icon = false;
         $this->attributes = '';
         if (!$this->url = @$args['url']) {
             return '';
@@ -131,36 +134,36 @@ class Link extends Macros
                 break;
             case 'sms':
                 $title = '{{ opens messaging app }}';
-                $this->text = svg('assets/pagefactory/svg-icons/message_writing.svg').$this->text;
+                    $this->icon = 'message_writing';
                 break;
             case 'tel':
             case 'gsm':
                 $title = '{{ opens telephone app }}';
-                $this->text = trim(svg('assets/pagefactory/icons/tel.svg')).$this->text;
-                break;
+                $this->icon = 'tel';
+            break;
             case 'geo':
                 $title = '{{ opens map app }}';
-                $this->text = svg('assets/pagefactory/svg-icons/globe.svg').$this->text;
+                $this->icon = 'globe';
                 break;
             case 'slack':
                 $title = '{{ opens slack app }}';
-                $this->text = svg('assets/pagefactory/icons/slack.svg').$this->text;
+                $this->icon = 'slack';
                 break;
             case 'twitter':
                 $title = '{{ opens twitter app }}';
-                $this->text = svg('assets/pagefactory/icons/twitter.svg').$this->text;
+                $this->icon = 'twitter';
                 break;
             case 'facebook':
                 $title = '{{ opens facebook app }}';
-                $this->text = svg('assets/pagefactory/icons/facebook.svg').$this->text;
+                $this->icon = 'facebook';
                 break;
             case 'instagram':
                 $title = '{{ opens instagram app }}';
-                $this->text = svg('assets/pagefactory/icons/instagram.svg').$this->text;
+                $this->icon = 'instagram';
                 break;
             case 'tiktok':
                 $title = '{{ opens tiktok app }}';
-                $this->text = svg('assets/pagefactory/icons/tiktok.svg').$this->text;
+                $this->icon = 'tiktok';
                 break;
             case 'pdf':
                 $title = '{{ opens in new window }}';
@@ -191,16 +194,15 @@ class Link extends Macros
                 $this->class .= ' lzy-print-url';
             }
             $this->isExternalLink = true;
-            $this->text = svg('assets/pagefactory/svg-icons/external.svg').$this->text;
+            $this->icon = $this->icon ? $this->icon: 'external';
 
         // url beginning with 'http':
         } elseif (stripos($this->url, 'http') === 0) {
             if ($this->args['text']) {
                 $this->class .= ' lzy-print-url';
-            } else {
-                $this->text = $this->url;
             }
             $this->isExternalLink = true;
+            $this->icon = $this->icon ? $this->icon: 'external';
 
         } else {
             // naked url candidate or file -> check for TLD looking like an file extension:
@@ -211,6 +213,7 @@ class Link extends Macros
                         $this->class .= ' lzy-print-url';
                     }
                     $this->isExternalLink = true;
+                    $this->icon = $this->icon ? $this->icon: 'external';
                 } else {
                     $this->handleFileType();
                 }
@@ -287,7 +290,7 @@ class Link extends Macros
             $this->text = basename($this->url);
         }
         $this->class .= ' lzy-link-pdf';
-        $this->text = svg('assets/pagefactory/icons/pdf.svg').$this->text;
+        $this->icon = 'pdf';
         if (@$this->url[0] !== '~') {
             if ($file = page()->file($this->url)) {
                 $this->url = $file->url();
@@ -314,7 +317,7 @@ class Link extends Macros
             $this->text = basename($this->url);
         }
         $this->class .= ' lzy-link-download';
-        $this->text = svg('assets/pagefactory/svg-icons/cloud_download_alt.svg').$this->text;
+        $this->icon = 'cloud_download_alt';
         if (@$this->url[0] !== '~') {
             if ($file = page()->file($this->url)) {
                 $this->url = $file->url();
@@ -340,7 +343,7 @@ class Link extends Macros
     private function renderEmailLink(): void
     {
         $this->class .= " lzy-link-mail";
-        $this->text = svg('assets/pagefactory/svg-icons/mail.svg').$this->text;
+        $this->icon = 'mail';
 
         if ($this->args['subject']) {
             $subject = urlencode($this->args['subject']);
@@ -396,17 +399,19 @@ class Link extends Macros
             $attributes .= " {$args['attr']}";
         }
 
+
         // if target requested, add target and rel attr:
         // see: https://developers.google.com/web/tools/lighthouse/audits/noopener
         if (($args['target'] === true) || ($args['target'] === 'true') || ($args['target'] === 'newwin')) {
             $attributes .= " target='_blank' rel='noreferrer'";
             if (strpos($this->class, 'lzy-external-link') === false) {
-                $this->class .= ' lzy-external-link lzy-icon-external';
+                $this->class .= ' lzy-external-link';
             }
+
         } elseif ($args['target']) {
             $attributes .= " target='{$args['target']}' rel='noreferrer'";
             if (strpos($this->class, 'lzy-external-link') === false) {
-                $this->class .= ' lzy-external-link lzy-icon-external';
+                $this->class .= ' lzy-external-link';
             }
         }
 
@@ -415,8 +420,28 @@ class Link extends Macros
             if (($this->args['target'] === null) && strpos($attributes, 'target=') === false) {
                 $attributes .= " target='_blank' rel='noreferrer'";
                 if (strpos($this->class, 'lzy-external-link') === false) {
-                    $this->class .= ' lzy-external-link lzy-icon-external';
+                    $this->class .= ' lzy-external-link';
                 }
+            }
+        }
+
+        if ($this->args['icon']) {
+            $this->icon = $this->args['icon'];
+        }
+        if ($this->icon) {
+            $iconFile = "assets/pagefactory/svg-icons/$this->icon.svg";
+            if (!file_exists($iconFile)) {
+                $iconFile = "assets/pagefactory/icons/$this->icon.svg";
+            }
+            if (file_exists($iconFile)) {
+                $icon = '<span>'.svg($iconFile).'</span>';
+                if ($this->args['iconPosition'] !== 'after') {
+                    $this->text = $icon . $this->text;
+                } else {
+                    $this->text .= $icon;
+                }
+            } else {
+                throw new \Exception("Error: icon '$this->icon' not found.");
             }
         }
 
