@@ -86,6 +86,7 @@ class PageFactory
         }
         $this->site = site();
         self::$siteOptions = $this->kirby->options(); // from site/config/config.php
+        unset(self::$siteOptions['hooks']);
         $this->pageOptions = $this->page->content()->data();
 
         $extensions = getDir(rtrim(PFY_BASE_PATH, '/').'-*');
