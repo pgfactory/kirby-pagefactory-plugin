@@ -2,7 +2,9 @@
 
 namespace Usility\PageFactory;
 
-define('NAV_ARROW', '<span>&#9727;</span>');
+define('NAV_ARROW', '<span><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M15 12L9 6V18L15 12Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+</svg></span>');
 
  // classes:
 define('NAV_LIST_TAG',  'ol');          // the list tag to be used
@@ -30,15 +32,34 @@ class DefaultNav
      */
     public function render($args, $inx): string
     {
+        $this->args = $args;
         $wrapperClass = $args['wrapperClass'];
         $class = $args['class'];
+
+        $this->deep = ($this->args['type'] !== 'top');
 
         if (strpos($wrapperClass, 'lzy-nav-collapsed')) {
             $this->hidden = 'true';
         }
 
-        $tree = $this->site->children();
-        $out = $this->_render($tree);
+        // type=branch:
+        if ($this->args['type'] === 'branch') {
+            if (!($subTree = $this->page->parents()) || !($subTree = $subTree->first())) {
+                return '';
+            }
+            if ($parent = $subTree->parent()) {
+                $subTree = $parent->children()->listed();
+            } else {
+                $subTree = $subTree->children();
+            }
+            $out = $this->_render($subTree);
+
+        // default type
+        } else {
+            $tree = $this->site->children();
+            $out = $this->_render($tree);
+        }
+
         if (!$out) {
             return '';
         }
@@ -73,13 +94,13 @@ EOT;
                 $class .= ' ' . NAV_CURRENT;
             }
             $active = $pg->isAncestorOf($this->page);
-            if ($active) {
+            if ($active || $curr) {
                 $class .= ' ' . NAV_ACTIVE;
             }
             $url = $pg->url();
             $title = $pg->title()->html();
             $hasChildren = !$pg->children()->listed()->isEmpty();
-            if ($hasChildren) {
+            if ($this->deep && $hasChildren) {
                 $aElem = "<span class='lzy-nav-label'>$title</span><span class='lzy-nav-arrow' ".
                          "aria-hidden='{$this->hidden}'>{$this->arrow}</span>";
                 $class .= ' lzy-has-children lzy-nav-has-content';
