@@ -50,7 +50,10 @@ class Nav extends Macros
             $args['wrapperClass'] .= ' lzy-nav-top-horizontal lzy-nav-indented lzy-nav-collapsed lzy-nav-animated lzy-nav-hoveropen lzy-encapsulated lzy-nav-small-tree';
 
         } elseif (strpos($wrapperClass, 'vertical') !== false) {
-            $args['wrapperClass'] .= ' lzy-nav-vertical lzy-nav-indented lzy-encapsulated';
+            $args['wrapperClass'] = ' lzy-nav-vertical lzy-nav-indented lzy-encapsulated';
+
+        } elseif (strpos($wrapperClass, 'lzy-nav-vertical') === false) {
+            $args['wrapperClass'] .= ' lzy-nav-vertical';
         }
         if ((strpos($wrapperClass, 'lzy-nav-hoveropen') !== false) &&
             (strpos($wrapperClass, 'lzy-nav-collapsed') === false)) {
