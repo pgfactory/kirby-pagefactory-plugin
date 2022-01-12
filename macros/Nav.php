@@ -33,7 +33,6 @@ EOT,
 
 class Nav extends Macros
 {
-    public static $inx = 1;
     public function __construct($pfy = null)
     {
         $this->name = strtolower(__CLASS__);
@@ -43,14 +42,12 @@ class Nav extends Macros
 
     public function render($args, $argStr)
     {
-        $inx = self::$inx++;
-
         $wrapperClass = $args['wrapperClass'];
         if (strpos($wrapperClass, 'horizontal') !== false) {
             $args['wrapperClass'] .= ' lzy-nav-top-horizontal lzy-nav-indented lzy-nav-collapsed lzy-nav-animated lzy-nav-hoveropen lzy-encapsulated lzy-nav-small-tree';
 
-        } elseif (strpos($wrapperClass, 'vertical') !== false) {
-            $args['wrapperClass'] = ' lzy-nav-vertical lzy-nav-indented lzy-encapsulated';
+        } elseif ($wrapperClass === 'vertical') {
+            $args['wrapperClass'] = ' lzy-nav-vertical lzy-nav-indented lzy-nav-animated lzy-encapsulated';
 
         } elseif (strpos($wrapperClass, 'lzy-nav-vertical') === false) {
             $args['wrapperClass'] .= ' lzy-nav-vertical';
@@ -60,7 +57,7 @@ class Nav extends Macros
             $args['wrapperClass'] .= ' lzy-nav-collapsed lzy-nav-animated';
         }
         $nav = new DefaultNav($this->pfy);
-        $str = $nav->render($args, $inx);
+        $str = $nav->render($args);
         return$str;
     }
 }

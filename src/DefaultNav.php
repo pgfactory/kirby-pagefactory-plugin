@@ -14,6 +14,8 @@ define('NAV_ACTIVE',    'lzy-active');  // currently open page and all its ances
 
 class DefaultNav
 {
+    public static $inx = 1;
+
     public function __construct($pfy)
     {
         $this->pfy = $pfy;
@@ -30,8 +32,9 @@ class DefaultNav
      * Renders the default nav menu
      * @return string
      */
-    public function render($args, $inx): string
+    public function render($args): string
     {
+        $inx = self::$inx++;
         $this->args = $args;
         $wrapperClass = $args['wrapperClass'];
         $class = $args['class'];
