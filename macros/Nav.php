@@ -8,6 +8,7 @@ $macroConfig =  [
     'parameters' => [
         'wrapperClass' => ['Class applied to the Nav\'s wrapper.', ''],
         'class' => ['Class applied to the Nav element.', ''],
+        'type' => ['[top,branch].', ''],
     ],
     'mdCompile' => false,
     'summary' => <<<EOT
