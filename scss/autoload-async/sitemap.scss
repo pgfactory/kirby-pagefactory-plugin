@@ -1,0 +1,11 @@
+
+#lzy.lzy-default-styling {
+    .lzy-sitemap-branches {
+        width: 100%;
+        > nav > ol {
+            display: flex;
+            justify-content: space-between;
+            flex-flow: row nowrap;
+        }
+    }
+}
