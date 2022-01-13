@@ -11,11 +11,13 @@ function LzyNav() {
 
 
 LzyNav.prototype.init = function() {
+    // hide collapsed sub-trees:
+    $('li.lzy-has-children > div > ol').css('margin-top', '-10000px');
+
     if (!$('#lzy').length) {
         alert("Warning: '#lzy'-Id missing within this page \n-> PageFactory's nav() objects not working.");
     }
     this.largeScreenClasses = $('.lzy-primary-nav').attr('class');
-    // this.largeScreenClasses = $('.lzy-primary-nav .lzy-nav').attr('class');
 
     var isSmallScreen = ($(window).width() < screenSizeBreakpoint);
     this.adaptMainMenuToScreenSize( isSmallScreen );

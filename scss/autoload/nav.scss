@@ -190,9 +190,10 @@ $slidedownX6: calc(var(--lzy-nav-top-horizontal-first-indent, #{$nav-top-horizon
         .lzy-nav-arrow {
             opacity: 1;
         }
-        li.lzy-has-children > div > ol {
-            margin-top: -10000px;
-        }
+        // this rule will be applied by jq, so, if ever there's a problem with js, the page can still be operated.
+        //li.lzy-has-children > div > ol {
+        //    margin-top: -10000px;
+        //}
         li.lzy-has-children.lzy-open > div > ol {
             margin-top: 0 !important;
         }
