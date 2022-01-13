@@ -180,7 +180,7 @@ class TransVars
      * @return string
      * @throws \Kirby\Exception\InvalidArgumentException
      */
-    private function translateMacro(string $macroName, string $argStr): mixed
+    private function translateMacro(string $macroName, string $argStr)
     {
         $macroName = strtolower(str_replace('-', '', $macroName));
         $str = '';

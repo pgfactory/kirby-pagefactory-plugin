@@ -303,7 +303,7 @@ EOT;
      * @param mixed $value
      * @return string
      */
-    private function valueToString(mixed $value): string
+    private function valueToString($value): string
     {
         if (is_array($value)) {
             $value = \Usility\PageFactory\var_r($value, '', true);
@@ -320,7 +320,7 @@ EOT;
      * @param string $key
      * @return string
      */
-    protected function get(string $key): mixed
+    protected function get(string $key)
     {
         return @$this->$key;
     } // get
@@ -332,7 +332,7 @@ EOT;
      * @param string $key
      * @param mixed $value
      */
-    protected function set(string $key, mixed $value): void
+    protected function set(string $key, $value): void
     {
         $this->$key = $value;
     } // set
