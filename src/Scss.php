@@ -42,10 +42,26 @@ class Scss
     public function compileFile(string $srcFile, string $targetFile): void
     {
         $srcStr = $this->getFile($srcFile);
+        $srcStr = $this->resolvePaths($srcStr);
         $this->scssphp->setImportPaths(dir_name($srcFile));
         $scss = $this->compileStr($srcStr);
         file_put_contents($targetFile, $scss);
     } // compileFile
+
+
+
+    private function resolvePaths($srcStr)
+    {
+        $appRoot = PageFactory::$appUrl;
+        $pathPatterns = [
+            '~/'            => $appRoot,
+            '~media/'       => $appRoot.'media/',
+//???            '~page/'        => PageFactory::$pageUrl,
+        ];
+        $srcStr = str_replace(array_keys($pathPatterns), array_values($pathPatterns), $srcStr);
+
+        return $srcStr;
+    } // $this->resolvePaths
 
 
 
