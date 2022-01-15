@@ -33,6 +33,8 @@ Configuration options in 'site/config/pagefactory.php':
     'imageAutoQuickview'  \=> true,  \// turns quickview on by default
     'imageAutoSrcset'  \=> true,     \// turns srcset on by default
 
+**Note**: if an attribute file exists (i.e. image-filename + '.txt') that will be read to extract attributes. 
+
 EOT,
     'mdCompile' => false,
     'assetsToLoad' => '',
@@ -67,13 +69,16 @@ class Img extends Macros
     public function render(array $args, string $argStr): string
     {
         $inx = self::$inx++;
-        $this->args = $args;
+        $this->args = &$args;
 
         if (!$args['src']) {
            throw new \Exception("Error in Img(): argument 'src' not defined.");
         }
 
         $src = $this->parseSrcFilename($args['src']);
+
+        $this->getImgAttribFileInfo();
+
         $attributes = '';
         if ($args['id']) {
             $attributes .= " id='{$args['id']}'";
@@ -133,6 +138,11 @@ EOT;
     } // render
 
 
+    /**
+     * Extracts size info from filename, e.g. name[500x300].jpg
+     * @param $src
+     * @return false|string
+     */
     private function parseSrcFilename($src)
     {
         $size = false;
@@ -208,7 +218,30 @@ EOT;
     } // parseSrcFilename
 
 
+    /**
+     * Looks for attribute file (image-filename + .txt), imports attributes found there.
+     * @return void
+     * @throws \Kirby\Exception\InvalidArgumentException
+     */
+    private function getImgAttribFileInfo()
+    {
+        $attribFile = $this->srcFilePath . '.txt';
+        $attribs = loadFile($attribFile);
+        if ($attribs) {
+            $args = extractKirbyFrontmatter($attribs);
+            if ($args) {
+                foreach ($args as $key => $value) {
+                    $this->args[$key] = $value;
+                }
+            }
+        }
+    } // getImgAttribFileInfo
 
+
+    /**
+     * Renders srcset attribute -> for relative and absolute sizes
+     * @return string
+     */
     private function renderSrcset()
     {
         if (!$this->nominalWidth ||
@@ -226,7 +259,10 @@ EOT;
     } // renderSrcset
 
 
-
+    /**
+     * Renders srcset attrib for absolute sizes
+     * @return string
+     */
     private function renderAbsSrcset()
     {
         $str = '';
@@ -248,6 +284,10 @@ EOT;
     } // renderAbsSrcset
 
 
+    /**
+     * Renders srcset attrib for relative sizes
+     * @return string
+     */
     private function renderRelativeSrcset()
     {
         $str = '';
@@ -274,7 +314,11 @@ EOT;
     } // renderSrcset
 
 
-
+    /**
+     * Adds <a> tag around an image if requested.
+     * @param $str
+     * @return string
+     */
     private function applyLinkWrapper($str)
     {
         $href = $this->args['link'];
@@ -304,7 +348,10 @@ EOT;
     } // applyLinkWrapper
 
 
-
+    /**
+     * Injects code for quickview feature: attrib, css and jq
+     * @return string
+     */
     private function renderQuickview()
     {
         $qvDataAttr = '';

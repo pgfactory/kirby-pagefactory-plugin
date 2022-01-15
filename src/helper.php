@@ -314,6 +314,41 @@ function cacheFileName(string $file, string $tag = ''): string
 
 
  /**
+  * Parses a Kirby-frontmatter string, returns corresponding data array.
+  * @param $frontmatter
+  * @return array
+  */
+ function extractKirbyFrontmatter($frontmatter): array
+ {
+     if (!$frontmatter) {
+         return [];
+     }
+
+     // explode all fields by the line separator
+     $fields = preg_split('!\n----\s*\n*!', $frontmatter);
+     $data = [];
+
+     // loop through all fields and add them to the content
+     foreach ($fields as $field) {
+         $pos = strpos($field, ':');
+         $key = str_replace(['-', ' '], '_', strtolower(trim(substr($field, 0, $pos))));
+
+         // Don't add fields with empty keys
+         if (empty($key) === true) {
+             continue;
+         }
+
+         $value = trim(substr($field, $pos + 1));
+
+         // unescape escaped dividers within a field
+         $data[$key] = preg_replace('!(?<=\n|^)\\\\----!', '----', $value);
+     }
+
+     return $data;
+ } // extractKirbyFrontmatter
+
+
+ /**
   * Returns file extension of a filename.
   * @param string $file0
   * @param bool $reverse    Returns path&filename without extension
