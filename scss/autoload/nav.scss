@@ -135,7 +135,7 @@ $slidedownX6: calc(var(--lzy-nav-top-horizontal-first-indent, #{$nav-top-horizon
             height: $nav-arrow-size;
         }
         .lzy-nav-arrow {
-            display: block;
+            display: none;
             position: absolute;
             top: 0.8em;
             top: calc((var(--lzy-nav-elem-height, 2em) - 1.2em) / 2 - 0.1em);
@@ -188,7 +188,7 @@ $slidedownX6: calc(var(--lzy-nav-top-horizontal-first-indent, #{$nav-top-horizon
     .lzy-nav-collapsed,
     &.lzy-nav-collapsed {
         .lzy-nav-arrow {
-            opacity: 1;
+            display: block;
         }
         li.lzy-has-children > div > ol {
             margin-top: -10000px;
@@ -199,6 +199,9 @@ $slidedownX6: calc(var(--lzy-nav-top-horizontal-first-indent, #{$nav-top-horizon
     }
     .lzy-nav-collapsible,
     &.lzy-nav-collapsible {
+        .lzy-nav-arrow {
+            display: block;
+        }
         li.lzy-has-children.lzy-open > div > ol {
             margin-top: 0 !important;
         }
