@@ -9,6 +9,7 @@ $macroConfig =  [
         'type' => ['[branches].', ''],
         'wrapperClass' => ['Class applied to the Nav\'s wrapper.', ''],
         'class' => ['Class applied to the Nav element.', ''],
+        'options' => ['[collapsible,collapsed] Adds corresponding classes to the wrapper (for convenience).', ''],
     ],
     'mdCompile' => false,
     'summary' => <<<EOT
@@ -42,9 +43,17 @@ class Sitemap extends Macros
 
     public function render($args)
     {
-        $args['wrapperClass'] = 'lzy-sitemap lzy-nav-vertical lzy-nav-indented lzy-nav-collapsible lzy-nav-animated'.$args['wrapperClass'];
+        $args['wrapperClass'] = 'lzy-sitemap lzy-nav-vertical lzy-nav-indented lzy-nav-animated'.$args['wrapperClass'];
         if ($args['type'] = 'branches') {
             $args['wrapperClass'] .= ' lzy-sitemap-branches';
+        }
+        if ((strpos($args['options'], 'collapsed') !== false) &&
+            (strpos($args['wrapperClass'], 'lzy-nav-collapsed') === false)){
+            $args['wrapperClass'] .= ' lzy-nav-collapsed';
+        }
+        if ((strpos($args['options'], 'collapsible') !== false) &&
+            (strpos($args['wrapperClass'], 'lzy-nav-collapsible') === false)){
+            $args['wrapperClass'] .= ' lzy-nav-collapsible';
         }
         $nav = new DefaultNav($this->pfy);
         $str = $nav->render($args);
