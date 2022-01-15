@@ -37,6 +37,7 @@ class PageFactory
     public static $pageRoot = null;
     public static $absPageRoot = null;
     public static $hostUrl = null;
+    public static $absPageUrl = null;
     public static $pageUrl = null;
     public static $lang = null;
     public static $langCode = null;
@@ -118,7 +119,8 @@ class PageFactory
         self::$appRootUrl = kirby()->url().'/';
         self::$pageRoot = 'content/' . self::$pagePath;
         self::$absPageRoot = $this->page->root() . '/';
-        self::$pageUrl = (string)$this->page->url();
+        self::$absPageUrl = (string)$this->page->url() . '/';
+        self::$pageUrl = substr(self::$absPageUrl, strlen(self::$hostUrl)-1);
         if ($user = $this->kirby->user()) {
             self::$user = (string)$user->name();
         }
