@@ -364,7 +364,7 @@ EOT;
                 $this->imgFullsizeWidth = $w0;
                 $this->imgFullsizeHeight = $h0;
                 $qvDataAttr = " data-qv-src='{$this->srcFileUrl}' data-qv-width='$w0' data-qv-height='$h0'";
-                $this->pfy->pg->addAssets('QUICKVIEW');
+                PageFactory::$pg->addAssets('QUICKVIEW');
                 if (strpos($this->class, 'lzy-quickview') === false) {
                     $this->class .= ' lzy-quickview';
                 }
