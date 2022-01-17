@@ -58,6 +58,22 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
     } // compile
 
 
+    public function compileParagraph(string $str):string
+    {
+        if (!$str) {
+            return '';
+        }
+        $this->lang         = PageFactory::$lang;
+        $this->langCode     = PageFactory::$langCode;
+
+        $str = $this->preprocess($str);
+        $html = parent::parseParagraph($str);
+        $html = $this->postprocess($html);
+
+        return $html;
+    } // compile
+
+
     /**
      * Compiles a markdown string to HTML without pre- and postprocessing
      * @param string $str
@@ -185,7 +201,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
         if (isset($table[0][0]) && ($table[0][0][0] === '#')) {
             $row = 1;
             $table[0][0] = substr($table[0][0],1);
-            $out .= "\t  <thead>\n";
+            $out .= "\t  <thead>\n\t    <tr>\n";
             for ($col = 0; $col < $nCols; $col++) {
                 $cell = isset($table[0][$col]) ? $table[0][$col] : '';
                 $cell = parent::parseParagraph(trim($cell));
@@ -195,7 +211,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
                 }
                 $out .= "\t\t\t<th class='th$col'>$cell</th>\n";
             }
-            $out .= "\t  </thead>\n";
+            $out .= "\t    </tr>\n\t  </thead>\n";
         }
 
         $out .= "\t  <tbody>\n";
@@ -535,6 +551,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
         }
         foreach ($block['content'] as $line) {
                 $line = parent::parse($line);
+                $line = trim($line);
                 $out .= "\t\t<li>$line</li>\n";
         }
         $out = "\t<ol$start>\n$out\t</ol>\n";
@@ -963,13 +980,19 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
     {
         $p = 0;
         while ($p=strpos($str, '\\', $p)) {
-            $o = ord($str[$p+1]);
-            $unicode = "@#$o;";
+            $ch = $str[$p+1];
+            if ($ch === "\n") {
+                $unicode = '<br>';
+            } else {
+                $o = ord($str[$p + 1]);
+                $unicode = "@#$o;";
+            }
             $str = substr($str, 0, $p) . $unicode . substr($str, $p+2);
             $p += 2;
         }
         return $str;
     } // handleShieldedCharacters
+
 
 
     /**
@@ -1129,8 +1152,10 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
             if ($withinEot) {
                 if (preg_match('/^EOT\s*$/', $l)) {
                     $withinEot = false;
+                    $textBlock0 = $textBlock;
                     $textBlock = str_replace("'", '&apos;', $textBlock); //??? check!
                     if ($mdCompileTextBlock) {
+                        $textBlock = PageFactory::$trans->translate($textBlock0);
                         $textBlock = compileMarkdown($textBlock);
                     } else {
                         $textBlock = shieldStr($textBlock);
