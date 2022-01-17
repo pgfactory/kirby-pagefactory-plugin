@@ -15,7 +15,7 @@ $macroConfig =  [
         'id' => ['ID to be applied to the &lt;a> Tag.', false],
         'class' => ['Class to be applied to the &lt;a> Tag.', false],
         'title' => ['Title attribute to be applied to the &lt;a> Tag.', false],
-        'icon' => ['Icon to be added to the link text.', false],
+        'icon' => ['Icon to be added to the link text.', null],
         'iconPosition' => ['[before,after] Where to add the icon.', 'before'],
         'attr' => ['Generic attribute applied to the &lt;a> Tag.', false],
         'download' => ['If true, just adds "download" to tag attributes.', false],
@@ -101,8 +101,24 @@ class Link extends Macros
                 $this->text = trim($this->url);
             }
 
+        // handle http and https:
+        } elseif (preg_match('|^(https?)://(.*)|', $this->url, $m)) {
+            $proto = $m[1];
+            $url = $m[2];
+            if (!$this->args['text']) {
+                $this->text = trim($m[2]);
+            }
+
+        // handle url with proto:
+        } elseif (preg_match('/^(\w+):(.*)/', $this->url, $m)) {
+            $proto = $m[1];
+            $url = $m[2];
+            if (!$this->args['text']) {
+                $this->text = trim($m[2]);
+            }
+
         // handle url without proto:
-        } elseif (!preg_match('/^(\w+):(.*)/', $this->url, $m)) {
+        } else {
             // check whether it's an email-address:
             if (preg_match('/^[^:@\/]+@\w/', $this->url)) {
                 $proto = 'mail';
@@ -115,15 +131,8 @@ class Link extends Macros
                 $this->handleRegularLink();
                 return '';
             }
-
-        // url with proto, e.g. 'geo:':
-        } else {
-            $proto = $m[1];
-            $url = $m[2];
-            if (!$this->args['text']) {
-                $this->text = trim($m[2]);
-            }
         }
+
         $title = '';
         $this->class .= " lzy-link-$proto";
         switch ($proto) {
@@ -425,7 +434,7 @@ class Link extends Macros
             }
         }
 
-        if ($this->args['icon']) {
+        if ($this->args['icon'] || ($this->args['icon'] === false)) {
             $this->icon = $this->args['icon'];
         }
         if ($this->icon) {
