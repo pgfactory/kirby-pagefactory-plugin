@@ -990,7 +990,7 @@ function parseArgumentStr(string $str, string $delim = ',', $superBrackets = fal
     }
 
     // if string starts with { we assume it's json:
-    if ($str[0] === '{') {
+    if (($str[0] === '{') && (strpos($str, '{raw{') !== 0) && (strpos($str, '{md{') !== 0)) {
         return Json::decode($str);
     }
 
@@ -1612,6 +1612,18 @@ function charToHtmlUnicode(string $char): string
     return '&#'.ord($char[0]).substr($char,1).';';
 } // charToHtmlUnicode
 
+
+ /**
+  * Converts HTML-encoded Unicode characters back to Unicode, e.g. '&%123;' -> '{'
+  * @param $str
+  * @return array|string|string[]|null
+  */
+ function unshieldCharacters($str) {
+    $output = preg_replace_callback("/(&#[0-9]+;)/", function($m) {
+        return mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES");
+        }, $str);
+    return $output;
+}
 
 
  /**
