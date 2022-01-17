@@ -1153,7 +1153,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
                 if (preg_match('/^EOT\s*$/', $l)) {
                     $withinEot = false;
                     $textBlock0 = $textBlock;
-                    $textBlock = str_replace("'", '&apos;', $textBlock); //??? check!
+                    $textBlock = str_replace("'", '&apos;', $textBlock);
                     if ($mdCompileTextBlock) {
                         $textBlock = PageFactory::$trans->translate($textBlock0);
                         $textBlock = compileMarkdown($textBlock);
