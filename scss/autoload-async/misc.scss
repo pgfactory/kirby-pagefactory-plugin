@@ -1,0 +1,175 @@
+
+
+#lzy.lzy-default-styling .lzy-encapsulated,
+.lzy-default-styling {
+
+    .lzy-src-code code strong {
+        font-weight: normal;
+        color: red;
+    }
+
+
+    /* --- fade out effect --- */
+    @-webkit-keyframes fadeOut {
+        from {
+            opacity: 1;
+        }
+        to {
+            opacity: 0;
+        }
+    }
+    @-moz-keyframes fadeOut {
+        from {
+            opacity: 1;
+        }
+        to {
+            opacity: 0;
+        }
+    }
+    @keyframes fadeOut {
+        from {
+            opacity: 1;
+        }
+        to {
+            opacity: 0;
+        }
+    }
+
+
+    // --------- dimmed
+    .lzy-dimmed::before {
+        content: ' ';
+        background: rgba(0,0,0,0.5);
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 999;
+    }
+
+} // lzy-default-styling
+
+
+
+// === Macro Help ===============
+#lzy .lzy-macro-help.lzy-encapsulated {
+    font-size: 9pt;
+    background: white;
+    color: black;
+    font-family: Verdana, sans-serif;
+    padding: 0 10px;
+    border: 1px solid gray;
+    margin: 2em 0;
+    h1 {
+        font-size: 14pt;
+    }
+    h2 {
+        font-size: 12pt;
+    }
+    dt {
+        font-weight: bold;
+        color: maroon;
+    }
+    dd {
+        margin-bottom: 1em;
+    }
+    ul {
+        padding-left: 2em;
+    }
+    pre {
+        border: 1px solid #ddd;
+        padding: 1em;
+        background: #fffce9;
+    }
+}
+
+
+
+// Macro -> showSource:
+#lzy .lzy-source-code.lzy-encapsulated,
+.lzy-source-code {
+    strong {
+        color: red;
+        font-weight: normal;
+    }
+    em {
+        color: blue;
+        font-style: normal;
+    }
+    pre {
+        padding: 5px 10px;
+        background: #f3f5e3;
+        outline: 1px solid #aaa;
+    }
+    code {
+        font-size: 8pt;
+        font-family: "Input", "Menlo", monospace;
+        color: black;
+    }
+}
+
+// === Macro source code
+.lzy-src-html-wrapper,
+.lzy-src-code {
+    padding: 1em;
+    border: 1px solid #dbddcd;
+    background: #fdffee;
+    max-width: 40rem;
+    overflow-x: auto;
+    font-size: 10pt;
+
+    &.lzy-popup-wrapper {
+        padding: 1em;
+        border: none;
+        background: none;
+
+        h2 {
+            display: none;
+        }
+    }
+}
+
+.lzy-src-html-wrapper,
+.lzy-src-wrapper {
+    > div {
+        margin-bottom: 1em;
+
+        > h2 {
+            font-size: 14pt;
+            margin: 0 0 0.6em 0;
+        }
+    }
+
+    > h2 {
+        font-size: 14pt;
+        margin: 0 0 0.6em 0;
+    }
+}
+
+.lzy-src-html-wrapper {
+    code {
+        white-space: pre;
+    }
+}
+
+.lzy-src-code-popup {
+    position: relative;
+    border: 1px solid #dbddcd;
+    padding: 4px;
+
+    .lzy-src-output h2 {
+        display: none;
+    }
+}
+
+.lzy-show-source-btn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 0.3rem;
+    font-family: arial, sans-serif;
+    font-size: 10pt;
+}
+
+

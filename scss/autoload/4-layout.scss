@@ -1,0 +1,43 @@
+$grid-gap: 10px;
+$box-width: 300px;
+
+
+#lzy.lzy-default-styling .lzy-encapsulated,
+.lzy-default-styling {
+
+    .lzy-h-space {
+        display: inline-block;
+    }
+
+
+    .lzy-h-v-centered, .h-v-centered,
+    .lzy-v-h-centered, .v-h-centered {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* stretch-wrapping boxes: */
+    .lzy-stretch-wrapping-box-container {
+        //--lzy-box-width: 300px;
+        //--lzy-grid-gap: 10px;
+        display: grid;
+        grid-gap: var(--lzy-grid-gap, $grid-gap);
+        grid-template-columns: repeat(auto-fill, minmax(var(--lzy-box-width, $box-width), 1fr));
+        grid-auto-flow: dense;
+        padding: 5px;
+        padding: var(--lzy-grid-gap, $grid-gap);
+    }
+
+    .lzy-stretch-wrapping-box-container > div {
+        overflow: hidden;
+    }
+
+    .lzy-stretch-wrapping-box-container > div img {
+        width: 100%;
+        height: auto;
+        margin-bottom: -5px; /* ??? bug workaround? */
+    }
+
+} // lzy-default-styling

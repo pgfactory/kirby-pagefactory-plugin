@@ -6,7 +6,7 @@ CSS-Variables:
 
 @import '--definitions.scss';
 
-/* === General =============================== */
+/* === Extended Resets =============================== */
 html {
 	height: -webkit-fill-available;
 }
@@ -25,198 +25,72 @@ html, body, section {
 }
 
 
-.lzy-dispno,
-.dispno,
-.disp-no,
-.disp_no {
-	display: none!important;
-}
-.dispblock {
-	display: block;
-}
-.sr-only,
-.lzy-invisible,
-.invisible,
-.visually-hidden {
-	position: absolute !important;
-	right: 10000px;
-	width: 1px;
-	height: 1px;
-	overflow: hidden;
-	display: inline;
-	clip: rect(1px, 1px, 1px, 1px);
-}
-.lzy-disabled {
-	filter: contrast(50%);
-	opacity: 0.7;
-}
 
-.lzy-no-decoration {
-	text-decoration: none;
-	border-bottom: none;
-}
-
-
-
-
-// === visible on focus only:
-.lzy-focus-only-visible {
-	display: none;
-	color: transparent;
-	background: transparent;
-	position: absolute;
-	right: -1000vw;
-}
-a:hover > .lzy-focus-only-visible,
-a:focus > .lzy-focus-only-visible {
-	display: inline-block;
-	color: black;
-//	background: beige;
-	position: relative;
-	right: unset;
-}
-
-
-
-.lzy-dimmed::before {
-	content: ' ';
-	background: rgba(0,0,0,0.5);
-	position: fixed;
-	top: 0;
-	bottom: 0;
-	left: 0;
-	right: 0;
-	z-index: 999;
-}
-
-
-
-.lzy-login-form .lzy-form-show-password input {
-    display: none;
-}
-
-
-
-.lzy-account-form-wrapper .lzy-delete-profile-popup {
-    position: absolute;
-    bottom: 20px;
-    left: 20px;
-    width: 20em;
-    height: 10em;
-    background: #ffe2c4;
-    border: 1px solid gray;
-    border-radius: 10px;
-    z-index: 999;
-}
-
-/* --- fade out effect --- */
-@-webkit-keyframes fadeOut { from { opacity:1; } to { opacity:0; } }
-@-moz-keyframes fadeOut { from { opacity:1; } to { opacity:0; } }
-@keyframes fadeOut { from { opacity:1; } to { opacity:0; } }
-
-
-
-/* --- Laguage Selection -------- */
+// ======= Default Styling =========================
+#lzy.lzy-default-styling .lzy-encapsulated,
 .lzy-default-styling {
-    .lzy-lang-elem {
-        position: relative;
-        display: inline-block;
-        padding: 0 0.1em;
+
+    // --- generic rules:
+    .lzy-dispno,
+    .dispno,
+    .disp-no,
+    .disp_no {
+        display: none!important;
     }
-    .lzy-lang-flag .lzy-lang-elem {
-        height: 1em;
-        width: 1.4em;
-        &.lzy-active-lang > * {
-            border: 2px solid gray;
-            border-radius: 50%;
-        }
-        &.de > * {
-            background-image: url("../../../pagefactory/icons/de.png");
-        }
-        &.en > * {
-            background-image: url("../../../pagefactory/icons/en.png");
-        }
-        &.fr > * {
-            background-image: url("../../../pagefactory/icons/fr.png");
-        }
-        &.it > * {
-            background-image: url("../../../pagefactory/icons/it.png");
-        }
-        > * {
-            position: absolute;
-            top: 0;
-            left: 0;
-            background-repeat: no-repeat;
-            background-position: center center;
-            background-size: 1.2em 1.2em;
-            height: 1.4em;
-            width: 1.4em;
-        }
-        &.lzy-lang-elem > * {
-            color: transparent;
-        }
-        a {
-            border-bottom: none;
-        }
+    .dispblock {
+        display: block;
+    }
+    .sr-only,
+    .lzy-invisible,
+    .invisible,
+    .visually-hidden {
+        position: absolute !important;
+        right: 10000px;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        display: inline;
+        clip: rect(1px, 1px, 1px, 1px);
+    }
+    .lzy-disabled {
+        filter: contrast(50%);
+        opacity: 0.7;
     }
 
-    .lzy-lang-selection a {
+    .lzy-no-decoration {
+        text-decoration: none;
         border-bottom: none;
     }
-    a.lzy-login-button {
-        border-bottom: none;
+
+
+
+
+    // === visible on focus only:
+    .lzy-focus-only-visible {
+        display: none;
+        color: transparent;
+        background: transparent;
+        position: absolute;
+        right: -1000vw;
     }
-    .lzy-login-button {
+    a:hover > .lzy-focus-only-visible,
+    a:focus > .lzy-focus-only-visible {
         display: inline-block;
+        color: black;
         position: relative;
-        background: none;
-        border: none;
-        padding: 0;
-        width: 1.2em;
-        height: 1.2em;
-        margin-left: 0.5em;
-        svg {
-            display: inline-block;
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 1.2em;
-            transform: translateY(-0.3em);
-        }
+        right: unset;
     }
-}
-
-
-/* --- Misc --------------------- */
-.lzy-album-error {
-    background: #fee;
-    border: 1px solid red;
-    padding: 1em 2em;
-}
-
-.lzy-src-code code strong {
-	font-weight: normal;
-	color: red;
-}
-
-.lzy-h-space {
-    display: inline-block;
-}
 
 
 
-/* === Unite Gallery ==================*/
-/* bug workaround */
-.lzy-gallery.ug-gallery-wrapper {
-	height: unset !important;
-}
-.ug-tiles-preloader {
-	display: none !important;
-}
+} // lzy-default-styling
 
 
-.lzy-large-screen {
+
+// === Screen-Size ==========================
+#lzy.lzy-default-styling.lzy-large-screen .lzy-encapsulated,
+.lzy-default-styling.lzy-large-screen {
     .lzy-small-screen-only {
         display: none;
     }
-}
+} // lzy-large-screen
