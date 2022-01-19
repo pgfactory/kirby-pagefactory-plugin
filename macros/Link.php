@@ -371,7 +371,6 @@ class Link extends Macros
                 $this->url .= "?body=$body";
             }
         }
-        $this->url = 'mailto:'.$this->url;
     } // renderEmailLink
 
 
