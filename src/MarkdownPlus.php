@@ -1448,7 +1448,7 @@ EOT;
             throw new \Exception("Error: execution of custom-code not allowed. (→ to enable add 'allowCustomCode' to 'site/config/pagefactory.php'.)");
         }
 
-        $file = PFY_USER_PATH . basename($file);
+        $file = PFY_CUSTOM_PATH . basename($file);
         if (!file_exists($file)) {
             throw new \Exception("Error: php file '$file' not found for including.");
         }
