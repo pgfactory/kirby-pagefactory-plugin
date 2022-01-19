@@ -33,8 +33,8 @@ class TransVars
         }
 
         // load custom variables:
-        if (file_exists(PFY_USER_CODE_PATH.'variables/')) {
-            $this->loadTransVarsFromFiles(PFY_USER_CODE_PATH.'variables/');
+        if (file_exists(PFY_CUSTOM_PATH.'variables/')) {
+            $this->loadTransVarsFromFiles(PFY_CUSTOM_PATH.'variables/');
         }
 
         $this->hideIfNotDefined = false;
@@ -149,8 +149,7 @@ class TransVars
                 } else {
                     $s2 = $this->translateVariable($varName);
                 }
-
-                if (preg_match('/(?<!\\\\){{/', $s2)) {
+                if ($s2 && is_string($s2)&& preg_match('/(?<!\\\\){{/', $s2)) {
                     $s2 = $this->translate($s2, $depth+1);
                 }
 
@@ -228,8 +227,9 @@ class TransVars
      * @param $lang
      * @return string
      */
-    private function translateVariable(string $varName, $lang = false): string
+    private function translateVariable(string $varName, $lang = false)
     {
+        $varName = trim($varName);
         $lang = $this->extractLang($varName, $lang);
         if (!$lang) {
             $lang = PageFactory::$lang;
@@ -296,7 +296,7 @@ class TransVars
         foreach ($files as $file) {
             if (!isset(self::$filesLoaded[$file])) {
                 $data = loadFile($file, true, true);
-                self::$transVars = array_merge_recursive(self::$transVars, $data);
+                self::$transVars = array_merge(self::$transVars, $data);
             }
             self::$filesLoaded[$file] = true;
         }
