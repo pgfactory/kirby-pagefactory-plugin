@@ -47,15 +47,17 @@ class DefaultNav
 
         // type=branch:
         if ($this->args['type'] === 'branch') {
-            if (!($subTree = $this->page->parents()) || !($subTree = $subTree->first())) {
+            // find top-level parent:
+            $page = page();
+            while ($page->parent()) {
+                $page = $page->parent();
+            }
+            if (!$page->hasListedChildren()) {
                 return '';
             }
-            if ($parent = $subTree->parent()) {
-                $subTree = $parent->children()->listed();
-            } else {
-                $subTree = $subTree->children();
-            }
-            $out = $this->_render($subTree);
+            // get children of top-level parent:
+            $subtree = $page->children();
+            $out = $this->_render($subtree);
 
         // default type
         } else {
