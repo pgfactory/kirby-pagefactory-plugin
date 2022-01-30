@@ -44,8 +44,9 @@ class Scss
         $srcStr = $this->getFile($srcFile);
         $srcStr = $this->resolvePaths($srcStr);
         $this->scssphp->setImportPaths(dir_name($srcFile));
-        $scss = $this->compileStr($srcStr);
-        file_put_contents($targetFile, $scss);
+        $css = $this->compileStr($srcStr);
+        $css = "/* === Automatically created from ".basename($srcFile)." - do not modify! === */\n\n$css";
+        file_put_contents($targetFile, $css);
     } // compileFile
 
 
