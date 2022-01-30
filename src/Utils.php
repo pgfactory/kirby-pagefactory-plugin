@@ -18,6 +18,27 @@ class Utils
 
 
     /**
+     * Entry point for handling UrlTokens, in particular for access-code-login:
+     * @return void
+     */
+    public function handleUrlToken()
+    {
+        $urlToken = PageFactory::$urlToken;
+        if (!$urlToken) {
+            return;
+        }
+
+        // do something with $urlToken...
+
+        // remove the urlToken:
+        $target = page()->url();
+        $target .= '/' . PageFactory::$slug;
+        reloadAgent($target);
+    } // handleUrlToken
+
+
+
+    /**
      * Handles URL-commands, e.g. ?help, ?print etc.
      * Checks privileges which are required for some commands.
      * @return void
