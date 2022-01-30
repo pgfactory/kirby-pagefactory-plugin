@@ -28,7 +28,7 @@ class Macros
         $this->appRoot = PageFactory::$appRoot;
         $this->absAppRoot = PageFactory::$absAppRoot;
         $this->pagePath = PageFactory::$pagePath;
-        $this->slug = $pfy->slug;
+        $this->slug = PageFactory::$slug;
         $this->lang = PageFactory::$lang;
         $this->langCode = PageFactory::$langCode;
         $this->debug = PageFactory::$debug;
