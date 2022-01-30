@@ -47,7 +47,10 @@ function loadIcons() {
 
 
 function adaptToWidth() {
-  if (window.innerWidth < screenSizeBreakpoint) {
+    console.log("window.innerWidth: " + window.innerWidth);
+    console.log("document.documentElement.clientWidth;: " + document.documentElement.clientWidth);
+    let windowWidth = document.documentElement.clientWidth;
+  if (windowWidth < screenSizeBreakpoint) {
     document.body.classList.add('lzy-small-screen');
     document.body.classList.remove('lzy-large-screen');
   } else {
