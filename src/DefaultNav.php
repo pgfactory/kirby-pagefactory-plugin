@@ -105,6 +105,14 @@ EOT;
             $url = $pg->url();
             $title = $pg->title()->html();
             $hasChildren = !$pg->children()->listed()->isEmpty();
+
+            // if folder contains no md-file, fall through to first child page:
+            if ($hasChildren && !$this->hasMdContent($pg)) {
+                if ($pg1 = $pg->children()->listed()->first()) {
+                    $url = $pg1->url();
+                }
+            }
+
             if ($this->deep && $hasChildren) {
                 $aElem = "<span class='lzy-nav-label'>$title</span><span class='lzy-nav-arrow' ".
                          "aria-hidden='{$this->hidden}'>{$this->arrow}</span>";
@@ -125,5 +133,29 @@ EOT;
         $out = "$indent<" . NAV_LIST_TAG . ">\n$out$indent</" . NAV_LIST_TAG . ">\n";
         return $out;
     } // _render
+
+
+
+    /**
+     * Check page folder for presence of .md files
+     * @param string $path
+     * @return bool
+     */
+    private function hasMdContent($pg): bool
+    {
+        $path = $pg->root();
+        $mdFiles = glob("$path/*.md");
+        $hasContent = false;
+        if ($mdFiles && is_array($mdFiles)) {
+            foreach ($mdFiles as $file) {
+                if (basename($file)[0] !== '#') {
+                    $hasContent = true;
+                    break;
+                }
+            }
+        }
+        return $hasContent;
+    } // hasMdContent
+
 
 } // DefaultNav
