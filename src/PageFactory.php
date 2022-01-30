@@ -50,6 +50,8 @@ class PageFactory
     public static $debug = null;
     public static $timer = null;
     public static $user = null;
+    public static $slug = null;
+    public static $urlToken = null;
 
     public $config;
     public $templateFile = '';
@@ -80,11 +82,6 @@ class PageFactory
         $this->session = $this->kirby->session();
 
         $this->page = page();
-        $this->slug = $this->kirby->path();
-        if (preg_match('|^(.*?) / ([A-Z]{5,15})$|x', $this->slug, $m)) {
-            $this->slug = $m[1];
-            $this->urlToken = $m[2];
-        }
         $this->site = site();
         self::$siteOptions = $this->kirby->options(); // from site/config/config.php
         unset(self::$siteOptions['hooks']);
@@ -124,6 +121,8 @@ class PageFactory
         if ($user = $this->kirby->user()) {
             self::$user = (string)$user->name();
         }
+
+        $this->utils->handleUrlToken();
 
         $this->siteTitle = (string)site()->title()->value();
         $this->determineAssetFilesList();
