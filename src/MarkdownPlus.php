@@ -422,17 +422,32 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
             $parts = preg_split('/[\s\t]* ([.\d]{1,3}\w{1,2})? >> [\s\t]/x', $l);
             $line = '';
             $addedWidths = 0; // px
+            $addedEmsWidths = 0; // em
             foreach ($parts as $n => $elem) {
                 if ($w = @$block['widths'][$n]) {
                     $style = " style='width:$w;'";
                     $addedWidths += convertToPx($w);
+                    $addedWidths += convertToPx('1.2em');
+                    if (preg_match('/^([\d.]+)em$/', $w, $m)) {
+                        $addedEmsWidths += intval($m[1]);
+                    } else {
+                        // non-'em'-width detected -> can't use em-based width:
+                        $addedEmsWidths = -999999;
+                    }
 
                 } elseif ($n === 0) {
                     $style = " style='width:6em;'";
                     $addedWidths += 16;
+                    $addedEmsWidths += 1;
 
                 } else {
-                    $style = " style='width:calc(100% - {$addedWidths}px);'";
+                    if ($addedEmsWidths > 0) {
+                        // all widths defined as 'em', so we can use that value:
+                        $style = " style='max-width:calc(100% - {$addedEmsWidths}em);'";
+                    } else {
+                        // some widths defined as non-'em' -> use px-based estimate:
+                        $style = " style='max-width:calc(100% - {$addedWidths}px);'";
+                    }
                 }
                 $elem = parent::parseParagraph($elem);
                 $line .= "<span class='c".($n+1)."'$style>$elem</span>";
