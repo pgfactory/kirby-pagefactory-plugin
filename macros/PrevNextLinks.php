@@ -83,7 +83,7 @@ class PrevNextLinks extends Macros // <- modify classname (must be qual to name 
         if ($prev) {
             PageFactory::$trans->setVariable('lzy-prev-page-title', (string)$prev->title());
             $url = $prev->url();
-            $prevLink = "<a href='$url'>\n\t\t{{ lzy-previous-page-text }}\n\t\t</a>";
+            $prevLink = "<a href='$url' title='{{ lzy-link-to-prev-page }}'>\n\t\t{{ lzy-previous-page-text }}\n\t\t</a>";
             $out = <<<EOT
       <div class="lzy-page-switcher-links lzy-previous-page-link $this->class">
         $prevLink
@@ -106,7 +106,7 @@ EOT;
         if ($next) {
             PageFactory::$trans->setVariable('lzy-next-page-title', (string)$next->title());
             $nextUrl = $next->url();
-            $nextLink = "<a href='$nextUrl'>\n\t\t{{ lzy-next-page-text }}\n\t\t</a>";
+            $nextLink = "<a href='$nextUrl' title='{{ lzy-link-to-next-page }}'>\n\t\t{{ lzy-next-page-text }}\n\t\t</a>";
             $out = <<<EOT
       <div class="lzy-page-switcher-links lzy-next-page-link $this->class">
         $nextLink
