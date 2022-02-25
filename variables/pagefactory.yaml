@@ -36,20 +36,21 @@ lzy-edit-user-account:
 #--- Page Switcher Links ------------------------
 lzy-previous-page-text:
     de: |
-        <span class='lzy-page-switcher-arrow' aria-hidden="true">⟨</span>
-                    <span class='lzy-prev-page-title'>{{^ lzy-prev-page-title }}</span>
+        <span class='lzy-page-switcher-arrow'>⟨<span class='lzy-invisible'> zur vorherigen Seite</span></span>
+                  <span class='lzy-prev-page-title'>{{^ lzy-prev-page-title }}</span>
     _:  |
-        <span class='lzy-page-switcher-arrow' aria-hidden="true">⟨</span>
-                    <span class='lzy-prev-page-title'>{{^ lzy-prev-page-title }}</span>
+        <span class='lzy-page-switcher-arrow'>⟨<span class='lzy-invisible'> to the previous page</span></span>
+                  <span class='lzy-prev-page-title'>{{^ lzy-prev-page-title }}</span>
 
 
 lzy-next-page-text:
     de: |
         <span class='lzy-next-page-title'>{{^ lzy-next-page-title }}</span>
-                  <span class='lzy-page-switcher-arrow' aria-hidden="true">⟩</span>
+                  <span class='lzy-page-switcher-arrow'><span class='lzy-invisible'>zur nächsten Seite </span>⟩</span>
     _:  |
         <span class='lzy-next-page-title'>{{^ lzy-next-page-title }}</span>
-                  <span class='lzy-page-switcher-arrow' aria-hidden="true">⟩</span>
+                  <span class='lzy-page-switcher-arrow'><span class='lzy-invisible'>to the next page </span>⟩</span>
+
 
 lzy-link-to-next-page:
     de: Zur nächsten Seite
@@ -284,33 +285,65 @@ lzy-please-correct:
 
 
 #--- Links -------------------------------
-opens in new win:
+lzy-opens-in-new-win:
     de: Öffnet in neuem Fester
     en: Opens in new window
 
-opens PDF in new window:
+
+lzy-opens-download:
+    de: Datei herunter laden
+    en: Download file
+
+
+lzy-opens-pdf:
     de: Öffnet das PDF in einem neuen Fester
     en: Opens the PDF in a new window
 
-opens mail app:
+lzy-opens-mail:
     de: Öffnet die Mail-App in einem neuen Fenster
     en: opens your mail app in a new window
 
-opens messaging app:
+lzy-opens-sms:
     de: Öffnet die Messaging App in einem neuen Fenster
     en: Opens your default messaging app in a new window
 
-opens telephone app:
+lzy-opens-tel:
     de: Öffnet die Telefon App in einem neuen Fenster
     en: Opens your default telephone app in a new window
 
-opens map app:
+lzy-opens-mobile:
+    de: Öffnet die Telefon App in einem neuen Fenster
+    en: Opens your default telephone app in a new window
+
+lzy-opens-gsm:
+    de: Öffnet die Telefon App in einem neuen Fenster
+    en: Opens your default telephone app in a new window
+
+lzy-opens-geo:
     de: Öffnet die Karten App in einem neuen Fenster
     en: Opens your default messaging app in a new window
 
-opens slack app:
+lzy-opens-slack:
     de: Öffnet die Slack App in einem neuen Fenster
     en: Opens your Slack app in a new window
+
+lzy-opens-twitter:
+    de: Öffnet die Twitter App in einem neuen Fenster
+    en: Opens your Twitter app in a new window
+
+lzy-opens-facebook:
+    de: Öffnet die Facebook App in einem neuen Fenster
+    en: Opens your Facebook app in a new window
+
+lzy-opens-instagram:
+    de: Öffnet die Instragram App in einem neuen Fenster
+    en: Opens your Instragram app in a new window
+
+lzy-opens-tiktok:
+    de: Öffnet die Tiktok App in einem neuen Fenster
+    en: Opens your Tiktok app in a new window
+
+
 
 
 lzy-next-page-link-label: "<span class='lzy-next-link-arrow lzy-focus-only-visible' title='{{ lzy-to-next-page-title }}'>{{ lzy-to-next-page-title }}</span>%nextLabel%"

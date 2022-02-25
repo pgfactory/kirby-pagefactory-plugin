@@ -3,7 +3,7 @@
 #lzy.lzy-default-styling .lzy-encapsulated,
 .lzy-default-styling {
 
-    .lzy-icon-external {
+    .Xlzy-icon-external {
         position: relative;
         padding-left: 1.1em;
         &::before {
@@ -21,50 +21,27 @@
     .lzy-link {
         white-space: nowrap;
     }
-    .lzy-link svg {
+
+    .lzy-link-icon {
+        position: relative;
+        display: inline-block;
         width: 1em;
         height: 1em;
         margin-right: 0.3em;
-        vertical-align: bottom;
     }
-    .lzy-link-pdf svg {
-        transform: scale(0.8) translateY(-0.2em);
+    .lzy-link svg {
+        width: 1em;
+        height: 1em;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
     }
-    .lzy-link-slack svg {
-        transform: scale(0.9) translateY(-0.3em);
+    .lzy-icon-trailing .lzy-link-icon {
+        margin-right: 0;
+        margin-left: 0.3em;
     }
-    .lzy-link-twitter svg {
-        transform: scale(0.9) translateY(-0.2em);
+    .lzy-link-download .lzy-link-icon {
+        transform: translateY(0.1em);
     }
-    .lzy-link-facebook svg {
-        transform: scale(0.9) translateY(-0.2em);
-    }
-    .lzy-link-instagram svg {
-        transform: scale(1.1) translateY(-0.15em);
-    }
-    .lzy-link-tiktok svg {
-        transform: scale(0.9) translateY(-0.2em);
-    }
-    .lzy-link-mail svg {
-        transform: scale(1.3) translateY(-0.16em);
-    }
-    .lzy-link-geo svg {
-        transform: translateY(-0.26em);
-    }
-    .lzy-link-sms svg {
-        transform: scale(1.1) translateY(-0.23em);
-    }
-    .lzy-link-gsm,
-    .lzy-link-tel {
-        svg {
-            transform: scale(0.8) translateY(-0.2em);
-        }
-    }
-    .lzy-external-link svg {
-        transform: scale(0.9) translateY(-0.11em);
-    }
-    .lzy-link-download svg {
-        transform: scale(1.3) translateY(-0.11em);
-    }
-
 } // lzy-default-styling
