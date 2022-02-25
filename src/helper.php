@@ -351,13 +351,18 @@ function cacheFileName(string $file, string $tag = ''): string
  /**
   * Returns file extension of a filename.
   * @param string $file0
-  * @param bool $reverse    Returns path&filename without extension
+  * @param bool $reverse       Returns path&filename without extension
+  * @param bool $couldBeUrl    Handles case where URL may include args and/or #target
   * @return string
   */
-function fileExt(string $file0, bool $reverse = false): string
+function fileExt(string $file0, bool $reverse = false, $couldBeUrl = false): string
 {
-    $file = basename($file0);
-    //$file = preg_replace(['|^\w{1,6}://|', '/[#?&:].*/'], '', $file); // If ever needed for URLs as well
+    if ($couldBeUrl) {
+        $file = preg_replace(['|^\w{1,6}://|', '/[#?&:].*/'], '', $file0); // If ever needed for URLs as well
+        $file = basename($file);
+    } else {
+        $file = basename($file0);
+    }
     if ($reverse) {
         $path = dirname($file0) . '/';
         if ($path === './') {
