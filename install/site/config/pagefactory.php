@@ -4,14 +4,13 @@
 $menuIcon = svg('site/plugins/pagefactory/assets/menu.svg');
 
 return [
-    'handleKirbyFrontmatter'    => false,
-    'screenSizeBreakpoint'      => 480,
-    'autoIdentifyTLDs'          => 'com,org,net,biz,uk,de,fr,ch,at,it,es,li,',
-    'externalLinksIToNewwin'    => true,
-    'defaultLanguage'           => 'en',  // -> fallback, if no language defined by Kirby
-//    'allowCustomCode'           => true,  // -> used by Macro and Include (default: false)
-//    'imageAutoQuickview'        => true,  // -> used by Img() macro (default: false)
-//    'imageAutoSrcset'           => true,  // -> used by Img() macro (default: false)
+    'handleKirbyFrontmatter'        => false,
+    'screenSizeBreakpoint'          => 480,
+    'defaultLanguage'               => 'de',
+    'defaultTargetForExternalLinks' => true,
+    // 'allowCustomCode'               => true,  // -> used by Macro and Include
+    // 'imageAutoQuickview'            => true,  // -> used by Img() macro
+    // 'imageAutoSrcset'               => true,  // -> used by Img() macro
 
     'assetFiles' => [
         '-pagefactory.css' => [
