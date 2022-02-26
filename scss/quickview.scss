@@ -1,10 +1,9 @@
 /*
 **	Quickview Styles
 */
-
+//
 .lzy-quickview {
-	/*cursor: url(../rsc/enlarge.png), auto;*/
-    cursor: url(../../../../assets/pagefactory/icons/enlarge.png), auto;
+	cursor: zoom-in;
 }
 #lzy .lzy-quickview-overlay {
 	position: fixed;
@@ -16,8 +15,7 @@
 	height: 100vh;
 	z-index: -1;
 	background-color: rgba(200, 200, 200, 0.8);
-	cursor: url(../../../../assets/pagefactory/icons/reduce.png), auto;
-	/*cursor: url(../rsc/reduce.png), auto;*/
+	cursor: zoom-out;
 }
 #lzy .lzy-quickview-overlay img {
 	position: absolute;
