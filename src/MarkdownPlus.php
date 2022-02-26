@@ -871,7 +871,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
     protected function parseIcon($markdown)
     {
         // check whether the marker really represents a strikethrough (i.e. there is a closing ~)
-        if (preg_match('/:(\w+):/', $markdown, $matches)) {
+        if (preg_match('/^:(\w+):/', $markdown, $matches)) {
             return [
                 // return the parsed tag as an element of the abstract syntax tree and call `parseInline()` to allow
                 // other inline markdown elements inside this tag
