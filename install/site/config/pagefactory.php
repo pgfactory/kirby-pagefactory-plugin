@@ -6,8 +6,8 @@ $menuIcon = svg('site/plugins/pagefactory/assets/icons/menu.svg');
 return [
     'handleKirbyFrontmatter'        => false,
     'screenSizeBreakpoint'          => 480,
-    'defaultLanguage'               => 'de',
-    'defaultTargetForExternalLinks' => true,
+    'defaultLanguage'               => 'en',
+    // 'defaultTargetForExternalLinks' => true,  // -> used by Link() -> whether to open external links in new window
     // 'allowCustomCode'               => true,  // -> used by Macro and Include
     // 'imageAutoQuickview'            => true,  // -> used by Img() macro
     // 'imageAutoSrcset'               => true,  // -> used by Img() macro
