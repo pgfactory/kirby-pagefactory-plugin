@@ -484,6 +484,26 @@ EOT;
      * @param string $html
      * @return string
      */
+    public function resolveUrl(string $url): string
+    {
+        $patterns = [
+            '~/'        => '',
+            '~media/'   => 'media/',
+            '~assets/'  => 'content/assets/',
+            '~data/'    => 'site/custom/data/',
+            '~page/'    => PageFactory::$pagePath,
+        ];
+        $url = str_replace(array_keys($patterns), array_values($patterns), $url);
+        $url = normalizePath($url);
+        return $url;
+    } // resolveUrl
+
+
+    /**
+     * Resolves path patterns of type '~x/' to correct urls
+     * @param string $html
+     * @return string
+     */
     public function resolveUrls(string $html): string
     {
         $patterns = [
