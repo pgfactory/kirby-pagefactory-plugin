@@ -7,6 +7,7 @@ use Kirby;
 define('PFY_BASE_PATH',             'site/plugins/pagefactory/');
 define('PFY_DEFAULT_TEMPLATE_FILE', 'site/templates/page_template.html');
 define('PFY_USER_ASSETS_PATH',      'content/assets/');
+define('PFY_ICONS_PATH',            'assets/pagefactory/icons/');
 define('SVG_ICONS_PATH',            'site/plugins/pagefactory/install/assets/pagefactory/svg-icons/');
 define('PFY_CONFIG_FILE',           'site/config/pagefactory.php');
 define('PFY_CUSTOM_PATH',             'site/custom/');
