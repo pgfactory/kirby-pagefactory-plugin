@@ -3,7 +3,9 @@
  * Helper functions for Kirby PageFactory plugin
  */
 
-var lzyInitialNavConfig =document.getElementsByClassName('lzy-primary-nav').classList;
+//??? remove?:
+// var lzyInitialNavConfig = document.getElementsByClassName('lzy-primary-nav').classList;
+// const pubIconsPath = 'assets/pagefactory/pub-icons/';
 
 var elem = document.getElementsByClassName('lzy-onload-css');
 for (i=0;i<elem.length;i++) {
@@ -17,33 +19,7 @@ window.onresize = function() {
 }
 window.onload = function() {
     adaptToWidth();
-    loadIcons();
 }
-
-
-function loadIcons() {
-    const elems = document.querySelectorAll('.lzy-icon');
-    Array.from(elems).forEach(function (elem) {
-        let spanWrapper = document.createElement('span');
-        let span = document.createElement('span');
-        const iconClasses = elem.classList;
-        let icon = '';
-        for (let i in iconClasses) {
-            let el = iconClasses[i];
-            if ((typeof el === 'string') && (el.charAt(0) === '-')) {
-                icon = el.substr(1);
-                break;
-            }
-        }
-        if (!icon) {
-            return;
-        }
-        const url = hostUrl + 'media/pagefactory/svg-icons/' + icon + '.svg';
-        span.style.content = 'url('+url+')';
-        spanWrapper.append(span.cloneNode(true));
-        elem.append(spanWrapper.cloneNode(true));
-    });
-} // loadIcons
 
 
 function adaptToWidth() {

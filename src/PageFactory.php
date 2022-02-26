@@ -7,10 +7,11 @@ use Kirby;
 define('PFY_BASE_PATH',             'site/plugins/pagefactory/');
 define('PFY_DEFAULT_TEMPLATE_FILE', 'site/templates/page_template.html');
 define('PFY_USER_ASSETS_PATH',      'content/assets/');
-define('PFY_ICONS_PATH',            'assets/pagefactory/icons/');
-define('SVG_ICONS_PATH',            'site/plugins/pagefactory/install/assets/pagefactory/svg-icons/');
+define('CUSTOM_ICONS_PATH',         'assets/pagefactory/icons/');
+define('PFY_ICONS_PATH',            'site/plugins/pagefactory/assets/icons/');
+define('PFY_PUB_ICONS_PATH',        'site/plugins/pagefactory/assets/pub-icons/');
 define('PFY_CONFIG_FILE',           'site/config/pagefactory.php');
-define('PFY_CUSTOM_PATH',             'site/custom/');
+define('PFY_CUSTOM_PATH',           'site/custom/');
 define('PFY_USER_CODE_PATH',        PFY_CUSTOM_PATH.'macros/');
 define('PFY_MACROS_PATH',           PFY_BASE_PATH.'macros/');
 define('PFY_CSS_PATH',              'assets/');
@@ -53,6 +54,7 @@ class PageFactory
     public static $user = null;
     public static $slug = null;
     public static $urlToken = null;
+    public static $availableIcons = null;
 
     public $config;
     public $templateFile = '';
@@ -87,6 +89,9 @@ class PageFactory
         self::$siteOptions = $this->kirby->options(); // from site/config/config.php
         unset(self::$siteOptions['hooks']);
         $this->pageOptions = $this->page->content()->data();
+
+        // find available icons:
+        self::$availableIcons = findAvailableIcons();
 
         $extensions = getDir(rtrim(PFY_BASE_PATH, '/').'-*');
         foreach ($extensions as $extension) {

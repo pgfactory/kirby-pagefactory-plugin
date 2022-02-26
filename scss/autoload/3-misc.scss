@@ -205,30 +205,19 @@
 
 
     //=== Icons ====================
+    .lzy-link-icon,
     .lzy-icon {
         position: relative;
+        display: inline-block;
         width: 1em;
-        height: 1em;
-        margin: 0 calc((var(--lzy-icon-size, 1.8em) - 1em) * 0.5);
-        transform: translateY(0.15em);
-
-        > span {
-            display: inline-block;
-            position: relative;
+        height: 0.8em; // not to overshoot rest of line
+        transform: translateY(0.12em);
+        > * {
+            position: absolute;
+            bottom: 0;
+            left: 0;
             width: 1em;
             height: 1em;
-            transform: rotate(var(--lzy-icon-angle, 0deg));
-            transform-origin: 50% 50%;
-        }
-
-        > span > span,
-        svg {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            height: var(--lzy-icon-size, 1.8em);
-            width: var(--lzy-icon-size, 1.8em);
-            transform: translate(-54.5%, -49.5%);
         }
     }
 

@@ -3,45 +3,20 @@
 #lzy.lzy-default-styling .lzy-encapsulated,
 .lzy-default-styling {
 
-    .Xlzy-icon-external {
-        position: relative;
-        padding-left: 1.1em;
-        &::before {
-            content: '';
-            background-image: url(../../../../assets/pagefactory/svg-icons/external.svg);
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 1em;
-            height: 1em;
-            background-size: 100%;
-            background-repeat: no-repeat;
-        }
-    }
     .lzy-link {
-        white-space: nowrap;
+        white-space: nowrap; // avoid line-break between icon and link-text
     }
-
+    .lzy-link-text {
+        white-space: normal;
+    }
     .lzy-link-icon {
-        position: relative;
-        display: inline-block;
-        width: 1em;
-        height: 1em;
-        margin-right: 0.3em;
-    }
-    .lzy-link svg {
-        width: 1em;
-        height: 1em;
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
+        margin-right: 0.25em;
     }
     .lzy-icon-trailing .lzy-link-icon {
         margin-right: 0;
-        margin-left: 0.3em;
+        margin-left: 0.25em;
     }
     .lzy-link-download .lzy-link-icon {
-        transform: translateY(0.1em);
+        transform: scale(1.2);
     }
 } // lzy-default-styling

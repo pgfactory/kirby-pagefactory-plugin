@@ -1,7 +1,7 @@
 <?php
 // Configuration file for PageFactory plugin
 
-$menuIcon = svg('site/plugins/pagefactory/assets/menu.svg');
+$menuIcon = svg('site/plugins/pagefactory/assets/icons/menu.svg');
 
 return [
     'handleKirbyFrontmatter'        => false,

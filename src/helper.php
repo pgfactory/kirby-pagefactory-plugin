@@ -580,12 +580,17 @@ function removeCStyleComments(string $str): string
  /**
   * Reads content of a directory. Automatically ignores any filenames starting with '#'.
   * @param string $pat  Optional glob-style pattern
+  * @param string $associative  Return as associative array
   * @return array
   */
-function getDir(string $pat): array
+function getDir(string $pat, $associative = false): array
 {
     if (strpos($pat, '{') === false) {
-        $files = glob($pat);
+        if (strpos($pat, '*') !== false) {
+            $files = glob($pat);
+        } else {
+            $files = glob(fixPath($pat).'*', GLOB_BRACE);
+        }
     } else {
         $files = glob($pat, GLOB_BRACE);
     }
@@ -599,6 +604,13 @@ function getDir(string $pat): array
         if (is_dir($item)) {
             $files[$i] = $item.'/';
         }
+    }
+    if ($associative === 'name_only') {
+        $filenames = array_map(function ($e) { return base_name($e, false); }, $files);
+        $files = array_combine($filenames, $files);
+    } elseif ($associative) {
+        $filenames = array_map(function ($e) { return basename($e); }, $files);
+        $files = array_combine($filenames, $files);
     }
     return $files;
 } // getDir
@@ -727,6 +739,19 @@ function deleteFiles($files): void
         }
     }
 } // deleteFiles
+
+
+ /**
+  * Checks predefined paths to find available icons
+  * @return array
+  */
+ function findAvailableIcons()
+ {
+     $availableIcons = getDir(PFY_PUB_ICONS_PATH, 'name_only');
+     $availableIcons = array_merge($availableIcons, getDir(PFY_ICONS_PATH, 'name_only'));
+     return array_merge($availableIcons, getDir(CUSTOM_ICONS_PATH, 'name_only'));
+ } // findAvailableIcons
+
 
 
  /**
@@ -1847,21 +1872,25 @@ function fatalError($str): void
 } // fatalError
 
 
+
  /**
   * Renders an icon
   * @param $iconName
+  * @param $class
   * @return string
   */
-function renderIcon($iconName)
+function renderIcon($iconName, $class = 'lzy-icon')
 {
-    $file = SVG_ICONS_PATH . "$iconName.svg";
-    if (file_exists($file)) {
-        $svg = file_get_contents($file);
-        $icon = "<span class='lzy-icon'><span>$svg</span></span>";
+    $iconFile = @PageFactory::$availableIcons[$iconName];
+    if (!$iconFile || !file_exists($iconFile)) {
+        throw new \Exception("Error: icon '$iconName.svg' not found.");
+    }
+
+    if (fileExt($iconFile) === 'svg') {
+        $icon = "<span class='$class'>".svg($iconFile).'</span>';
     } else {
-        $icon = ":$iconName:";
+        $icon = "<span class='$class'><img src='$iconFile' alt=''></span>";
     }
     return $icon;
 } // icon
-
 

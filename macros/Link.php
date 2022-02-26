@@ -413,20 +413,12 @@ class Link extends Macros
         }
 
         if ($icon) {
-            $icon = str_replace(array_keys($this->iconReplacements), array_values($this->iconReplacements), $icon);
-            $iconFile = PFY_ICONS_PATH . "$icon.svg";
-            if (!file_exists($iconFile)) {
-                $iconFile = SVG_ICONS_PATH . "$icon.svg";
-            }
-            if (file_exists($iconFile)) {
-                $icon = '<span class="lzy-link-icon">'.svg($iconFile).'</span>';
-            } else {
-                throw new \Exception("Error: icon '$icon.svg' not found.");
-            }
+            $iconName = str_replace(array_keys($this->iconReplacements), array_values($this->iconReplacements), $icon);
+            $icon = renderIcon($iconName, 'lzy-link-icon');
             if ($this->iconBefore) {
-                $this->text = "$icon<span>$this->text</span>";
+                $this->text = "$icon<span class='lzy-link-text'>$this->text</span>";
             } else {
-                $this->text = "<span>$this->text</span>$icon";
+                $this->text = "<span class='lzy-link-text'>$this->text</span>$icon";
             }
         }
     } // addIcon
