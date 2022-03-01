@@ -152,21 +152,20 @@ EOT;
      */
     private function execAsAdmin($cmds)
     {
-        if (!isAdminOrLocalhost()) {
-            $str = <<<EOT
-# Help
-
-You need to be logged in as Admin to use system commands.
-EOT;
-            PageFactory::$pg->setOverlay($str, true);
-            return;
-        }
-
         // note: 'debug' handled in PageFactory->__construct() => Utils->determineDebugState()
 
         foreach (explode(',', $cmds) as $cmd) {
             if (!isset($_GET[$cmd])) {
                 continue;
+            }
+            if (!isAdminOrLocalhost()) {
+                $str = <<<EOT
+# Help
+
+You need to be logged in as Admin to use system commands.
+EOT;
+                PageFactory::$pg->setOverlay($str, true);
+                return;
             }
             $arg = $_GET[$cmd];
             switch ($cmd) {
