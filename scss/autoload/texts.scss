@@ -101,7 +101,7 @@
     vertical-align: top;
   }
 
-  .lzy-tabulator-wrapper span:not(:last-child) {
+  .lzy-tabulator-wrapper > span:not(:last-child) {
     width: 6em;
   }
 
