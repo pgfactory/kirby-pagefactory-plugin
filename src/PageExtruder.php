@@ -782,11 +782,12 @@ EOT;
         // checks page-attrib, then site-attrib for requested keyword and returns it
         $out = @$this->frontmatter[$name];
         if ($name === 'robots') {
-            if ($out === false) {
-                $out = 'noindex';
+            if ($out === false) {   // false => activates default values
+                $out = 'noindex,nofollow,noarchive';
             } elseif ($out === true) {
                 return ''; // skip, 'index' is already default
             }
+            // => any other value rendered as is in robots meta tag
 
         }
         if (!$out) {
