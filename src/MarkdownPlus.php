@@ -872,13 +872,15 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
     {
         // check whether the marker really represents a strikethrough (i.e. there is a closing ~)
         if (preg_match('/^:(\w+):/', $markdown, $matches)) {
-            return [
-                // return the parsed tag as an element of the abstract syntax tree and call `parseInline()` to allow
-                // other inline markdown elements inside this tag
-                ['icon', $matches[1]],
-                // return the offset of the parsed text
-                strlen($matches[0])
-            ];
+            if (iconExists($matches[1])) {
+                return [
+                    // return the parsed tag as an element of the abstract syntax tree and call `parseInline()` to allow
+                    // other inline markdown elements inside this tag
+                    ['icon', $matches[1]],
+                    // return the offset of the parsed text
+                    strlen($matches[0])
+                ];
+            }
         }
         // in case we did not find a closing ~~ we just return the marker and skip 1 character
         return [['text', ':'], 1];

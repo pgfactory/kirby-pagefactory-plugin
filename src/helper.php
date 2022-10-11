@@ -1892,5 +1892,21 @@ function renderIcon($iconName, $class = 'lzy-icon')
         $icon = "<span class='$class'><img src='$iconFile' alt=''></span>";
     }
     return $icon;
-} // icon
+} // renderIcon
+
+
+
+ /**
+  * Checks whether icon-name can be converted
+  * @param $iconName
+  * @return bool
+  */
+function iconExists($iconName)
+{
+    $iconFile = @PageFactory::$availableIcons[$iconName];
+    if (!$iconFile || !file_exists($iconFile)) {
+        return false;
+    }
+    return true;
+} // iconExists
 
