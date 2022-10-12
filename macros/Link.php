@@ -290,9 +290,15 @@ class Link extends Macros
         if (($this->target === true) || ($this->target === 'newwin')) {
             $attr .= " target='_blank' rel='noreferrer'";
             $this->title .= '{{ lzy-opens-in-new-win }}';
+            if (!$this->icon) {
+                $this->icon = 'external';
+            }
         } elseif ($this->target) {
             $attr .= " target='{$this->target}' rel='noreferrer'";
             $this->title .= '{{ lzy-opens-in-new-win }}';
+            if (!$this->icon) {
+                $this->icon = 'external';
+            }
         }
 
         // title:
@@ -355,7 +361,6 @@ class Link extends Macros
     private function processRegularLink()
     {
         if ($this->isExternalLink) {
-            $this->icon = 'external';
             $this->addClass('lzy-link-https');
             $this->addClass('lzy-external-link');
             $this->addClass('lzy-print-url');
@@ -414,7 +419,11 @@ class Link extends Macros
 
         if ($icon) {
             $iconName = str_replace(array_keys($this->iconReplacements), array_values($this->iconReplacements), $icon);
-            $icon = renderIcon($iconName, 'lzy-link-icon');
+            if (iconExists($iconName)) {
+                $icon = renderIcon($iconName, 'lzy-link-icon');
+            } else {
+                $icon = '';
+            }
             if ($this->iconBefore) {
                 $this->text = "$icon<span class='lzy-link-text'>$this->text</span>";
             } else {
