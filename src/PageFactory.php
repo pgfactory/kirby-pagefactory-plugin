@@ -21,7 +21,7 @@ define('PFY_CACHE_PATH',            PFY_BASE_PATH.'.#cache/');
 define('PFY_MKDIR_MASK',             0700); // permissions for file accesses by PageFactory
 define('PFY_DEFAULT_TRANSVARS',     PFY_BASE_PATH.'variables/pagefactory.yaml');
 define('JQUERY',                    PFY_BASE_PATH.'third_party/jquery/jquery-3.6.0.min.js');
-define('PFY_PAGE_DEF_BASENAME',     '~page'); // use this name for meta-files (aka text-files) in page folders
+define('PFY_PAGE_DEF_BASENAME',     'zzz_page'); // use this name for meta-files (aka text-files) in page folders
 
 
 require_once __DIR__ . '/../third_party/vendor/autoload.php';
