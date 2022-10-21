@@ -46,4 +46,12 @@ Kirby::plugin('usility/pagefactory', [
             }
         ],
     ],
+
+    'blueprints' => [
+        'pages/'.PFY_PAGE_DEF_BASENAME => function() {
+            require_once 'site/plugins/pagefactory/src/panelHelper.php';
+            return assembleBlueprint();
+        },
+    ],
+
 ]);
