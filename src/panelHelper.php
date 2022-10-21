@@ -145,6 +145,7 @@ function assembleBlueprint()
 } // assembleBlueprint
 
 
+
 function getSidebar()
 {
     $str = <<<EOT
@@ -165,9 +166,10 @@ EOT;
 } // getSidebar
 
 
+
 function getTab($basename, $file)
 {
-    $name = str_replace(['-','.'], '_', basename($file, '.md'));
+    $name = filenameToVarname($file, false);
     $str = <<<EOT
 # tab:
 label: $name.md
@@ -180,7 +182,7 @@ columns:
       section_{$basename}_$name:
         type: fields
         fields:
-          {$name}_md:
+          $name:
             # label: $name
             type: textarea
             size: huge
@@ -188,6 +190,7 @@ columns:
 EOT;
     return \Kirby\Data\Yaml::decode($str, 'yaml');
 } // getTab
+
 
 
 function filenameToVarname($filename, $dashedResponse = true)
