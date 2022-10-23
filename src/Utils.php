@@ -729,10 +729,11 @@ EOT;
      */
     public function loadPfyConfig():void
     {
+        $this->pfy->config = PageFactory::$siteOptions;
         if (file_exists(PFY_CONFIG_FILE)) {
-            $this->pfy->config = array_merge(include(PFY_CONFIG_FILE), PageFactory::$siteOptions);
-        } else {
-            $this->pfy->config = PageFactory::$siteOptions;
+            if (is_array($a = include(PFY_CONFIG_FILE))) {
+                $this->pfy->config = array_merge($a, $this->pfy->config);
+            }
         }
         // propagate variables from config into TransVars:
         if (isset($this->pfy->config['variables'])) {
