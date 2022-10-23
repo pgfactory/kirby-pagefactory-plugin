@@ -16,7 +16,7 @@ fi
 
 
 ## Clone PageFactory:
-/usr/local/bin/git clone $branch git@github.com:pgfactory/kirby-pagefactory-plugin site/plugins/pagefactory
+/usr/local/bin/git clone $branch https://github.com/pgfactory/kirby-pagefactory-plugin.git site/plugins/pagefactory
 echo PageFactory installed
 
 
@@ -25,6 +25,7 @@ if [ ! -e site/templates/page_template.html ]; then
 	cp -R site/plugins/pagefactory/install/assets/   assets
 	cp -R site/plugins/pagefactory/install/content/  content
 	cp -R site/plugins/pagefactory/install/site/     site
+	mv content/home/home.txt content/home/zzz_page.txt
 	echo Essential files copied to final location
 fi
 
