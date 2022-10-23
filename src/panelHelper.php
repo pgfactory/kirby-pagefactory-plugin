@@ -4,6 +4,13 @@
  * Panel Helper
 */
 
+/**
+ * Invoked by hook 'route:before' in site/config.php
+ * Copies content of .md files in given folder to page's meta file, i.e. zzz_page.txt
+ * Note: this is a work-around till somebody develops a panel plugin that directly accesses .md files
+ * @param $path
+ * @return void
+ */
 function onPanelLoad($path)
 {
     $path = str_replace(['+', 'panel/pages/'], ['/', ''], $path);
@@ -45,6 +52,14 @@ function onPanelLoad($path)
 
 
 
+/**
+ * Invoked by hook 'page.create:after' in site/config.php
+ * When user creates a page in panel, meta-file is renamed to PFY_PAGE_DEF_BASENAME (i.e. zzz_page.txt) and
+ * an .md file is created with H1 preset to pagename
+ * Note: this is a work-around till somebody develops a panel plugin that directly accesses .md files
+ * @param \Kirby\Cms\Page $page
+ * @return void
+ */
 function onPageCreateAfter(Kirby\Cms\Page $page)
 {
     $basename = $page->slug();
@@ -68,6 +83,14 @@ function onPageCreateAfter(Kirby\Cms\Page $page)
 
 
 
+/**
+ * Invoked by hook 'page.update:after' in site/config.php
+ * Reads page's metafile, finds fields containing content data, updates corresponding .md files
+ * Note: this is a work-around till somebody develops a panel plugin that directly accesses .md files
+ * @param \Kirby\Cms\Page $newPage
+ * @return void
+ * @throws \Kirby\Exception\InvalidArgumentException
+ */
 function onPageUpdateAfter(Kirby\Cms\Page $newPage)
 {
     // export data from auto.lang.txt to md-file:
@@ -94,6 +117,11 @@ function onPageUpdateAfter(Kirby\Cms\Page $newPage)
 
 
 
+/**
+ * @param \Kirby\Cms\File $newFile
+ * @return void
+ * @throws \Kirby\Exception\InvalidArgumentException
+ */
 function onFileUpdateAfter(Kirby\Cms\File $newFile)
 {
     $content = $newFile->content()->data();
@@ -108,6 +136,11 @@ function onFileUpdateAfter(Kirby\Cms\File $newFile)
 
 
 
+/**
+ * Invoked by hook 'blueprints' in site/plugins/pagefactory/index.php on 'panel/pages'
+ * When user opens panel, dynamically creates a blueprint featuring editing fields form .md files
+ * @return array
+ */
 function assembleBlueprint()
 {
     $callPath = str_replace('+', '/', kirby()->path());
@@ -146,6 +179,12 @@ function assembleBlueprint()
 
 
 
+/**
+ * Helper to assembleBlueprint()
+ * Renders blueprint fragment for side bar -> pages and files
+ * @return array
+ * @throws \Kirby\Exception\InvalidArgumentException
+ */
 function getSidebar()
 {
     $str = <<<EOT
@@ -167,6 +206,14 @@ EOT;
 
 
 
+/**
+ * Helper to assembleBlueprint()
+ * Renders blueprint fragment for tab containing md editor
+ * @param $basename
+ * @param $file
+ * @return array
+ * @throws \Kirby\Exception\InvalidArgumentException
+ */
 function getTab($basename, $file)
 {
     $name = filenameToVarname($file, false);
@@ -193,6 +240,13 @@ EOT;
 
 
 
+/**
+ * Helper: converts a filename to a form compatible with meta-file resp. blueprint
+ * Note: conversion is not reversible, original file needs to be found by searching dir.
+ * @param $filename
+ * @param $dashedResponse
+ * @return array|string|string[]|null
+ */
 function filenameToVarname($filename, $dashedResponse = true)
 {
     if ($dashedResponse) {
