@@ -7,10 +7,11 @@
 # be stored somewhere else.
 
 if [ "$1" != "" ]; then
-	echo "Ok go"
 	mkdir $1
 	cd $1
 fi
+
+echo "Installing to folder -> `pwd`"
 
 
 ## select the branch you want to check out:
@@ -23,7 +24,7 @@ if [ ! -e kirby/ ]; then
 	/usr/local/bin/git clone https://github.com/getkirby/plainkit.git .
 	echo Kirby installed
 else
-	echo Kerby already installed
+	echo Kirby already installed
 fi
 
 
