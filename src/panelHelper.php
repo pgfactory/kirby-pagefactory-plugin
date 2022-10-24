@@ -160,16 +160,17 @@ function assembleBlueprint()
         $blueprint = $session->get($pgId);
         return $blueprint;
     }
-    //if (preg_match('|^panel/pages/(.*) /files/ (.+) \.md|x', $callPath, $m)) {
-    //    $callPath = $m[1];
-    //}
+
     $basename = basename($pgId);
 
-    $targetPage = page($pgId);
-    if (!$targetPage) {
-        return $session->get($pgId);
+    if (!($targetPage = page($pgId))) {
+        $path = site()->drafts()->data[$pgId]->root();
+        if (!$path) {
+            return $session->get($pgId);
+        }
+    } else {
+        $path = $targetPage->root();
     }
-    $path = $targetPage->root();
     if (file_exists($path) && ($mds = glob("$path/*.md"))) {
         $blueprint = [
             'Title' => $basename,
