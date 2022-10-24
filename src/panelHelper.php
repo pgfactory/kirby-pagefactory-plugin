@@ -63,22 +63,31 @@ function onPanelLoad($path)
 function onPageCreateAfter(Kirby\Cms\Page $page)
 {
     $basename = $page->slug();
-    $propertyData = $page->propertyData();
-    $template = $propertyData['template'];
-    // rename .txt file to '~page.xy.txt' if necessary:
-    // -> this activates the automatic blueprint
-    if ($template !== PFY_PAGE_DEF_BASENAME) {
-        $path = $page->diruri() . '/';
-        $lang = kirby()->language()->code();
-        $tmpl0 = "content/$path$template.$lang.txt";
-        $tmpl1 = "content/$path".PFY_PAGE_DEF_BASENAME.".$lang.txt";
-        rename($tmpl0, $tmpl1);
-    }
 
     $filename = "1_$basename.md";
     $newPageTitle = $page->title();
     $md = "\n\n# $newPageTitle\n\n";
     file_put_contents($page->root() . '/' . $filename, $md);
+
+    $propertyData = $page->propertyData();
+    $template = $propertyData['template'];
+
+    // rename .txt file to '~page.xy.txt' if necessary:
+    // -> this activates the automatic blueprint
+    $path = 'content/' . $page->diruri() . '/';
+    $lang = kirby()->language()->code();
+    $metaFilename = PFY_PAGE_DEF_BASENAME.".$lang.txt";
+    $tmpl1 = "$path$metaFilename";
+    if ($template !== PFY_PAGE_DEF_BASENAME) {
+        // rename if necessary:
+        $tmpl0 = "$path$template.$lang.txt";
+        rename($tmpl0, $tmpl1);
+    } else {
+        $tmpl1 = "$path$metaFilename";
+    }
+    // add field refering to md content:
+    $varname = filenameToVarname($filename);
+    file_put_contents($tmpl1, "\n\n----\n$varname:\n\n$md", FILE_APPEND);
 } // onPageCreateAfter
 
 
