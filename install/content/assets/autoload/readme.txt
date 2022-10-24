@@ -1,7 +1,6 @@
 PageFactory
 -----------
 
-Place your site-wide assets (.css, .js etc)  here.
-Loading instructions will be injected into the rendered HTML code.
+Place your site-wide assets (.css/.scss and .js etc)  here.
+Loading instructions will be injected into the HTML code.
 
-//??? scss compiled?

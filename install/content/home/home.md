@@ -2,20 +2,6 @@
 // Frontmatter: place page specific instructions here, i.e. styles and much more:
 scss: |
 	strong a { color: red; }
-	.lzy-page {
-		padding: 2em;
-	}
-	.lzy-primary-nav {
-		display: flex;
-		justify-content: flex-end;
-	}
-	.lzy-footer {
-		margin-top: 3em;
-		border-top: 1px solid #ccc;
-		padding-top: 1em;
-		display: flex;
-		justify-content: space-between;
-	}
 ---
 
 
@@ -25,7 +11,7 @@ You successfully installed **[Kirby CMS](https://getkirby.com/)** and the **[Pag
 
 {{ vgap( 2em ) }}
 
-To modify this page, edit the file ``site/home/home.md``.
+To modify this page, edit the file ``site/1_home/home.md``.
 
 {{ vgap( 2em ) }}
 
@@ -35,8 +21,10 @@ To add additional pages and administer your new website in general,
 
 {{ vgap(2em) }}
 
--> Visit the [PageFactory Website](https://pagefactory.info/).
+-> Visit the {{ link('https://pagefactory.info/','PageFactory Documentation Website', target:newwin) }}.
 
 Have fun!
 
 
+__END__
+Everything below the special tag __END__ will be ignored...
