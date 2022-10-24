@@ -12,7 +12,6 @@ use Exception;
 
 class PageExtruder
 {
-    //ToDo: -> private?
     public $content;
     public $headInjections = '';
     public $bodyEndInjections;

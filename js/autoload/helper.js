@@ -3,9 +3,6 @@
  * Helper functions for Kirby PageFactory plugin
  */
 
-//??? remove?:
-// var lzyInitialNavConfig = document.getElementsByClassName('lzy-primary-nav').classList;
-// const pubIconsPath = 'assets/pagefactory/pub-icons/';
 
 var elem = document.getElementsByClassName('lzy-onload-css');
 for (i=0;i<elem.length;i++) {
@@ -46,7 +43,6 @@ function scrollIntoView( selector, container ) {
     // if (typeof container !== 'undefined') {
         let elem = document.querySelector( selector );
         elem.scrollIntoView(false);
-
     // } else {
         // document.querySelector('html, body').animate({
         //     scrollTop: document.querySelector( selector ).offset().top
@@ -60,7 +56,7 @@ function execAjaxPromise(cmd, options, url) {
     return new Promise(function(resolve) {
 
         if (typeof url === 'undefined') {
-            url = appRoot + '';//ToDo
+            url = appRoot;
         }
         url = appendToUrl(url, cmd);
         $.ajax({
