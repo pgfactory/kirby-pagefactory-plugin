@@ -28,6 +28,7 @@ class Scss
         if (!$this->scssphp) {
             $this->scssphp = new Compiler;
         }
+        $scssStr = $this->resolvePaths($scssStr);
         return $this->scssphp->compileString($scssStr)->getCss();
     } // compileStr
 
@@ -42,7 +43,6 @@ class Scss
     public function compileFile(string $srcFile, string $targetFile): void
     {
         $srcStr = $this->getFile($srcFile);
-        $srcStr = $this->resolvePaths($srcStr);
         $this->scssphp->setImportPaths(dir_name($srcFile));
         $css = $this->compileStr($srcStr);
         $css = "/* === Automatically created from ".basename($srcFile)." - do not modify! === */\n\n$css";
@@ -51,13 +51,17 @@ class Scss
 
 
 
+    /**
+     * converts path patterns starting with ~
+     * @param $srcStr
+     * @return array|string|string[]
+     */
     private function resolvePaths($srcStr)
     {
         $appRoot = PageFactory::$appUrl;
         $pathPatterns = [
             '~/'            => $appRoot,
-            '~media/'       => $appRoot.'media/',
-//???            '~page/'        => PageFactory::$pageUrl,
+            '~assets/'       => $appRoot.'assets/',
         ];
         $srcStr = str_replace(array_keys($pathPatterns), array_values($pathPatterns), $srcStr);
 
