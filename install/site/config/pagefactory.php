@@ -36,7 +36,7 @@ return [
         // prepare rest as individual files ready for explicit queueing/loading:
         '*' => [
             'site/plugins/pagefactory/scss/*',
-            'site/plugins/pagefactory/third_party/jquery/jquery-3.6.0.min.js',
+            'site/plugins/pagefactory/third_party/jquery/jquery-3.6.1.min.js',
             'site/plugins/pagefactory/js/*',
         ],
     ],
