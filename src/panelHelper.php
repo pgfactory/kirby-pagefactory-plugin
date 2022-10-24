@@ -70,7 +70,7 @@ function onPageCreateAfter(Kirby\Cms\Page $page)
     file_put_contents($page->root() . '/' . $filename, $md);
 
     $propertyData = $page->propertyData();
-    $template = $propertyData['template'];
+    $template = @$propertyData['template'];
 
     // rename .txt file to '~page.xy.txt' if necessary:
     // -> this activates the automatic blueprint
@@ -78,14 +78,13 @@ function onPageCreateAfter(Kirby\Cms\Page $page)
     $lang = kirby()->language()->code();
     $metaFilename = PFY_PAGE_DEF_BASENAME.".$lang.txt";
     $tmpl1 = "$path$metaFilename";
-    if ($template !== PFY_PAGE_DEF_BASENAME) {
-        // rename if necessary:
-        $tmpl0 = "$path$template.$lang.txt";
-        rename($tmpl0, $tmpl1);
-    } else {
-        $tmpl1 = "$path$metaFilename";
+    $tmpl0 = "$path$template.$lang.txt";
+    if (!file_exists($tmpl0)) {
+        return;
     }
-    // add field refering to md content:
+    $varname = filenameToVarname($filename);
+    file_put_contents($tmpl0, "\n\n----\n$varname:\n\n$md");
+    rename($tmpl0, $tmpl1);
     $varname = filenameToVarname($filename);
     file_put_contents($tmpl1, "\n\n----\n$varname:\n\n$md", FILE_APPEND);
 } // onPageCreateAfter
@@ -160,18 +159,10 @@ function assembleBlueprint()
         $blueprint = $session->get($pgId);
         return $blueprint;
     }
-
     $basename = basename($pgId);
 
-    if (!($targetPage = page($pgId))) {
-        $path = site()->drafts()->data[$pgId]->root();
-        if (!$path) {
-            return $session->get($pgId);
-        }
-    } else {
-        $path = $targetPage->root();
-    }
-    if (file_exists($path) && ($mds = glob("$path/*.md"))) {
+    $path = getPagePath($pgId);
+    if ($path && file_exists($path) && ($mds = glob("$path/*.md"))) {
         $blueprint = [
             'Title' => $basename,
             'tabs'  => [],
@@ -186,6 +177,28 @@ function assembleBlueprint()
     }
     return $blueprint;
 } // assembleBlueprint
+
+
+
+/**
+ * Finds the filesystem path of a page, recursively and independent of page state.
+ * @param $pattern
+ * @return string
+ */
+function getPagePath($pattern)
+{
+    $elems = explode('/', $pattern);
+    $obj = site();
+    foreach ($elems as $elem) {
+        $obj = $obj->findPageOrDraft($elem);
+    }
+    if ($obj) {
+        $path = $obj->root();
+    } else {
+        $path = null;
+    }
+    return $path;
+} // getPagePath
 
 
 
