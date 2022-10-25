@@ -7,6 +7,7 @@ return [
     'handleKirbyFrontmatter'        => false,
     'screenSizeBreakpoint'          => 480,
     'defaultLanguage'               => 'en',
+    // 'allowNonPfyPages'              => true,  // -> if true, Pagefactory will skip checks for presence of metafiles
     // 'defaultTargetForExternalLinks' => true,  // -> used by Link() -> whether to open external links in new window
     // 'allowCustomCode'               => true,  // -> used by Macro and Include
     // 'imageAutoQuickview'            => true,  // -> used by Img() macro

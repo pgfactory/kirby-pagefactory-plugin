@@ -13,14 +13,22 @@
  */
 function onPanelLoad($path)
 {
+    $allowNonPfyPages = \Usility\PageFactory\Utils::readPfyConfig('allowNonPfyPages', false);
+
     $path = str_replace(['+', 'panel/pages/'], ['/', ''], $path);
     if (!($pg = page($path))) {
         return;
     }
+    checkMetaFiles();
+
     $path = $pg->root();
     $txts = glob("$path/".PFY_PAGE_DEF_BASENAME."*.txt");
     if (!$txts) {
-        return;
+        if ($allowNonPfyPages) {
+            return;
+        } else {
+            throw new Exception("Meta-file missing in page folder (i.e. '" . PFY_PAGE_DEF_BASENAME . ".txt')");
+        }
     }
 
     // read all .md files, store in $mdContents:
@@ -51,6 +59,60 @@ function onPanelLoad($path)
 } // onPanelLoad
 
 
+/**
+ * Checks all page folders, creates metafiles for all supported languages if missing.
+ * If it's missing and allowNonPfyPages is true, an exception is thrown.
+ * If multilang is active, missing lang variantes are created based on the primary lang.
+ * @return void
+ * @throws Exception
+ */
+function checkMetaFiles()
+{
+    $allowNonPfyPages = \Usility\PageFactory\Utils::readPfyConfig('allowNonPfyPages', false);
+
+    if (!$language = kirby()->language()) {
+        $language = \Usility\PageFactory\Utils::readPfyConfig('defaultLanguage', 'en');
+    }
+    $langTag = '.'.$language;
+    if (!$languages = kirby()->languages()) {
+        $languages = [];
+        $langTag = '';
+    }
+
+    // loop over all pages:
+    $pages = site()->pages()->index();
+    foreach ($pages as $page) {
+        $path = $page->root();
+        if ((strpos($path, 'content/assets') !== false) ||
+            (strpos($path, 'content/error') !== false)) {
+            continue;
+        }
+        $primaryMetaFilename = "$path/".PFY_PAGE_DEF_BASENAME."$langTag.txt";
+        if (!file_exists($primaryMetaFilename)) {
+            $primaryMetaFilename0 = "$path/".PFY_PAGE_DEF_BASENAME.".txt";
+            if (file_exists($primaryMetaFilename0)) {
+                if ($languages) {
+                    rename($primaryMetaFilename0, $primaryMetaFilename);
+                }
+            } else {
+                if ($allowNonPfyPages) {
+                    continue;
+                } else {
+                    throw new Exception("Meta-file missing in page folder (i.e. $primaryMetaFilename)");
+                }
+            }
+        }
+        foreach ($languages as $lang) {
+            $metaFilename = "$path/".PFY_PAGE_DEF_BASENAME.".$lang.txt";
+            if (($primaryMetaFilename === $metaFilename) || file_exists($metaFilename)) {
+                continue;
+            }
+            copy($primaryMetaFilename, $metaFilename);
+        }
+    }
+} // checkMetaFiles
+
+
 
 /**
  * Invoked by hook 'page.create:after' in site/config.php
@@ -75,18 +137,17 @@ function onPageCreateAfter(Kirby\Cms\Page $page)
     // rename .txt file to '~page.xy.txt' if necessary:
     // -> this activates the automatic blueprint
     $path = 'content/' . $page->diruri() . '/';
-    $lang = kirby()->language()->code();
-    $metaFilename = PFY_PAGE_DEF_BASENAME.".$lang.txt";
-    $tmpl1 = "$path$metaFilename";
-    $tmpl0 = "$path$template.$lang.txt";
-    if (!file_exists($tmpl0)) {
+    $languages = kirby()->language();
+    $lang = $languages ? '.'.$languages->code() : '';
+    $origMetaFile = "$path$template$lang.txt";
+    $metaFilename = PFY_PAGE_DEF_BASENAME."$lang.txt";
+    $newMetaFile = "$path$metaFilename";
+    if (!file_exists($origMetaFile)) {
         return;
     }
     $varname = filenameToVarname($filename);
-    file_put_contents($tmpl0, "\n\n----\n$varname:\n\n$md");
-    rename($tmpl0, $tmpl1);
-    $varname = filenameToVarname($filename);
-    file_put_contents($tmpl1, "\n\n----\n$varname:\n\n$md", FILE_APPEND);
+    file_put_contents($origMetaFile, "\n\n----\n$varname:\n\n$md", FILE_APPEND);
+    rename($origMetaFile, $newMetaFile);
 } // onPageCreateAfter
 
 
