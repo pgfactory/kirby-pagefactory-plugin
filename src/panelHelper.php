@@ -74,7 +74,7 @@ function checkMetaFiles()
         $language = \Usility\PageFactory\Utils::readPfyConfig('defaultLanguage', 'en');
     }
     $langTag = '.'.$language;
-    if (!$languages = kirby()->languages()) {
+    if (!$languages = kirby()->languages()->toArray()) {
         $languages = [];
         $langTag = '';
     }
@@ -103,6 +103,7 @@ function checkMetaFiles()
             }
         }
         foreach ($languages as $lang) {
+            $lang = $lang['code'];
             $metaFilename = "$path/".PFY_PAGE_DEF_BASENAME.".$lang.txt";
             if (($primaryMetaFilename === $metaFilename) || file_exists($metaFilename)) {
                 continue;
