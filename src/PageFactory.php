@@ -20,7 +20,7 @@ define('PFY_LOGS_PATH',             'site/logs/');
 define('PFY_CACHE_PATH',            PFY_BASE_PATH.'.#cache/');
 define('PFY_MKDIR_MASK',             0700); // permissions for file accesses by PageFactory
 define('PFY_DEFAULT_TRANSVARS',     PFY_BASE_PATH.'variables/pagefactory.yaml');
-define('JQUERY',                    PFY_BASE_PATH.'third_party/jquery/jquery-3.6.1.min.js');
+define('PFY_JQUERY_FILE',           'jquery-3.6.1.min.js');
 define('PFY_PAGE_DEF_BASENAME',     'zzz_page'); // use this name for meta-files (aka text-files) in page folders
 
 
@@ -301,7 +301,7 @@ class PageFactory
                 // prepare rest as individual files ready for explicit queueing/loading:
                 '*' => [
                     'site/plugins/pagefactory/scss/*',
-                    'site/plugins/pagefactory/third_party/jquery/jquery-3.6.0.min.js',
+                    'site/plugins/pagefactory/third_party/jquery/'.PFY_JQUERY_FILE,
                     'site/plugins/pagefactory/js/*',
                 ],
             ];

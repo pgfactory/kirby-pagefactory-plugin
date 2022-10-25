@@ -634,7 +634,7 @@ EOT;
 
         $jsFilesInjection = $this->getFilesLoadingCode('js');
         if ($this->jQueryActive) {
-            $jsFilesInjection = $this->getFileLoadingCode(basename(JQUERY), 'js').$jsFilesInjection;
+            $jsFilesInjection = $this->getFileLoadingCode(PFY_JQUERY_FILE, 'js').$jsFilesInjection;
         }
         $jsFilesInjection .= $this->getPageFolderAssetsCode('js');
 
