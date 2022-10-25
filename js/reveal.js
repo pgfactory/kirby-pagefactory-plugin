@@ -9,19 +9,19 @@ jQuery.extend(jQuery.expr[':'], {
 });
 
 // init:
-$('.lzy-reveal-controller-elem').each(function() {
+$('.pfy-reveal-controller-elem').each(function() {
 	const $this = $( this );
 	let $target = null;
 
 	if ($this.prop('tagName') === 'SELECT') {		// case dropdown:
 		$('[data-reveal-target]', $this).each(function () {
 			$target = $( $(this).attr('data-reveal-target') );
-			if (!$target.parent().hasClass('lzy-reveal-container')) {
-				$target.wrap("<div class='lzy-reveal-container'></div>").show();
+			if (!$target.parent().hasClass('pfy-reveal-container')) {
+				$target.wrap("<div class='pfy-reveal-container'></div>").show();
 				$target.css('margin-top', '-10000px');
 			}
 			if ( this.selected ) {
-				$target.parent().addClass('lzy-elem-revealed');
+				$target.parent().addClass('pfy-elem-revealed');
 				$(this).attr('aria-expanded', 'true');
 			} else {
 				$(this).attr('aria-expanded', 'false');
@@ -34,33 +34,33 @@ $('.lzy-reveal-controller-elem').each(function() {
 		if ( !$target.length ) {
 			$target = $( $('[data-reveal-target]', $this).attr('data-reveal-target') );
 		}
-		if (!$target.parent().hasClass('lzy-reveal-container')) {
-			$target.wrap("<div class='lzy-reveal-container'></div>").show();
+		if (!$target.parent().hasClass('pfy-reveal-container')) {
+			$target.wrap("<div class='pfy-reveal-container'></div>").show();
 			$target.css('margin-top', '-10000px');
 		}
 		if (this.checked) {
 			$this.attr('aria-expanded', 'true');
-			$target.parent().addClass('lzy-elem-revealed');
+			$target.parent().addClass('pfy-elem-revealed');
 		} else {
 			$this.attr('aria-expanded', 'false');
 		}
 	}
 
-	let $revealContainer = $target.closest('.lzy-reveal-container');
+	let $revealContainer = $target.closest('.pfy-reveal-container');
 	$revealContainer.find(':focusable').each(function (){
 		let $el = $(this);
 		let tabindex = $el.attr('tabindex');
 		if (typeof tabindex === 'undefined') {
 			tabindex = 0;
 		}
-		$el.addClass('lzy-focus-disabled').attr('tabindex', -1).data('tabindex', tabindex);
+		$el.addClass('pfy-focus-disabled').attr('tabindex', -1).data('tabindex', tabindex);
 	});
 }); // init
 
 
 
 // initialize target height:
-$('.lzy-reveal-container').each(function() {
+$('.pfy-reveal-container').each(function() {
 	const $revealContainer = $(this);
 	let $target = $('> div', $revealContainer);
 	const boundingBox = $target[0].getBoundingClientRect();
@@ -72,17 +72,17 @@ $('.lzy-reveal-container').each(function() {
 
 
 // setup triggers:
-$('body').on('change', '.lzy-reveal-controller-elem', function(e) {
-	lzyOperateRevealPanel( this );
+$('body').on('change', '.pfy-reveal-controller-elem', function(e) {
+	pfyOperateRevealPanel( this );
 });
-$('body').on('click', '.lzy-reveal-controller-elem', function(e) {
+$('body').on('click', '.pfy-reveal-controller-elem', function(e) {
 	e.stopImmediatePropagation();
 	e.stopPropagation();
 });
 
 
 
-function lzyOperateRevealPanel( that )
+function pfyOperateRevealPanel( that )
 {
 	const $revealController = $( that );
 	let type = false;
@@ -99,39 +99,39 @@ function lzyOperateRevealPanel( that )
 
 	if ( type === 'dropdown') {							// case select:
 		$('[data-reveal-target]', $revealController).each(function () {
-			$( $(this).attr('data-reveal-target') ).parent().removeClass('lzy-elem-revealed');
+			$( $(this).attr('data-reveal-target') ).parent().removeClass('pfy-elem-revealed');
 			$(this).attr('aria-expanded', 'false');
 		});
 
 		// open selected:
-		$target.parent().addClass('lzy-elem-revealed');
+		$target.parent().addClass('pfy-elem-revealed');
 		$revealController.attr('aria-expanded', 'true');
 		return;
 
 	} else if (type === 'radio') { 						// case radio: close all others
 		$revealController.parent().siblings().each(function() {
-			const $revealController1 = $('.lzy-reveal-controller-elem', $( this ));
+			const $revealController1 = $('.pfy-reveal-controller-elem', $( this ));
 			const $target1 = $( $revealController1.attr('data-reveal-target') );
 			const $container1 = $target1.parent();
 			$revealController1.attr('aria-expanded', 'false');
-			$container1.removeClass('lzy-elem-revealed');
+			$container1.removeClass('pfy-elem-revealed');
 		});
 
 	}
 
 	// now operate:
-	const $revealContainer = $target.closest('.lzy-reveal-container');
+	const $revealContainer = $target.closest('.pfy-reveal-container');
 	$target.css({ transition: 'margin-top 0.3s' });
 
-	if ( !$revealContainer.hasClass('lzy-elem-revealed') ) { // open:
+	if ( !$revealContainer.hasClass('pfy-elem-revealed') ) { // open:
 		$revealContainer.show();
 		setTimeout(function () {
 			$revealController.attr('aria-expanded', 'true');
-			$target.parent().addClass('lzy-elem-revealed');
+			$target.parent().addClass('pfy-elem-revealed');
 		}, 30);
 
 		// ensable all focusable elements inside reveal-container:
-		$('.lzy-focus-disabled', $revealContainer).each(function () {
+		$('.pfy-focus-disabled', $revealContainer).each(function () {
 			let $el = $( this );
 			let tabindex = $el.data('tabindex');
 			if ((typeof tabindex !== 'number') || (tabindex < 0)) {
@@ -151,10 +151,10 @@ function lzyOperateRevealPanel( that )
 		$target.css({ marginTop: marginTop });
 
 		$revealController.attr('aria-expanded', 'false');
-		$target.parent().removeClass('lzy-elem-revealed');
+		$target.parent().removeClass('pfy-elem-revealed');
 
 		// disable all focusable elements inside reveal-container:
-		$('.lzy-focus-disabled', $revealContainer).each(function () {
+		$('.pfy-focus-disabled', $revealContainer).each(function () {
 			let $this = $( this );
 			let tabindex = $this.attr('tabindex');
 			if ((typeof tabindex !== 'number') || (tabindex < 0)) {
@@ -167,6 +167,6 @@ function lzyOperateRevealPanel( that )
 			$revealContainer.hide();
 		}, 300);
 	}
-} // lzyOperateRevealPanel
+} // pfyOperateRevealPanel
 
 

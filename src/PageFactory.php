@@ -215,7 +215,7 @@ class PageFactory
         self::$trans->setVariable('page-url', self::$pageUrl);
         self::$trans->setVariable('lang', self::$langCode);
         self::$trans->setVariable('lang-active', self::$lang);
-        self::$trans->setVariable('lzy-body-tag-attributes', $this->bodyTagAttributes);
+        self::$trans->setVariable('pfy-body-tag-attributes', $this->bodyTagAttributes);
 
         $this->utils->setLanguageSelector();
 
@@ -249,19 +249,19 @@ class PageFactory
         $version = 'Kirby v'. Kirby::version(). " + PageFactory $gitTag";
         self::$trans->setVariable('generator', $version);
 
-        // 'user', 'lzy-logged-in-as-user', 'lzy-backend-link':
+        // 'user', 'pfy-logged-in-as-user', 'pfy-backend-link':
         $appUrl = self::$appUrl;
         $loginIcon = svg('site/plugins/pagefactory/assets/user.svg');
         $user = kirby()->user();
         if ($user) {
             $username = (string)$user->nameOrEmail();
             self::$trans->setVariable('user', $username);
-            self::$trans->setVariable('lzy-login-button', "<button class='lzy-login-button' title='{{ lzy-edit-user-account }}'>$loginIcon</span></button>");
+            self::$trans->setVariable('pfy-login-button', "<button class='pfy-login-button' title='{{ pfy-edit-user-account }}'>$loginIcon</span></button>");
         } else {
-            self::$trans->setVariable('lzy-logged-in-as-user', "<a href='{$appUrl}login'>Login</a>");
-            self::$trans->setVariable('lzy-login-button', "<button class='lzy-login-button' title='{{ lzy-login-button-label }}'>$loginIcon</button>");
+            self::$trans->setVariable('pfy-logged-in-as-user', "<a href='{$appUrl}login'>Login</a>");
+            self::$trans->setVariable('pfy-login-button', "<button class='pfy-login-button' title='{{ pfy-login-button-label }}'>$loginIcon</button>");
         }
-        self::$trans->setVariable('lzy-backend-link', "<a href='{$appUrl}panel' target='_blank'>{{ lzy-admin-panel-link-text }}</a>");
+        self::$trans->setVariable('pfy-backend-link', "<a href='{$appUrl}panel' target='_blank'>{{ pfy-admin-panel-link-text }}</a>");
     } // setStandardVariables
 
 

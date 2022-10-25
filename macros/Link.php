@@ -229,7 +229,7 @@ class Link extends Macros
         // handle link categories:
         switch($this->linkCat) {
             case 'download':
-                $this->class .= ' lzy-link-download';
+                $this->class .= ' pfy-link-download';
                 $this->download = true;
                 if (!$this->icon) {
                     $this->icon = 'download';
@@ -237,11 +237,11 @@ class Link extends Macros
                 if (!$this->text) {
                     $this->text = base_name($this->url);
                 }
-                $this->title .= "{{ lzy-opens-download }}";
+                $this->title .= "{{ pfy-opens-download }}";
                 break;
 
             case 'pdf':
-                $this->class .= ' lzy-link-pdf';
+                $this->class .= ' pfy-link-pdf';
                 $this->icon = 'pdf';
                 $this->text = base_name($this->url);
                 $this->target = true;
@@ -253,9 +253,9 @@ class Link extends Macros
                 break;
 
             case 'special':
-                $this->class .= " lzy-link-$this->type";
+                $this->class .= " pfy-link-$this->type";
                 $this->icon = $this->type;
-                $this->title .= "{{ lzy-opens-$this->type }}";
+                $this->title .= "{{ pfy-opens-$this->type }}";
                 break;
 
             case 'mail':
@@ -273,9 +273,9 @@ class Link extends Macros
 
         // icon:
         if (!$this->iconBefore) {
-            $this->class .= ' lzy-icon-trailing';
+            $this->class .= ' pfy-icon-trailing';
         }
-        $class = trim("lzy-link $this->class");
+        $class = trim("pfy-link $this->class");
         $attr .= " class='$class'";
 
         // alt:
@@ -289,13 +289,13 @@ class Link extends Macros
         }
         if (($this->target === true) || ($this->target === 'newwin')) {
             $attr .= " target='_blank' rel='noreferrer'";
-            $this->title .= '{{ lzy-opens-in-new-win }}';
+            $this->title .= '{{ pfy-opens-in-new-win }}';
             if (!$this->icon) {
                 $this->icon = 'external';
             }
         } elseif ($this->target) {
             $attr .= " target='{$this->target}' rel='noreferrer'";
-            $this->title .= '{{ lzy-opens-in-new-win }}';
+            $this->title .= '{{ pfy-opens-in-new-win }}';
             if (!$this->icon) {
                 $this->icon = 'external';
             }
@@ -348,7 +348,7 @@ class Link extends Macros
             $this->hiddenText = trim("{$this->args['hiddenText']} $this->hiddenText");
         }
         if ($this->hiddenText) {
-            $this->text .= "<span class='lzy-invisible'>{$this->hiddenText}</span>";
+            $this->text .= "<span class='pfy-invisible'>{$this->hiddenText}</span>";
         }
         return $this->text;
     } // getText
@@ -361,9 +361,9 @@ class Link extends Macros
     private function processRegularLink()
     {
         if ($this->isExternalLink) {
-            $this->addClass('lzy-link-https');
-            $this->addClass('lzy-external-link');
-            $this->addClass('lzy-print-url');
+            $this->addClass('pfy-link-https');
+            $this->addClass('pfy-external-link');
+            $this->addClass('pfy-print-url');
             $this->target = @$this->pfy->config['defaultTargetForExternalLinks'];
         }
     } // processRegularLink
@@ -375,7 +375,7 @@ class Link extends Macros
      */
     private function processMailLink()
     {
-        $this->class .= ' lzy-link-mail';
+        $this->class .= ' pfy-link-mail';
         $this->icon = 'mail';
         $this->proto = 'mailto:';
         if (!$this->text) {
@@ -420,14 +420,14 @@ class Link extends Macros
         if ($icon) {
             $iconName = str_replace(array_keys($this->iconReplacements), array_values($this->iconReplacements), $icon);
             if (iconExists($iconName)) {
-                $icon = renderIcon($iconName, 'lzy-link-icon');
+                $icon = renderIcon($iconName, 'pfy-link-icon');
             } else {
                 $icon = '';
             }
             if ($this->iconBefore) {
-                $this->text = "$icon<span class='lzy-link-text'>$this->text</span>";
+                $this->text = "$icon<span class='pfy-link-text'>$this->text</span>";
             } else {
-                $this->text = "<span class='lzy-link-text'>$this->text</span>$icon";
+                $this->text = "<span class='pfy-link-text'>$this->text</span>$icon";
             }
         }
     } // addIcon

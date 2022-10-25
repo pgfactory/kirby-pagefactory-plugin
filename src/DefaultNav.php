@@ -8,9 +8,9 @@ define('NAV_ARROW', '<span><svg viewBox="0 0 24 24" fill="none" xmlns="http://ww
 
  // classes:
 define('NAV_LIST_TAG',  'ol');          // the list tag to be used
-define('NAV_LEVEL',     'lzy-lvl-');    // identifies the nesting level
-define('NAV_CURRENT',   'lzy-curr');    // the currently opened page
-define('NAV_ACTIVE',    'lzy-active');  // currently open page and all its ancestors
+define('NAV_LEVEL',     'pfy-lvl-');    // identifies the nesting level
+define('NAV_CURRENT',   'pfy-curr');    // the currently opened page
+define('NAV_ACTIVE',    'pfy-active');  // currently open page and all its ancestors
 
 class DefaultNav
 {
@@ -41,7 +41,7 @@ class DefaultNav
 
         $this->deep = ($this->args['type'] !== 'top');
 
-        if (strpos($wrapperClass, 'lzy-nav-collapsed')) {
+        if (strpos($wrapperClass, 'pfy-nav-collapsed')) {
             $this->hidden = 'true';
         }
 
@@ -71,11 +71,11 @@ class DefaultNav
 
         $out = <<<EOT
 
-    <div id='lzy-nav-$inx' class='lzy-nav-wrapper $wrapperClass'>
-      <nav class='lzy-nav $class'>
+    <div id='pfy-nav-$inx' class='pfy-nav-wrapper $wrapperClass'>
+      <nav class='pfy-nav $class'>
 $out
       </nav>
-    </div><!-- /lzy-nav-wrapper -->
+    </div><!-- /pfy-nav-wrapper -->
 EOT;
         return $out;
     } // render
@@ -114,11 +114,11 @@ EOT;
             }
 
             if ($this->deep && $hasChildren) {
-                $aElem = "<span class='lzy-nav-label'>$title</span><span class='lzy-nav-arrow' ".
+                $aElem = "<span class='pfy-nav-label'>$title</span><span class='pfy-nav-arrow' ".
                          "aria-hidden='{$this->hidden}'>{$this->arrow}</span>";
-                $class .= ' lzy-has-children lzy-nav-has-content';
+                $class .= ' pfy-has-children pfy-nav-has-content';
                 $out .= "  $indent<li class='$class'><a href='$url'>$aElem</a>\n";
-                $out .= "  $indent  <div class='lzy-nav-sub-wrapper' aria-hidden='{$this->hidden}'>\n";
+                $out .= "  $indent  <div class='pfy-nav-sub-wrapper' aria-hidden='{$this->hidden}'>\n";
                 $out .= $this->_render($pg->children());
                 $out .= "  $indent  </div>\n";
                 $out .= "  $indent</li>\n";

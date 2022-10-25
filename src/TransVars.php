@@ -341,7 +341,7 @@ class TransVars
         $argStr = str_replace('↵', "\n", $argStr);
         $html = <<<EOT
 
-    <div class="lzy-source-code lzy-encapsulated">
+    <div class="pfy-source-code pfy-encapsulated">
         <pre><code>&#123;{ $macroName($argStr)$end</code></pre>
     </div>
 
@@ -357,25 +357,25 @@ EOT;
     public function render(): string
     {
         PageFactory::$pg->addAssets('site/plugins/pagefactory/scss/transvar-list.scss');
-        $out = "\t<dl class='lzy-transvar-list'>\n";
+        $out = "\t<dl class='pfy-transvar-list'>\n";
         $vars = self::$transVars;
         ksort($vars);
         $keys = array_keys(self::$transVars);
         natcasesort($keys);
         foreach ($keys as $varName) {
             $rec = self::$transVars[$varName];
-            $out .= "\t\t<dt class='lzy-transvar-key'>$varName</dt>\n";
+            $out .= "\t\t<dt class='pfy-transvar-key'>$varName</dt>\n";
 
             if ($varName === 'content') {
-                $out .= "\t\t\t<dd class='lzy-transvar-single-value'>(skipped)</dd>\n";
+                $out .= "\t\t\t<dd class='pfy-transvar-single-value'>(skipped)</dd>\n";
             } elseif (is_array($rec)) {
                 foreach ($rec as $lang => $value) {
                     $value = htmlentities($value);
-                    $out .= "\t\t\t<dd><span class='lzy-transvar-lang'>$lang</span><span>$value</span></dd>\n";
+                    $out .= "\t\t\t<dd><span class='pfy-transvar-lang'>$lang</span><span>$value</span></dd>\n";
                 }
             } else {
                 $value = htmlentities($rec);
-                $out .= "\t\t\t<dd><span class='lzy-transvar-lang'>_</span><span>$value</span></dd>\n";
+                $out .= "\t\t\t<dd><span class='pfy-transvar-lang'>_</span><span>$value</span></dd>\n";
             }
         }
         $out .= "\t</dl>\n";

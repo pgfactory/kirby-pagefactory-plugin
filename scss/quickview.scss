@@ -2,10 +2,10 @@
 **	Quickview Styles
 */
 //
-.lzy-quickview {
+.pfy-quickview {
 	cursor: zoom-in;
 }
-#lzy .lzy-quickview-overlay {
+#pfy .pfy-quickview-overlay {
 	position: fixed;
 	opacity: 0;
 	display: none;
@@ -17,14 +17,14 @@
 	background-color: rgba(200, 200, 200, 0.8);
 	cursor: zoom-out;
 }
-#lzy .lzy-quickview-overlay img {
+#pfy .pfy-quickview-overlay img {
 	position: absolute;
 	opacity: 0;
 	padding: 0;
 	margin: 0;
 	max-width: 100vw;
 }
-#lzy .lzy-quickview-overlay-active {
+#pfy .pfy-quickview-overlay-active {
 	display: block;
 	opacity: 1;
 	z-index: 999;
@@ -40,8 +40,8 @@
 	clip: rect(1px, 1px, 1px, 1px);
 }
 
-.lzy-laziest-load,
-.lzy-late-loading {
+.pfy-laziest-load,
+.pfy-late-loading {
 	position: relative;
 	background: #444;
 	background-image: url( ../rsc/loader_white.gif );

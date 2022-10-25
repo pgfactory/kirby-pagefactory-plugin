@@ -83,12 +83,12 @@ class Img extends Macros
         if ($args['id']) {
             $attributes .= " id='{$args['id']}'";
         } else {
-            $attributes .= " id='lzy-img-$inx'";
+            $attributes .= " id='pfy-img-$inx'";
         }
         if ($args['class']) {
             $this->class = $args['class'];
         } else {
-            $this->class = "lzy-img lzy-img-$inx";
+            $this->class = "pfy-img pfy-img-$inx";
         }
         if ($args['alt']) {
             $alt = str_replace("'", '&#39;', $args['alt']);
@@ -112,7 +112,7 @@ class Img extends Macros
         if (trim($this->class)) {
             $attributes = "class='{$this->class}' $attributes";
         } else {
-            $attributes = "class='lzy-img-$inx' $attributes";
+            $attributes = "class='pfy-img-$inx' $attributes";
         }
         if (!$src) {
             throw new \Exception("Error: image file '{$args['src']}' not found.");
@@ -127,7 +127,7 @@ class Img extends Macros
         if ($args['caption']) {
             $str = <<<EOT
 
-  <figure class="lzy-figure">
+  <figure class="pfy-figure">
     $str
     <figcaption>{$args['caption']}</figcaption>
   </figure>
@@ -326,7 +326,7 @@ EOT;
         if ($this->args['linkClass']) {
             $linkAttr = " class='{$this->args['linkClass']}'";
         } else {
-            $linkAttr = " class='lzy-img-link'";
+            $linkAttr = " class='pfy-img-link'";
         }
         if ($this->args['linkTarget'] === true) {
             $linkAttr .= " target='_blank'";
@@ -355,8 +355,8 @@ EOT;
     private function renderQuickview()
     {
         $qvDataAttr = '';
-        if ((!preg_match('/\blzy-noquickview\b/', $this->class))  // config setting, but no 'lzy-noquickview' override
-            || preg_match('/\blzy-quickview\b/', $this->class)) { // or 'lzy-quickview' class
+        if ((!preg_match('/\bpfy-noquickview\b/', $this->class))  // config setting, but no 'pfy-noquickview' override
+            || preg_match('/\bpfy-quickview\b/', $this->class)) { // or 'pfy-quickview' class
 
             $src = $this->srcFilePath;
             if ($src && file_exists($src)) {
@@ -365,8 +365,8 @@ EOT;
                 $this->imgFullsizeHeight = $h0;
                 $qvDataAttr = " data-qv-src='{$this->srcFileUrl}' data-qv-width='$w0' data-qv-height='$h0'";
                 PageFactory::$pg->addAssets('QUICKVIEW');
-                if (strpos($this->class, 'lzy-quickview') === false) {
-                    $this->class .= ' lzy-quickview';
+                if (strpos($this->class, 'pfy-quickview') === false) {
+                    $this->class .= ' pfy-quickview';
                 }
             }
         }

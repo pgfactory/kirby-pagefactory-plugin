@@ -1,12 +1,12 @@
 /* === Misc Styles (loaded asynchronously) =========== */
 /*
  * Variables:
- *  --lzy-icon-size
- *  --lzy-icon-angle
+ *  --pfy-icon-size
+ *  --pfy-icon-angle
  */
 
-#lzy.lzy-default-styling .lzy-encapsulated,
-.lzy-default-styling {
+#pfy.pfy-default-styling .pfy-encapsulated,
+.pfy-default-styling {
 
 
     /* --- pre ------------------------ */
@@ -24,10 +24,10 @@
 
 
     // --- Login ------------------------------
-    a.lzy-login-button {
+    a.pfy-login-button {
         border-bottom: none;
     }
-    .lzy-login-button {
+    .pfy-login-button {
         display: inline-block;
         position: relative;
         background: none;
@@ -46,11 +46,11 @@
         }
     }
 
-    .lzy-login-form .lzy-form-show-password input {
+    .pfy-login-form .pfy-form-show-password input {
         display: none;
     }
 
-    .lzy-account-form-wrapper .lzy-delete-profile-popup {
+    .pfy-account-form-wrapper .pfy-delete-profile-popup {
         position: absolute;
         bottom: 20px;
         left: 20px;
@@ -69,15 +69,15 @@
 
 
     /* --- Laguage Selection -------- */
-    .lzy-lang-elem {
+    .pfy-lang-elem {
         position: relative;
         display: inline-block;
         padding: 0 0.1em;
     }
-    .lzy-lang-flag .lzy-lang-elem {
+    .pfy-lang-flag .pfy-lang-elem {
         height: 1em;
         width: 1.4em;
-        &.lzy-active-lang > * {
+        &.pfy-active-lang > * {
             border: 2px solid gray;
             border-radius: 50%;
         }
@@ -103,7 +103,7 @@
             height: 1.4em;
             width: 1.4em;
         }
-        &.lzy-lang-elem > * {
+        &.pfy-lang-elem > * {
             color: transparent;
         }
         a {
@@ -111,7 +111,7 @@
         }
     }
 
-    .lzy-lang-selection a {
+    .pfy-lang-selection a {
         border-bottom: none;
     }
 
@@ -119,44 +119,44 @@
 
 
     // DB
-    .lzy-record-locked, .lzy-locked {
+    .pfy-record-locked, .pfy-locked {
         background: #dceeee;
         background: repeating-linear-gradient(-55deg, #eeffff, #eeffff 10px, #edf8f8 10px, #edf8f8 15px);
         cursor: not-allowed;
     }
 
-    .lzy-locked {
+    .pfy-locked {
         outline: 1px solid red;
     }
 
-    .lzy-record-locked {
+    .pfy-record-locked {
         outline: 1px dashed red;
     }
 
 
-    #lzy .lzy-element-locked,
-    #lzy .lzy-editable.lzy-element-locked {
+    #pfy .pfy-element-locked,
+    #pfy .pfy-editable.pfy-element-locked {
         background: #dceeee;
         background: repeating-linear-gradient(-55deg, #eeffff, #eeffff 10px, #edf8f8 10px, #edf8f8 15px);
         cursor: not-allowed !important;
     }
 
-    .lzy-element-locked *,
-    .lzy-editable.lzy-element-locked * {
+    .pfy-element-locked *,
+    .pfy-editable.pfy-element-locked * {
         cursor: not-allowed !important;
     }
 
-    .lzy-element-frozen,
-    .lzy-editable.lzy-element-frozen {
+    .pfy-element-frozen,
+    .pfy-editable.pfy-element-frozen {
         background: #eee;
         cursor: not-allowed;
     }
 
-    .lzy-inactive {
+    .pfy-inactive {
         color: #888;
     }
 
-    .lzy-login-menu .lzy-popup-container {
+    .pfy-login-menu .pfy-popup-container {
         padding: 1.5em 1em;
 
         li::before {
@@ -166,37 +166,37 @@
 
 
     // === Images ==========
-    a.lzy-img-link.lzy-img-link {
+    a.pfy-img-link.pfy-img-link {
         display: inline-block;
         padding: 0;
     }
 
-    .lzy-img-link::before {
+    .pfy-img-link::before {
         display: none;
     }
 
-    .lzy-img {
+    .pfy-img {
         max-width: 100%;
     }
 
-    .lzy-figure {
+    .pfy-figure {
         margin: 0;
     }
 
 
 
     // === Tooltipster
-    //.lzy-tooltip {
+    //.pfy-tooltip {
     //    border-bottom: 1px dashed #ddd;
     //}
     //
-    //.lzy-tooltip:hover {
+    //.pfy-tooltip:hover {
     //    border-bottom: 1px solid black;
     //}
 
 
     // === Timeout / freezeWindowAfter
-    .lzy-timedout {
+    .pfy-timedout {
         cursor: pointer;
     }
 
@@ -205,8 +205,8 @@
 
 
     //=== Icons ====================
-    .lzy-link-icon,
-    .lzy-icon {
+    .pfy-link-icon,
+    .pfy-icon {
         position: relative;
         display: inline-block;
         width: 1em;
@@ -222,7 +222,7 @@
     }
 
     // list of icons, i.e. output of ListIcons():
-    .lzy-icon-row.lzy-icon-row {
+    .pfy-icon-row.pfy-icon-row {
         display: inline-block;
         margin-right: 2em;
 
@@ -230,20 +230,20 @@
             display: inline-block;
         }
 
-        .lzy-icon-label {
+        .pfy-icon-label {
             width: 12em;
         }
 
-        .lzy-icon {
+        .pfy-icon {
             color: red;
         }
 
-        .lzy-icon-sample {
+        .pfy-icon-sample {
             color: #bbb;
         }
     }
 
-} // lzy-default-styling
+} // pfy-default-styling
 
 
 
@@ -251,13 +251,13 @@
 
 /* === Unite Gallery ==================*/
 /* bug workaround */
-.lzy-gallery.ug-gallery-wrapper {
+.pfy-gallery.ug-gallery-wrapper {
     height: unset !important;
 }
 .ug-tiles-preloader {
     display: none !important;
 }
-.lzy-album-error {
+.pfy-album-error {
     background: #fee;
     border: 1px solid red;
     padding: 1em 2em;

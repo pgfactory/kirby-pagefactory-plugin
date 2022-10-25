@@ -34,7 +34,7 @@ class Space extends Macros
         $class = $args['class'];
 
         $width = ($width) ? " style='width:$width'" : '';
-        $class = trim("lzy-h-space lzy-h-space-{$inx} $class");
+        $class = trim("pfy-h-space pfy-h-space-{$inx} $class");
         $str = "<span class='$class'$width></span>";
         return$str;
     }

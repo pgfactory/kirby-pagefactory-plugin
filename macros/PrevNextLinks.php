@@ -11,19 +11,19 @@ $macroConfig =  [
     'parameters' => [
         'class' => ['Class to be applied to the element', false],
         'wrapperClass' => ['Class to be applied to the wrapper element. '.
-            'Predefined: ".lzy-show-as-text" and ".lzy-show-as-arrows".', false],
+            'Predefined: ".pfy-show-as-text" and ".pfy-show-as-arrows".', false],
     ],
     'summary' => <<<EOT
 Renders two links, one to the next page, one to the previous page. Activates scripts to trigger on cursor 
 keys <- (left) and  -> (right).
 
 Classes:
-- .lzy-previous-page-link
-- .lzy-next-page-link
-- .lzy-show-as-text     13em>> predefined styles
-- .lzy-show-as-arrows     13em>> predefined styles
+- .pfy-previous-page-link
+- .pfy-next-page-link
+- .pfy-show-as-text     13em>> predefined styles
+- .pfy-show-as-arrows     13em>> predefined styles
 
-Use variables ``\{{ lzy-previous-page-text }}`` and ``\{{ lzy-next-page-text }}`` to define the text (visible and invisible parts).
+Use variables ``\{{ pfy-previous-page-text }}`` and ``\{{ pfy-next-page-text }}`` to define the text (visible and invisible parts).
 
 EOT,                                    // <- Help text to explain function of this macro
     'mdCompile' => false,               // <- whether output needs to be markdown-compiled
@@ -55,7 +55,7 @@ class PrevNextLinks extends Macros // <- modify classname (must be qual to name 
     {
         $this->class = $args['class'];
 
-        $out = "\n    <div class='lzy-page-switcher-wrapper {$args['wrapperClass']}'>\n";
+        $out = "\n    <div class='pfy-page-switcher-wrapper {$args['wrapperClass']}'>\n";
         $out .= $this->renderPrevLink();
         $out .= $this->renderNextLink();
         $out .= "    </div>\n";
@@ -81,11 +81,11 @@ class PrevNextLinks extends Macros // <- modify classname (must be qual to name 
         }
 
         if ($prev) {
-            PageFactory::$trans->setVariable('lzy-prev-page-title', (string)$prev->title());
+            PageFactory::$trans->setVariable('pfy-prev-page-title', (string)$prev->title());
             $url = $prev->url();
-            $prevLink = "<a href='$url' title='{{ lzy-link-to-prev-page }}'>\n\t\t{{ lzy-previous-page-text }}\n\t\t</a>";
+            $prevLink = "<a href='$url' title='{{ pfy-link-to-prev-page }}'>\n\t\t{{ pfy-previous-page-text }}\n\t\t</a>";
             $out = <<<EOT
-      <div class="lzy-page-switcher-links lzy-previous-page-link $this->class">
+      <div class="pfy-page-switcher-links pfy-previous-page-link $this->class">
         $prevLink
       </div>
 
@@ -104,11 +104,11 @@ EOT;
         $out = '<div></div>';
         $next = $this->findNext(page());
         if ($next) {
-            PageFactory::$trans->setVariable('lzy-next-page-title', (string)$next->title());
+            PageFactory::$trans->setVariable('pfy-next-page-title', (string)$next->title());
             $nextUrl = $next->url();
-            $nextLink = "<a href='$nextUrl' title='{{ lzy-link-to-next-page }}'>\n\t\t{{ lzy-next-page-text }}\n\t\t</a>";
+            $nextLink = "<a href='$nextUrl' title='{{ pfy-link-to-next-page }}'>\n\t\t{{ pfy-next-page-text }}\n\t\t</a>";
             $out = <<<EOT
-      <div class="lzy-page-switcher-links lzy-next-page-link $this->class">
+      <div class="pfy-page-switcher-links pfy-next-page-link $this->class">
         $nextLink
       </div>
 

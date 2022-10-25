@@ -4,7 +4,7 @@
  */
 
 
-var elem = document.getElementsByClassName('lzy-onload-css');
+var elem = document.getElementsByClassName('pfy-onload-css');
 for (i=0;i<elem.length;i++) {
     elem[i].setAttribute('media', 'all');
     console.log('async load: ');
@@ -24,11 +24,11 @@ function adaptToWidth() {
     console.log("document.documentElement.clientWidth;: " + document.documentElement.clientWidth);
     let windowWidth = document.documentElement.clientWidth;
   if (windowWidth < screenSizeBreakpoint) {
-    document.body.classList.add('lzy-small-screen');
-    document.body.classList.remove('lzy-large-screen');
+    document.body.classList.add('pfy-small-screen');
+    document.body.classList.remove('pfy-large-screen');
   } else {
-    document.body.classList.add('lzy-large-screen');
-    document.body.classList.remove('lzy-small-screen');
+    document.body.classList.add('pfy-large-screen');
+    document.body.classList.remove('pfy-small-screen');
   }
 }
 
@@ -88,12 +88,12 @@ function appendToUrl(url, arg) {
 
 
 function unTransvar( str ) {
-    // looks for '{{ lzy-... }}' patterns, removes them.
+    // looks for '{{ pfy-... }}' patterns, removes them.
     // Note: if site_enableFilesCaching is active, transvars will already be translated at this point,
     // so, this is just a fallback to beautify output during dev time
     if ( str.match(/{{/)) {
         // need to hide following line ('{{...}}') from being translated when preparing cache:
-        const patt = String.fromCharCode(123) + '{\\s*(lzy-)?(.*?)\\s*' + String.fromCharCode(125) + '}';
+        const patt = String.fromCharCode(123) + '{\\s*(pfy-)?(.*?)\\s*' + String.fromCharCode(125) + '}';
         const re = new RegExp( patt, 'g');
         str = str.replace(re, '$2');
     }
@@ -111,7 +111,7 @@ function pfyReload( arg, url, confirmMsg ) {
         newUrl = appendToUrl(newUrl, arg);
     }
     if (typeof confirmMsg !== 'undefined') {
-        lzyConfirm(confirmMsg).then(function() {
+        pfyConfirm(confirmMsg).then(function() {
             console.log('initiating page reload: "' + newUrl + '"');
             window.location.replace(newUrl);
         });

@@ -42,14 +42,14 @@ return [
     ],
 
     'variables' => [
-        'lzy-page-title' => '{{ page-title }} / {{ site-title }}',
+        'pfy-page-title' => '{{ page-title }} / {{ site-title }}',
         'webmaster-email' => 'webmaster@'.preg_replace('|^https?://([\w.-]+)(.*)|', "$1", site()->url()),
-        'lzy-small-screen-header' => <<<EOT
+        'pfy-small-screen-header' => <<<EOT
 
         <h1>{{ site-title }}</h1>
-        <button id="lzy-nav-menu-icon">$menuIcon</button>
+        <button id="pfy-nav-menu-icon">$menuIcon</button>
 EOT,
-        'lzy-footer' => ' Footer',
+        'pfy-footer' => ' Footer',
     ],
 
     // Options for dev phase:

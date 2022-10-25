@@ -177,16 +177,16 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
             $caption = $attrs['text'];
             $attrsStr = $attrs['htmlAttrs'];
             $attrsStr = preg_replace('/class=["\'].*?["\']/', '', $attrsStr);
-            $class = "lzy-table lzy-table-$inx";
+            $class = "pfy-table pfy-table-$inx";
             if ($attrs['class']) {
                 $class .= ' '.$attrs['class'];
             }
             if (!$attrs['id']) {
-                $attrsStr = "id='lzy-table-$inx' ".$attrsStr;
+                $attrsStr = "id='pfy-table-$inx' ".$attrsStr;
             }
             $attrsStr .= " class='$class'";
         } else {
-            $attrsStr = "id='lzy-table-$inx' class='lzy-table lzy-table-$inx'";
+            $attrsStr = "id='pfy-table-$inx' class='pfy-table pfy-table-$inx'";
         }
 
         // now render the table:
@@ -266,7 +266,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
             'marker' => $line[0],
             'attributes' => '',
             'literal' => false,
-            'lzyBlockType' => true
+            'pfyBlockType' => true
         ];
 
         // detect class or id and fence length (can be more than 3 backticks)
@@ -275,8 +275,8 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
         if (preg_match("/($marker{3,10})(.*)/",$line, $m)) {
             $fence = $m[1];
             $rest = trim($m[2]);
-            if ($rest && ($rest[0] === '{')) {      // non-lzy block: e.g. "::: {#id}
-                $block['lzyBlockType'] = false;
+            if ($rest && ($rest[0] === '{')) {      // non-pfy block: e.g. "::: {#id}
+                $block['pfyBlockType'] = false;
                 $depth = 1;
                 $rest = trim(str_replace(['{','}'], '', $rest));
             }
@@ -307,7 +307,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
                 $rest = $m[2];
                 if ($fence === $fenceEndCandidate) {    // end tag we have to consider:
                     if ($rest !== '') {    // case nested or consequitive block
-                        if ($block['lzyBlockType']) {   // lzy-style -> consecutive block starts:
+                        if ($block['pfyBlockType']) {   // pfy-style -> consecutive block starts:
                             $i--;
                             break;
                         }
@@ -315,7 +315,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
 
                     } else {                    // end of block
                         $depth--;
-                        if ($depth < 1) {       // only in case of non-lzyBlocks we may have to skip nested end-tags:
+                        if ($depth < 1) {       // only in case of non-pfyBlocks we may have to skip nested end-tags:
                             break;
                         }
                     }
@@ -452,7 +452,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
                 $elem = parent::parseParagraph($elem);
                 $line .= "<span class='c".($n+1)."'$style>$elem</span>";
             }
-            $out .= "<div class='lzy-tabulator-wrapper lzy-tabulator-wrapper-$inx'>$line</div>\n";
+            $out .= "<div class='pfy-tabulator-wrapper pfy-tabulator-wrapper-$inx'>$line</div>\n";
         }
         return $out;
     } // renderTabulator
@@ -1281,7 +1281,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
                 foreach ($files as $file) {
                     if ($wrapperTag) {
                         $i++;
-                        $class = " class='{$wrapperClass}lzy-included-$i'";
+                        $class = " class='{$wrapperClass}pfy-included-$i'";
                         $str = $this->includeFile($file, false);
                         $out .= <<<EOT
 

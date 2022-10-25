@@ -26,7 +26,7 @@ class Color extends Macros
 
     public function render($args, $argStr)
     {
-        $str = "<span style='color:var(--lzy-color, {$args['color']});'>{$args['text']}</span>";
+        $str = "<span style='color:var(--pfy-color, {$args['color']});'>{$args['text']}</span>";
         return$str;
     }
 }

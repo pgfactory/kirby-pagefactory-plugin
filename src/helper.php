@@ -1879,7 +1879,7 @@ function fatalError($str): void
   * @param $class
   * @return string
   */
-function renderIcon($iconName, $class = 'lzy-icon')
+function renderIcon($iconName, $class = 'pfy-icon')
 {
     $iconFile = @PageFactory::$availableIcons[$iconName];
     if (!$iconFile || !file_exists($iconFile)) {

@@ -1,22 +1,22 @@
-/* === Lzy-Buttons ========================= */
+/* === Pfy-Buttons ========================= */
 
-#lzy.lzy-default-styling .lzy-encapsulated,
-.lzy-default-styling {
+#pfy.pfy-default-styling .pfy-encapsulated,
+.pfy-default-styling {
 
-    .lzy-link {
+    .pfy-link {
         white-space: nowrap; // avoid line-break between icon and link-text
     }
-    .lzy-link-text {
+    .pfy-link-text {
         white-space: normal;
     }
-    .lzy-link-icon {
+    .pfy-link-icon {
         margin-right: 0.25em;
     }
-    .lzy-icon-trailing .lzy-link-icon {
+    .pfy-icon-trailing .pfy-link-icon {
         margin-right: 0;
         margin-left: 0.25em;
     }
-    .lzy-link-download .lzy-link-icon {
+    .pfy-link-download .pfy-link-icon {
         transform: scale(1.2);
     }
-} // lzy-default-styling
+} // pfy-default-styling

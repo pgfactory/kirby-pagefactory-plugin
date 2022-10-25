@@ -1,11 +1,11 @@
 
-.lzy-transvar-list {
+.pfy-transvar-list {
 	font-family: arial, sans-serif;
 	font-size: 9pt;
-	dt { 
+	dt {
 		color: red;
 		font-weight: bold;
-		&::after { 
+		&::after {
 			content: ':';
 			color: black;
 		}
@@ -18,16 +18,16 @@
 			vertical-align: top;
 		}
 	}
-	.lzy-transvar-lang {
+	.pfy-transvar-lang {
 		display: inline-block;
 		width: 2em;
 		color: orange;
-		&::after { 
+		&::after {
 			content: ':';
 			color: black;
 		}
 	}
-	span:nth-child(2) { 
+	span:nth-child(2) {
 		color: navy;
 		max-width: 30em;
 		display: inline-block;

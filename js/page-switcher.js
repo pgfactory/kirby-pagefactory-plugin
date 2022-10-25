@@ -2,8 +2,8 @@
 
 $( document ).ready(function() {
 
-    var prevLink = $('.lzy-previous-page-link a').attr('href');
-    var nextLink = $('.lzy-next-page-link a').attr('href');
+    var prevLink = $('.pfy-previous-page-link a').attr('href');
+    var nextLink = $('.pfy-next-page-link a').attr('href');
 
     // Touch gesture handling:
 	if ($('body').hasClass('touch')) {
@@ -17,11 +17,11 @@ $( document ).ready(function() {
 		        return;
             }
 			if ((typeof prevLink !== 'undefined') && prevLink && (ev.type === 'swiperight')) {
-                $( 'body' ).addClass('lzy-dimmed');
+                $( 'body' ).addClass('pfy-dimmed');
                 window.location = prevLink;
 			}
 			if ((typeof nextLink !== 'undefined') && nextLink && (ev.type === 'swipeleft')) {
-                $( 'body' ).addClass('lzy-dimmed');
+                $( 'body' ).addClass('pfy-dimmed');
                 window.location = nextLink;
 			}
 		});
@@ -76,10 +76,10 @@ function isProtectedTarget()
     if ($( document.activeElement ).closest('form').length ||	        // Focus within form field
         $( document.activeElement ).closest('input').length ||	        // Focus within input field
         $('.inhibitPageSwitch').length  ||				                // class .inhibitPageSwitch found
-        $('.lzy-slideshow-support').length  ||				                // class .lzy-slideshow-support found
+        $('.pfy-slideshow-support').length  ||				                // class .pfy-slideshow-support found
         ($('.ug-lightbox').length &&
             ($('.ug-lightbox').css('display') !== 'none')) ||            // special case: ug-album in full screen mode
-        $( document.activeElement ).closest('.lzy-panels-widget').length	// Focus within lzy-panels-widget field
+        $( document.activeElement ).closest('.pfy-panels-widget').length	// Focus within pfy-panels-widget field
     )
     {
         // console.log('skipping page-switcher');

@@ -1,7 +1,7 @@
 /* PageFactory Core CSS
 CSS-Variables:
-	--lzy-focus-color:
-    --lzy-lang-icon-size
+	--pfy-focus-color:
+    --pfy-lang-icon-size
 */
 
 @import '--definitions.scss';
@@ -27,11 +27,11 @@ html, body, section {
 
 
 // ======= Default Styling =========================
-#lzy.lzy-default-styling .lzy-encapsulated,
-.lzy-default-styling {
+#pfy.pfy-default-styling .pfy-encapsulated,
+.pfy-default-styling {
 
     // --- generic rules:
-    .lzy-dispno,
+    .pfy-dispno,
     .dispno,
     .disp-no,
     .disp_no {
@@ -41,7 +41,7 @@ html, body, section {
         display: block;
     }
     .sr-only,
-    .lzy-invisible,
+    .pfy-invisible,
     .invisible,
     .visually-hidden {
         position: absolute !important;
@@ -52,12 +52,12 @@ html, body, section {
         display: inline;
         clip: rect(1px, 1px, 1px, 1px);
     }
-    .lzy-disabled {
+    .pfy-disabled {
         filter: contrast(50%);
         opacity: 0.7;
     }
 
-    .lzy-no-decoration {
+    .pfy-no-decoration {
         text-decoration: none;
         border-bottom: none;
     }
@@ -66,15 +66,15 @@ html, body, section {
 
 
     // === visible on focus only:
-    .lzy-focus-only-visible {
+    .pfy-focus-only-visible {
         display: none;
         color: transparent;
         background: transparent;
         position: absolute;
         right: -1000vw;
     }
-    a:hover > .lzy-focus-only-visible,
-    a:focus > .lzy-focus-only-visible {
+    a:hover > .pfy-focus-only-visible,
+    a:focus > .pfy-focus-only-visible {
         display: inline-block;
         color: black;
         position: relative;
@@ -83,14 +83,14 @@ html, body, section {
 
 
 
-} // lzy-default-styling
+} // pfy-default-styling
 
 
 
 // === Screen-Size ==========================
-#lzy.lzy-default-styling.lzy-large-screen .lzy-encapsulated,
-.lzy-default-styling.lzy-large-screen {
-    .lzy-small-screen-only {
+#pfy.pfy-default-styling.pfy-large-screen .pfy-encapsulated,
+.pfy-default-styling.pfy-large-screen {
+    .pfy-small-screen-only {
         display: none;
     }
-} // lzy-large-screen
+} // pfy-large-screen

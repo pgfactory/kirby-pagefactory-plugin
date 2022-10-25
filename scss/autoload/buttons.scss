@@ -1,8 +1,8 @@
-/* === Lzy-Buttons ========================= */
+/* === Pfy-Buttons ========================= */
 
-#lzy.lzy-default-styling .lzy-encapsulated,
-.lzy-default-styling {
-    .lzy-button {
+#pfy.pfy-default-styling .pfy-encapsulated,
+.pfy-default-styling {
+    .pfy-button {
         color: #666;
         font-family: helvetica, arial, sans-serif;
         border-radius: 4px;
@@ -14,22 +14,22 @@
         background: linear-gradient(#FFF 0%, #EFEFEF 60%, #E1DFE2 100%);
         padding: 0.3em 1.5em;
     }
-    .lzy-slim-button,
-    .lzy-button-lean {
+    .pfy-slim-button,
+    .pfy-button-lean {
         padding: 0.3em 0.5em;
     }
-    .lzy-button a:visited,
-    a.lzy-button:visited,
-    .lzy-button a,
-    a.lzy-button {
+    .pfy-button a:visited,
+    a.pfy-button:visited,
+    .pfy-button a,
+    a.pfy-button {
         color: inherit;
     }
-    .lzy-button-submit {
+    .pfy-button-submit {
         color: #444;
         border-color: #444;
     }
-    .lzy-button-active {
+    .pfy-button-active {
         box-shadow: inset 0 0 4px red;
     }
 
-} // lzy-default-styling
+} // pfy-default-styling

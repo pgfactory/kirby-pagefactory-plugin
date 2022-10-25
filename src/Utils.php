@@ -92,7 +92,7 @@ setTimeout(function() {
 }, 1000);
 setTimeout(function() {
     console.log('now adding buttons');
-    $('body').append( "<div class='lzy-print-btns'><a href='./?print' class='lzy-button' >{{ lzy-print-now }}</a><a href='./' class='lzy-button' >{{ lzy-close }}</a></div>" ).addClass('lzy-print-preview');
+    $('body').append( "<div class='pfy-print-btns'><a href='./?print' class='pfy-button' >{{ pfy-print-now }}</a><a href='./' class='pfy-button' >{{ pfy-close }}</a></div>" ).addClass('pfy-print-preview');
 }, 1200);
 
 EOT;
@@ -136,9 +136,9 @@ EOT;
         $siteTitle = (string) site()->title();
         $css = <<<EOT
 body {
-    --lzy-page-title: '$pageTitle';
-    --lzy-site-title: '$siteTitle';
-    --lzy-url: '$url';
+    --pfy-page-title: '$pageTitle';
+    --pfy-site-title: '$siteTitle';
+    --pfy-url: '$url';
 }
 EOT;
         PageFactory::$pg->addCss($css);
@@ -301,13 +301,13 @@ EOT;
             if ($wrapperTag === null) {
                 $wrapperTag = 'section';
             }
-            $this->sectionClass = "lzy-section-$class";
-            $this->sectionId = "lzy-section-$inx";
+            $this->sectionClass = "pfy-section-$class";
+            $this->sectionId = "pfy-section-$inx";
             $this->fixFrontmatterCss();
             if ($wrapperTag) {
                 $this->pfy->content .= <<<EOT
 
-<$wrapperTag id='lzy-section-$inx' class='lzy-section-wrapper lzy-section-$inx lzy-section-$class'>
+<$wrapperTag id='pfy-section-$inx' class='pfy-section-wrapper pfy-section-$inx pfy-section-$class'>
 
 $html
 
@@ -614,7 +614,7 @@ EOT;
 
 
     /**
-     * Defines variable 'lzy-lang-selection', which expands to a language selection block,
+     * Defines variable 'pfy-lang-selection', which expands to a language selection block,
      * one language icon per supported language
      */
     public function setLanguageSelector():void
@@ -624,15 +624,15 @@ EOT;
             foreach ($this->pfy->supportedLanguages as $lang) {
                 $langCode = substr($lang, 0, 2);
                 if ($lang === PageFactory::$lang) {
-                    $out .= "<span class='lzy-lang-elem lzy-active-lang $langCode'><span>{{^ lzy-lang-select-$langCode }}</span></span> ";
+                    $out .= "<span class='pfy-lang-elem pfy-active-lang $langCode'><span>{{^ pfy-lang-select-$langCode }}</span></span> ";
                 } else {
-                    $out .= "<span class='lzy-lang-elem $langCode'><a href='?lang=$lang' title='{{ lzy-lang-select-title-$langCode }}'>{{^ lzy-lang-select-$langCode }}</a></span> ";
+                    $out .= "<span class='pfy-lang-elem $langCode'><a href='?lang=$lang' title='{{ pfy-lang-select-title-$langCode }}'>{{^ pfy-lang-select-$langCode }}</a></span> ";
                 }
             }
-            $out = "\t<span class='lzy-lang-selection'>$out</span>\n";
+            $out = "\t<span class='pfy-lang-selection'>$out</span>\n";
         }
 
-        PageFactory::$trans->setVariable('lzy-lang-selection', $out);
+        PageFactory::$trans->setVariable('pfy-lang-selection', $out);
     } // setLanguageSelector
 
 

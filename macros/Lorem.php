@@ -66,7 +66,7 @@ class Lorem extends Macros
             $str = ucfirst($str);
         }
         if ($wrapper) {
-            $class = trim("lzy-lorem lzy-lorem-$inx $class");
+            $class = trim("pfy-lorem pfy-lorem-$inx $class");
             $str = "<$wrapper class='$class'>" . ucfirst($str) . "</$wrapper>";
         }
 

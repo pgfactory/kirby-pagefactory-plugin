@@ -2,8 +2,8 @@
 # -- generic definitions
 
 
-vgap: "<div class='lzy-vgap' style='margin:0.7em 0;'>&nbsp;</div>"
-space: "<span class='lzy-h-space'' style='width:4ch'></span>"
+vgap: "<div class='pfy-vgap' style='margin:0.7em 0;'>&nbsp;</div>"
+space: "<span class='pfy-h-space'' style='width:4ch'></span>"
 
 #--- Login Link ----------------------------------
 #space: "&nbsp;&nbsp;"
@@ -14,49 +14,49 @@ clear: '<div style="clear:both;"></div>'
 
 #section: "\n</section>\n<section>\n"
 
-lzy-login-icon: "<span class='lzy-icon -user_male_circle'></span>"
+pfy-login-icon: "<span class='pfy-icon -user_male_circle'></span>"
 
-lzy-login-button-label: Login
+pfy-login-button-label: Login
 
-lzy-admin-panel-link-text:
+pfy-admin-panel-link-text:
     de: 'Admin'
     _: 'Admin'
 
-lzy-edit-user-account:
+pfy-edit-user-account:
     de: Benutzerkonto bearbeiten
     _:  Edit user account
 
 
 #--- nexttime ------------------------------------
-#lzy-nexttime-no-event-found:
+#pfy-nexttime-no-event-found:
 #    de: Keine Veranstaltung geplant
 #    _:  No event scheduled
 
 
 #--- Page Switcher Links ------------------------
-lzy-previous-page-text:
+pfy-previous-page-text:
     de: |
-        <span class='lzy-page-switcher-arrow'>⟨<span class='lzy-invisible'> zur vorherigen Seite</span></span>
-                  <span class='lzy-prev-page-title'>{{^ lzy-prev-page-title }}</span>
+        <span class='pfy-page-switcher-arrow'>⟨<span class='pfy-invisible'> zur vorherigen Seite</span></span>
+                  <span class='pfy-prev-page-title'>{{^ pfy-prev-page-title }}</span>
     _:  |
-        <span class='lzy-page-switcher-arrow'>⟨<span class='lzy-invisible'> to the previous page</span></span>
-                  <span class='lzy-prev-page-title'>{{^ lzy-prev-page-title }}</span>
+        <span class='pfy-page-switcher-arrow'>⟨<span class='pfy-invisible'> to the previous page</span></span>
+                  <span class='pfy-prev-page-title'>{{^ pfy-prev-page-title }}</span>
 
 
-lzy-next-page-text:
+pfy-next-page-text:
     de: |
-        <span class='lzy-next-page-title'>{{^ lzy-next-page-title }}</span>
-                  <span class='lzy-page-switcher-arrow'><span class='lzy-invisible'>zur nächsten Seite </span>⟩</span>
+        <span class='pfy-next-page-title'>{{^ pfy-next-page-title }}</span>
+                  <span class='pfy-page-switcher-arrow'><span class='pfy-invisible'>zur nächsten Seite </span>⟩</span>
     _:  |
-        <span class='lzy-next-page-title'>{{^ lzy-next-page-title }}</span>
-                  <span class='lzy-page-switcher-arrow'><span class='lzy-invisible'>to the next page </span>⟩</span>
+        <span class='pfy-next-page-title'>{{^ pfy-next-page-title }}</span>
+                  <span class='pfy-page-switcher-arrow'><span class='pfy-invisible'>to the next page </span>⟩</span>
 
 
-lzy-link-to-next-page:
+pfy-link-to-next-page:
     de: Zur nächsten Seite
     _:  To next page
 
-lzy-link-to-prev-page:
+pfy-link-to-prev-page:
     de: Zur vorherigen Seite
     _:  To previous page
 
@@ -65,7 +65,7 @@ lzy-link-to-prev-page:
 #     de: Benutzername
 #     _:  Username
 
-# lzy-username:
+# pfy-username:
 #     de: Benutzername
 #     _:  Username
 
@@ -122,161 +122,161 @@ Continue_:
     de: Weiter...
     en: Continue...
 
-lzy-cancel:
+pfy-cancel:
     de: 'Nein'
     _:  'No'
 
-lzy-confirm:
+pfy-confirm:
     de: 'Ja'
     _:  'Yes'
 
-lzy-on:
+pfy-on:
     de: 'Ein'
     _:  'On'
 
-lzy-off:
+pfy-off:
     de: 'Aus'
     _:  'Off'
 
-lzy-value-true:
+pfy-value-true:
     de: 'Ein'
     _:  'On'
 
-lzy-value-false:
+pfy-value-false:
     de: 'Aus'
     _:  'Off'
 
-lzy-combined-required-value-missing:
+pfy-combined-required-value-missing:
     de: 'Bitte mindestens eines dieser Felder ausfüllen:'
     _:  'Please fill in at least one of these fields:'
 
-lzy-form-email-notification-subject:
+pfy-form-email-notification-subject:
     de: 'Neue Daten empfangen'
     _:  'New data received'
 
-lzy-required-value-missing:
+pfy-required-value-missing:
     de: 'Bitte füllen Sie dieses Feld aus:'
     de2: 'Bitte fülle dieses Feld aus:'
     _:  'Please fill in this entry field:'
 
-lzy-form-required-comment:
-    de: '<span class="lzy-form-required-marker">*</span> Erforderliche Eingaben.'
-    _:  'Fields marked by <span class="lzy-form-required-marker">*</span> are mandatory.'
+pfy-form-required-comment:
+    de: '<span class="pfy-form-required-marker">*</span> Erforderliche Eingaben.'
+    _:  'Fields marked by <span class="pfy-form-required-marker">*</span> are mandatory.'
 
-lzy-yes:
+pfy-yes:
     de: 'Ja'
     _:  'Yes'
-lzy-no:
+pfy-no:
     de: 'Nein'
     _:  'No'
 
-lzy-form-data-preview-title:
+pfy-form-data-preview-title:
     de: 'Bisher empfangene Daten:'
     _:  'Data received until now:'
 
-lzy-form-expired:
+pfy-form-expired:
     de: 'Dieses Formular war zu lange offen,<br>Ihre Eingaben konnten nicht mehr akzeptiert werden.<br>Bitte versuchen Sie es erneut.'
     de2: 'Dieses Formular war zu lange offen,<br>Deine Eingaben konnten nicht mehr akzeptiert werden.<br>Bitte versuche es erneut.'
     _:  'Sorry, this form expired.<br>Please try again.'
 
 
-lzy-formelem-info-title:
+pfy-formelem-info-title:
     de: 'Erläuterungen: '
     _:  'Explanations: '
 
-lzy-form-data-received-ok:
+pfy-form-data-received-ok:
     de: "<p>Ihre Eingaben wurden übermittelt. Besten Dank.</p>"
     de2: "<p>Deine Eingaben wurden übermittelt. Besten Dank.</p>"
     _: "<p>Your entries have been successfully transmitted. Thank you.</p>"
 
-lzy-form-feedback-local: "<strong>Feedback on localhost only:</strong>"
+pfy-form-feedback-local: "<strong>Feedback on localhost only:</strong>"
 
-lzy-form-continue:
+pfy-form-continue:
     de: Weiter...
     _:  Continue...
 
-lzy-form-empty-form-warning:
+pfy-form-empty-form-warning:
     de: Sie haben noch keine Eingaben gemacht.
     de2: Du hast noch keine Eingaben gemacht.
     _:  You have not entered any data yet.
 
-lzy-form-empty-rec-received:
+pfy-form-empty-rec-received:
     de: '<h2>Hinweis</h2><p>Es wurden keine Daten empfangen.<br>Entsprechend wurde nichts abgespeichert.</p>'
     _:  '<h2>Note</h2><p>No input has be received on the server.</p><p>Therefore, nothing has been stored.</p>'
 
-lzy-form-override-honeypot:
+pfy-form-override-honeypot:
     de: '<h3>Vorsichtsmassnahme gegen Spam</h3><p>Bitte geben Sie Ihren Familienname erneut ein, diesmal in GROSSBUCHSTABEN:</p>'
     de2: '<h3>Vorsichtsmassnahme gegen Spam</h3><p>Bitte gib deinen Familienname erneut ein, diesmal in GROSSBUCHSTABEN:</p>'
     _:  '<h3>As a measure of precaution against spam</h3><p>Please enter your last name again, this time in CAPITAL LETTERS:</p>'
 
-lzy-form-override-honeypot-label:
+pfy-form-override-honeypot-label:
     de: 'Nachname in <strong>Grossbuchstaben</strong>:'
     _:  'Last name in <strong>capital letters</strong>:'
 
-lzy-form-duplicate-data:
+pfy-form-duplicate-data:
     de: '<h2>Hinweis</h2><p>Ihre Eingaben haben wir bereits früher empfangen.<br>Entsprechend wurde jetzt nichts abgespeichert.</p>'
     de2: '<h2>Hinweis</h2><p>Deine Eingaben haben wir bereits früher empfangen.<br>Entsprechend wurde jetzt nichts abgespeichert.</p>'
     _:  '<h2>Note</h2><p>Your input has been received before.</p><p>Therefore, nothing has been stored this time.</p>'
 
-lzy-form-email-confirmation-info:
+pfy-form-email-confirmation-info:
     de: 'Wenn Sie Ihre E-Mail Adresse hier eingeben, erhalten Sie eine Bestästigung per E-Mail.'
     de2: 'Wenn du deine E-Mail Adresse hier eingibst, erhältst du eine Bestästigung per E-Mail.'
     _:  'If you fill in your e-mail address, we will send you confirmation message.'
 
-lzy-form-confirmation-email-sent:
+pfy-form-confirmation-email-sent:
     de: 'Wir haben Ihnen eine Bestätigung per E-Mail geschickt.'
     de2: 'Wir haben dir eine Bestätigung per E-Mail geschickt.'
     _:  'We have sent a confirmation to your e-mail address.'
 
-lzy-form-response-email-template-not-found:
+pfy-form-response-email-template-not-found:
     de: 'Keine Template-Datei für das Versenden der E-Mail gefunden.'
     _:  'Template file for e-mail response not found.'
 
-lzy-form-data-key: _datakey
-#lzy-form-data-key: DataKey
+pfy-form-data-key: _datakey
+#pfy-form-data-key: DataKey
 
-lzy-table-record-locked:
+pfy-table-record-locked:
     de: 'Der gewünschte Datensatz ist derzeit gesperrt durch den Zugriff eines anderen Benutzers.'
     _:  'The requestes data record is currently locked by another user.'
 
-lzy-reveal-action-explanation:
+pfy-reveal-action-explanation:
     de: 'Öffnet einen verdeckten Inhaltsbereich'
     _:  'Opens a slide down region'
 
-lzy-form-submit-failure-warning:
+pfy-form-submit-failure-warning:
     de: "Achtung:<br>Es ist ein Fehler aufgetreten während des Abspeichern Ihrer Eingaben.<br>Bitte versuchen Sie es noch einmal.<br>Falls es auch dann nicht klappt, kontaktieren uns bitte: {{ webmaster_email }}"
     de2: "Achtung:<br>Es ist ein Fehler aufgetreten während des Abspeichern Ihrer Eingaben.<br>Bitte versuche es noch einmal.<br>Falls es auch dann nicht klappt, kontaktiere uns bitte: {{ webmaster_email }}"
     _:  "Warning:<br>an error occured while submitting your data.<br>Please try again.<br>If that doesn't help, contact {{ webmaster_email }}."
 
 #--- File Upload --------------------------
-lzy-fileadmin-button-tooltip:
+pfy-fileadmin-button-tooltip:
     de: 'Dateinverwaltung anzeigen'
     _:  'Show file manager'
 
-lzy-fileadmin-button-text:  # just in case the button should carry icon and text:
+pfy-fileadmin-button-text:  # just in case the button should carry icon and text:
     de: ''
     _:  ''
 
-lzy-file-upload-label:
+pfy-file-upload-label:
     de: Eine Datei hochladen
     en: Upload a file
 
-lzy-files-upload-label:
+pfy-files-upload-label:
     de: Datei(en) hochladen
     en: Upload file(s)
 
-lzy-uploaded-files-title:
+pfy-uploaded-files-title:
     de: "Hochgeladene Dateien:"
     en: "Uploaded files:"
 
 
-Loading: '<img class="lzy-loading-spinner" src="~/media/pagefactory/icons/loader.gif" alt="" />'
+Loading: '<img class="pfy-loading-spinner" src="~/media/pagefactory/icons/loader.gif" alt="" />'
 
-lzy-error-in-email-addr:
+pfy-error-in-email-addr:
     de: "Diese E-Mail Adresse ist unvollständig oder enthält einen Tippfehler"
     _:  "This e-mail address is incomplete or contains a typo"
 
-lzy-please-correct:
+pfy-please-correct:
     de: "Bitte korrigieren."
     _:  "Please correct."
 
@@ -285,75 +285,75 @@ lzy-please-correct:
 
 
 #--- Links -------------------------------
-lzy-opens-in-new-win:
+pfy-opens-in-new-win:
     de: Öffnet in neuem Fester
     en: Opens in new window
 
 
-lzy-opens-download:
+pfy-opens-download:
     de: Datei herunter laden
     en: Download file
 
 
-lzy-opens-pdf:
+pfy-opens-pdf:
     de: Öffnet das PDF in einem neuen Fester
     en: Opens the PDF in a new window
 
-lzy-opens-mail:
+pfy-opens-mail:
     de: Öffnet die Mail-App in einem neuen Fenster
     en: opens your mail app in a new window
 
-lzy-opens-sms:
+pfy-opens-sms:
     de: Öffnet die Messaging App in einem neuen Fenster
     en: Opens your default messaging app in a new window
 
-lzy-opens-tel:
+pfy-opens-tel:
     de: Öffnet die Telefon App in einem neuen Fenster
     en: Opens your default telephone app in a new window
 
-lzy-opens-mobile:
+pfy-opens-mobile:
     de: Öffnet die Telefon App in einem neuen Fenster
     en: Opens your default telephone app in a new window
 
-lzy-opens-gsm:
+pfy-opens-gsm:
     de: Öffnet die Telefon App in einem neuen Fenster
     en: Opens your default telephone app in a new window
 
-lzy-opens-geo:
+pfy-opens-geo:
     de: Öffnet die Karten App in einem neuen Fenster
     en: Opens your default messaging app in a new window
 
-lzy-opens-slack:
+pfy-opens-slack:
     de: Öffnet die Slack App in einem neuen Fenster
     en: Opens your Slack app in a new window
 
-lzy-opens-twitter:
+pfy-opens-twitter:
     de: Öffnet die Twitter App in einem neuen Fenster
     en: Opens your Twitter app in a new window
 
-lzy-opens-facebook:
+pfy-opens-facebook:
     de: Öffnet die Facebook App in einem neuen Fenster
     en: Opens your Facebook app in a new window
 
-lzy-opens-instagram:
+pfy-opens-instagram:
     de: Öffnet die Instragram App in einem neuen Fenster
     en: Opens your Instragram app in a new window
 
-lzy-opens-tiktok:
+pfy-opens-tiktok:
     de: Öffnet die Tiktok App in einem neuen Fenster
     en: Opens your Tiktok app in a new window
 
 
 
 
-lzy-next-page-link-label: "<span class='lzy-next-link-arrow lzy-focus-only-visible' title='{{ lzy-to-next-page-title }}'>{{ lzy-to-next-page-title }}</span>%nextLabel%"
-lzy-prev-page-link-label: "%prevLabel%<span class='lzy-prev-link-arrow lzy-focus-only-visible' title='{{ lzy-to-prev-page-title }}'>{{ lzy-to-prev-page-title }}</span>"
+pfy-next-page-link-label: "<span class='pfy-next-link-arrow pfy-focus-only-visible' title='{{ pfy-to-next-page-title }}'>{{ pfy-to-next-page-title }}</span>%nextLabel%"
+pfy-prev-page-link-label: "%prevLabel%<span class='pfy-prev-link-arrow pfy-focus-only-visible' title='{{ pfy-to-prev-page-title }}'>{{ pfy-to-prev-page-title }}</span>"
 
-lzy-to-next-page-title:
+pfy-to-next-page-title:
     de: 'zur nächsten Seite&nbsp;'
     _: 'to next page&nbsp;'
 
-lzy-to-prev-page-title:
+pfy-to-prev-page-title:
     de: '&nbsp;zur vorherigen Seite'
     _: '&nbsp;to previous page'
 
@@ -362,15 +362,15 @@ lzy-to-prev-page-title:
 
 
 #--- Navigation --------------------------
-lzy-nav-elem-button:
+pfy-nav-elem-button:
     de: Untermenü öffnen mit Leertaste
     en: Open sub-menu using space key
 
-lzy-breadcrumb-title:
+pfy-breadcrumb-title:
     de: 'Pfad zur aktuellen Seite:'
     _:  'Breadcrumb path:'
 
-lzy-nav-main-title:
+pfy-nav-main-title:
     de: 'Hauptnavigation'
     _:  'Main Navigation'
 
@@ -378,7 +378,7 @@ InPage TOC:
     de: 'Inhaltsverzeichnins dieser Seite'
     _:  'Table of contents within this page'
 
-lzy-operate-menu:
+pfy-operate-menu:
     de: 'Menü öffnen und schliessen'
     _:  'Operate navigation menu'
 
@@ -401,23 +401,23 @@ Skip to Sitemap:
 
 
 #--- Page Switcher Links
-lzy-next-page-link-title:
+pfy-next-page-link-title:
     de: zur nächsten Seite
     _:  to the next page
 
-lzy-prev-page-link-title:
+pfy-prev-page-link-title:
     de: zur vorherigen Seite
     _:  to the previeous page
 
     #optional:
-    #lzy-next-page-link-label
-    #lzy-prev-page-link-label
+    #pfy-next-page-link-label
+    #pfy-prev-page-link-label
 
 
 
 
 #--- Page hit counter
-lzy-page-hits:
+pfy-page-hits:
     de: 'Seitenaufrufe: '
     _:  'Page hits: '
 
@@ -426,62 +426,62 @@ lzy-page-hits:
 
 
 #--- Language Selection ------------------
-lzy-select-langauge:
+pfy-select-langauge:
     de: Sprache auswählen
     en: Select language
     fr: Sélectionnez la langue
     it: Seleziona la lingua
     es: Seleccionar idioma
 
-lzy-lang-select-de: 'de <span class="lzy-invisible">Deutsch</span>'
-lzy-lang-select-en: 'en <span class="lzy-invisible">English</span>'
-lzy-lang-select-fr: 'fr <span class="lzy-invisible">Français</span>'
-lzy-lang-select-it: 'it <span class="lzy-invisible">Italiano</span>'
-lzy-lang-select-es: 'es <span class="lzy-invisible">Español</span>'
+pfy-lang-select-de: 'de <span class="pfy-invisible">Deutsch</span>'
+pfy-lang-select-en: 'en <span class="pfy-invisible">English</span>'
+pfy-lang-select-fr: 'fr <span class="pfy-invisible">Français</span>'
+pfy-lang-select-it: 'it <span class="pfy-invisible">Italiano</span>'
+pfy-lang-select-es: 'es <span class="pfy-invisible">Español</span>'
 
-lzy-lang-select-title-de: 'Deutsch wählen'
-lzy-lang-select-title-en: 'Choose English'
-lzy-lang-select-title-fr: 'Choisissez français'
-lzy-lang-select-title-it: 'Scegli italiano'
-lzy-lang-select-title-es: 'Elige español'
+pfy-lang-select-title-de: 'Deutsch wählen'
+pfy-lang-select-title-en: 'Choose English'
+pfy-lang-select-title-fr: 'Choisissez français'
+pfy-lang-select-title-it: 'Scegli italiano'
+pfy-lang-select-title-es: 'Elige español'
 
 
-lzy-lang-de:
+pfy-lang-de:
     _:  German
     de: Deutsch
     fr: Allmende
     it: Tedesco
     es: Alemán
 
-lzy-lang-de2:
+pfy-lang-de2:
     _:  German
     de: Deutsch
     fr: Allmende
     it: Tedesco
     es: Alemán
 
-lzy-lang-en:
+pfy-lang-en:
     _:  English
     de: Englisch
     fr: Anglais
     it: Inglese
     es: Inglés
 
-lzy-lang-fr:
+pfy-lang-fr:
     _:  French
     fr: Français
     de: Französisch
     it: Francese
     es: Francés
 
-lzy-lang-it:
+pfy-lang-it:
     _:  Italian
     fr: Italien
     de: Italienisch
     it: Italiano
     es: Italiano
 
-lzy-lang-es:
+pfy-lang-es:
     _:  Spanish
     fr: Espagnol
     de: Spanisch
@@ -492,7 +492,7 @@ lzy-lang-es:
 
 
 #--- Config Popup ------------------------
-lzy-config-save:
+pfy-config-save:
     de: Änderungen speichern
     _: Save changes
 
@@ -501,31 +501,31 @@ lzy-config-save:
 
 
 #--- Printing ---------------------------
-lzy-print-now:
+pfy-print-now:
         de: Drucken
         _:  Print
 
-page-break: "<div class='lzy-print-page-break'></div>"
+page-break: "<div class='pfy-print-page-break'></div>"
 
 
 
 
 
 # --- Login ------------------------------
-lzy-login-header:
+pfy-login-header:
     de: Anmelden
     _:  Login
 
-lzy-no-users-defined-warning:
+pfy-no-users-defined-warning:
     de: 'Warnung:<br>Es sind noch keine Benutzer definiert<br>&rarr; config/users.yaml'
     _:  'Warning:<br>no users defined - login mechanism is disabled.<br>&rarr; see config/users.yaml'
 
-lzy-onetimelogin-email-info-title:
+pfy-onetimelogin-email-info-title:
     de: "Hilfe: Zugang per E-Mail"
     en: "Help on access by e-mail"
 
 
-lzy-onetimelogin-email-info-text:
+pfy-onetimelogin-email-info-text:
     de: |
         <p>Geben Sie Ihre <strong>E-Mail-Adresse</strong> ein. <br>
         &rarr; Sie erhalten dann eine Mail mit einem Zugangs-Link.
@@ -550,9 +550,9 @@ lzy-onetimelogin-email-info-text:
         <p>Note: for this to work your e-mail address must be registered.
         Contact the {{ webmaster_link }} if that is not the case.</p>
 
-info-lzy-onetimelogin-title:
+info-pfy-onetimelogin-title:
 
-lzy-login-username-info-title:
+pfy-login-username-info-title:
     de: Hilfe
     en: Help
 
@@ -561,7 +561,7 @@ login-email-prompt:
     de2: Deine E-Mail Adresse
     en: Your e-mail address
 
-#lzy-login-send:
+#pfy-login-send:
 #    de: Anmelden
 #    en: Login
 
@@ -598,19 +598,19 @@ LoginLink:
     de: Anmelden
     en: Login
 
-lzy-logged-in-as:
+pfy-logged-in-as:
     de: Angemeldet als
     _: Logged in as
 
-lzy-logged-in-as-user:
-    de: 'Angemeldet als <span class="lzy-user-name">{{^ user }}</span>'
-    _: 'Logged in as <span class="lzy-user-name">{{^ user }}</span>'
+pfy-logged-in-as-user:
+    de: 'Angemeldet als <span class="pfy-user-name">{{^ user }}</span>'
+    _: 'Logged in as <span class="pfy-user-name">{{^ user }}</span>'
 
-lzy-not-logged-in:
+pfy-not-logged-in:
     de: Nicht angemeldet
     _: Not logged in
 
-lzy-user-account:
+pfy-user-account:
     de: Benutzerkonto
     _: User account
 
@@ -641,35 +641,35 @@ email required for one-time-access-link:
     de: Eine E-Mail-Adresse wird benötigt, um den einmaligen Zugangs-Link zu senden.
     en: "We need your e-mail address to send you a one-time access link."
 
-lzy-login-successful:
+pfy-login-successful:
     de: 'Sie sind jetzt angemeldet.'
     de2: 'Du bist jetzt angemeldet.'
     _: 'You are successfully logged in now.'
 
-lzy-login-successful-as:
+pfy-login-successful-as:
     de: 'Sie sind jetzt angemeldet als'
     de2: 'Du bist jetzt angemeldet als'
     _: 'You are successfully logged in now as'
 
-lzy-logout-successful:
+pfy-logout-successful:
     de: 'Sie sind jetzt abgemeldet.'
     de2: 'Du bist jetzt abgemeldet.'
     _: 'You are successfully logged out now.'
 
-lzy-login-failed:
+pfy-login-failed:
     de: 'Die Anmeldung ist fehlgeschlagen.'
     _: 'Login failed.'
 
-lzy-insufficient-privilege:
+pfy-insufficient-privilege:
     de: 'Sie haben keine Berechtigung für die Option'
     de2: 'Du hast keine Berechtigung für die Option'
     _: 'Insufficient privilege for option'
 
-lzy-create-accesscode-needs-username:
+pfy-create-accesscode-needs-username:
     de: '<h3>Zugangs-Code</h3><p>Bitte Benutzername angeben.</p><p>Z.B. ?accesscode=gast</p>'
     _: '<h3>Access Code</h3><p>Please supply a user-name.</p><p>E.g. ?accesscode=guest</p>'
 
-lzy-create-accesscode-user-unknown:
+pfy-create-accesscode-user-unknown:
     de: '<h3>Zugangs-Code</h3>Benutzername nicht bekannt:'
     _: '<h3>Access Code</h3>User unknown:'
 
@@ -773,11 +773,11 @@ Err empty email:
     en: You need to enter an e-mail address
 
 
-lzy-define-new-password:
+pfy-define-new-password:
     de: 'Neues Passwort festlegen'
     _:  'Define New Password'
 
-lzy-define-new-password-text:
+pfy-define-new-password-text:
     de: |
         <strong>Achtung</strong>:<br>Sie haben sich eben mit einem "Einmal-Code" angemeldet.
         Dieser wird künftig nicht mehr funktionieren. Sie können hier Ihr neues persönliches Passwort festlegen:
@@ -814,11 +814,11 @@ Your Profile:
     de: Profil bearbeiten
     en: Edit Profile
 
-lzy-adm-invite-new-user:
+pfy-adm-invite-new-user:
     de: 'Neuen Benutzer einladen'
     _:  'Invite new user'
 
-lzy-add-users-send:
+pfy-add-users-send:
     de: 'Konto eröffnen'
     _:  'Create account'
 
@@ -841,18 +841,18 @@ Please switch to:
 
 
 #--- Edit Data --------------------------------------
-lzy-DB-currently-locked:
+pfy-DB-currently-locked:
     de: Sie können die Datenbank derzeit nicht bearbeiten. <br> Sie ist von einer anderen Person belegt.
     de2: Du kannst die Datenbank derzeit nicht bearbeiten. <br> Sie ist von einer anderen Person belegt.
     _: You cannot edit the database at this time. <br> Somebody else is already is already busy.
-lzy-discard-all-changes:
+pfy-discard-all-changes:
     de: Möchten Sie alle Änderungen verwerfen?
     de2: Möchtest du alle Änderungen verwerfen?
     _:  Would you like to discard all changes?
-lzy-data-add-record:
+pfy-data-add-record:
     de: Datensatz bzw. Zeile oberhalb hinzufügen
     _:  Add a data record resp. row above
-lzy-data-delete-record:
+pfy-data-delete-record:
     de: Diesen Datensatz entfernen
     _:  Delete this data record
 
@@ -862,43 +862,43 @@ lzy-data-delete-record:
 
 #--- PageFactory File Manager
 
-lzy-editor-new-file:
+pfy-editor-new-file:
     de: 'Neue Datei'
     _:  'Create file'
 
-lzy-editor-new-file-input-button:
+pfy-editor-new-file-input-button:
     de: 'Erzeugen'
     _:  'Create'
 
-lzy-editor-add-files:
+pfy-editor-add-files:
     de: 'Dateien hochladen...'
     _:  'Select files for upload...'
 
-lzy-editor-start-upload:
+pfy-editor-start-upload:
     de: 'Jetzt hochladen'
     _:  'Start upload'
 
-lzy-editor-cancel-upload:
+pfy-editor-cancel-upload:
     de: 'Übertragung abbrechen'
     _:  'Cancel upload'
 
-lzy-editor-delete-file:
+pfy-editor-delete-file:
     de: 'Datei löschen'
     _:  'Delete file'
 
-lzy-editor-rename-file:
+pfy-editor-rename-file:
     de: 'Datei umbenennen'
     _:  'Rename File'
 
-lzy-editor-new-filename-label:  // usually only for AT visible
+pfy-editor-new-filename-label:  // usually only for AT visible
     de: 'Neuer Name:'
     _:  'New filename:'
 
-lzy-editor-name-of-new-file-label:
+pfy-editor-name-of-new-file-label:
     de: 'Name der neuen Datei'
     _:  'Name of new file:'
 
-lzy-editor-ok:
+pfy-editor-ok:
     de: 'Ok'
     _:  'Ok'
 
@@ -919,11 +919,11 @@ of:
     de: von
     en: of
 
-lzy-page-unkown-title:
+pfy-page-unkown-title:
     de: Unbekannte Seite
     en: Page Unknown
 
-lzy-page-unkown-text:
+pfy-page-unkown-text:
     de: 'Die gesuchte Seite existiert nicht: '
     en: 'Sorry, the page you requested does not exist: '
 
@@ -938,9 +938,9 @@ Edit:
     de: Bearbeiten
     _:  Edit
 
-lzy-popup-close-button: '✕'
+pfy-popup-close-button: '✕'
 
-lzy-close:
+pfy-close:
     de: Schliessen
     _:  Close
 
@@ -949,23 +949,23 @@ lzy-close:
 
 
 #--- Editing -------------------------------------
-lzy-turn-edit-mode-on:
-    de: "<span class='lzy-icon lzy-icon-edit' title='Seite bearbeiten'></span>"
-    _: "<span class='lzy-icon lzy-icon-edit' title='Edit page'></span>"
+pfy-turn-edit-mode-on:
+    de: "<span class='pfy-icon pfy-icon-edit' title='Seite bearbeiten'></span>"
+    _: "<span class='pfy-icon pfy-icon-edit' title='Edit page'></span>"
 
-lzy-turn-edit-mode-off:
-    de: "<span class='lzy-icon lzy-icon-edit' title='Seitebearbeitung beenden'></span>"
-    _: "<span class='lzy-icon lzy-icon-edit' title='End page editing'></span>"
+pfy-turn-edit-mode-off:
+    de: "<span class='pfy-icon pfy-icon-edit' title='Seitebearbeitung beenden'></span>"
+    _: "<span class='pfy-icon pfy-icon-edit' title='End page editing'></span>"
 
 
 
-lzy-config-button:
-    de: "<span class='lzy-icon lzy-icon-settings' title='Einstellungen bearbeiten'></span>"
-    _: "<span class='lzy-icon lzy-icon-settings' title='Modify settings'></span>"
+pfy-config-button:
+    de: "<span class='pfy-icon pfy-icon-settings' title='Einstellungen bearbeiten'></span>"
+    _: "<span class='pfy-icon pfy-icon-settings' title='Modify settings'></span>"
 
 
 # Macro Editable()
-'lzy-editable-temporarily-locked':
+'pfy-editable-temporarily-locked':
     de: |
         Dieses Feld ist momentan gesperrt, weil es gerade von jemand anderem bearbeitet wird.\n\n
         Bitte versuchen Sie es in ein paar Minuten nochmals. (Seite muss dann neu geladen werden!)
@@ -976,39 +976,39 @@ lzy-config-button:
         This field is currently locked because somebody else is editing it.\n\n
         Please try again in a few minutes. (Remember to reload the page when trying again.)
 
-lzy-editable-ok-text:
+pfy-editable-ok-text:
     de: 'Ok, Eingaben speichern'
     _:  'Ok, save modifications'
 
-lzy-editable-cancel-text:
+pfy-editable-cancel-text:
     de: 'Eingaben abbrechen'
     _:  'Cancel input'
 
 
 
 #--- macro List() -------------------
-lzy-user-list:
+pfy-user-list:
     de: Liste der registrierten Benutzer
     _:  List of Registered Users
 
 
 
 #--- magic links ---------------------
-lzy-link-expired:
+pfy-link-expired:
     de: 'Link ungültig'
     _:  'Link Expired'
 
-lzy-link-expired-explanation:
+pfy-link-expired-explanation:
     de: 'Der Link, mit dem Sie diese Website aufgerufen haben, ist abgelaufen oder war nie gültig:'
     de2: 'Der Link, mit dem du diese Website aufgerufen hast, ist abgelaufen oder war nie gültig:'
     _:  'The link you used to access this website has expired or has never been valid:'
 
-lzy-signup-username-not-available:
+pfy-signup-username-not-available:
     de: 'Benutzername bereits vergeben - bitte wählen Sie einen anderen.'
     de2: 'Benutzername bereits vergeben - bitte wähle einen anderen.'
     _:  'Username already taken - please chose another one.'
 
-lzy-email-change-successful:
+pfy-email-change-successful:
     de: 'Ihre neue E-Mail Adresse wurde gespeichert'
     de2: 'Deine neue E-Mail Adresse wurde gespeichert'
     _:  'Your new e-mail address has been stored successfully'
@@ -1019,203 +1019,203 @@ lzy-email-change-successful:
 
 #--- User Admin ------------------------
 # Change PW:
-lzy-change-password-title:
+pfy-change-password-title:
     de: Passwort ändern
     _: Change your password
 
-lzy-invalid-email-address:
+pfy-invalid-email-address:
     de: 'Ungültige E-Mail Adresse'
     _: 'Invalid e-mail address'
 
-lzy-useradmin-insufficient-permission:
+pfy-useradmin-insufficient-permission:
     de: 'Benutzeradministration: fehlende Berechtigung.'
     _:  'User-Admin: insufficient privileges.'
 
 
 
 #--- Edit Tables --------------------
-lzy-edit-user-form-header:
+pfy-edit-user-form-header:
     de: 'Datensatz bearbeiten'
     _:  'Edit record'
 
-lzy-edit-new-user-form-header:
+pfy-edit-new-user-form-header:
     de: 'Neuer Datensatz'
     _:  'New record'
 
-lzy-table-view-btn:
+pfy-table-view-btn:
     de: 'Datensatz anzeigen'
     _:  'Show record'
 
 
-lzy-edit-form-rec:
+pfy-edit-form-rec:
     de: 'Bearbeiten'
     _:  'Edit'
 
 
-lzy-edit-form-submit:
+pfy-edit-form-submit:
     de: 'Speichern'
     _:  'Save'
 
 
-lzy-edit-form-cancel:
+pfy-edit-form-cancel:
     de: 'Abbrechen'
     _:  'Cancel'
 
 
-lzy-edit-form-new-rec:
+pfy-edit-form-new-rec:
     de: 'Neuer Datensatz'
     _:  'New Data'
 
-lzy-header-edit: '<span class="lzy-invisible">{{ Edit }}</span>'
+pfy-header-edit: '<span class="pfy-invisible">{{ Edit }}</span>'
 
-lzy-edit-rec-delete-option:
+pfy-edit-rec-delete-option:
     de: 'Diesen Datensatz löschen'
     _:  Delete data record
 
-lzy-delete-rec-label:
+pfy-delete-rec-label:
     de: 'Diesen Datensatz löschen'
     _:  Delete this data record
 
-lzy-table-new-rec-title:
+pfy-table-new-rec-title:
     de: 'Neue Zeile einfügen'
     _:  'Add new row'
 
-lzy-table-edit-btn-title:
+pfy-table-edit-btn-title:
     de: 'Zeile bearbeiten'
     _:  'Edit this row'
 
-lzy-table-delete-rec-btn: ':trash:'
-lzy-table-new-rec-btn: '✚'
-lzy-table-download-btn: ':download:'
-lzy-table-edit-btn: ':edit:'
+pfy-table-delete-rec-btn: ':trash:'
+pfy-table-new-rec-btn: '✚'
+pfy-table-download-btn: ':download:'
+pfy-table-edit-btn: ':edit:'
 
-lzy-table-delete-rec-title:
+pfy-table-delete-rec-title:
     de: 'Alle ausgewählten Zeilen löschen'
     _:  'Delete all selected rows'
 
-lzy-form-delete-rec-btn-lbl:
+pfy-form-delete-rec-btn-lbl:
     de: 'Jetzt löschen'
     _:  Delete now
 
-lzy-edit-rec-delete-btn:
+pfy-edit-rec-delete-btn:
     de: 'Jetzt löschen'
     _:  Delete now
 
-lzy-table-add-rec-btn:
+pfy-table-add-rec-btn:
     _:  '&#10010;'
 
-lzy-edit-form-close:
+pfy-edit-form-close:
     de: 'Schliessen'
     _:  'Close'
-lzy-recview-header:
+pfy-recview-header:
     de: 'Ansicht'
     _:  'View'
 
-lzy-table-select-all-rows:
+pfy-table-select-all-rows:
     de: 'Alle Zeilen auswählen'
     _:  'Select/deselect all rows'
 
-lzy-table-delete-recs-popup:
+pfy-table-delete-recs-popup:
     de: 'Alle ausgewählten Zeilen löschen?'
     _:  'Delete selected records?'
 
-lzy-form-rec-deleted:
+pfy-form-rec-deleted:
     de: 'Datensatz gelöscht'
     _:  'Data record deleted'
 
-#lzy-form-rec-delete-failed:
+#pfy-form-rec-delete-failed:
 #    de: ''
 #    _:  ''
 
-lzy-forms-delete-rec-failed:
+pfy-forms-delete-rec-failed:
     de: 'Fehlgeschlagen: interner Fehler beim löschen.'
     _: 'Failed: internal error while deleting record.'
 
-lzy-forms-delete-rec-check-failed:
+pfy-forms-delete-rec-check-failed:
     de: 'Fehlgeschlagen: E-Mail Adresse stimmte nicht überein.'
     _:  'Failed: e-mail address did not match.'
 
-lzy-form-rec-modify-failed:
+pfy-form-rec-modify-failed:
     de: 'Fehlgeschlagen: E-Mail Adresse stimmte nicht überein.'
     _:  'Failed: e-mail address did not match.'
 
-lzy-generate-hash:
+pfy-generate-hash:
     de: 'Hash-Code erzeugen'
     _:  'Generate hash code'
 
-lzy-form-error-formhash-lost:
+pfy-form-error-formhash-lost:
     de: 'Interner Fehler (Formular-Referenz fehlt)'
     _:  'Internal error (form-reference missing)'
 
-lzy-config-db-permission-localhost-warning:
+pfy-config-db-permission-localhost-warning:
     de: 'Achtung: Zugang zu Dateien in "config/" nur auf Localhost gewährt. Auf anderen Hosts wird Admin-Berechtigung benötigt.'
     _:  'Note: access to file in "config/" only granted on localhost. On remote host you&quote;ll need admin privileges.'
 
 #--- DataTables ----------------------
-lzy-datatables-search-button:
+pfy-datatables-search-button:
     de: Suchen
     _:  Find
 
-lzy-datatables-records:
+pfy-datatables-records:
     de: Datensätze
     _:  Records
 
 
 #--- Tables --------------------------
-lzy-table-download-title:
+pfy-table-download-title:
     de: 'Diese Tabelle herunter laden'
     _:  'Download this table'
 
 
-lzy-table-download-text:
+pfy-table-download-text:
     de: 'Tabelle herunter laden:'
     _:  'Click to download:'
 
 
-lzy-table-download-header:
+pfy-table-download-header:
     de: 'Download'
     _:  'Download'
 
-lzy-table-download-excel:
+pfy-table-download-excel:
     _: 'Excel (.xlsx)'
 
-lzy-table-download-ods:
+pfy-table-download-ods:
     _: 'OpenOffice (.ods)'
 
-lzy-table-download-prefix:
+pfy-table-download-prefix:
     de: 'als '
     _:  'as '
 
 #--- Date/time
-lzy-time-day:
+pfy-time-day:
     de: ' Tag'
     _:  ' day'
 
-lzy-time-days:
+pfy-time-days:
     de: ' Tage'
     _:  ' days'
 
-lzy-time-hour:
+pfy-time-hour:
     de: ' Stunde'
     _:  ' hour'
 
-lzy-time-hours:
+pfy-time-hours:
     de: ' Stunden'
     _:  ' hours'
 
-lzy-time-minute:
+pfy-time-minute:
     de: ' Minute'
     _:  ' minute'
 
-lzy-time-minutes:
+pfy-time-minutes:
     de: ' Minuten'
     _:  ' minutes'
 
-lzy-time-second:
+pfy-time-second:
     de: ' Sekunde'
     _:  ' second'
 
-lzy-time-seconds:
+pfy-time-seconds:
     de: Sekunden
     _:  seconds
 
@@ -1223,7 +1223,7 @@ lzy-time-seconds:
 
 
 #--- ?convert data -----------------------
-lzy-data-converted to:
+pfy-data-converted to:
     de: 'Datei konvertiert nach:'
     _:  'File converted to:'
 

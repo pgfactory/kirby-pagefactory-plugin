@@ -2,8 +2,8 @@
 
 @import '--definitions.scss';
 
-#lzy.lzy-default-styling .lzy-encapsulated,
-.lzy-default-styling {
+#pfy.pfy-default-styling .pfy-encapsulated,
+.pfy-default-styling {
     :focus-visible {
         box-shadow: 0 0 0 1px black, 0 0 0 2px white, 0 0 0 3px  #{$focus-color};
     }
@@ -39,7 +39,7 @@
     border-bottom: none;
   }
 
-  .lzy-logo a, .lzy-logo a:hover {
+  .pfy-logo a, .pfy-logo a:hover {
     border-bottom: none;
   }
 
@@ -92,20 +92,20 @@
 
 
   // === PageFactory's tabulator:
-  .lzy-tabulator-wrapper span.c1,
-  .lzy-tabulator-wrapper span.c2,
-  .lzy-tabulator-wrapper span.c3,
-  .lzy-tabulator-wrapper span.c4 {
+  .pfy-tabulator-wrapper span.c1,
+  .pfy-tabulator-wrapper span.c2,
+  .pfy-tabulator-wrapper span.c3,
+  .pfy-tabulator-wrapper span.c4 {
     display: inline-block;
     line-height: 1.3em;
     vertical-align: top;
   }
 
-  .lzy-tabulator-wrapper > span:not(:last-child) {
+  .pfy-tabulator-wrapper > span:not(:last-child) {
     width: 6em;
   }
 
-  .lzy-vgap {
+  .pfy-vgap {
     height: 0;
   }
 

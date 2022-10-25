@@ -247,7 +247,7 @@ EOT;
         }
         $out = compileMarkdown($out);
         $out = <<<EOT
-<div class='lzy-macro-help lzy-encapsulated'>
+<div class='pfy-macro-help pfy-encapsulated'>
 $out
 </div>
 EOT;
@@ -290,7 +290,7 @@ EOT;
         }
         $str = compileMarkdown($str);
         $str = <<<EOT
-    <div class="lzy-macro-list">
+    <div class="pfy-macro-list">
 $str    </div>
 EOT;
         return $str;

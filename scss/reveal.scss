@@ -1,16 +1,16 @@
 /* === Reveal block ================== */
-#lzy .lzy-form.lzy-encapsulated,
+#pfy .pfy-form.pfy-encapsulated,
 body {
-  .lzy-reveal-controller label,
-  input.lzy-reveal-icon,
-  input.lzy-reveal-icon::before{
+  .pfy-reveal-controller label,
+  input.pfy-reveal-icon,
+  input.pfy-reveal-icon::before{
     height: 2em;
     line-height: 2em;
     vertical-align: middle;
     padding: 0;
     color: inherit;
   }
-  input.lzy-reveal-icon.lzy-reveal-icon {
+  input.pfy-reveal-icon.pfy-reveal-icon {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
@@ -25,10 +25,10 @@ body {
     box-shadow: none;
   }
 
-  input.lzy-reveal-icon:focus-visible {
+  input.pfy-reveal-icon:focus-visible {
     outline: 1px solid magenta;
   }
-  input.lzy-reveal-icon::before {
+  input.pfy-reveal-icon::before {
     position: absolute;
     top: 0;
     left: 0;
@@ -41,28 +41,28 @@ body {
     transition: transform 0.3s;
     transform-origin: 50% 50%;
   }
-  input.lzy-reveal-icon:checked::before {
+  input.pfy-reveal-icon:checked::before {
     transform: rotate( 180deg );
     content: '–';
   }
-  .lzy-reveal-controller label {
+  .pfy-reveal-controller label {
     width: calc(100% - 2em - 6px);
     margin-left: -0.1em;
     cursor: pointer;
   }
-  .lzy-reveal-frame.lzy-reveal-frame {
+  .pfy-reveal-frame.pfy-reveal-frame {
     border: 1px solid #ddd;
   }
-  .lzy-reveal-frame + .lzy-reveal-container > div {
+  .pfy-reveal-frame + .pfy-reveal-container > div {
     padding: 1em;
     border: 1px solid #ddd;
     border-top: none;
   }
 }
 
-.lzy-reveal-container {
+.pfy-reveal-container {
   overflow: hidden;
-  &.lzy-elem-revealed {
+  &.pfy-elem-revealed {
     transition: margin-bottom 0.3s;
     > div {
       margin-top: 0 !important;
@@ -74,25 +74,25 @@ body {
   }
 }
 
-.lzy-reveal-controller {
+.pfy-reveal-controller {
   padding: 0.5em 0;
   &:focus-within {
-    outline: 1px solid var( --lzy-form-focus-color, magenta);
+    outline: 1px solid var( --pfy-form-focus-color, magenta);
   }
   input:focus-visible {
     outline: unset !important;
   }
 }
-.lzy-reveal-triangle {
-  input.lzy-reveal-icon {
+.pfy-reveal-triangle {
+  input.pfy-reveal-icon {
     margin-right: 0.4em;
     font-size: 90%;
     transform: translateY( 0.2em );
   }
-  input.lzy-reveal-icon::before {
+  input.pfy-reveal-icon::before {
     content: '\25B7';
   }
-  input.lzy-reveal-icon:checked::before {
+  input.pfy-reveal-icon:checked::before {
     content: '\25B7';
   }
 

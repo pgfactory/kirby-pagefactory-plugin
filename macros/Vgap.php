@@ -40,8 +40,8 @@ class Vgap extends Macros
         } elseif (preg_match('/^([\d.]+)(.*)$/', $gapSize, $m)) {
             $gapSize = ($m[1] / 2).$m[2];
         }
-        $class = trim("lzy-vgap lzy-vgap-{$inx} $class");
-        $str = "<div id='lzy-vgap-$inx' class='$class' style='margin:$gapSize 0;'>&nbsp;</div>";
+        $class = trim("pfy-vgap pfy-vgap-{$inx} $class");
+        $str = "<div id='pfy-vgap-$inx' class='$class' style='margin:$gapSize 0;'>&nbsp;</div>";
         return$str;
     }
 } // Vgap

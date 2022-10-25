@@ -84,23 +84,23 @@ class PageExtruder
         $this->prepareAssets();
 
         $out = $this->renderHeadInjections();
-        $this->trans->setVariable('lzy-head-injections', $out);
+        $this->trans->setVariable('pfy-head-injections', $out);
 
-        $bodyClasses = $this->bodyTagClasses? $this->bodyTagClasses: 'lzy-large-screen';
+        $bodyClasses = $this->bodyTagClasses? $this->bodyTagClasses: 'pfy-large-screen';
         if (isAdmin()) {
-            $bodyClasses .= ' lzy-admin';
+            $bodyClasses .= ' pfy-admin';
         } elseif (kirby()->user()) {
-            $bodyClasses .= ' lzy-loggedin';
+            $bodyClasses .= ' pfy-loggedin';
         }
         if (PageFactory::$debug) {
             $bodyClasses = trim("debug $bodyClasses");
         }
-        $this->trans->setVariable('lzy-body-classes', $bodyClasses);
+        $this->trans->setVariable('pfy-body-classes', $bodyClasses);
 
-        $this->trans->setVariable('lzy-body-tag-attributes', $this->bodyTagAttributes);
+        $this->trans->setVariable('pfy-body-tag-attributes', $this->bodyTagAttributes);
 
         $bodyEndInjections = $this->renderBodyEndInjections();
-        $this->trans->setVariable('lzy-body-end-injections', $bodyEndInjections);
+        $this->trans->setVariable('pfy-body-end-injections', $bodyEndInjections);
     } // preparePageVariables
 
 
@@ -703,7 +703,7 @@ EOT;
         if ($file) {
             if ($type === 'css') {
                 if (strpos($file, '-async') !== false) {
-                    $out = "\t<link href='$file' rel='stylesheet' media='print' class='lzy-onload-css' />\n";
+                    $out = "\t<link href='$file' rel='stylesheet' media='print' class='pfy-onload-css' />\n";
                     $out .= "\t<noscript><link href='$file' rel='stylesheet' /></noscript>\n";
                 } else {
                     $out = "\t<link href='$file' rel='stylesheet' />\n";

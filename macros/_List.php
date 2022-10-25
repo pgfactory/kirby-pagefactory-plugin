@@ -62,7 +62,7 @@ class _List extends Macros
 
         } elseif ($type === 'users') {
             $users = $this->pfy->kirby->users();
-            $str = "\t<h2>{{ lzy-user-list }}</h2>\n\t<ul>\n";
+            $str = "\t<h2>{{ pfy-user-list }}</h2>\n\t<ul>\n";
             foreach ($users->data() as $user) {
                 $username = (string)$user->name();
                 $email = (string)$user->email();
@@ -72,7 +72,7 @@ class _List extends Macros
 
         }
         $str = <<<EOT
-    <div class='lzy-list lzy-list-$inx'>
+    <div class='pfy-list pfy-list-$inx'>
 $str
     </div>
 EOT;

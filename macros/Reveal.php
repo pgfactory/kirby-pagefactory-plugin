@@ -13,7 +13,7 @@ $macroConfig =  [
         'target' => ['[css selector] CSS selector of the DIV that shall be revealed, e.g. "#box"', false],
         'class' => ['(optional) A class that will be applied to the controlling element.', false],
         'symbol' => ['(triangle) If defined, the symbol on the left hand side of the label will be modified. (currently just "triangle" implemented.)', false],
-        'frame' => ['(true, class) If true, class "lzy-reveal-frame" is added, painting a frame around the element by default.', false],
+        'frame' => ['(true, class) If true, class "pfy-reveal-frame" is added, painting a frame around the element by default.', false],
 //        '' => ['', false],
     ],
     'summary' => <<<EOT
@@ -48,22 +48,22 @@ class Reveal extends Macros
     {
         $inx = self::$inx++;
 
-        $id = "lzy-reveal-controller-$inx";
+        $id = "pfy-reveal-controller-$inx";
         $class = $args['class'];
 
         if ($args['frame']) {
-            $class = $class? "$class lzy-reveal-frame": 'lzy-reveal-frame';
+            $class = $class? "$class pfy-reveal-frame": 'pfy-reveal-frame';
         }
         if (stripos($args['symbol'], 'tri') !== false) {
-            $class .= ' lzy-reveal-triangle';
+            $class .= ' pfy-reveal-triangle';
         }
 
         $class = $class? " $class": '';
         $out = '';
-        $out .= "\n\t\t\t\t<input id='$id' class='lzy-reveal-controller-elem lzy-reveal-icon' type='checkbox' data-reveal-target='{$args['target']}' />".
+        $out .= "\n\t\t\t\t<input id='$id' class='pfy-reveal-controller-elem pfy-reveal-icon' type='checkbox' data-reveal-target='{$args['target']}' />".
             "\n\t\t\t\t<label for='$id'>{$args['label']}</label>\n";
 
-        $out = "\t\t\t<div class='lzy-reveal-controller$class'>$out\t\t\t</div>\n";
+        $out = "\t\t\t<div class='pfy-reveal-controller$class'>$out\t\t\t</div>\n";
 
         return $out;
     } // render

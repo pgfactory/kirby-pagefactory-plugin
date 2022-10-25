@@ -2,19 +2,19 @@
 
 var quickViewInx = 0;
 
-function LzyQuickview() {}
+function PfyQuickview() {}
 
 
 
-LzyQuickview.prototype.init = function( $elem ) {
+PfyQuickview.prototype.init = function( $elem ) {
     $elem.each( function() {
         quickViewInx++;
         var $this = $(this);
         let id = $this.attr('id');
         if (typeof id === 'undefined') {
-            id = 'lzy-quickview-' + quickViewInx;
+            id = 'pfy-quickview-' + quickViewInx;
         }
-        let lateImgLoading = $this.hasClass('lzy-late-loading');
+        let lateImgLoading = $this.hasClass('pfy-late-loading');
 
         let qvSrc = $this.attr('data-qv-src');
         let qvWidth = $this.attr('data-qv-width');
@@ -37,14 +37,14 @@ LzyQuickview.prototype.init = function( $elem ) {
         }
 
         // create quickview overlay:
-        $('body').append("<div id='" + id + "-quickview' class='lzy-quickview-overlay'><img src='" + qvSrc + "' width='" + qvWidth + "' height='" + qvHeight + "' aria-hidden='true' /><span class='sr-only'>This is only visual enhancement. No additional information is provided. Press Escape to go back.</span></div>");
+        $('body').append("<div id='" + id + "-quickview' class='pfy-quickview-overlay'><img src='" + qvSrc + "' width='" + qvWidth + "' height='" + qvHeight + "' aria-hidden='true' /><span class='sr-only'>This is only visual enhancement. No additional information is provided. Press Escape to go back.</span></div>");
     }); // each
-}; // LzyQuickview.init
+}; // PfyQuickview.init
 
 
 
 
-LzyQuickview.prototype.open = function( $elem ) {
+PfyQuickview.prototype.open = function( $elem ) {
     // if img embedded in A tag, don't quickview, instead open link directly
     if ( $elem.parent().prop('tagName') === 'A' ) {
         return;
@@ -76,12 +76,12 @@ LzyQuickview.prototype.open = function( $elem ) {
     }
     let  xL = (vpWidth - wL) / 2;
     let  yL = (vpHeight - hL) / 2;
-    $idQuickview.addClass('lzy-quickview-overlay-active').attr({ 'data-qv-x': x, 'data-qv-y': y, 'data-qv-w': w, 'data-qv-h': h });
+    $idQuickview.addClass('pfy-quickview-overlay-active').attr({ 'data-qv-x': x, 'data-qv-y': y, 'data-qv-w': w, 'data-qv-h': h });
     $idQuickviewImg.css({ left: x, top: y, width: w-10, height: h-20, zIndex: 9999 });
     $idQuickviewImg.animate({ width: wL, height: hL, left: xL, top: yL, opacity: 1 }, 200);
 
     // in late-loading mode: load fullscreen image only when invoked:
-    if ($idQuickviewImg.hasClass('lzy-laziest-load')) {
+    if ($idQuickviewImg.hasClass('pfy-laziest-load')) {
         let  src = $idQuickviewImg.attr('data-src');
         if (typeof src !== 'undefined') {
             console.log('late loading image ' + $idQuickviewImg.attr('data-src'));
@@ -91,7 +91,7 @@ LzyQuickview.prototype.open = function( $elem ) {
     }
     $( 'body' ).keydown( function (e) {
         if (e.which === 27) {
-            lzyQuickview.close();
+            pfyQuickview.close();
         }
     });
 
@@ -99,8 +99,8 @@ LzyQuickview.prototype.open = function( $elem ) {
 
 
 
-LzyQuickview.prototype.close = function() {
-    $( '.lzy-quickview-overlay-active').each( function() {
+PfyQuickview.prototype.close = function() {
+    $( '.pfy-quickview-overlay-active').each( function() {
         let  $this = $(this);
         let  $img = $( 'img', $this);
         let  x = $this.attr( 'data-qv-x' );
@@ -109,7 +109,7 @@ LzyQuickview.prototype.close = function() {
         let  h = $this.attr( 'data-qv-h' );
         $img.animate({ width: w-10, height: h-20, left: x, top: y }, 200);
         setTimeout( function() {
-            $this.removeClass('lzy-quickview-overlay-active').attr('style', '');
+            $this.removeClass('pfy-quickview-overlay-active').attr('style', '');
             $img.css('opacity', 0).attr('style', '');
         }, 200);
     });
@@ -118,29 +118,29 @@ LzyQuickview.prototype.close = function() {
 
 
 
-var lzyQuickview = new LzyQuickview();
+var pfyQuickview = new PfyQuickview();
 
 $(document).ready(function() {
     // init Quickview image:
-    $('img.lzy-quickview').each(function() {
-        lzyQuickview.init( $( this ) );
+    $('img.pfy-quickview').each(function() {
+        pfyQuickview.init( $( this ) );
     });
 
     // open large Quickview image:
-    $('img.lzy-quickview').click(function() {
-        lzyQuickview.open( $( this ) );
+    $('img.pfy-quickview').click(function() {
+        pfyQuickview.open( $( this ) );
     });
 
 
     // set up close Quickview event handler:
-    $( 'body' ).on('click','.lzy-quickview-overlay, .lzy-quickview-overlay img', function () {	// click on image
-        lzyQuickview.close();
+    $( 'body' ).on('click','.pfy-quickview-overlay, .pfy-quickview-overlay img', function () {	// click on image
+        pfyQuickview.close();
     });
 
 
 
     // late-loading:
-    $('img.lzy-late-loading').each(function() {
+    $('img.pfy-late-loading').each(function() {
         let  $this = $( this );
         console.log('late loading image ' + $this.attr('data-src'));
         $this.attr({src: $this.attr('data-src') }).removeAttr('data-src');

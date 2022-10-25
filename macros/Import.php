@@ -73,8 +73,8 @@ class Import extends Macros
         if ($wrapperTag) {
             $str = <<<EOT
 
-    <$wrapperTag class='lzy-imported lzy-imported-$inx $wrapperClass'>
-$str</$wrapperTag><!-- lzy-imported -->
+    <$wrapperTag class='pfy-imported pfy-imported-$inx $wrapperClass'>
+$str</$wrapperTag><!-- pfy-imported -->
 
 EOT;
         }

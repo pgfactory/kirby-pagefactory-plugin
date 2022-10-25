@@ -10,8 +10,8 @@ $macroConfig =  [
         'deep' => ['[false,true,hierarchical] Whether to recursively descend into sub-folders. ("flat" means deep, but rendered as a non-hierarchical list.)', false],
         'showPath' => ['[false,true] Whether to render the entire path per file in deep mode.', false],
         'order' => ['[reverse] Displays result in reversed order.', false],
-        'id' => ['Id to be applied to the enclosing li-tag (Default: lzy-dir-#)', false],
-        'class' => ['Class to be applied to the enclosing li-tag (Default: lzy-dir)', 'lzy-dir'],
+        'id' => ['Id to be applied to the enclosing li-tag (Default: pfy-dir-#)', false],
+        'class' => ['Class to be applied to the enclosing li-tag (Default: pfy-dir)', 'pfy-dir'],
         'target' => ['"target" attribute to be applied to the a-tag.', false],
         'exclude' => ['Pattern by which to exclude specific elements.', false],
         'maxAge' => ['[integer] Maximum age of file (in number of days).', false],
@@ -80,14 +80,14 @@ class Dir extends Macros
         if ($this->id) {
             $this->id = " id='{$this->id}'";
         } elseif ($this->id === false) {
-            $this->id = " id='lzy-dir-$inx'";
+            $this->id = " id='pfy-dir-$inx'";
         }
         if ($this->class) {
             $this->class = " class='{$this->class}'";
         }
         $this->linkClass = '';
         if ($this->target) {
-            $this->linkClass = " class='lzy-link lzy-newwin_link'";
+            $this->linkClass = " class='pfy-link pfy-newwin_link'";
         }
 
         $path = resolvePath($this->path);
@@ -137,10 +137,10 @@ class Dir extends Macros
             }
             $url = $this->parseUrlFile($file); // check whether it's a link file (.url or .webloc)
             if ($url) {
-                $str .= "\t\t<li class='lzy-dir-file'><a href='$url'{$this->targetAttr}{$this->linkClass}{$this->download}>$url</a></li>\n";
+                $str .= "\t\t<li class='pfy-dir-file'><a href='$url'{$this->targetAttr}{$this->linkClass}{$this->download}>$url</a></li>\n";
             } else {    // it's regular local file:
                 $url = '~/' . $file;
-                $str .= "\t\t<li class='lzy-dir-file'><a href='$url'{$this->targetAttr}{$this->linkClass}{$this->download}>$name</a></li>\n";
+                $str .= "\t\t<li class='pfy-dir-file'><a href='$url'{$this->targetAttr}{$this->linkClass}{$this->download}>$name</a></li>\n";
             }
         }
         $str = <<<EOT
