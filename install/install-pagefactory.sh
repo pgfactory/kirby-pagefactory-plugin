@@ -2,7 +2,7 @@
 # Usage:
 #   install-pagefactory.sh {branch}
 #
-# if arg is omitted, script assumes you already navigated to your new web-app folder.
+# script assumes you already cd'ed into your Kirby-app folder.
 
 ## select the branch you want to check out:
 if [[ -z "$1" ]]; then
