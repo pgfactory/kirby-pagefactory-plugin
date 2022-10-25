@@ -730,10 +730,8 @@ EOT;
     public function loadPfyConfig():void
     {
         $this->pfy->config = PageFactory::$siteOptions;
-        if (file_exists(PFY_CONFIG_FILE)) {
-            if (is_array($a = include(PFY_CONFIG_FILE))) {
-                $this->pfy->config = array_merge($a, $this->pfy->config);
-            }
+        if ($a = self::readPfyConfig()) {
+            $this->pfy->config = array_merge($a, $this->pfy->config);
         }
         // propagate variables from config into TransVars:
         if (isset($this->pfy->config['variables'])) {
@@ -757,6 +755,27 @@ EOT;
             $this->pfy->config['keywords'] = $s;
         }
     } // loadPfyConfig
+
+
+    /**
+     * Reads file content/config/pagefactory.php
+     * @param $key  -> all if no key supplied
+     * @param $default
+     * @return array|mixed
+     */
+    public static function readPfyConfig($key = false, $default = null)
+    {
+        if (file_exists(PFY_CONFIG_FILE)) {
+            if (is_array($a = include(PFY_CONFIG_FILE))) {
+                if ($key) {
+                    return isset($a[$key])? $a[$key]: $default;
+                } else {
+                    return $a;
+                }
+            }
+        }
+        return [];
+    } // readPfyConfig
 
 
 
