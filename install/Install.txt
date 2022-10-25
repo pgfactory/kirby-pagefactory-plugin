@@ -1,11 +1,15 @@
-# Installation
+Installation of Kirby/Pagefactory
+=================================
 
-## Starting Point{.h4}
+ Starting Point
+---------------
 - This assumes you are working in a linux/unix environment.
 - Further, it assumes that you will install PageFactory in a subfolder of doc-root.
 - In other cases you'll need to slightly adapt the Installation process.
 
-## Installation Script
+
+Installation Script
+-------------------
 
 1) Download installation script from <https://pagefactory.info/download/install.sh>
 (-> store it somewhere outside of your new web-app folder)
@@ -14,32 +18,51 @@
 
 3) Open page in your browser, e.g. http://localhost:8888/webapp/
 
+1) Download installation scripts:
+    - https://pagefactory.info/download/install.sh
+    - https://pagefactory.info/download/install-pagefactory.sh
+(→ best store them in the parent folder of your new web-app)
+
+2) Run install.sh <path-to-webapp> (e.g. ./install.sh webapp)
+
+3) Open page in your browser, e.g. http://localhost:8888/webapp/
+
+
+=> If a Kirby installation already exists, just run install-pagefactory.sh
+inside your web-app folder
+
+2b) Run install-pagefactory.sh (e.g. ../install-pagefactory.sh)
 
 
 
-## Manual Installation
+Manual Installation
+-------------------
 
 1) Cd to doc-root and create root folder of your new web-app, e.g. 'webapp/'
 
-    \> mkdir webapp
-    \> cd webapp
+    mkdir webapp
+    cd webapp
 
 
 2) Clone Kirby's plainkit
 
-    \> git clone https://github.com/getkirby/plainkit.git .
+    git clone https://github.com/getkirby/plainkit.git .
 
 
 3) Clone PageFactory to folder 'site/plugins/pagefactory/'
 
-    \> git clone https://github.com/pgfactory/kirby-pagefactory-plugin.git site/plugins/pagefactory
+    git clone https://github.com/pgfactory/kirby-pagefactory-plugin.git site/plugins/pagefactory
 
 
-4) Copy files to final location
+4) Copy files to final location and rename some
 
-    \> cp -R site/plugins/pagefactory/install/content/*  content
-    \> cp -R site/plugins/pagefactory/install/media/*    media
-    \> cp -R site/plugins/pagefactory/install/site/*     site
+    cp -R site/plugins/pagefactory/install/assets/   assets
+    cp -R site/plugins/pagefactory/install/content/  content
+    cp -R site/plugins/pagefactory/install/site/     site
+    cp content/home/home.txt content/home/zzz_page.txt
+    mv content/home/home.txt content/home/zzz_page.en.txt
+    cp content/site.txt content/site.en.txt
+    mv content/home content/1_home
 
 
-5) Open page in your browser, e.g. <http://localhost:8888//webapp/>
+5) Open page in your browser, e.g. http://localhost:8888//webapp/
