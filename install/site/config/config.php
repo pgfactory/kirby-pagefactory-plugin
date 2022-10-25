@@ -3,7 +3,7 @@
 return [
 // uncomment as desired:
     'smartypants' => true,
-//    'languages' => true,
+    'languages' => true, // enables language option in Panel
 //     'auth' => [
 //         'methods' => ['password','code']
 //     ],
