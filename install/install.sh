@@ -1,19 +1,17 @@
 #!/usr/bin/env bash
-# Usage:
-#   install.sh path-to-webapp-folder
-#
-# if arg is omitted, script assumes you already navigated to your new web-app folder.
-# NOTE: in that case the folder must be empty, i.e. the install.sh script must
-# be stored somewhere else.
 
 if [[ -z "$1" ]]; then
+	echo 
+	echo "Installation script for Kirby/Pagefactory"
+	echo "-----------------------------------------"
 	echo "Usage:"
-	echo   install.sh path-to-webapp-folder
-	echo
+	echo "  install.sh  path-to-webapp-folder  {branch}"
+	echo "     path-to-webapp-folder='.' for current folder"
+	echo "     branch is optional"
+	echo 
 	exit
 fi
 
-cwd=`pwd`
 if [[ "$1" != "." ]]; then
 	if [[ ! -e $1 ]]; then
 		mkdir $1
@@ -41,4 +39,7 @@ else
 	echo Kirby already installed
 fi
 
-$cwd/install-pagefactory.sh $2
+# Invoke Pagefactory installation script (assumed to be in same location as install.sh):
+thisScript=$0
+path=${thisScript%/*}
+$path/install-pagefactory.sh $2
