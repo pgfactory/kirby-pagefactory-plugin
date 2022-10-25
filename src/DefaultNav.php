@@ -44,7 +44,7 @@ class DefaultNav
         if (strpos($wrapperClass, 'pfy-nav-collapsed')) {
             $this->hidden = 'true';
         }
-
+        $out = '';
         // type=branch:
         if ($this->args['type'] === 'branch') {
             // find top-level parent:
@@ -60,9 +60,11 @@ class DefaultNav
             $out = $this->_render($subtree);
 
         // default type
-        } else {
-            $tree = $this->site->children();
-            $out = $this->_render($tree);
+        } elseif ($this->site->hasListedChildren()) {
+            $tree = $this->site->children()->listed();
+            if (sizeof($tree) > 1) {
+                $out = $this->_render($tree);
+            }
         }
 
         if (!$out) {
