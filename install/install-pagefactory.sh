@@ -36,9 +36,7 @@ if [ ! -e site/templates/page_template.html ]; then
 	cp -R site/plugins/pagefactory/install/assets/   assets
 	cp -R site/plugins/pagefactory/install/content/  content
 	cp -R site/plugins/pagefactory/install/site/     site
-	cp content/home/home.txt content/home/zzz_page.txt
-	mv content/home/home.txt content/home/zzz_page.en.txt
-	cp content/site.txt content/site.en.txt
+	mv content/home/home.txt content/home/zzz_page.txt
 	mv content/home content/1_home
 	echo Essential files copied to final location
 fi
