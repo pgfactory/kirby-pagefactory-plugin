@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+cwd=`pwd`
+
 if [[ -z "$1" ]]; then
 	echo 
 	echo "Installation script for Kirby/Pagefactory"
@@ -42,4 +44,4 @@ fi
 # Invoke Pagefactory installation script (assumed to be in same location as install.sh):
 thisScript=$0
 path=${thisScript%/*}
-$path/install-pagefactory.sh $2
+$cwd/$path/install-pagefactory.sh $2
