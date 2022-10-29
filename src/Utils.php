@@ -426,12 +426,14 @@ EOT;
     private function fixFrontmatterCss(): void
     {
         $css = &PageFactory::$pg->frontmatter['css'];
-        $css = str_replace('.this', '.'.$this->sectionClass, $css);
-        $css = str_replace('#this', '#'.$this->sectionId, $css);
+        if ($css) {
+            $css = str_replace(['#this', '.this'], ['#'.$this->sectionId, '.'.$this->sectionClass], $css);
+        }
 
         $scss = &PageFactory::$pg->frontmatter['scss'];
-        $scss = str_replace('.this', '.'.$this->sectionClass, $scss);
-        $scss = str_replace('#this', '#'.$this->sectionId, $scss);
+        if ($scss) {
+            $scss = str_replace(['#this', '.this'], ['#'.$this->sectionId, '.'.$this->sectionClass], $scss);
+        }
     } // fixFrontmatterCss
 
 
