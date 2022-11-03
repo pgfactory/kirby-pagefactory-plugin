@@ -5,6 +5,7 @@ namespace Usility\PageFactory;
  // Use helper functions with prefix '\Usility\PageFactory\'
 use \Kirby\Data\Yaml as Yaml;
 use \Kirby\Data\Json as Json;
+ use \Kirby\Filesystem\F;
 use Exception;
 
 
@@ -859,6 +860,56 @@ function writeFile(string $file, string $content, int $args = 0): void
     preparePath($file);
     file_put_contents($file, $content, $args);
 } // writeFile
+
+
+
+function readCsvFile(string $file, $assoc = false)
+{
+    $array = [];
+    if (file_exists($file)) {
+        $str = F::read($file);
+        $array = parseCsv($str);
+    }
+    if ($assoc) {
+        $array2 = [];
+        $headers = array_shift($array);
+        foreach ($array as $i => $rec) {
+            $array2[] = array_combine($headers, $rec);
+        }
+        return $array2;
+    } else {
+        return $array;
+    }
+} // readCsvFile
+
+
+
+function parseCsv($str, $delim = false, $enclos = false) {
+
+     if (!$delim) {
+         $delim = (substr_count($str, ',') > substr_count($str, ';')) ? ',' : ';';
+         $delim = (substr_count($str, $delim) > substr_count($str, "\t")) ? $delim : "\t";
+     }
+     if (!$enclos) {
+         if (strpbrk($str[0], '"\'')) {
+             $enclos = $str[0];
+         } else {
+             $enclos = (substr_count($str, '"') > substr_count($str, "'")) ? '"' : "'";
+         }
+     }
+
+     $lines = explode(PHP_EOL, $str);
+     $array = array();
+     foreach ($lines as $line) {
+         if (!$line) { continue; }
+         $line = str_replace("\\n", "\n", $line);
+         $array[] = str_getcsv($line, $delim, $enclos);
+     }
+     return $array;
+ } // parseCsv
+
+
+
 
 
  /**
@@ -1757,18 +1808,24 @@ function translateToClassName(string $str): string
   * @param bool $flat
   * @return string
   */
-function var_r($var, string $varName = '', bool $flat = false): string
+function var_r($var, string $varName = '', bool $flat = false, bool $embedInPre = false): string
 {
+    if ($varName) {
+        $varName .= ': ';
+    }
     if ($flat) {
         $out = preg_replace("/" . PHP_EOL . "/", '', var_export($var, true));
         if (preg_match('/array \((.*),\)/', $out, $m)) {
             $out = "[{$m[1]} ]";
         }
         if ($varName) {
-            $out = "$varName: $out";
+            $out = "$varName$out";
         }
     } else {
-        $out = "<div><pre>$varName: " . var_export($var, true) . "\n</pre></div>\n";
+        $out = $varName . var_export($var, true);
+    }
+    if ($embedInPre) {
+        $out = "<div><pre>$out\n</pre></div>\n";
     }
     return $out;
 } // var_r
@@ -1910,3 +1967,34 @@ function iconExists($iconName)
     return true;
 } // iconExists
 
+
+
+ function createHash( $hashSize = 8, $unambiguous = false, $lowerCase = false )
+ {
+     if ($unambiguous) {
+         $chars = UNAMBIGUOUS_CHARACTERS;
+         $max = strlen(UNAMBIGUOUS_CHARACTERS) - 1;
+         $hash = $chars[ random_int(4, $max) ];  // first always a letter
+         for ($i=1; $i<$hashSize; $i++) {
+             $hash .= $chars[ random_int(0, $max) ];
+         }
+
+     } else {
+         $hash = chr(random_int(65, 90));  // first always a letter
+         $hash .= strtoupper(substr(sha1(random_int(0, PHP_INT_MAX)), 0, $hashSize - 1));  // letters and digits
+     }
+     if ($lowerCase) {
+         $hash = strtolower( $hash );
+     }
+     return $hash;
+ } // createHash
+
+
+
+function getSessionId()
+{
+    session_start();
+    $sessionId = session_id();
+    session_abort();
+    return $sessionId;
+} // getSessionId
