@@ -662,7 +662,7 @@ EOT;
             $debug = @$_GET['debug'];
             if (($debug === null) && $this->pfy->session->get('pfy.debug')) {
                 $debug = true;
-            } elseif ($debug === 'false') {
+            } elseif ($debug === 'false' || $debug === null) {
                 $debug = false;
                 $this->pfy->session->remove('pfy.debug');
             } else {
