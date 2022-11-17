@@ -30,36 +30,38 @@ require_once __DIR__ . '/helper.php';
 
 class PageFactory
 {
-    public static $pages = null;
+    public static $pages;
     public static $siteFiles;
-    public static $appRoot = null;
-    public static $appRootUrl = null;
-    public static $appUrl = null;
-    public static $absAppRoot = null;
-    public static $pagePath = null;
-    public static $pageRoot = null;
-    public static $absPageRoot = null;
-    public static $hostUrl = null;
-    public static $absPageUrl = null;
-    public static $pageUrl = null;
-    public static $lang = null;
-    public static $langCode = null;
-    public static $trans = null;
-    public static $pg = null;
-    public static $md = null;
-    public static $siteOptions = null;
+    public static $appRoot;
+    public static $appRootUrl;
+    public static $appUrl;
+    public static $absAppRoot;
+    public static $absPfyRoot;
+    public static $pagePath;
+    public static $pageRoot;
+    public static $absPageRoot;
+    public static $hostUrl;
+    public static $absPageUrl;
+    public static $pageUrl;
+    public static $lang;
+    public static $langCode;
+    public static $trans;
+    public static $pg;
+    public static $md;
+    public static $siteOptions;
     public static $availableExtensions = [];
     public static $loadedExtensions = [];
-    public static $debug = null;
-    public static $timer = null;
-    public static $user = null;
-    public static $slug = null;
-    public static $urlToken = null;
-    public static $availableIcons = null;
+    public static $debug;
+    public static $timer;
+    public static $user;
+    public static $slug;
+    public static $urlToken;
+    public static $availableIcons;
+    public static $phpSessionId;
 
     public $config;
     public $templateFile = '';
-    public $session = null;
+    public $session;
     public $mdContent = '';
     public $css = '';
     public $scss = '';
@@ -77,6 +79,10 @@ class PageFactory
     public $bodyEndInjections = '';
     public $loadHelperJs = false;
 
+    /**
+     * @param $pages
+     * @throws Kirby\Exception\InvalidArgumentException
+     */
     public function __construct($pages)
     {
         self::$timer = microtime(true);
@@ -84,6 +90,7 @@ class PageFactory
         self::$siteFiles = $pages->files();
         $this->kirby = kirby();
         $this->session = $this->kirby->session();
+        self::$phpSessionId = getSessionId();
 
         $this->page = page();
         $this->site = site();
@@ -116,7 +123,8 @@ class PageFactory
 
         $this->content = (string)$this->page->text()->kt();
         self::$pagePath = substr($this->page->root(), strlen(site()->root())+1) . '/';
-        self::$absAppRoot = dirname($_SERVER['SCRIPT_FILENAME']).'/';
+        self::$absAppRoot = kirby()->root().'/';
+        self::$absPfyRoot = __DIR__.'/';
         self::$hostUrl = $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].'/';
         self::$appRoot = dirname(substr($_SERVER['SCRIPT_FILENAME'], -strlen($_SERVER['SCRIPT_NAME']))).'/';
         self::$appUrl = dirname(substr($_SERVER['SCRIPT_FILENAME'], -strlen($_SERVER['SCRIPT_NAME']))).'/';
@@ -138,7 +146,17 @@ class PageFactory
     } // __construct
 
 
-    
+    /**
+     * Destructor: invokes DataSet::unlockDatasources
+     */
+    public function __destruct()
+    {
+        if (method_exists('Usility\PageFactory\DataSet', 'unlockDatasources')) {
+            DataSet::unlockDatasources(self::$absAppRoot);
+        }
+    } // __destruct
+
+
     /**
      * renders the final HTML
      * @param false $templateFile
@@ -149,7 +167,7 @@ class PageFactory
         // check for presence of site/plugins/pagefactory-*':
         self::$pg->loadExtensions();
 
-        if (@$options['mdVariant']) {
+        if ($options['mdVariant']??false) {
             MarkdownPlus::$mdVariant = $options['mdVariant'];
         }
         $this->utils->handleAgentRequests(); // login,logout,printpreview,print' and 'help,localhost,timer,reset,notranslate'
@@ -241,7 +259,7 @@ class PageFactory
 
         // 'generator':
         // for performance reasons we cache the gitTag, so, if that changes you need to remember to clear site/.#pfy-cache
-        $gitTag = @file_get_contents(PFY_CACHE_PATH.'gitTag.txt');
+        $gitTag = fileGetContents(PFY_CACHE_PATH.'gitTag.txt');
         if ($gitTag === false) {
             $gitTag = getGitTag();
             file_put_contents(PFY_CACHE_PATH.'gitTag.txt', $gitTag);
@@ -265,18 +283,21 @@ class PageFactory
     } // setStandardVariables
 
 
-
-    public static function instance()
+    /**
+     * @return static
+     * @throws Kirby\Exception\InvalidArgumentException
+     */
+    public static function instance(): object
     {
         return static::$instance ?? new static(pages());
-    }
+    } // instance
 
     /**
      * @return void
      */
     private function determineAssetFilesList(): void
     {
-// get asset-files definition: first try site/config/pagefactory.php:
+        // get asset-files definition: first try site/config/pagefactory.php:
         if (@$this->config['assetFiles']) {
             $this->assetFiles = $this->config['assetFiles'];
         } else { // if not found, use following as default values:
