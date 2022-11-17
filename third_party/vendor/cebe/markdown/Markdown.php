@@ -98,7 +98,7 @@ class Markdown extends Parser
 				// possible beginning of a code block
 				// but check for continued inline HTML
 				// e.g. <img src="file.jpg"
-				//           alt="some alt aligned with src attribute" title="some text" />
+				//           alt="some alt aligned with src attribute" title="some text">
 				if (preg_match('~<\w+([^>]+)$~s', implode("\n", $content))) {
 					$content[] = $line;
 				} else {
@@ -123,6 +123,6 @@ class Markdown extends Parser
 	 */
 	protected function renderText($text)
 	{
-		return str_replace("  \n", $this->html5 ? "<br>\n" : "<br />\n", $text[1]);
+		return str_replace("  \n", $this->html5 ? "<br>\n" : "<br>\n", $text[1]);
 	}
 }

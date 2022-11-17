@@ -119,7 +119,7 @@ class Img extends Macros
         }
         $attributes = "src='$src' $attributes";
 
-        $str = "<img $attributes />";
+        $str = "<img $attributes >";
 
         if ($args['link']) {
             $str = $this->applyLinkWrapper($str);

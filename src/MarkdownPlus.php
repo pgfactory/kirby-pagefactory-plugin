@@ -509,7 +509,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
             } elseif (preg_match('/^: /', $line)) { // within dd block
                 $md .= substr($line, 2) . ' ';
                 if (preg_match('/\s\s$/', $md)) { // 2 blanks at end of line -> insert line break
-                    $md = rtrim($md) . "<br />\n";
+                    $md = rtrim($md) . "<br>\n";
                 }
 
             } else {                                        // new dt block starts

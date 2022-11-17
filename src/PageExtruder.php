@@ -196,7 +196,7 @@ class PageExtruder
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta charset="utf-8" />
+	<meta charset="utf-8">
 	<title></title>
 </head>
 <body>
@@ -703,10 +703,10 @@ EOT;
         if ($file) {
             if ($type === 'css') {
                 if (strpos($file, '-async') !== false) {
-                    $out = "\t<link href='$file' rel='stylesheet' media='print' class='pfy-onload-css' />\n";
-                    $out .= "\t<noscript><link href='$file' rel='stylesheet' /></noscript>\n";
+                    $out = "\t<link href='$file' rel='stylesheet' media='print' class='pfy-onload-css'>\n";
+                    $out .= "\t<noscript><link href='$file' rel='stylesheet'></noscript>\n";
                 } else {
-                    $out = "\t<link href='$file' rel='stylesheet' />\n";
+                    $out = "\t<link href='$file' rel='stylesheet'>\n";
                 }
             } else {
                 $out = "\t<script src='$file'></script>\n";

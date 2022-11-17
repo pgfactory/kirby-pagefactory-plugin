@@ -60,7 +60,7 @@ class Reveal extends Macros
 
         $class = $class? " $class": '';
         $out = '';
-        $out .= "\n\t\t\t\t<input id='$id' class='pfy-reveal-controller-elem pfy-reveal-icon' type='checkbox' data-reveal-target='{$args['target']}' />".
+        $out .= "\n\t\t\t\t<input id='$id' class='pfy-reveal-controller-elem pfy-reveal-icon' type='checkbox' data-reveal-target='{$args['target']}'>".
             "\n\t\t\t\t<label for='$id'>{$args['label']}</label>\n";
 
         $out = "\t\t\t<div class='pfy-reveal-controller$class'>$out\t\t\t</div>\n";
