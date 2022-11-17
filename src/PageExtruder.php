@@ -381,8 +381,8 @@ EOT;
 
         foreach ($assets as $asset) {
             $asset = resolvePath($asset);
-            $basename = basename($asset);
-            $ext = fileExt($asset);
+            $basename = preg_replace('/[#?].*/', '',  basename($asset)); // remove trailing '?xy' or '#xy'
+            $ext = fileExt($basename);
 
             // handle special case 'scss' -> just change to css, will be compiled automatically:
             if ($ext === 'scss') {
@@ -662,11 +662,11 @@ EOT;
      */
     private function getFilesLoadingCode(string $type): string
     {
-        $queuedSssFiles = $this->getQueuedFiles($type);
+        $queuedFiles = $this->getQueuedFiles($type);
 
         $out = '';
-        if ($queuedSssFiles) {
-            foreach ($queuedSssFiles as $filename) {
+        if ($queuedFiles) {
+            foreach ($queuedFiles as $filename) {
                 // skip files if they are not for autoload ('-xxx') and not in requestedAssetFiles:
                 if ((!in_array($filename, $this->requestedAssetFiles)) && ($filename[0] !== '-')) {
                     continue; // autoload only files starting with '-'
@@ -762,11 +762,11 @@ EOT;
      */
     private function getQueuedFiles(string $type): array
     {
-        $queuedSssFiles = array_keys($this->assetFiles);
-        $queuedSssFiles = array_filter($queuedSssFiles, function ($f) use($type) {
+        $queuedFiles = array_keys($this->assetFiles);
+        $queuedFiles = array_filter($queuedFiles, function ($f) use($type) {
             return (fileExt($f) === $type);
         });
-        return $queuedSssFiles;
+        return $queuedFiles;
     }
 
 
@@ -815,8 +815,9 @@ EOT;
      * @param string $targetPath
      * @return bool     files modified (browser reload required)
      */
-    private function updateFile(string $srcFile, string $targetPath): bool
+    private function updateFile(string $srcFile0, string $targetPath): bool
     {
+        $srcFile = preg_replace('/[#?].*/', '', $srcFile0);
         if (!file_exists($srcFile)) {
             if (PageFactory::$debug) {
                 throw new \Exception("Error: asset file '$srcFile' not found.");

@@ -87,7 +87,7 @@ class Macros
         }
 
         // handle help request:
-        if (@$args[0] === 'help') {
+        if (($args[0]??'') === 'help') {
             return $this->renderHelpText($macroObj);
         }
 
@@ -103,7 +103,7 @@ class Macros
         }
 
         // wrap in comment if requested:
-        if (@$macroObj['wrapInComment'] || $macroObj['macroObj']->get('wrapInComment')) {
+        if (($macroObj['wrapInComment']??false) || $macroObj['macroObj']->get('wrapInComment')) {
             $str = <<<EOT
 
 <!-- $macroName() -->
@@ -167,7 +167,7 @@ EOT;
         }
 
         // Check whether macro requires any extensions:
-        if (@$macroObj['requiredExtensions']) {
+        if ($macroObj['requiredExtensions']??false) {
             foreach ($macroObj['requiredExtensions'] as $requiredExtension) {
                 $ext = "pagefactory-$requiredExtension";
                 if (!file_exists("site/plugins/$ext")) {
@@ -177,7 +177,7 @@ EOT;
         }
 
         // Load assets if requested by macro:
-        if (@$macroObj['assetsToLoad']) {
+        if ($macroObj['assetsToLoad']??false) {
             $assetsToLoad = $macroObj['assetsToLoad'];
             if (is_string($assetsToLoad)) {
                 $assetsToLoad = [$assetsToLoad];
@@ -322,7 +322,7 @@ EOT;
      */
     protected function get(string $key)
     {
-        return @$this->$key;
+        return $this->$key??'';
     } // get
 
 

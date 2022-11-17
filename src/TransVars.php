@@ -134,7 +134,7 @@ class TransVars
                     continue;
                 }
 
-                if (@$modif[0] === '#') {
+                if (($modif[0]??'') === '#') {
                     $str = $s1.$s3;
                     list ($p1, $p2) = strPosMatching($str);
                     continue;
@@ -154,11 +154,11 @@ class TransVars
                 }
 
                 // modifier 'm' -> md-compile inline-level:
-                if (@$modif[0] === 'm') {
+                if (($modif[0]??'') === 'm') {
                     $s2 = PageFactory::$md->parseParagraph($s2);
 
                 // modifier 'M' -> md-compile block-level
-                } elseif (@$modif[0] === 'M') {
+                } elseif (($modif[0]??'') === 'M') {
                     $s2 = PageFactory::$md->parse($s2);
                 }
 

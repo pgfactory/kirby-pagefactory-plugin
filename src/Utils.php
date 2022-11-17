@@ -297,7 +297,7 @@ EOT;
             $mdStr = $this->extractFrontmatter($mdStr);
             $html = PageFactory::$md->compile($mdStr);
             $class = translateToClassName(basename($fileObj->id(), '.md'));
-            $wrapperTag = @$this->frontmatter['wrapperTag'];
+            $wrapperTag = $this->frontmatter['wrapperTag']??'';
             if ($wrapperTag === null) {
                 $wrapperTag = 'section';
             }
@@ -353,7 +353,7 @@ EOT;
         }
 
         // if variables were defined in Frontmatter, propagate them into PFY's variables:
-        if (@$this->pfy->frontmatter['variables'] && is_array($this->pfy->frontmatter['variables'])) {
+        if (($this->pfy->frontmatter['variables']??false) && is_array($this->pfy->frontmatter['variables'])) {
             foreach ($this->pfy->frontmatter['variables'] as $varName => $value) {
                 $array[$varName] = $value;
                 PageFactory::$trans->setVariable($varName, $array);
@@ -376,16 +376,16 @@ EOT;
             }
         }
 
-        if (@$this->pfy->frontmatter['loadAssets']) {
+        if ($this->pfy->frontmatter['loadAssets']??false) {
             PageFactory::$pg->addAssets($this->pfy->frontmatter['loadAssets'], true);
         }
-        if (@$this->pfy->frontmatter['assets']) {
+        if ($this->pfy->frontmatter['assets']??false) {
             PageFactory::$pg->addAssets($this->pfy->frontmatter['assets'], true);
         }
-        if (@$this->pfy->frontmatter['jqFile']) {
+        if ($this->pfy->frontmatter['jqFile']??false) {
             PageFactory::$pg->addAssets($this->pfy->frontmatter['jqFile'], true);
         }
-        if (@$this->pfy->frontmatter['jqFiles']) {
+        if ($this->pfy->frontmatter['jqFiles']??false) {
             PageFactory::$pg->addJqFiles($this->pfy->frontmatter['jqFiles'], true);
         }
 
@@ -659,7 +659,7 @@ EOT;
 
         }
         if (isAdminOrLocalhost()) {
-            $debug = @$_GET['debug'];
+            $debug = $_GET['debug']??false;
             if (($debug === null) && $this->pfy->session->get('pfy.debug')) {
                 $debug = true;
             } elseif ($debug === 'false' || $debug === null) {
@@ -849,7 +849,7 @@ EOT;
         }
         $str = "\t,'$key' => '$value',$comment\n";
 
-        $config = @file_get_contents(PFY_CONFIG_FILE);
+        $config = fileGetContents(PFY_CONFIG_FILE);
         if ($config) {
            $config = str_replace('];', "$str];", $config);
         } else {

@@ -400,7 +400,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
                 foreach ($m[1] as $j => $width) {
                     if ($width) {
                         $block['widths'][$j] = $width;
-                    } elseif (!@$block['widths'][$j]) {
+                    } elseif (isset($block['widths'][$j])) {
                         $block['widths'][$j] = '6em';
                     }
                 }
@@ -424,7 +424,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
             $addedWidths = 0; // px
             $addedEmsWidths = 0; // em
             foreach ($parts as $n => $elem) {
-                if ($w = @$block['widths'][$n]) {
+                if ($w = $block['widths'][$n]??false) {
                     $style = " style='width:$w;'";
                     $addedWidths += convertToPx($w);
                     $addedWidths += convertToPx('1.2em');
@@ -941,7 +941,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
 
 
         // handle smartypants:
-        if (@PageFactory::$siteOptions['smartypants']) {
+        if (PageFactory::$siteOptions['smartypants']??false) {
             $str = $this->smartypants($str);
         }
 
@@ -1461,7 +1461,7 @@ EOT;
      */
     private function execAndIncludePhpFile(string $file, $args, $mdCompileOverride = null, $mdCompile = false): string
     {
-        if (!@$this->pfy->config['allowCustomCode']) {
+        if (!isset($this->pfy->config['allowCustomCode'])) {
             throw new \Exception("Error: execution of custom-code not allowed. (→ to enable add 'allowCustomCode' to 'site/config/pagefactory.php'.)");
         }
 
