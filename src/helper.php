@@ -5,10 +5,12 @@ namespace Usility\PageFactory;
  // Use helper functions with prefix '\Usility\PageFactory\'
 use \Kirby\Data\Yaml as Yaml;
 use \Kirby\Data\Json as Json;
- use \Kirby\Filesystem\F;
+use Kirby\Data\Data;
+use \Kirby\Filesystem\F;
 use Exception;
 
-
+const FILE_BLOCKING_MAX_TIME = 500; //ms
+const FILE_BLOCKING_CYCLE_TIME = 50; //ms
 
  /**
   * Checks whether agent is in the same subnet as IP 192.x.x.x
@@ -17,7 +19,7 @@ use Exception;
 function isLocalhost(): bool
 {
     // url-arg ?localhost=false let's you mimick a remote host:
-    if (@$_GET['localhost'] === 'false') {
+    if (($_GET['localhost']??'') === 'false') {
         return false;
     }
     $remoteAddress = isset($_SERVER["REMOTE_ADDR"]) ? $_SERVER["REMOTE_ADDR"] : 'REMOTE_ADDR';
@@ -87,7 +89,7 @@ function appendFile(string $file, string $str, string $headerIfEmpty = ''): void
 
     $file = resolvePath($file);
     preparePath($file);
-    $data = @file_get_contents($file);
+    $data = fileGetContents($file);
     if (!$data) {
         file_put_contents($file, $headerIfEmpty . $str);
 
@@ -105,7 +107,7 @@ function appendFile(string $file, string $str, string $headerIfEmpty = ''): void
   * Loads content of file, applies some cleanup on demand: remove comments, zap end after __END__.
   * If file extension is yaml, csv or json, data is decoded and returned as a data structure.
   * @param string $file
-  * @param bool $removeComments Possible values:
+  * @param mixed $removeComments Possible values:
   *         true    -> zap END
   *         'hash'  -> #...
   *         'empty' -> remove empty lines
@@ -114,7 +116,7 @@ function appendFile(string $file, string $str, string $headerIfEmpty = ''): void
   * @return array|mixed|string|string[]
   * @throws \Kirby\Exception\InvalidArgumentException
   */
-function loadFile(string $file, $removeComments = true, bool $useCaching = false)
+function loadFile(string $file, mixed $removeComments = true, bool $useCaching = false)
 {
     if (!$file || !is_string($file)) {
         return '';
@@ -142,13 +144,14 @@ function loadFile(string $file, $removeComments = true, bool $useCaching = false
  /**
   * Loads multiple files and returns combined output (string or array).
   * Note: files of type string and structured data must not be mixed (first file wins).
-  * @param $files
-  * @param bool $removeComments
+  * @param mixed $files
+  * @param mixed $removeComments
   * @param bool $useCaching
   * @return array|mixed|string|null
   * @throws \Kirby\Exception\InvalidArgumentException
   */
-function loadFiles($files, $removeComments = true, bool $useCaching = false) {
+function loadFiles(mixed $files, mixed $removeComments = true, bool $useCaching = false): mixed
+{
     if (!$files || !is_array($files)) {
         return null;
     }
@@ -183,11 +186,12 @@ function loadFiles($files, $removeComments = true, bool $useCaching = false) {
 
 
  /**
+  * Reads file safely, first resolving path, removing comments and zapping rest (after __END__) if requested
   * @param string $file
-  * @param bool $removeComments
+  * @param mixed $removeComments -> cstyle|hash|empty
   * @return array|false|string|string[]
   */
-function getFile(string $file, $removeComments = true)
+function getFile(string $file, mixed $removeComments = true)
  {
      if (!$file || !is_string($file)) {
          return '';
@@ -195,7 +199,7 @@ function getFile(string $file, $removeComments = true)
 
      $file = resolvePath($file);
 
-     $data = @file_get_contents($file);
+     $data = fileGetContents($file);
      if (!$data) {
          return '';
      }
@@ -218,28 +222,73 @@ function getFile(string $file, $removeComments = true)
          }
      }
      return $data;
- } // getile
+ } // getFile
 
 
+ /**
+  * file_get_contents() replacement with file_exists check
+  * @param $file
+  * @return false|string|null
+  */
+ function fileGetContents(string $file): mixed
+ {
+     if (file_exists($file)) {
+         return @file_get_contents($file);
+     } else {
+         return null;
+     }
+ } // fileGetContents
+
+
+ /**
+  * file_put_contents() replacement with is_writable check
+  * @param string $file
+  * @param string $str
+  * @param int $flags
+  * @return mixed
+  */
+ function filePutContents(string $file, string $str, int $flags = 0): mixed
+ {
+     if (is_writable($file) || is_writable(dirname($file))) {
+         return file_put_contents($file, $str, $flags);
+     } else {
+         return false;
+     }
+ } // filePutContents
+
+
+ /**
+  * filemtime() replacement with file_exists check
+  * @param string $file
+  * @return int
+  */
+ function fileTime(string $file): int
+ {
+     if (file_exists($file)) {
+         return (int)@filemtime($file);
+     } else {
+         return 0;
+     }
+ } // fileTime
 
 
  /**
   * Checks whether cache contains valid data (used for yaml-cache)
-  * @param $file
+  * @param string|array $file
   * @return mixed|null
   */
-function checkDataCache($file)
+function checkDataCache(mixed $file): mixed
 {
     if (is_array($file)) {
-        $file1 = @$file[0];
+        $file1 = $file[0]??'';
         $cacheFile = cacheFileName($file1, '.0');
         if (!file_exists($cacheFile)) {
             return null;
         }
-        $tCache = filemtime($cacheFile);
+        $tCache = fileTime($cacheFile);
         $tFiles = 0;
         foreach ($file as $f) {
-            $tFiles = max($tFiles, @filemtime($f));
+            $tFiles = max($tFiles, fileTime($f));
         }
         if ($tFiles < $tCache) {
             $raw = file_get_contents($cacheFile);
@@ -249,8 +298,8 @@ function checkDataCache($file)
     } else {
         $cacheFile = cacheFileName($file);
         if (file_exists($cacheFile)) {
-            $tFile = @filemtime($file);
-            $tCache = @filemtime($cacheFile);
+            $tFile = fileTime($file);
+            $tCache = fileTime($cacheFile);
             if ($tFile < $tCache) {
                 $raw = file_get_contents($cacheFile);
                 return unserialize($raw);
@@ -268,7 +317,7 @@ function checkDataCache($file)
   * @param string $tag
   * @throws Exception
   */
-function updateDataCache(string $file, $data, string $tag = '')
+function updateDataCache(string $file, mixed $data, string $tag = '')
 {
     $raw = serialize($data);
     $cacheFile = cacheFileName($file, $tag);
@@ -297,7 +346,7 @@ function cacheFileName(string $file, string $tag = ''): string
   * @return array
   * @throws \Kirby\Exception\InvalidArgumentException
   */
- function decodeYaml(string $str): array
+function decodeYaml(string $str): array
  {
      return Yaml::decode($str);
  } // decodeYaml
@@ -316,10 +365,10 @@ function cacheFileName(string $file, string $tag = ''): string
 
  /**
   * Parses a Kirby-frontmatter string, returns corresponding data array.
-  * @param $frontmatter
+  * @param string $frontmatter
   * @return array
   */
- function extractKirbyFrontmatter($frontmatter): array
+function extractKirbyFrontmatter(string $frontmatter): array
  {
      if (!$frontmatter) {
          return [];
@@ -581,10 +630,10 @@ function removeCStyleComments(string $str): string
  /**
   * Reads content of a directory. Automatically ignores any filenames starting with '#'.
   * @param string $pat  Optional glob-style pattern
-  * @param string $associative  Return as associative array
+  * @param bool|string $associative  Return as associative array
   * @return array
   */
-function getDir(string $pat, $associative = false): array
+function getDir(string $pat, mixed $associative = false): array
 {
     if (strpos($pat, '{') === false) {
         if (strpos($pat, '*') !== false) {
@@ -622,14 +671,14 @@ function getDir(string $pat, $associative = false): array
   * @param array $patterns
   * @return array
   */
- function getDirs(array $patterns): array
+function getDirs(array $patterns): array
  {
      $files = [];
      foreach ($patterns as $pattern) {
          $files = array_merge($files, getDir($pattern));
      }
      return $files;
- } //
+ } // getDirs
 
 
  /**
@@ -689,11 +738,11 @@ function getDirDeep(string $path, bool $onlyDir = false, bool $assoc = false, bo
 
  /**
   * Finds the file last modified and returns its modification time.
-  * @param string $paths
+  * @param mixed $paths
   * @param bool $recursive  Deep dives into sub-folders
   * @return int
   */
-function lastModified($paths, bool $recursive = true): int
+function lastModified(mixed $paths, bool $recursive = true): int
 {
     $newest = 0;
     $paths = resolvePath($paths);
@@ -730,7 +779,7 @@ function lastModified($paths, bool $recursive = true): int
   * Deletes all files in given array in one go (use carefully...)
   * @param $files
   */
-function deleteFiles($files): void
+function deleteFiles(mixed $files): void
 {
     if (is_string($files)) {
         @unlink($files);
@@ -744,9 +793,11 @@ function deleteFiles($files): void
 
  /**
   * Checks predefined paths to find available icons
+  * Note: this does not include Kirby's own icons as they are not available for web-pages
+  *  (https://forum.getkirby.com/t/panel-icons-but-how/15612/7)
   * @return array
   */
- function findAvailableIcons()
+function findAvailableIcons(): array
  {
      $availableIcons = getDir(PFY_PUB_ICONS_PATH, 'name_only');
      $availableIcons = array_merge($availableIcons, getDir(PFY_ICONS_PATH, 'name_only'));
@@ -754,15 +805,15 @@ function deleteFiles($files): void
  } // findAvailableIcons
 
 
-
  /**
   * Looks for special path patterns starting with '~'. If found replaces them with propre values.
   *   Supported path patterns: ~/, ~page/, ~pagefactory/, ~media/, ~assets/, ~data/
   * @param string $path
   * @param bool $returnAbsPath
+  * @param bool $relativeToPage
   * @return string
   */
-function resolvePath(string $path, bool $returnAbsPath = false, $relativeToPage = false): string
+function resolvePath(string $path, bool $returnAbsPath = false, bool $relativeToPage = false): string
 {
     if (@$path[0] !== '~') {
         if ($relativeToPage) {
@@ -811,10 +862,10 @@ function resolvePath(string $path, bool $returnAbsPath = false, $relativeToPage 
 
  /**
   * Runs an array of paths through resolvePath()
-  * @param $paths
+  * @param mixed $paths
   * @return mixed|string
   */
-function resolvePaths($paths)
+function resolvePaths(mixed $paths): string
 {
     if (is_string($paths)) {
         $paths = resolvePath($paths);
@@ -851,29 +902,313 @@ function getGitTag(bool $shortForm = true): string
   * Writes a string to a file.
   * @param string $file
   * @param string $content
-  * @param int $args        e.e. FILE_APPEND
+  * @param int $flags        e.g. FILE_APPEND
   * @throws Exception
   */
-function writeFile(string $file, string $content, int $args = 0): void
+function writeFile(string $file, string $content, int $flags = 0): void
 {
     $file = resolvePath($file);
     preparePath($file);
-    file_put_contents($file, $content, $args);
+    if (file_put_contents($file, $content, $flags) === false) {
+        $file = basename($file);
+        throw new \Exception("Writing to file '$file' failed");
+    }
 } // writeFile
 
 
+ /**
+  * Writes to file locking it during file system access.
+  * Converts data to type of file, i.e. yaml, json, csv if necessary.
+  * @param string $file
+  * @param mixed $content
+  * @param string $type
+  * @param string $blocking
+  * @return void
+  * @throws Exception
+  */
+ function writeFileLocking(string $file, mixed $content, string $type = '', string $blocking = ''): void
+{
+    if (!$type) {
+        $type = strtolower(fileExt($file));
+    }
+    // encode data:
+    if (strpos('yml,yaml,json', $type) !== false) {
+        $content = Data::encode($content, $type);
+    } elseif (is_object($content)) {
+        $content = serialize($content);
+    }
 
-function readCsvFile(string $file, $assoc = false)
+    // write data to file:
+    $fp = fopen($file,"w");
+    awaitFileLock($fp, true, $file, $blocking);
+
+    if ($type === 'csv') {
+        $rec1 = reset($content);
+        fputcsv($fp, array_keys($rec1));
+        foreach ($content as $line) {
+            fputcsv($fp, $line);
+        }
+    } else {
+        if (fwrite($fp, $content) === false) {
+            throw new \Exception("Error writing file '$file'");
+        }
+    }
+    if (flock($fp, LOCK_UN) === false) {
+        throw new \Exception("Error unlocking file '$file'");
+    }
+    if (fclose($fp) === false) {
+        throw new \Exception("Error closing file '$file'");
+    }
+} // writeFileLocking
+
+
+ /**
+  * Performs a read-modify-write operation during which the file is locked.
+  * @param string $file
+  * @param string $callback
+  * @param bool $blocking
+  * @return string
+  * @throws Exception
+  */
+ function readModifyWrite(string $file, string $callback, bool $blocking = true): string
+ {
+     $fp = fopen($file, 'c+b');
+
+     try {
+         awaitFileLock($fp, true, $file, $blocking);
+
+         try {
+             $content = $callback(stream_get_contents($fp));
+             ftruncate($fp, 0);
+             rewind($fp);
+             fwrite($fp, $content);
+             fflush($fp);
+         } finally {
+             flock($fp, LOCK_UN);
+         }
+     } finally {
+         fclose($fp);
+     }
+
+     return $content;
+} // readModifyWrite
+
+
+ /**
+  * Reads a file, decodes content according to file type, i.e. yaml, json, csv
+  * @param string $file
+  * @param string $type
+  * @param mixed $textEncoding
+  * @return mixed
+  */
+ function readFile(string $file, string $type = '', mixed $textEncoding = false): mixed
+{
+    if (!file_exists($file)) {
+        return '';
+    }
+    $str = file_get_contents($file);
+
+    if (!$type) {
+        $type = fileExt($file);
+    }
+    return decodeStr($str, $type, $textEncoding);
+} // readFile
+
+
+ /**
+  * Awaits unlocking of file if necessary, then reads file, decodes content according to file type
+  * @param string $file
+  * @param string $type
+  * @param bool $blocking
+  * @param mixed $textEncoding
+  * @return mixed
+  * @throws Exception
+  */
+ function readFileLocking(string $file, string $type = '', bool $blocking = true, mixed $textEncoding = false): mixed
+{
+    $fp = fopen($file,"r");
+    awaitFileLock($fp, false, $file, $blocking);
+    $str = stream_get_contents($fp);
+     if ($str === false) {
+         throw new \Exception("Error reading file '$file'");
+     }
+     if (fclose($fp) === false) {
+        throw new \Exception("Error closing file '$file'");
+    }
+
+    if (!$type) {
+        $type = fileExt($file);
+    }
+    return decodeStr($str, $type, $textEncoding);
+} // readFileLocking
+
+
+ /**
+  * Decodes a string according to data type (yaml, json, csv)
+  * Attempts to cope with strings in various character encoding, including 'macintosh'.
+  * @param string $str
+  * @param string $type
+  * @param mixed $textEncoding
+  * @return mixed
+  */
+ function decodeStr(string $str, string $type = '', mixed $textEncoding = false): mixed
+{
+     if ($textEncoding) {
+         if ($textEncoding !== true) {
+             $str = iconv($textEncoding, 'UTF-8', $str);
+         } else { // try to auto-detect:
+             $encoding = mb_detect_encoding($str) ?: 'macintosh';
+             if ($encoding !== 'UTF-8') {
+                 $str = iconv($encoding, 'UTF-8', $str);
+             }
+         }
+     }
+
+     switch ($type) {
+         case 'yml':
+         case 'yaml':
+         case 'json':
+             if (!$str) {
+                 return [];
+             }
+             return Data::decode($str, $type);
+
+         case 'csv':
+             if (!$str) {
+                 return [];
+             }
+             $array = parseCsv($str);
+             $array2 = [];
+             $headers = array_shift($array);
+             foreach ($array as $rec) {
+                 $array2[] = array_combine($headers, $rec);
+             }
+             return $array2;
+     }
+     return $str;
+} // decodeStr
+
+
+
+ if(!function_exists('mb_detect_encoding')) {
+     /**
+      * Detects character encoding, including 'macintosh'
+      * @param string $string
+      * @param mixed|null $enc
+      * @return mixed
+      */
+     function mb_detect_encoding(string $string, mixed $enc=null): mixed
+     {
+
+         static $list = array('utf-8', 'iso-8859-1', 'windows-1251', 'macintosh');
+
+         foreach ($list as $item) {
+             $sample = iconv($item, $item, $string);
+             if (md5($sample) == md5($string)) {
+                 if ($enc == $item) { return true; }    else { return $item; }
+             }
+         }
+         return null;
+     }
+ }
+
+
+ /**
+  * Tries to lock file, waits if it's locked (if $blocking = true)
+  * @param $fp
+  * @param bool $exclusive
+  * @param string $filename
+  * @param bool $blocking
+  * @return void
+  * @throws Exception
+  */
+ function awaitFileLock($fp, bool $exclusive = false, string $filename = '', bool $blocking = true): void
+{
+    $lockType = $exclusive? LOCK_EX:LOCK_SH;
+    if ($blocking) {
+        if ($blocking === true) {
+            $blocking = FILE_BLOCKING_MAX_TIME / FILE_BLOCKING_CYCLE_TIME;
+        }
+        while (!flock($fp, $lockType) && ($blocking--)) {
+            usleep(FILE_BLOCKING_CYCLE_TIME);
+        }
+        if (!$blocking) {
+            throw new \Exception("Failed to lock '$filename'");
+        }
+    } else {
+        if (!flock($fp, $lockType)) {
+            throw new \Exception("Failed to lock '$filename'");
+        }
+    }
+} // awaitFileLock
+
+
+ /**
+  * Waits until file gets released by other process.
+  * @param mixed $fp
+  * @param string $filename
+  * @param mixed $blocking
+  * @return bool
+  * @throws Exception
+  */
+ function awaitFileUnlocked(mixed $fp, string $filename = '', mixed $blocking = true)
+{
+    if ($blocking) {
+        if ($blocking === true) {
+            $blocking = FILE_BLOCKING_MAX_TIME / FILE_BLOCKING_CYCLE_TIME;
+        }
+        while (isFileLocked($fp) && ($blocking--)) {
+            usleep(FILE_BLOCKING_CYCLE_TIME);
+        }
+        if (!$blocking) {
+            throw new \Exception("Waiting for '$filename' to be unlocked timed out");
+        }
+        return true;
+    } else {
+        return !isFileLocked($fp);
+    }
+} // awaitFileUnlocked
+
+
+ /**
+  * Checks whether file is locked.
+  * @param $fp
+  * @return bool
+  */
+ function isFileLocked(mixed $fp): bool
+ {
+    if (is_string($fp)) {
+        if (!file_exists($fp)) {
+            return false;
+        }
+        $fp = fopen($fp,"r");
+        $locked = stream_get_meta_data($fp)['blocked'];
+        fclose($fp);
+        return (bool)$locked;
+    } else {
+        return (bool)stream_get_meta_data($fp)['blocked'];
+    }
+} // isFileLocked
+
+
+
+ /**
+  * Reads a csv-file and converts to an array.
+  * @param string $file
+  * @param bool $assoc
+  * @return array
+  */
+ function readCsvFile(string $file, bool $assoc = false): array
 {
     $array = [];
     if (file_exists($file)) {
         $str = F::read($file);
         $array = parseCsv($str);
     }
-    if ($assoc) {
+    if ($assoc && $array) {
         $array2 = [];
         $headers = array_shift($array);
-        foreach ($array as $i => $rec) {
+        foreach ($array as $rec) {
             $array2[] = array_combine($headers, $rec);
         }
         return $array2;
@@ -883,8 +1218,16 @@ function readCsvFile(string $file, $assoc = false)
 } // readCsvFile
 
 
-
-function parseCsv($str, $delim = false, $enclos = false) {
+ /**
+  * Parses a CSV string, converts it to an array
+  *  -> tries to guess delimiter and enclosing quotes, if not specified
+  * @param string $str
+  * @param bool $delim
+  * @param bool $enclos
+  * @return array
+  */
+ function parseCsv(string $str, bool $delim = false, bool $enclos = false): array
+ {
 
      if (!$delim) {
          $delim = (substr_count($str, ',') > substr_count($str, ';')) ? ',' : ';';
@@ -897,7 +1240,9 @@ function parseCsv($str, $delim = false, $enclos = false) {
              $enclos = (substr_count($str, '"') > substr_count($str, "'")) ? '"' : "'";
          }
      }
-
+     if (strpos($str,"\r") !== false) {
+         $str = str_replace(["\n\r","\r\n","\r"], "\n", $str);
+     }
      $lines = explode(PHP_EOL, $str);
      $array = array();
      foreach ($lines as $line) {
@@ -920,11 +1265,12 @@ function parseCsv($str, $delim = false, $enclos = false) {
   */
 function preparePath(string $path0, $accessRights = false): void
 {
+    // resolve path if necessary:
     if ($path0 && ($path0[0] === '~')) {
         $path0 = resolvePath($path0);
     }
 
-    // check for inappropriate path:
+    // check for inappropriate path, e.g. one attempting to point to an ancestor directory:
     if (strpos($path0, '../') !== false) {
         $path0 = normalizePath($path0);
         if (strpos($path0, '../') !== false) {
@@ -933,6 +1279,7 @@ function preparePath(string $path0, $accessRights = false): void
         }
     }
 
+    // make folder(s) if necessary:
     $path = dirname($path0.'x');
     if (!file_exists($path)) {
         $accessRights1 = $accessRights ? $accessRights : PFY_MKDIR_MASK;
@@ -943,6 +1290,7 @@ function preparePath(string $path0, $accessRights = false): void
         }
     }
 
+    // apply access rights if requested:
     if ($accessRights) {
         $path1 = '';
         foreach (explode('/', $path) as $p) {
@@ -952,14 +1300,6 @@ function preparePath(string $path0, $accessRights = false): void
             } catch (Exception $e) {
                 throw new Exception("Error: failed to create folder '$path'");
             }
-        }
-    }
-
-    if ($path0 && !file_exists($path0)) {
-        try {
-            touch($path0);
-        } catch (Exception $e) {
-            throw new Exception("Error: failed to create folder '$path'");
         }
     }
 } // preparePath
@@ -1054,11 +1394,11 @@ function indentLines(string $str, int $width = 4): string
   *     Example: key: !! x:('") !!
   * @param string $str
   * @param string $delim
-  * @param false $superBrackets
+  * @param mixed $superBrackets
   * @return array
   * @throws \Kirby\Exception\InvalidArgumentException
   */
-function parseArgumentStr(string $str, string $delim = ',', $superBrackets = false): array
+function parseArgumentStr(string $str, string $delim = ',', mixed $superBrackets = false): array
 {
     // terminate if string empty:
     if (!($str = trim($str))) {
@@ -1090,14 +1430,14 @@ function parseArgumentStr(string $str, string $delim = ',', $superBrackets = fal
     while ($rest && ($counter-- > 0)) {
         $key = parseArgKey($rest, $delim);
         $ch = ltrim($rest);
-        $ch = @$ch[0];
+        $ch = $ch[0]??'';
         if ($ch !== ':') {
             $out .= "- $key\n";
             $rest = ltrim($rest, " $delim\n");
         } else {
             $rest = substr($rest, 1);
             $value = parseArgValue($rest, $delim);
-            if (trim($value)) {
+            if (trim($value) !== '') {
                 $out .= "$key: $value\n";
             } else {
                 $out .= "$key:\n";
@@ -1116,10 +1456,10 @@ function parseArgumentStr(string $str, string $delim = ',', $superBrackets = fal
  /**
   * Shield content of superbrackets (i.e. base64_encode)
   * @param string $str
-  * @param $superBrackets
+  * @param mixed $superBrackets
   * @return array|mixed|string|string[]
   */
-function superBracketsEncode(string $str, $superBrackets)
+function superBracketsEncode(string $str, mixed $superBrackets)
 {
     if ($superBrackets) {
         if (is_string($superBrackets)) {
@@ -1141,10 +1481,10 @@ function superBracketsEncode(string $str, $superBrackets)
 
  /**
   * Decode shielded string
-  * @param $item
+  * @param mixed $item
   * @return array|mixed|string|string[]
   */
-function superBracketsDecode($item)
+function superBracketsDecode(mixed $item): mixed
 {
     if (is_string($item)) {
         if (preg_match_all('/@@b64@ (.*?) @b64@@/xms', $item, $m)) {
@@ -1348,7 +1688,7 @@ function parseArgValue(string &$rest, string $delim): string
   * @param int $p1
   * @return false|int
   */
-function findNextPattern(string $str, string $pat, $p1 = 0)
+function findNextPattern(string $str, string $pat, mixed $p1 = 0): mixed
 {
     while (($p1 = strpos($str, $pat, $p1)) !== false) {
         if (($p1 === 0) || (substr($str, $p1 - 1, 1) !== '\\')) {
@@ -1627,10 +1967,10 @@ function compileMarkdown(string $mdStr): string
 * Shields a string from the markdown compiler, optionally instructing the unshielder to run the result through
 * the md-compiler separately.
 * @param string $str
-* @param string $mdCompile
+* @param bool $mdCompile
 * @return string
 */
-function shieldStr(string $str, $mdCompile = false): string
+function shieldStr(string $str, bool $mdCompile = false): string
 {
     if ($mdCompile) {
         return '{md{' . base64_encode($str) . '}md}';
@@ -1696,15 +2036,16 @@ function charToHtmlUnicode(string $char): string
 
  /**
   * Converts HTML-encoded Unicode characters back to Unicode, e.g. '&%123;' -> '{'
-  * @param $str
+  * @param string $str
   * @return array|string|string[]|null
   */
- function unshieldCharacters($str) {
+ function unshieldCharacters(string $str): string
+ {
     $output = preg_replace_callback("/(&#[0-9]+;)/", function($m) {
         return mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES");
         }, $str);
     return $output;
-}
+} // unshieldCharacters
 
 
  /**
@@ -1731,7 +2072,7 @@ function strToASCII(string $str): string
   * @param bool $appendExt
   * @return string
   */
-function translateToFilename(string $str, $appendExt = true): string
+function translateToFilename(string $str, mixed $appendExt = true): string
 {
     // translates special characters (such as , , ) into "filename-safe" non-special equivalents (a, o, U)
     $str = strToASCII(trim(mb_strtolower($str)));	// replace special chars
@@ -1779,6 +2120,7 @@ function translateToIdentifier(string $str, bool $removeDashes = false, bool $re
     if ($removeDashes) {
         $str = str_replace("-", '_', $str);				// remove -, if requested
     }
+    $str = trim($str, '_');
     return $str;
 } // translateToIdentifier
 
@@ -1808,23 +2150,37 @@ function translateToClassName(string $str): string
   * @param bool $flat
   * @return string
   */
-function var_r($var, string $varName = '', bool $flat = false, bool $embedInPre = false): string
+function var_r($var, string $varName = '', bool $flat = false, bool $toHtml = false): string
 {
+    if (!$var) {
+        return '';
+    }
     if ($varName) {
         $varName .= ': ';
     }
-    if ($flat) {
-        $out = preg_replace("/" . PHP_EOL . "/", '', var_export($var, true));
-        if (preg_match('/array \((.*),\)/', $out, $m)) {
-            $out = "[{$m[1]} ]";
-        }
-        if ($varName) {
-            $out = "$varName$out";
-        }
+    $str = '';
+    if (is_scalar($var)) {
+        $out = "$varName$var";
+
     } else {
-        $out = $varName . var_export($var, true);
+        if (is_object($var) && is_a($var, '\Usility\PageFactory\DataSet')) {
+            $var = removeSelfReferences($var);
+        }
+
+        if ($flat) {
+            $out = preg_replace("/" . PHP_EOL . "/", '', var_export($var, true));
+            if (preg_match('/array \((.*),\)/', $out, $m)) {
+                $out = "[{$m[1]} ]";
+            }
+            if ($varName) {
+                $out = "$varName$out";
+            }
+        } else {
+            $out = $varName . var_export($var, true);
+            $out = str_replace(["array (\n", "),\n", ")\n", '=>'], ["[\n", "],\n", "]\n", '\=>'], $out);
+        }
     }
-    if ($embedInPre) {
+    if ($toHtml) {
         $out = "<div><pre>$out\n</pre></div>\n";
     }
     return $out;
@@ -1832,11 +2188,39 @@ function var_r($var, string $varName = '', bool $flat = false, bool $embedInPre 
 
 
  /**
-  * Forces the agent (broser) to reload the page.
-  * @param false $target
-  * @param false $message   if set, text will be briefly shown in message banner
+  * (Experimental) Removes refernce to self in a data structure.
+  * Possibly used in DataSet
+  * @param mixed $var
+  * @param mixed $thisClass
+  * @return mixed
   */
-function reloadAgent($target = false, $message = false): void
+ function removeSelfReferences(mixed $var, mixed $thisClass = null): mixed
+{
+    if ($thisClass === null) {
+        $thisClass = is_object($var) ? get_class($var) : false;
+    }
+    foreach ($var as $key => $value) {
+        $className = is_object($value) ? get_class($value) : false;
+        if ($className === $thisClass) {
+            $var->$key = '[SELF]';
+        } elseif (!is_scalar($value)) {
+            if (is_object($var)) {
+                $var->$key = removeSelfReferences($value, $thisClass);
+            } else {
+                $var[$key] = removeSelfReferences($value, $thisClass);
+            }
+        }
+    }
+    return $var;
+} // removeSelfReferences
+
+
+ /**
+  * Forces the agent (browser) to reload the page, optionally setting up a message to be displayed on next view
+  * @param string  $target
+  * @param string  $message   if set, text will be briefly shown in message banner
+  */
+function reloadAgent(string $target = '', string $message = ''): void
 {
     if (!$target) {
         $target = page()->url();
@@ -1903,10 +2287,10 @@ function clearCache(): void
 
  /**
   * Returns the time since PageFactory started its execution.
-  * @param $verbose
+  * @param bool $verbose
   * @return float|string
   */
- function readTimer($verbose = false )
+ function readTimer(bool $verbose = false ): mixed
  {
      $t = (round((microtime(true) - PageFactory::$timer)*1000000) / 1000 - 0.005);
      if ($verbose) {
@@ -1919,11 +2303,11 @@ function clearCache(): void
 
  /**
   * Just forwards to Exception - better to use "throw new Exception($str)" directly
-  * @param $str
+  * @param string $str
   * @return void
   * @throws Exception
   */
-function fatalError($str): void
+function fatalError(string $str): void
 {
     throw new Exception($str);
 } // fatalError
@@ -1932,11 +2316,11 @@ function fatalError($str): void
 
  /**
   * Renders an icon
-  * @param $iconName
-  * @param $class
+  * @param string $iconName
+  * @param string $class
   * @return string
   */
-function renderIcon($iconName, $class = 'pfy-icon')
+function renderIcon(string $iconName, string $class = 'pfy-icon'): string
 {
     $iconFile = @PageFactory::$availableIcons[$iconName];
     if (!$iconFile || !file_exists($iconFile)) {
@@ -1955,10 +2339,10 @@ function renderIcon($iconName, $class = 'pfy-icon')
 
  /**
   * Checks whether icon-name can be converted
-  * @param $iconName
+  * @param string $iconName
   * @return bool
   */
-function iconExists($iconName)
+function iconExists(string $iconName): bool
 {
     $iconFile = @PageFactory::$availableIcons[$iconName];
     if (!$iconFile || !file_exists($iconFile)) {
@@ -1968,8 +2352,15 @@ function iconExists($iconName)
 } // iconExists
 
 
-
- function createHash( $hashSize = 8, $unambiguous = false, $lowerCase = false )
+ /**
+  * Creates a new hash string of given length. First character always a letter.
+  * @param int $hashSize
+  * @param bool $unambiguous  -> if true, uses only letters that are unlikely to misread
+  * @param bool $lowerCase
+  * @return string
+  * @throws Exception
+  */
+ function createHash(int $hashSize = 8, bool $unambiguous = false, bool $lowerCase = false ): string
  {
      if ($unambiguous) {
          $chars = UNAMBIGUOUS_CHARACTERS;
@@ -1990,11 +2381,44 @@ function iconExists($iconName)
  } // createHash
 
 
-
-function getSessionId()
+ /**
+  * Returns the current session ID
+  * @return string
+  */
+ function getSessionId(): string
 {
-    session_start();
-    $sessionId = session_id();
-    session_abort();
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+        $sessionId = session_id();
+        session_abort();
+    } else {
+        $sessionId = session_id();
+    }
     return $sessionId;
 } // getSessionId
+
+
+ /**
+  * Variant of array_splice() which preserves keys of replacement array.
+  * @param array $input
+  * @param int $offset
+  * @param int $length
+  * @param array $replacement
+  * @return void
+  */
+ function array_splice_assoc(array &$input, int $offset, int $length, array $replacement): void
+ {
+     $replacement = (array) $replacement;
+     $keyIndices = array_flip(array_keys($input));
+     if (isset($input[$offset]) && is_string($offset)) {
+         $offset = $keyIndices[$offset];
+     }
+     if (isset($input[$length]) && is_string($length)) {
+         $length = $keyIndices[$length] - $offset;
+     }
+
+     $input = array_slice($input, 0, $offset, TRUE)
+         + $replacement
+         + array_slice($input, $offset + $length, NULL, TRUE);
+ } // array_splice_assoc
+
