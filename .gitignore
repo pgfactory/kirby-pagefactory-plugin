@@ -2,5 +2,7 @@
 /**/[#]*
 /**/.[#]*
 
+assets/css/*
+
 # Note: any files with leading '#' are treated as 'commented out' by PageFactory
 
