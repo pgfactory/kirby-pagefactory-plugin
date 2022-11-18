@@ -6,7 +6,6 @@ use Kirby;
 use Kirby\Data\Yaml as Yaml;
 use Exception;
 
-define('PAGED_POLYFILL_SCRIPT', '~/assets/pagefactory/js/paged.polyfill.min.js');
 
 
 class Utils
@@ -45,7 +44,7 @@ class Utils
      */
     public function handleAgentRequests()
     {
-        if (!@$_GET) {
+        if (!($_GET??false)) {
             return;
         }
         $this->execAsAnon('printview,printpreview,print');
@@ -84,7 +83,7 @@ class Utils
      */
     private function printPreview()
     {
-        $pagedPolyfillScript = PAGED_POLYFILL_SCRIPT;
+        $pagedPolyfillScript = PAGED_POLYFILL_SCRIPT_URL;
         $jq = <<<EOT
 setTimeout(function() {
     console.log('now running paged.polyfill.js');
@@ -107,7 +106,7 @@ EOT;
      */
     private function print()
     {
-        $pagedPolyfillScript = '~/'.PFY_ASSETS_PATHNAME.'js/paged.polyfill.min.js';
+        $pagedPolyfillScript = PAGED_POLYFILL_SCRIPT_URL;
         $jq = <<<EOT
 setTimeout(function() {
     console.log('now running paged.polyfill.js'); 
@@ -193,6 +192,7 @@ EOT;
         if (isset($_GET['help'])) {
             if (isAdminOrLocalhost()) {
                 $str = <<<EOT
+@@@ .pfy-general-help
 # Help
 
 [?help](./?help)       12em>> this information 
@@ -202,12 +202,14 @@ EOT;
 [?debug](./?debug)      >> activate debug mode
 [?localhost=false](./?localhost=false)      >> mimicks running on a remote host (for testing)
 [?notranslate](./?notranslate)      >> show variables instead of translating them
-//[?login](./?login)      >> open login window
-//[?logout](./?logout)      >> logout user
+ // for later:
+ //[?login](./?login)      >> open login window
+ //[?logout](./?logout)      >> logout user
 [?print](./?print)		    	>> starts printing mode and launches the printing dialog
 [?printpreview](./?printpreview)  	>> presents the page in print-view mode    
 [?reset](./?reset)		    	>> resets all state-defining information: caches, tokens, session-vars.
 
+@@@
 EOT;
                 $str = removeCStyleComments($str);
             } else {
@@ -230,7 +232,7 @@ EOT;
      */
     public function handleAgentRequestsOnRenderedPage(): void
     {
-        if (!@$_GET) {
+        if (!($_GET ?? false)) {
             return;
         }
         // show variables:
@@ -297,7 +299,7 @@ EOT;
             $mdStr = $this->extractFrontmatter($mdStr);
             $html = PageFactory::$md->compile($mdStr);
             $class = translateToClassName(basename($fileObj->id(), '.md'));
-            $wrapperTag = $this->frontmatter['wrapperTag']??'';
+            $wrapperTag = $this->frontmatter['wrapperTag']??null;
             if ($wrapperTag === null) {
                 $wrapperTag = 'section';
             }
@@ -345,7 +347,7 @@ EOT;
         }
 
         // extract Kirby-Frontmatter: blocks at top of page, each one ending with '----':
-        if (@$this->pfy->config['handleKirbyFrontmatter']) {
+        if ($this->pfy->config['handleKirbyFrontmatter']??false) {
             $options = $this->extractKirbyFrontmatter($mdStr);
             if ($options) {
                 $this->addToFrontmatter($options);
@@ -362,31 +364,31 @@ EOT;
 
         // if PageElements extension is loaded -> handle overlay,popup,message:
         if (file_exists('site/plugins/pagefactory-PageElements')) {
-            if (@$this->pfy->frontmatter['overlay']) {
+            if ($this->pfy->frontmatter['overlay']??false) {
                 $pe = new \Usility\PageFactory\PageElements\Overlay($this->pfy);
                 $pe->set($this->pfy->frontmatter['overlay'], true);
             }
-            if (@$this->pfy->frontmatter['message']) {
+            if ($this->pfy->frontmatter['message']??false) {
                 $pe = new \Usility\PageFactory\PageElements\Message($this->pfy);
                 $pe->set($this->pfy->frontmatter['message'], true);
             }
-            if (@$this->pfy->frontmatter['popup']) {
+            if ($this->pfy->frontmatter['popup']??false) {
                 $pe = new \Usility\PageFactory\PageElements\Popup($this->pfy);
                 $pe->set($this->pfy->frontmatter['popup'], true);
             }
         }
 
         if ($this->pfy->frontmatter['loadAssets']??false) {
-            PageFactory::$pg->addAssets($this->pfy->frontmatter['loadAssets'], true);
+            PageFactory::$pg->addAssets($this->pfy->frontmatter['loadAssets'], true, customAsset: true);
         }
         if ($this->pfy->frontmatter['assets']??false) {
-            PageFactory::$pg->addAssets($this->pfy->frontmatter['assets'], true);
+            PageFactory::$pg->addAssets($this->pfy->frontmatter['assets'], true, customAsset: true);
         }
         if ($this->pfy->frontmatter['jqFile']??false) {
-            PageFactory::$pg->addAssets($this->pfy->frontmatter['jqFile'], true);
+            PageFactory::$pg->addAssets($this->pfy->frontmatter['jqFile'], true, customAsset: true);
         }
         if ($this->pfy->frontmatter['jqFiles']??false) {
-            PageFactory::$pg->addJqFiles($this->pfy->frontmatter['jqFiles'], true);
+            PageFactory::$pg->addJqFiles($this->pfy->frontmatter['jqFiles'], customAsset: true);
         }
 
         // save frontmatter for further use (e.g. by macros):
@@ -406,10 +408,10 @@ EOT;
             $this->pfy->frontmatter = $frontmatter;
         } else {
             foreach ($frontmatter as $key => $value) {
-                if (@$this->pfy->frontmatter[$key] && is_string($value)) {
+                if (($this->pfy->frontmatter[$key]??false) && is_string($value)) {
                     $this->pfy->frontmatter[$key] .= $value;
 
-                } elseif (@$this->pfy->frontmatter[$key] && is_array($value)) {
+                } elseif (($this->pfy->frontmatter[$key]??false) && is_array($value)) {
                     $this->pfy->frontmatter[$key] = array_merge($this->pfy->frontmatter[$key], $value);
                 } else {
                     $this->pfy->frontmatter[$key] = $value;
@@ -576,7 +578,7 @@ EOT;
             if ($langObj = kirby()->language()) {
                 $lang = $langObj->code();
             } elseif (!($lang = kirby()->defaultLanguage())) {
-                if (!($lang = @$this->pfy->config['defaultLanguage'])) {
+                if (!($lang = ($this->pfy->config['defaultLanguage']??false))) {
                     $lang = 'en';
                 }
             }
@@ -600,7 +602,7 @@ EOT;
         }
 
         // check whether user requested a language explicitly via url-arg:
-        if ($lang = @$_GET['lang']) {
+        if ($lang = ($_GET['lang']??false)) {
             $langCode = substr($lang, 0, 2);
             if (in_array($lang, $supportedLanguages) || in_array($langCode, $supportedLanguages)) {
                 PageFactory::$lang = $lang;
@@ -824,7 +826,7 @@ EOT;
         $systemTimeZone = date_default_timezone_get();
         if (!preg_match('|\w+/\w+|', $systemTimeZone)) {
             // check whether timezone is defined in PageFactory's config settings:
-            $systemTimeZone = @$this->pfy->config['timezone'];
+            $systemTimeZone = $this->pfy->config['timezone']??false;
             if (!$systemTimeZone) {
                 $systemTimeZone = $this->getServerTimezone();
                 $this->appendToConfigFile('timezone', $systemTimeZone, 'Automatically set by PageFactory');

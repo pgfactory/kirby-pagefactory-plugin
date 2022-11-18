@@ -402,7 +402,7 @@ EOT;
      */
     public function get($propertyName)
     {
-        return @$this->$propertyName;
+        return $this->$propertyName??'';
     } // get
 
 } // TransVars

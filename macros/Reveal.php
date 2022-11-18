@@ -14,7 +14,6 @@ $macroConfig =  [
         'class' => ['(optional) A class that will be applied to the controlling element.', false],
         'symbol' => ['(triangle) If defined, the symbol on the left hand side of the label will be modified. (currently just "triangle" implemented.)', false],
         'frame' => ['(true, class) If true, class "pfy-reveal-frame" is added, painting a frame around the element by default.', false],
-//        '' => ['', false],
     ],
     'summary' => <<<EOT
 Displays a clickable label. When clicked, opens and closes the target element specified in argument ``target``.

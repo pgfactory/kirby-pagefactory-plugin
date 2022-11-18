@@ -67,7 +67,7 @@ class Link extends Macros
      */
     public function render(array $args): string
     {
-        if (!$this->url = @$args['url']) {
+        if (!$this->url = ($args['url']??false)) {
             return '';
         }
 
@@ -75,19 +75,19 @@ class Link extends Macros
         $this->args = &$args;
         $this->text = false;
         $this->title = false;
-        $this->id = @$args['id'];
-        $this->class = @$args['class'];
-        $this->alt = @$args['alt'];
+        $this->id = $args['id']??'';
+        $this->class = $args['class']??'';
+        $this->alt = $args['alt']??'';
         $this->proto = '';
         $this->target = false;
         $this->type = false;
         $this->linkCat = false;
         $this->icon = false;
-        $this->iconBefore = !(@$args['iconPosition'] && ($args['iconPosition'] === 'after'));
-        $this->attributes = @$args['attr'];
+        $this->iconBefore = !(($args['iconPosition']??false) && ($args['iconPosition'] === 'after'));
+        $this->attributes = $args['attr']??'';
         $this->hiddenText = '';
         $this->isExternalLink = false;
-        $this->download = @$this->args['download'];
+        $this->download = $this->args['download']??'';
 
         $this->fixUrl();
 
@@ -115,7 +115,7 @@ class Link extends Macros
             return;
         }
 
-        $type = @$this->args['type'];
+        $type = $this->args['type']??'';
         if ($type) {
             $this->type = $type;
             $this->icon = $type;
@@ -302,7 +302,7 @@ class Link extends Macros
         }
 
         // title:
-        if (@$this->args['title']) {
+        if ($this->args['title']??false) {
             $attr .= " title='{$this->args['title']}'";
         } elseif ($this->title) {
             $attr .= " title='$this->title'";
@@ -327,7 +327,7 @@ class Link extends Macros
      */
     private function getText()
     {
-        if (@$this->args['text']) {
+        if ($this->args['text']??false) {
             $this->text = $this->args['text'];
         } elseif (!$this->text) {
             $url = $this->url;
@@ -344,7 +344,7 @@ class Link extends Macros
                 $this->text = $this->url;
             }
         }
-        if (@$this->args['hiddenText']) {
+        if ($this->args['hiddenText']??false) {
             $this->hiddenText = trim("{$this->args['hiddenText']} $this->hiddenText");
         }
         if ($this->hiddenText) {
@@ -364,7 +364,7 @@ class Link extends Macros
             $this->addClass('pfy-link-https');
             $this->addClass('pfy-external-link');
             $this->addClass('pfy-print-url');
-            $this->target = @$this->pfy->config['defaultTargetForExternalLinks'];
+            $this->target = $this->pfy->config['defaultTargetForExternalLinks']??'';
         }
     } // processRegularLink
 
@@ -411,7 +411,7 @@ class Link extends Macros
     private function addIcon()
     {
         $icon = '';
-        if (@$this->args['icon']) {
+        if ($this->args['icon']??false) {
             $icon = $this->args['icon'];
         } elseif ($this->icon) {
             $icon = $this->icon;

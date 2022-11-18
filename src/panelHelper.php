@@ -133,7 +133,7 @@ function onPageCreateAfter(Kirby\Cms\Page $page)
     file_put_contents($page->root() . '/' . $filename, $md);
 
     $propertyData = $page->propertyData();
-    $template = @$propertyData['template'];
+    $template = $propertyData['template']??'';
 
     // rename .txt file to '~page.xy.txt' if necessary:
     // -> this activates the automatic blueprint

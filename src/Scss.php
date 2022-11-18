@@ -77,7 +77,7 @@ class Scss
      */
     private function getFile(string $file): string
     {
-        $compileScssWithLineNumbers = @$this->pfy->config['debug_compileScssWithLineNumbers'];
+        $compileScssWithLineNumbers = $this->pfy->config['debug_compileScssWithLineNumbers']??false;
         if ($compileScssWithLineNumbers !== 'false') {
             $out = loadFile($file);
             $fname = basename($file);

@@ -464,7 +464,7 @@ function base_name(string $file, bool $incl_ext = true, bool $incl_args = false)
   */
 function localPath(string $absPath): string
 {
-    if (@$absPath[0] === '/') {
+    if (($absPath[0]??'') === '/') {
         return substr($absPath, strlen(PageFactory::$absAppRoot));
     } else {
         return $absPath;
@@ -801,7 +801,7 @@ function findAvailableIcons(): array
  {
      $availableIcons = getDir(PFY_PUB_ICONS_PATH, 'name_only');
      $availableIcons = array_merge($availableIcons, getDir(PFY_ICONS_PATH, 'name_only'));
-     return array_merge($availableIcons, getDir(CUSTOM_ICONS_PATH, 'name_only'));
+     return $availableIcons;
  } // findAvailableIcons
 
 
@@ -815,7 +815,7 @@ function findAvailableIcons(): array
   */
 function resolvePath(string $path, bool $returnAbsPath = false, bool $relativeToPage = false): string
 {
-    if (@$path[0] !== '~') {
+    if (($path[0]??'') !== '~') {
         if ($relativeToPage) {
             if ($returnAbsPath) {
                 $path = PageFactory::$absPageRoot.$path;
@@ -827,7 +827,7 @@ function resolvePath(string $path, bool $returnAbsPath = false, bool $relativeTo
     }
 
     // first check for root-paths defined by kirby:
-    if (@$path[1] !== '/') {
+    if (($path[1]??'') !== '/') {
         $path1 = preg_replace('|/.*|', '', substr($path, 1));
         $kirbyRoots = kirby()->roots()->toArray();
         $kirbyRootsPattern = ','.implode(',', array_keys($kirbyRoots)).',';
@@ -1520,7 +1520,7 @@ function parseArgKey(string &$rest, string $delim): string
     $key = '';
     $rest = ltrim($rest);
     // case quoted key or value:
-    if ((($ch1 = @$rest[0]) === '"') || ($ch1 === "'")) {
+    if ((($ch1 = ($rest[0]??'')) === '"') || ($ch1 === "'")) {
         $pattern = "$ch1 (.*?) $ch1";
         // case 'value' without key:
         if (preg_match("/^ ($pattern) (.*)/xms", $rest, $m)) {
@@ -1552,7 +1552,7 @@ function parseArgValue(string &$rest, string $delim): string
     // case quoted key or value:
     $value = '';
     $ch1 = ltrim($rest);
-    $ch1 = @$ch1[0];
+    $ch1 = $ch1[0]??'';
     if (($ch1 === '"') || ($ch1 === "'")) {
         $rest = ltrim($rest);
         $pattern = "$ch1 (.*?) $ch1";
@@ -2136,7 +2136,7 @@ function translateToClassName(string $str): string
     $str = strToASCII(mb_strtolower($str));		// replace special chars
     $str = preg_replace(['|[./]|', '/\s+/'], '-', $str);		// replace blanks, '.' and '/' with '-'
     $str = preg_replace("/[^[:alnum:]_-]/m", '', $str);	// remove any non-letters, except '_' and '-'
-    if (!preg_match('/[a-z]/', @$str[0])) { // prepend '_' if first char non-alpha
+    if (!preg_match('/[a-z]/', ($str[0]??''))) { // prepend '_' if first char non-alpha
         $str = "_$str";
     }
     return $str;
@@ -2322,7 +2322,7 @@ function fatalError(string $str): void
   */
 function renderIcon(string $iconName, string $class = 'pfy-icon'): string
 {
-    $iconFile = @PageFactory::$availableIcons[$iconName];
+    $iconFile = PageFactory::$availableIcons[$iconName] ?? false;
     if (!$iconFile || !file_exists($iconFile)) {
         throw new \Exception("Error: icon '$iconName.svg' not found.");
     }
@@ -2344,7 +2344,7 @@ function renderIcon(string $iconName, string $class = 'pfy-icon'): string
   */
 function iconExists(string $iconName): bool
 {
-    $iconFile = @PageFactory::$availableIcons[$iconName];
+    $iconFile = PageFactory::$availableIcons[$iconName] ?? false;
     if (!$iconFile || !file_exists($iconFile)) {
         return false;
     }

@@ -42,7 +42,7 @@ Kirby::plugin('usility/pagefactory', [
                     PageFactory::$urlToken = $m[1];
                     return site()->visit(page());
                 }
-                $this->next();
+                return $this->next();
             }
         ],
     ],
