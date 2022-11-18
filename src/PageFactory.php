@@ -164,6 +164,12 @@ class PageFactory
      */
     public function render($options = false): string
     {
+        // show message, if one is pending:
+        if ($msg = $this->session->get('pfy.message')) {
+            self::$pg->addJq("window.alert('$msg')");
+            $this->session->remove('pfy.message');
+        }
+
         // check for presence of site/plugins/pagefactory-*':
         self::$pg->loadExtensions();
 
