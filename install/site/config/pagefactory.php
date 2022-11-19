@@ -21,13 +21,13 @@ return [
             'site/plugins/pagefactory/scss/autoload-async/*',
         ],
         '-app.css' => [
-            PFY_USER_ASSETS_PATH . 'autoload/*',
+            'content/assets/autoload/*',
         ],
         '-app-async.css' => [
-            PFY_USER_ASSETS_PATH . 'autoload-async/*',
+            'content/assets/autoload-async/*',
         ],
         '-app.js' => [
-            PFY_USER_ASSETS_PATH . 'autoload/*',
+            'content/assets/autoload/*',
         ],
 
         '-pagefactory.js' => [

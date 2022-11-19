@@ -506,7 +506,7 @@ EOT;
         $assetQueue = &$this->assetFiles;
         foreach ($assetQueue as $groupName => $files) {
             // 0) make sure the target folder exists:
-            preparePath(PFY_USER_ASSETS_PATH);
+            preparePath('content/assets/');
 
             // 1) update from sources to cache:
             if (is_string($files)) {
@@ -521,7 +521,7 @@ EOT;
             // 2) aggregate from cache to target (content/assets/):
             $srcFile = $targetPath;
             $filename = basename($srcFile, '/');
-            $targetFile = PFY_USER_ASSETS_PATH . $filename;
+            $targetFile = "content/assets/$filename";
             $tTarget = lastModified($targetFile, false);
             $tSrc = lastModified($srcFile, false);
             if ($modified || ($tTarget < $tSrc)) {

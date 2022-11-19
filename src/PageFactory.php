@@ -7,8 +7,6 @@ use Kirby;
 // filesystem paths:
 const PFY_BASE_PATH =              'site/plugins/pagefactory/';
 const PFY_DEFAULT_TEMPLATE_FILE =  'site/templates/page_template.html';
-define('PFY_USER_ASSETS_PATH',      'content/assets/'); // 'define' required by site/config/pagefactory.php
-const CUSTOM_ICONS_PATH =          'assets/pagefactory/icons/';
 const PFY_ICONS_PATH =             'site/plugins/pagefactory/assets/icons/';
 const PFY_PUB_ICONS_PATH =         'site/plugins/pagefactory/assets/pub-icons/';
 const PFY_CONFIG_FILE =            'site/config/pagefactory.php';
@@ -318,10 +316,10 @@ class PageFactory
                     'site/plugins/pagefactory/scss/autoload-async/*',
                 ],
                 '-styles.css' => [
-                    PFY_USER_ASSETS_PATH . 'autoload/*',
+                    'content/assets/autoload/*',
                 ],
                 '-styles-async.css' => [
-                    PFY_USER_ASSETS_PATH . 'autoload-async/*',
+                    'content/assets/autoload-async/*',
                 ],
 
                 '-pagefactory.js' => [
