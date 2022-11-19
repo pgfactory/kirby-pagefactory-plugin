@@ -162,7 +162,7 @@ function loadFiles(mixed $files, mixed $removeComments = true, bool $useCaching 
         }
     }
 
-    $file1 = @$files[0];
+    $file1 = $files[0]??'';
     $ext = fileExt($file1);
     if (strpos(',yaml,yml,json,csv', $ext) !== false) {
         $data = [];

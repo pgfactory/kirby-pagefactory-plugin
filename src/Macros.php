@@ -98,7 +98,7 @@ class Macros
         $str = $macroObj['macroObj']->render($args, $argStr);
 
         // mdCompile if requested:
-        if (@$macroObj['mdCompile'] || $macroObj['macroObj']->get('mdCompile')) {
+        if ($macroObj['mdCompile']??false || $macroObj['macroObj']->get('mdCompile')) {
             $str = \Usility\PageFactory\compileMarkdown($str);
         }
 
@@ -131,7 +131,7 @@ EOT;
         } else {
             if (isset($this->availableMacros[ $macroName ])) {
                 $macroFile = $this->availableMacros[ $macroName ];
-                if ((strpos($macroFile, 'site/plugins/pagefactory') === false) && !@$this->pfy->config['allowCustomCode']) {
+                if ((strpos($macroFile, 'site/plugins/pagefactory') === false) && !($this->pfy->config['allowCustomCode']??false)) {
                     throw new \Exception("Error: execution of custom-code not allowed. (→ to enable add 'allowCustomCode' to 'site/config/pagefactory.php'.)");
                 }
 
@@ -146,7 +146,7 @@ EOT;
                 $macroName = "_$macroName";
                 $thisMacroName = 'Usility\\PageFactory\\' . ucfirst( $macroName );
                 $macroFile = $this->availableMacros[ $macroName ];
-                if ((strpos($macroFile, 'site/plugins/pagefactory') === false) && !@$this->pfy->config['allowCustomCode']) {
+                if ((strpos($macroFile, 'site/plugins/pagefactory') === false) && !($this->pfy->config['allowCustomCode']??false)) {
                     throw new \Exception("Error: execution of custom-code not allowed. (→ to enable add 'allowCustomCode' to 'site/config/pagefactory.php'.)");
                 }
 
@@ -213,7 +213,7 @@ EOT;
         }
         foreach ($argDefs as $key => $def) {
             if (!isset($args[$key])) {
-                $args[$key] = @$def[1];
+                $args[$key] = $def[1]??'';
             }
         }
         return $args;
@@ -228,12 +228,12 @@ EOT;
      */
     private function renderHelpText(array $macroObj): string
     {
-        $macroName = @$macroObj['name'];
+        $macroName = $macroObj['name']??'';
         if ($macroName[0] === '_') {
             $macroName = substr($macroName, 1);
         }
-        $summary = @$macroObj['summary'];
-        $argDefs = @$macroObj['parameters'];
+        $summary = $macroObj['summary']??'';
+        $argDefs = $macroObj['parameters']??'';
         $out = "# Macro ``$macroName()``\n$summary\n## Aruments:\n\n";
         foreach ($argDefs as $key => $rec) {
             $default = $this->valueToString($rec[1]);
@@ -274,9 +274,9 @@ EOT;
         ksort($availableMacros);
         foreach ($availableMacros as $macroName => $macroFile) {
             $thisMacroName = 'Usility\\PageFactory\\' . ucfirst( $macroName );
-            if (@$registeredMacros[ $macroName ]) {
+            if ($registeredMacros[ $macroName ]??false) {
                 $macroObj = $registeredMacros[ $macroName ];
-            } elseif (@$registeredMacros[ substr($macroName,1) ]) {
+            } elseif ($registeredMacros[substr($macroName,1)]??false) {
                 $macroObj = $registeredMacros[ substr($macroName,1) ];
             } else {
                 $macroObj = include $macroFile;

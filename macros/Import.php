@@ -92,7 +92,7 @@ EOT;
     {
         $str = '';
         if ($file && (((strpbrk($file, '*{') !== false)) || ($file[strlen($file)-1] === '/'))) {
-            if (@$file[0] !== '~') {
+            if (($file[0]??false) !== '~') {
                 $file = "~page/$file";
             }
             $file = resolvePath($file);
@@ -104,7 +104,7 @@ EOT;
             $files = [$file];
         }
         foreach ($files as $file) {
-            if (@$file[0] !== '~') {
+            if (($file[0]??false) !== '~') {
                 $file = "~page/$file";
             }
             $file = resolvePath($file);

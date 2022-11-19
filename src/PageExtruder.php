@@ -566,10 +566,10 @@ EOT;
         $out .= $this->getPageFolderAssetsCode('css');
 
         // add CSS-Code (compile if it's SCSS):
-        $css = @$this->pageParams['css'] . @$this->frontmatter['css'] . $this->css;
+        $css = ($this->pageParams['css']??'') . ($this->frontmatter['css']??'') . $this->css;
         $this->pageParams['css'] = $this->frontmatter['css'] = $this->css = false;
 
-        $scss = @$this->pageParams['scss'] . @$this->frontmatter['scss']. $this->scss;
+        $scss = ($this->pageParams['scss']??'') . ($this->frontmatter['scss']??''). $this->scss;
         $this->pageParams['scss'] = $this->frontmatter['scss'] = $this->scss = false;
 
         if ($scss) {
@@ -597,7 +597,7 @@ EOT;
         $jsInjection = '';
         $jqInjection = '';
         $miscInjection = "\n$this->bodyEndInjections";
-        $screenSizeBreakpoint = @$this->pfy->config['screenSizeBreakpoint'];
+        $screenSizeBreakpoint = $this->pfy->config['screenSizeBreakpoint']??false;
         if (!$screenSizeBreakpoint) {
             $screenSizeBreakpoint = 480;
         }
@@ -605,7 +605,7 @@ EOT;
         $js = "var screenSizeBreakpoint = $screenSizeBreakpoint\n";
         $js .= "const hostUrl = '" . PageFactory::$appRoot . "';\n";
         $js .= "const loggedinUser = '" . PageFactory::$user . "';\n";
-        $js .= $this->js . @$this->frontmatter['js'];
+        $js .= $this->js . ($this->frontmatter['js']??'');
         if ($js) {
             $js = "\t\t".str_replace("\n", "\n\t\t", rtrim($js, "\n"));
             $jsInjection .= <<<EOT
@@ -617,7 +617,7 @@ $js
 EOT;
         }
 
-        $jq = $this->jq . @$this->frontmatter['jq'];
+        $jq = $this->jq . ($this->frontmatter['jq']??'');
         if ($jq) {
             $this->jQueryActive = true;
             $jq = "\t\t\t".str_replace("\n", "\n\t\t\t", rtrim($jq, "\n"));
@@ -779,7 +779,7 @@ EOT;
     private function getHeaderElem(string $name): string
     {
         // checks page-attrib, then site-attrib for requested keyword and returns it
-        $out = @$this->frontmatter[$name];
+        $out = $this->frontmatter[$name]??'';
         if ($name === 'robots') {
             if ($out === false) {   // false => activates default values
                 $out = 'noindex,nofollow,noarchive';
@@ -879,7 +879,7 @@ EOT;
      */
     private function lookupAssetDefinitions(array $assets): array
     {
-        if (!@$this->definitions['assets']) {
+        if (!($this->definitions['assets']??false)) {
             return $assets;
         }
         $assetDefs = $this->definitions['assets'];

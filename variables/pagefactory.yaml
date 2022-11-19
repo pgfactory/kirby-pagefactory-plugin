@@ -270,7 +270,7 @@ pfy-uploaded-files-title:
     en: "Uploaded files:"
 
 
-Loading: '<img class="pfy-loading-spinner" src="~/media/pagefactory/icons/loader.gif" alt="" />'
+Loading: '<img class="pfy-loading-spinner" src="~/media/pagefactory/icons/loader.gif" alt="">'
 
 pfy-error-in-email-addr:
     de: "Diese E-Mail Adresse ist unvollständig oder enthält einen Tippfehler"
@@ -575,9 +575,9 @@ Logout:
     en: Logout
 
 Login failed:
-    de: Benutzername oder Passwort passen nicht.<br />Bitte versuchen Sie es erneut.
-    de2: Benutzername oder Passwort passen nicht.<br />Bitte versuche es erneut.
-    en: User unknown or password incorrect.<br />Please try again.
+    de: Benutzername oder Passwort passen nicht.<br>Bitte versuchen Sie es erneut.
+    de2: Benutzername oder Passwort passen nicht.<br>Bitte versuche es erneut.
+    en: User unknown or password incorrect.<br>Please try again.
 
 Insufficient privileges:
     de: Ihre Zugangsberechtigung genügt nicht für diese Seite.

@@ -98,13 +98,13 @@ class Img extends Macros
             $attributes .= " {$args['imgTagAttributes']}";
         }
         if (($args['quickview'] === true) ||
-            (($args['quickview'] === '') && @$this->pfy->config['imageAutoQuickview'])) {
+            (($args['quickview'] === '') && $this->pfy->config['imageAutoQuickview']??false)) {
             $attributes .= $this->renderQuickview();
         }
 
         // determine srcset/sizes attributes:
         if (($args['srcset'] !== false) ||
-            (($args['srcset'] === '') && @$this->pfy->config['imageAutoSrcset'])) {
+            (($args['srcset'] === '') && $this->pfy->config['imageAutoSrcset']??false)) {
             $attributes .= $this->renderSrcset();
         }
 
@@ -154,13 +154,13 @@ EOT;
             $dim = explode('x', $size);
             $maxWidth = null;
             $maxHeight = null;
-            if (@$dim[0]) {
+            if ($dim[0]??false) {
                 $maxWidth = intval($dim[0]);
                 if (strpos($dim[0], 'vw') !== false) {
                     $this->relativeWidth = true;
                 }
             }
-            if (@$dim[1]) {
+            if ($dim[1]??false) {
                 $maxHeight = intval($dim[1]);
                 if (strpos($dim[1], 'vw') !== false) {
                     $this->relativeWidth = true;

@@ -37,7 +37,7 @@ PfyQuickview.prototype.init = function( $elem ) {
         }
 
         // create quickview overlay:
-        $('body').append("<div id='" + id + "-quickview' class='pfy-quickview-overlay'><img src='" + qvSrc + "' width='" + qvWidth + "' height='" + qvHeight + "' aria-hidden='true' /><span class='sr-only'>This is only visual enhancement. No additional information is provided. Press Escape to go back.</span></div>");
+        $('body').append("<div id='" + id + "-quickview' class='pfy-quickview-overlay'><img src='" + qvSrc + "' width='" + qvWidth + "' height='" + qvHeight + "' aria-hidden='true'><span class='sr-only'>This is only visual enhancement. No additional information is provided. Press Escape to go back.</span></div>");
     }); // each
 }; // PfyQuickview.init
 

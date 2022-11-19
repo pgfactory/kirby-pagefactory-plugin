@@ -7,9 +7,9 @@ return [
     'handleKirbyFrontmatter'        => false,
     'screenSizeBreakpoint'          => 480,
     'defaultLanguage'               => 'en',
+    // 'allowCustomCode'               => true,  // -> used by Macro and Include
     // 'allowNonPfyPages'              => true,  // -> if true, Pagefactory will skip checks for presence of metafiles
     // 'defaultTargetForExternalLinks' => true,  // -> used by Link() -> whether to open external links in new window
-    // 'allowCustomCode'               => true,  // -> used by Macro and Include
     // 'imageAutoQuickview'            => true,  // -> used by Img() macro
     // 'imageAutoSrcset'               => true,  // -> used by Img() macro
 
@@ -55,5 +55,5 @@ EOT,
 
     // Options for dev phase:
     'debug_compileScssWithLineNumbers'  => @(kirby()->options())['debug'],   // line numbers of original SCSS file
-    'timezone' => 'Europe/Zurich', // Automatically set by PageFactory
+    // 'timezone' => 'Europe/Zurich', // PageFactory tries to guess the timezone - you can override this manually
 ];
