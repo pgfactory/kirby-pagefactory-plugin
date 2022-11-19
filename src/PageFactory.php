@@ -4,24 +4,30 @@ namespace Usility\PageFactory;
 
 use Kirby;
 
-define('PFY_BASE_PATH',             'site/plugins/pagefactory/');
-define('PFY_DEFAULT_TEMPLATE_FILE', 'site/templates/page_template.html');
-define('PFY_USER_ASSETS_PATH',      'content/assets/');
-define('CUSTOM_ICONS_PATH',         'assets/pagefactory/icons/');
-define('PFY_ICONS_PATH',            'site/plugins/pagefactory/assets/icons/');
-define('PFY_PUB_ICONS_PATH',        'site/plugins/pagefactory/assets/pub-icons/');
-define('PFY_CONFIG_FILE',           'site/config/pagefactory.php');
-define('PFY_CUSTOM_PATH',           'site/custom/');
-define('PFY_USER_CODE_PATH',        PFY_CUSTOM_PATH.'macros/');
-define('PFY_MACROS_PATH',           PFY_BASE_PATH.'macros/');
-define('PFY_CSS_PATH',              'assets/');
-define('PFY_ASSETS_PATHNAME',        'assets/pagefactory/');
-define('PFY_LOGS_PATH',             'site/logs/');
-define('PFY_CACHE_PATH',            PFY_BASE_PATH.'.#cache/');
-define('PFY_MKDIR_MASK',             0700); // permissions for file accesses by PageFactory
-define('PFY_DEFAULT_TRANSVARS',     PFY_BASE_PATH.'variables/pagefactory.yaml');
-define('PFY_JQUERY_FILE',           'jquery-3.6.1.min.js');
-define('PFY_PAGE_DEF_BASENAME',     'zzz_page'); // use this name for meta-files (aka text-files) in page folders
+// filesystem paths:
+const PFY_BASE_PATH =              'site/plugins/pagefactory/';
+const PFY_DEFAULT_TEMPLATE_FILE =  'site/templates/page_template.html';
+define('PFY_USER_ASSETS_PATH',      'content/assets/'); // 'define' required by site/config/pagefactory.php
+const CUSTOM_ICONS_PATH =          'assets/pagefactory/icons/';
+const PFY_ICONS_PATH =             'site/plugins/pagefactory/assets/icons/';
+const PFY_PUB_ICONS_PATH =         'site/plugins/pagefactory/assets/pub-icons/';
+const PFY_CONFIG_FILE =            'site/config/pagefactory.php';
+const PFY_CUSTOM_PATH =            'site/custom/';
+const PFY_USER_CODE_PATH =         PFY_CUSTOM_PATH.'macros/';
+const PFY_MACROS_PATH =            PFY_BASE_PATH.'macros/';
+const PFY_LOGS_PATH =              'site/logs/';
+const PFY_CACHE_PATH =             PFY_BASE_PATH.'.#cache/';
+const PFY_MKDIR_MASK =             0700; // permissions for file accesses by PageFactory
+const PFY_DEFAULT_TRANSVARS =      PFY_BASE_PATH.'variables/pagefactory.yaml';
+const PFY_JQUERY_FILE =            'jquery-3.6.1.min.js';
+
+// URLs:
+const PFY_ASSETS_URL =             'media/plugins/usility/pagefactory/';
+const PAGED_POLYFILL_SCRIPT_URL =  PFY_ASSETS_URL.'js/paged.polyfill.min.js';
+
+// use this name for meta-files (aka text-files) in page folders:
+define('PFY_PAGE_DEF_BASENAME',     'zzz_page'); // 'define' required by site/plugins/pagefactory/index.php
+
 
 
 require_once __DIR__ . '/../third_party/vendor/autoload.php';
@@ -152,7 +158,7 @@ class PageFactory
     public function __destruct()
     {
         if (method_exists('Usility\PageFactory\DataSet', 'unlockDatasources')) {
-            DataSet::unlockDatasources(self::$absAppRoot);
+            Usility\PageFactory\DataSet::unlockDatasources(self::$absAppRoot);
         }
     } // __destruct
 
@@ -165,10 +171,7 @@ class PageFactory
     public function render($options = false): string
     {
         // show message, if one is pending:
-        if ($msg = $this->session->get('pfy.message')) {
-            self::$pg->addJq("window.alert('$msg')");
-            $this->session->remove('pfy.message');
-        }
+        $this->showPendingMessage();
 
         // check for presence of site/plugins/pagefactory-*':
         self::$pg->loadExtensions();
@@ -178,7 +181,7 @@ class PageFactory
         }
         $this->utils->handleAgentRequests(); // login,logout,printpreview,print' and 'help,localhost,timer,reset,notranslate'
 
-        $this->utils->determineTemplateFile(@$options['templateFile']);
+        $this->utils->determineTemplateFile($options['templateFile']??'');
 
         $this->utils->loadMdFiles();
         $this->setStandardVariables();
@@ -304,7 +307,7 @@ class PageFactory
     private function determineAssetFilesList(): void
     {
         // get asset-files definition: first try site/config/pagefactory.php:
-        if (@$this->config['assetFiles']) {
+        if ($this->config['assetFiles']??false) {
             $this->assetFiles = $this->config['assetFiles'];
         } else { // if not found, use following as default values:
             $this->assetFiles = [
@@ -333,6 +336,19 @@ class PageFactory
                 ],
             ];
         }
-    }
+    } // determineAssetFilesList
+
+
+    /**
+     * reloadAgent() can prepare a message to be shown on next page view, here we show the message:
+     * @return void
+     */
+    private function showPendingMessage(): void
+    {
+        if ($msg = $this->session->get('pfy.message')) {
+            self::$pg->addJq("window.alert('$msg')");
+            $this->session->remove('pfy.message');
+        }
+    } // showPendingMessage
 
 } // PageFactory
