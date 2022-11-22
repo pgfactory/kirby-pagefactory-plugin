@@ -4,26 +4,29 @@ namespace Usility\PageFactory;
 
 use Kirby;
 
-// filesystem paths:
+ // filesystem paths:
 const PFY_BASE_PATH =              'site/plugins/pagefactory/';
 const PFY_DEFAULT_TEMPLATE_FILE =  'site/templates/page_template.html';
+const PFY_CONTENT_ASSETS_PATH =    'content/assets/';
+const PFY_ASSETS_PATH =            'site/plugins/pagefactory/assets/';
 const PFY_ICONS_PATH =             'site/plugins/pagefactory/assets/icons/';
-const PFY_PUB_ICONS_PATH =         'site/plugins/pagefactory/assets/pub-icons/';
+const PFY_SVG_ICONS_PATH =         'site/plugins/pagefactory/assets/svg-icons/';
 const PFY_CONFIG_FILE =            'site/config/pagefactory.php';
 const PFY_CUSTOM_PATH =            'site/custom/';
 const PFY_USER_CODE_PATH =         PFY_CUSTOM_PATH.'macros/';
 const PFY_MACROS_PATH =            PFY_BASE_PATH.'macros/';
 const PFY_LOGS_PATH =              'site/logs/';
-const PFY_CACHE_PATH =             PFY_BASE_PATH.'.#cache/';
+const PFY_CACHE_PATH =             PFY_CUSTOM_PATH.'.#cache/';
 const PFY_MKDIR_MASK =             0700; // permissions for file accesses by PageFactory
 const PFY_DEFAULT_TRANSVARS =      PFY_BASE_PATH.'variables/pagefactory.yaml';
-const PFY_JQUERY_FILE =            'jquery-3.6.1.min.js';
 
-// URLs:
+ // URLs:
 const PFY_ASSETS_URL =             'media/plugins/usility/pagefactory/';
 const PAGED_POLYFILL_SCRIPT_URL =  PFY_ASSETS_URL.'js/paged.polyfill.min.js';
 
-// use this name for meta-files (aka text-files) in page folders:
+const DEFAULT_FRONTEND_FRAMEWORK_URLS = ['js' => PFY_ASSETS_URL.'js/jquery-3.6.1.min.js'];
+
+ // use this name for meta-files (aka text-files) in page folders:
 define('PFY_PAGE_DEF_BASENAME',     'zzz_page'); // 'define' required by site/plugins/pagefactory/index.php
 
 
@@ -56,32 +59,18 @@ class PageFactory
     public static $availableExtensions = [];
     public static $loadedExtensions = [];
     public static $debug;
+    public static $isLocalhost;
     public static $timer;
     public static $user;
     public static $slug;
     public static $urlToken;
     public static $availableIcons;
     public static $phpSessionId;
+    public static $assets;
 
     public $config;
     public $templateFile = '';
     public $session;
-    public $mdContent = '';
-    public $css = '';
-    public $scss = '';
-    public $js = '';
-    public $jq = '';
-    public $frontmatter = [];
-    public $assetFiles = [];
-    public $requestedAssetFiles = [];
-    public $cssFiles = [];
-    public $jQueryActive = false;
-    public $noTranslate = false;
-    public $headInjections = '';
-    public $bodyTagClasses = '';
-    public $bodyTagAttributes = '';
-    public $bodyEndInjections = '';
-    public $loadHelperJs = false;
 
     /**
      * @param $pages
@@ -90,6 +79,7 @@ class PageFactory
     public function __construct($pages)
     {
         self::$timer = microtime(true);
+        self::$isLocalhost = isLocalhost();
         self::$pages = $pages;
         self::$siteFiles = $pages->files();
         $this->kirby = kirby();
@@ -114,7 +104,7 @@ class PageFactory
         self::$trans = new TransVars($this);
 
         self::$md = new MarkdownPlus($this);
-        self::$pg = new PageExtruder($this);
+        self::$pg = new Page($this);
         self::$pg->set('pageParams', $this->page->content()->data());
 
         $this->utils = new Utils($this);
@@ -125,7 +115,6 @@ class PageFactory
 
         $this->utils->determineLanguage();
 
-        $this->content = (string)$this->page->text()->kt();
         self::$pagePath = substr($this->page->root(), strlen(site()->root())+1) . '/';
         self::$absAppRoot = kirby()->root().'/';
         self::$absPfyRoot = __DIR__.'/';
@@ -144,7 +133,8 @@ class PageFactory
         $this->utils->handleUrlToken();
 
         $this->siteTitle = (string)site()->title()->value();
-        $this->determineAssetFilesList();
+
+        self::$assets = new Assets($this);
 
         preparePath(PFY_LOGS_PATH);
     } // __construct
@@ -192,7 +182,6 @@ class PageFactory
     } // render
 
 
-
     /**
      * Loads the template, obtains the page content und keeps translating variables till none are left.
      * Then in the last step 'late-translation-variables' are translated. They are the ones that define injections
@@ -230,7 +219,6 @@ class PageFactory
     } // assembleHtml
 
 
-
     /**
      * Defines standard variables used in most webpages, e.g. 'lang' and 'page-title' etc.
      * @throws Kirby\Exception\InvalidArgumentException
@@ -240,7 +228,7 @@ class PageFactory
         self::$trans->setVariable('page-url', self::$pageUrl);
         self::$trans->setVariable('lang', self::$langCode);
         self::$trans->setVariable('lang-active', self::$lang);
-        self::$trans->setVariable('pfy-body-tag-attributes', $this->bodyTagAttributes);
+        self::$trans->setVariable('pfy-body-tag-attributes', Page::$bodyTagAttributes);
 
         $this->utils->setLanguageSelector();
 
@@ -276,7 +264,7 @@ class PageFactory
 
         // 'user', 'pfy-logged-in-as-user', 'pfy-backend-link':
         $appUrl = self::$appUrl;
-        $loginIcon = svg('site/plugins/pagefactory/assets/user.svg');
+        $loginIcon = svg('site/plugins/pagefactory/assets/icons/user.svg');
         $user = kirby()->user();
         if ($user) {
             $username = (string)$user->nameOrEmail();
@@ -294,10 +282,12 @@ class PageFactory
      * @return static
      * @throws Kirby\Exception\InvalidArgumentException
      */
-    public static function instance(): object
-    {
-        return static::$instance ?? new static(pages());
-    } // instance
+//ToDo: remove?
+//    public static function instance(): object
+//    {
+//        return static::$instance ?? new static(pages());
+//    } // instance
+
 
     /**
      * @return void
@@ -323,14 +313,12 @@ class PageFactory
                 ],
 
                 '-pagefactory.js' => [
-                    'site/plugins/pagefactory/js/autoload/*',
+                    'site/plugins/pagefactory/assets/js/autoload/*',
                 ],
 
                 // prepare rest as individual files ready for explicit queueing/loading:
                 '*' => [
                     'site/plugins/pagefactory/scss/*',
-                    'site/plugins/pagefactory/third_party/jquery/'.PFY_JQUERY_FILE,
-                    'site/plugins/pagefactory/js/*',
                 ],
             ];
         }

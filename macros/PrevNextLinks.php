@@ -29,7 +29,7 @@ EOT,                                    // <- Help text to explain function of t
     'mdCompile' => false,               // <- whether output needs to be markdown-compiled
     'assetsToLoad' => [
         'site/plugins/pagefactory/scss/page-switcher.scss',
-        'site/plugins/pagefactory/js/page-switcher.js',
+        'site/plugins/pagefactory/assets/js/page-switcher.js',
     ],
 ];
 

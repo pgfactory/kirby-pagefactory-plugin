@@ -6,15 +6,16 @@ use Exception;
 
 class Scss
 {
+    /**
+     * @param $pfy
+     */
     public function __construct($pfy)
     {
         $this->pfy = $pfy;
         $this->pages = PageFactory::$pages;
-        $this->sourceDirs = $pfy->cssFiles;
         $this->individualFiles = [];
         $this->scssphp = new Compiler;
     }
-
 
 
     /**
@@ -33,7 +34,6 @@ class Scss
     } // compileStr
 
 
-
     /**
      * Compiles SCSS (from a file) and renders it as CSS.
      * @param string $srcFile
@@ -42,13 +42,15 @@ class Scss
      */
     public function compileFile(string $srcFile, string $targetFile): void
     {
+        if (fileExt($srcFile) !== 'scss') { // skip any non-scss files
+            return;
+        }
         $srcStr = $this->getFile($srcFile);
         $this->scssphp->setImportPaths(dir_name($srcFile));
         $css = $this->compileStr($srcStr);
         $css = "/* === Automatically created from ".basename($srcFile)." - do not modify! === */\n\n$css";
         file_put_contents($targetFile, $css);
     } // compileFile
-
 
 
     /**
@@ -67,7 +69,6 @@ class Scss
 
         return $srcStr;
     } // $this->resolvePaths
-
 
 
     /**

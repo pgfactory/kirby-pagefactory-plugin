@@ -21,7 +21,7 @@ EOT,
     'mdCompile' => false,
     'assetsToLoad' => [
         'site/plugins/pagefactory/scss/reveal.scss',
-        'site/plugins/pagefactory/js/reveal.js',
+        'site/plugins/pagefactory/assets/js/reveal.js',
     ],
 ];
 

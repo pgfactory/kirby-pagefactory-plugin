@@ -183,10 +183,10 @@ EOT;
                 $assetsToLoad = [$assetsToLoad];
             }
             foreach ($assetsToLoad as $asset) {
-                if (strpos($asset, 'jquery') !== false) {
-                    $this->pfy->jQueryActive = true;
+                if (stripos($asset, 'jsFramework') !== false) {
+                    PageFactory::$assets->requireFramework();
                 }
-                PageFactory::$pg->addAssets($asset);
+                PageFactory::$assets->addAssets($asset);
             }
         }
 

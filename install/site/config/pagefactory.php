@@ -13,35 +13,6 @@ return [
     // 'imageAutoQuickview'            => true,  // -> used by Img() macro
     // 'imageAutoSrcset'               => true,  // -> used by Img() macro
 
-    'assetFiles' => [
-        '-pagefactory.css' => [
-            'site/plugins/pagefactory/scss/autoload/*',
-        ],
-        '-pagefactory-async.css' => [
-            'site/plugins/pagefactory/scss/autoload-async/*',
-        ],
-        '-app.css' => [
-            'content/assets/autoload/*',
-        ],
-        '-app-async.css' => [
-            'content/assets/autoload-async/*',
-        ],
-        '-app.js' => [
-            'content/assets/autoload/*',
-        ],
-
-        '-pagefactory.js' => [
-            'site/plugins/pagefactory/js/autoload/*',
-        ],
-
-        // prepare rest as individual files ready for explicit queueing/loading:
-        '*' => [
-            'site/plugins/pagefactory/scss/*',
-            'site/plugins/pagefactory/third_party/jquery/jquery-3.6.1.min.js',
-            'site/plugins/pagefactory/js/*',
-        ],
-    ],
-
     'variables' => [
         'pfy-page-title' => '{{ page-title }} / {{ site-title }}',
         'webmaster-email' => 'webmaster@'.preg_replace('|^https?://([\w.-]+)(.*)|', "$1", site()->url()),
@@ -53,7 +24,14 @@ EOT,
         'pfy-footer' => ' Footer',
     ],
 
+    // optionally define files to be used as css/js framework (e.g. jQuery or bootstrap etc):
+//    'frontendFrameworkUrls' => [
+//        'css' => 'assets/framework1.css, assets/framework12.css',
+//        'js' => 'assets/framework1.js',
+//    ],
+
+
     // Options for dev phase:
     'debug_compileScssWithLineNumbers'  => @(kirby()->options())['debug'],   // line numbers of original SCSS file
-    // 'timezone' => 'Europe/Zurich', // PageFactory tries to guess the timezone - you can override this manually
+    // 'timezone' => 'Europe/Zurich', // PageFactory tries to guess the timezone - you can override this manually here
 ];

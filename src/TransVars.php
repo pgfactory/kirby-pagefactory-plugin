@@ -6,6 +6,7 @@ class TransVars
 {
     public static $transVars = [];
     private static $filesLoaded = [];
+    public static $noTranslate = false;
     private $macros = null;
     public $lang;
     public $langCode;
@@ -127,7 +128,7 @@ class TransVars
                 $varName = $m[2];
                 $argStr = $m[3];
 
-                if (($this->pfy->noTranslate !== false) && ($depth > $this->pfy->noTranslate)) {
+                if ((self::$noTranslate !== false) && ($depth > self::$noTranslate)) {
                     $s2 = "<span style='background:#fffbbb;'>&#123;&#123;$s2}}</span>";
                     $str = "$s1$s2$s3";
                     list ($p1, $p2) = strPosMatching($str);
@@ -356,7 +357,7 @@ EOT;
      */
     public function render(): string
     {
-        PageFactory::$pg->addAssets('site/plugins/pagefactory/scss/transvar-list.scss');
+        PageFactory::$assets->addAssets('site/plugins/pagefactory/scss/transvar-list.scss');
         $out = "\t<dl class='pfy-transvar-list'>\n";
         $vars = self::$transVars;
         ksort($vars);

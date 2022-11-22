@@ -3,7 +3,7 @@
 return [
   'assets' => [
       'QUICKVIEW' =>
-          'site/plugins/pagefactory/js/quickview.js,'.
+          'site/plugins/pagefactory/assets/js/quickview.js,'.
           'site/plugins/pagefactory/scss/quickview.scss',
 // Example:
 //      'OVERLAY' =>

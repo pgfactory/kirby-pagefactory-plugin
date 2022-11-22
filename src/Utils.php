@@ -10,6 +10,8 @@ use Exception;
 
 class Utils
 {
+    private $mdContent;
+    
     public function __construct($pfy)
     {
         $this->pfy = $pfy;
@@ -34,7 +36,6 @@ class Utils
         $target .= '/' . PageFactory::$slug;
         reloadAgent($target);
     } // handleUrlToken
-
 
 
     /**
@@ -172,12 +173,13 @@ EOT;
                     $this->showHelp();
                     break;
                 case 'notranslate': // ?notranslate
-                    $this->pfy->noTranslate = $arg? intval($arg): 1;
+                    TransVars::$noTranslate = $arg? intval($arg): 1;
                     break;
                 case 'reset': // ?reset
+                    Assets::reset();
                     $this->pfy->session->clear();
                     clearCache();
-                    break;
+                    reloadAgent();
             }
         }
     } // execAsAdmin
@@ -223,7 +225,6 @@ EOT;
             PageFactory::$pg->setOverlay($str);
         }
     } // showHelp
-
 
 
     /**
@@ -275,7 +276,6 @@ EOT;
     } // handleExtendedAgentRequests
 
 
-
     /**
      * Loads .md files found inside the current page folder
      * Files ignored:
@@ -299,7 +299,7 @@ EOT;
             $mdStr = $this->extractFrontmatter($mdStr);
             $html = PageFactory::$md->compile($mdStr);
             $class = translateToClassName(basename($fileObj->id(), '.md'));
-            $wrapperTag = $this->frontmatter['wrapperTag']??null;
+            $wrapperTag = Page::$frontmatter['wrapperTag']??null;
             if ($wrapperTag === null) {
                 $wrapperTag = 'section';
             }
@@ -307,7 +307,7 @@ EOT;
             $this->sectionId = "pfy-section-$inx";
             $this->fixFrontmatterCss();
             if ($wrapperTag) {
-                $this->pfy->content .= <<<EOT
+             Page::$content .= <<<EOT
 
 <$wrapperTag id='pfy-section-$inx' class='pfy-section-wrapper pfy-section-$inx pfy-section-$class'>
 
@@ -317,12 +317,11 @@ $html
 
 EOT;
             } else {
-                $this->pfy->content .= $html;
+                Page::$content .= $html;
             }
             $inx++;
         }
     } // loadMdFiles
-
 
 
     /**
@@ -355,8 +354,8 @@ EOT;
         }
 
         // if variables were defined in Frontmatter, propagate them into PFY's variables:
-        if (($this->pfy->frontmatter['variables']??false) && is_array($this->pfy->frontmatter['variables'])) {
-            foreach ($this->pfy->frontmatter['variables'] as $varName => $value) {
+        if ((Page::$frontmatter['variables']??false) && is_array(Page::$frontmatter['variables'])) {
+            foreach (Page::$frontmatter['variables'] as $varName => $value) {
                 $array[$varName] = $value;
                 PageFactory::$trans->setVariable($varName, $array);
             }
@@ -364,57 +363,56 @@ EOT;
 
         // if PageElements extension is loaded -> handle overlay,popup,message:
         if (file_exists('site/plugins/pagefactory-PageElements')) {
-            if ($this->pfy->frontmatter['overlay']??false) {
+            if (Page::$frontmatter['overlay']??false) {
                 $pe = new \Usility\PageFactory\PageElements\Overlay($this->pfy);
-                $pe->set($this->pfy->frontmatter['overlay'], true);
+                $pe->set(Page::$frontmatter['overlay'], true);
             }
-            if ($this->pfy->frontmatter['message']??false) {
+            if (Page::$frontmatter['message']??false) {
                 $pe = new \Usility\PageFactory\PageElements\Message($this->pfy);
-                $pe->set($this->pfy->frontmatter['message'], true);
+                $pe->set(Page::$frontmatter['message'], true);
             }
-            if ($this->pfy->frontmatter['popup']??false) {
+            if (Page::$frontmatter['popup']??false) {
                 $pe = new \Usility\PageFactory\PageElements\Popup($this->pfy);
-                $pe->set($this->pfy->frontmatter['popup'], true);
+                $pe->set(Page::$frontmatter['popup'], true);
             }
         }
 
-        if ($this->pfy->frontmatter['loadAssets']??false) {
-            PageFactory::$pg->addAssets($this->pfy->frontmatter['loadAssets'], true, customAsset: true);
+        if (Page::$frontmatter['loadAssets']??false) {
+            PageFactory::$assets->addAssets(Page::$frontmatter['loadAssets']);
         }
-        if ($this->pfy->frontmatter['assets']??false) {
-            PageFactory::$pg->addAssets($this->pfy->frontmatter['assets'], true, customAsset: true);
+        if (Page::$frontmatter['assets']??false) {
+            PageFactory::$assets->addAssets(Page::$frontmatter['assets']);
         }
-        if ($this->pfy->frontmatter['jqFile']??false) {
-            PageFactory::$pg->addAssets($this->pfy->frontmatter['jqFile'], true, customAsset: true);
+        if (Page::$frontmatter['jqFile']??false) {
+            PageFactory::$assets->addAssets(Page::$frontmatter['jqFile'], true);
         }
-        if ($this->pfy->frontmatter['jqFiles']??false) {
-            PageFactory::$pg->addJqFiles($this->pfy->frontmatter['jqFiles'], customAsset: true);
+        if (Page::$frontmatter['jqFiles']??false) {
+            PageFactory::$assets->addJqFiles(Page::$frontmatter['jqFiles']);
         }
 
         // save frontmatter for further use (e.g. by macros):
-        PageFactory::$pg->set('frontmatter', $this->pfy->frontmatter);
 
         return $mdStr;
     } // extractFrontmatter
 
 
     /**
-     * Adds new frontmatter values to $this->pfy->frontmatter
+     * Adds new frontmatter values to PageExtruder::$frontmatter
      * @param array $frontmatter
      */
     private function addToFrontmatter(array $frontmatter): void
     {
-        if (!$this->pfy->frontmatter) {
-            $this->pfy->frontmatter = $frontmatter;
+        if (!Page::$frontmatter) {
+            Page::$frontmatter = $frontmatter;
         } else {
             foreach ($frontmatter as $key => $value) {
-                if (($this->pfy->frontmatter[$key]??false) && is_string($value)) {
-                    $this->pfy->frontmatter[$key] .= $value;
+                if ((Page::$frontmatter[$key]??false) && is_string($value)) {
+                    Page::$frontmatter[$key] .= $value;
 
-                } elseif (($this->pfy->frontmatter[$key]??false) && is_array($value)) {
-                    $this->pfy->frontmatter[$key] = array_merge($this->pfy->frontmatter[$key], $value);
+                } elseif ((Page::$frontmatter[$key]??false) && is_array($value)) {
+                    Page::$frontmatter[$key] = array_merge(Page::$frontmatter[$key], $value);
                 } else {
-                    $this->pfy->frontmatter[$key] = $value;
+                    Page::$frontmatter[$key] = $value;
                 }
             }
         }
@@ -427,12 +425,12 @@ EOT;
      */
     private function fixFrontmatterCss(): void
     {
-        $css = &PageFactory::$pg->frontmatter['css'];
+        $css = &Page::$frontmatter['css'];
         if ($css) {
             $css = str_replace(['#this', '.this'], ['#'.$this->sectionId, '.'.$this->sectionClass], $css);
         }
 
-        $scss = &PageFactory::$pg->frontmatter['scss'];
+        $scss = &Page::$frontmatter['scss'];
         if ($scss) {
             $scss = str_replace(['#this', '.this'], ['#'.$this->sectionId, '.'.$this->sectionClass], $scss);
         }
@@ -532,7 +530,6 @@ EOT;
     }
 
 
-
     /**
      * Variables marked by '{{@' must be resolved at the very end, this method hides them from translation
      * @param string $html
@@ -549,7 +546,6 @@ EOT;
     } // shieldLateTranslatationVariables
 
 
-
     /**
      * Variables originally marked by '{{@' are unshielded and left as '{{', so they can be translated now 
      * @param string $html
@@ -564,7 +560,6 @@ EOT;
         }
         return $html;
     } // unshieldLateTranslatationVariables
-
 
 
     /**
@@ -616,7 +611,6 @@ EOT;
     } // determineLanguage
 
 
-
     /**
      * Defines variable 'pfy-lang-selection', which expands to a language selection block,
      * one language icon per supported language
@@ -638,7 +632,6 @@ EOT;
 
         PageFactory::$trans->setVariable('pfy-lang-selection', $out);
     } // setLanguageSelector
-
 
 
     /**
@@ -678,7 +671,6 @@ EOT;
     } // determineDebugState
 
 
-
     /**
      * Finds .md files found inside the current page folder
      * Files ignored:
@@ -697,7 +689,6 @@ EOT;
     } // findMdFiles
 
 
-
     /**
      * Returns the page content as HTML
      * To get that, obtains markdown (previously assembled) and compiles it to HTML
@@ -711,11 +702,11 @@ EOT;
             return $content;
         }
 
-        $content = $this->pfy->mdContent;
-        if ($this->pfy->mdContent) {
-            $content = $this->pfy->kirby->markdown($this->pfy->mdContent);
+        $content = $this->mdContent;
+        if ($this->mdContent) {
+            $content = $this->pfy->kirby->markdown($this->mdContent);
         }
-        $content = $this->pfy->content . $content;
+        $content = Page::$content . $content;
 
         // remove pseudo tags <skip>:
         $content = preg_replace('|<skip.*?</skip>|ms', '', $content);
@@ -724,7 +715,6 @@ EOT;
         while (_unshieldStr($content)) {};
         return $content;
     } // getContent
-
 
 
     /**
@@ -782,7 +772,6 @@ EOT;
     } // readPfyConfig
 
 
-
     /**
      * Determines the page template file to be used:
      *  a) explicitly stated
@@ -813,7 +802,6 @@ EOT;
     } // determineTemplateFile
 
 
-
     /**
      * Checks timezone. If that's not in "area/city" format, tries to obtain it from PageFactory's config file.
      * If that fails, tries to determine it via https://ipapi.co/timezone, then saves in the config file.
@@ -837,7 +825,6 @@ EOT;
     } // setTimezone
 
 
-
     /**
      * Injects a new key,value pair into PageFactory's config file site/config/pagefactory.php
      * @param string $key
@@ -849,7 +836,7 @@ EOT;
         if ($comment) {
             $comment = " // $comment";
         }
-        $str = "\t,'$key' => '$value',$comment\n";
+        $str = "\t'$key' => '$value',$comment,\n";
 
         $config = fileGetContents(PFY_CONFIG_FILE);
         if ($config) {
@@ -866,7 +853,6 @@ EOT;
         }
         file_put_contents(PFY_CONFIG_FILE, $config);
     } // appendToConfigFile
-
 
 
     /**

@@ -799,7 +799,7 @@ function deleteFiles(mixed $files): void
   */
 function findAvailableIcons(): array
  {
-     $availableIcons = getDir(PFY_PUB_ICONS_PATH, 'name_only');
+     $availableIcons = getDir(PFY_SVG_ICONS_PATH, 'name_only');
      $availableIcons = array_merge($availableIcons, getDir(PFY_ICONS_PATH, 'name_only'));
      return $availableIcons;
  } // findAvailableIcons
@@ -852,7 +852,7 @@ function resolvePath(string $path, bool $returnAbsPath = false, bool $relativeTo
         '~assets/'      => $appRoot.'content/assets/',
         '~data/'        => $appRoot.'site/custom/data/',
         '~page/'        => $pageRoot,
-        '~pagefactory/' => $appRoot.'site/plugins/pagefactory/',
+        '~pagefactory/' => $appRoot.'site/plugins/pagefactory/assets/',
     ];
     $path = str_replace(array_keys($pathPatterns), array_values($pathPatterns), $path);
 
@@ -2281,7 +2281,6 @@ function clearCache(): void
     foreach ($files as $file) {
         @rmdir($file);
     }
-    reloadAgent();
 } // clearCache
 
 

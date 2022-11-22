@@ -23,7 +23,7 @@ class DefaultNav
         $this->site = $pfy->site;
         $this->arrow = NAV_ARROW;
         $this->hidden = 'false';
-        PageFactory::$pg->addJqFiles('site/plugins/pagefactory/js/nav.jq');
+        PageFactory::$assets->addJqFiles('site/plugins/pagefactory/assets/js/nav.jq');
     } // __construct
 
 
