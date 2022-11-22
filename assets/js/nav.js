@@ -28,7 +28,7 @@ PfyNav.prototype.init = function() {
         let isSmallScreen = (w < screenSizeBreakpoint);
         parent.adaptMainMenuToScreenSize(isSmallScreen);
         parent.setHightOnHiddenElements();
-        mylog('resize window');
+        // mylog('resize window');
     });
 
 

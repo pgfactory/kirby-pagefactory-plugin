@@ -20,8 +20,8 @@ window.onload = function() {
 
 
 function adaptToWidth() {
-    console.log("window.innerWidth: " + window.innerWidth);
-    console.log("document.documentElement.clientWidth;: " + document.documentElement.clientWidth);
+    // console.log("window.innerWidth: " + window.innerWidth);
+    // console.log("document.documentElement.clientWidth;: " + document.documentElement.clientWidth);
     let windowWidth = document.documentElement.clientWidth;
   if (windowWidth < screenSizeBreakpoint) {
     document.body.classList.add('pfy-small-screen');

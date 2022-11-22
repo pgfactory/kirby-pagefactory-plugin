@@ -17,7 +17,7 @@ const DEFAULT_ASSET_GROUPS = [
     'site/plugins/pagefactory/assets/css/' => [
         'site/plugins/pagefactory/scss/*',
     ],
-    'site/plugins/pagefactory/assets/js/-pagefactory(50).js' => [
+    'site/plugins/pagefactory/assets/js/-pagefactory.js' => [
         'site/plugins/pagefactory/assets/js/autoload/*',
     ],
 
@@ -35,7 +35,7 @@ const DEFAULT_ASSET_GROUPS = [
     'content/assets/css/-app-async.css' => [
         'content/assets/css/autoload-async/*',
     ],
-    'content/assets/js/-app(20).js' => [
+    'content/assets/js/-app.js' => [
         'content/assets/js/autoload/*',
     ],
 ];
@@ -400,7 +400,10 @@ class Assets
                 if ($url && file_exists($file1)) {
                     $url = dirname($url).'/'.basename($file1);
                 } else {
-                    throw new \Exception("Error: requested asset `$file` not found.");
+                    mylog("Error: requested asset `$file` not found.");
+                    unset($queue[$i]);
+                    continue;
+//                    throw new \Exception("Error: requested asset `$file` not found.");
                 }
             }
 
