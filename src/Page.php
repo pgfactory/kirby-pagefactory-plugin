@@ -24,6 +24,7 @@ class Page
     public static $frontmatter = [];
     public $assetFiles = [];
     public $overrideContent = false;
+    public static $definitions;
 
 
     /**
@@ -35,7 +36,7 @@ class Page
         $this->trans = $pfy::$trans;
         $this->sc = new Scss($this->pfy);
         $this->assetFiles = &$pfy->assetFiles;
-        $this->definitions = require_once 'site/plugins/pagefactory/src/definitions.php';
+        self::$definitions = require_once 'site/plugins/pagefactory/src/definitions.php';
         self::$content = (string)page()->text()->kt();
     } // __construct
 
@@ -65,7 +66,7 @@ class Page
                 $obj = new $cls($this->pfy);
                 if (method_exists($obj, 'getAssetDefs')) {
                     $newAssets = $obj->getAssetDefs();
-                    $this->definitions = array_merge_recursive($this->definitions, ['assets' => $newAssets]);
+                    self::$definitions = array_merge_recursive(self::$definitions, ['assets' => $newAssets]);
                 }
             }
         }

@@ -19,10 +19,7 @@ $macroConfig =  [
 Displays a clickable label. When clicked, opens and closes the target element specified in argument ``target``.
 EOT,
     'mdCompile' => false,
-    'assetsToLoad' => [
-        'site/plugins/pagefactory/scss/reveal.scss',
-        'site/plugins/pagefactory/assets/js/reveal.js',
-    ],
+    'assetsToLoad' => ['REVEAL'],
 ];
 
 

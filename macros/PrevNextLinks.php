@@ -27,10 +27,7 @@ Use variables ``\{{ pfy-previous-page-text }}`` and ``\{{ pfy-next-page-text }}`
 
 EOT,                                    // <- Help text to explain function of this macro
     'mdCompile' => false,               // <- whether output needs to be markdown-compiled
-    'assetsToLoad' => [
-        'site/plugins/pagefactory/scss/page-switcher.scss',
-        'site/plugins/pagefactory/assets/js/page-switcher.js',
-    ],
+    'assetsToLoad' => [ 'PAGE_SWITCHER' ],
 ];
 
 

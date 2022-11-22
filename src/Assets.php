@@ -64,6 +64,7 @@ class Assets
     private $hostUrlLen;
     private $pageFolderfiles;
     private $pageFolderPath;
+    private $definitions;
     private $frameworkFiles;
     private $filePriority = [];
 
@@ -79,6 +80,8 @@ class Assets
         $this->hostUrlLen = strlen($this->hostUrl)-1;
         $this->pageFolderfiles = page()->files()->data();
         $this->pageFolderPath = page()->contentFileDirectory().'/';
+
+        $this->definitions = Page::$definitions;
 
         // performance optimization: preparing assets:
         $this->prepareAssets();
@@ -129,7 +132,11 @@ class Assets
     public function addAssets(mixed $assets, bool $treatAsJq = false): void
     {
         if (is_string($assets)) {
-            $assets = explodeTrim(',', $assets);
+            if (isset($this->definitions['assets'][$assets])) {
+                $assets = $this->definitions['assets'][$assets];
+            } else {
+                $assets = explodeTrim(',', $assets);
+            }
         }
         foreach ($assets as $asset) {
             $type = fileExt($asset);
