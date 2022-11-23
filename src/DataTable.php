@@ -31,7 +31,6 @@ class DataTable extends DataSet
      * @throws \Exception
      */
     public function __construct(string $file, array $options = [], $pfy = null)
-//    public function __construct(string $file, array $options = [])
     {
         $this->pfy = $pfy;
         parent::__construct($file, $options);
@@ -63,10 +62,6 @@ class DataTable extends DataSet
         }
         $this->parseArrayArg('tableHeaders'); // options['tableHeaders'] or options['headers']
 
-//        if ($this->dataReference && is_string($this->dataReference)) {
-//            $this->dataReference = " data-ref='$this->dataReference'";
-//        }
-//
         if ($this->tableButtons === true) {
             $this->tableButtonDelete = true;
             $this->tableButtonDownload = true;
@@ -166,15 +161,16 @@ class DataTable extends DataSet
 
     /**
      * Injects a new column of data into the array.
+     * Examples:
+     *     injectColumn('%row-numbers', '#')
+     *     injectColumn('%row-selectors')
+     *     injectColumn('const', 'hdr const', -1)
+     *     injectColumn(col: 3)
      * @param int $col          target column
      * @param mixed $newElement new element (as comma-separated-list), default is checkbox
      * @return array
      */
     private function injectColumn(string $newElement = '', mixed $headElement = '', int $col = 0): void
-    // injectColumn('%row-numbers', '#')
-    // injectColumn('%row-selectors')
-    // injectColumn('const', 'hdr const', -1)
-    // injectColumn(col: 3)
     {
         $data = &$this->tableData;
         $newCol = [];
@@ -402,7 +398,7 @@ class DataTable extends DataSet
             foreach ($keysSelected as $key) {
                 $this->remove($key);
             }
-//            $this->flush();
+            $this->flush();
         }
         unset($_POST['pfy-reckey']);
         $msg = $this->pfy::$trans->getVariable('pfy-form-rec-deleted');

@@ -5,12 +5,12 @@ namespace Usility\PageFactory;
 use Kirby\Filesystem\F;
 use Kirby\Data\Yaml as Yaml;
 
-// meta keys:
+ // meta keys:
 const DATAREC_KEY = '_origRecKey';
 const DATAREC_UID = '_uid';
 const DATAREC_TIMESTAMP = '_timestamp';
 
-// timings:
+ // timings:
 const DEFAULT_MAX_DB_LOCK_TIME      = 600; // sec
 const DEFAULT_MAX_DB_BLOCKING_TIME  = 500; // ms
 const DEFAULT_MAX_REC_LOCK_TIME     = 20; // sec
@@ -92,8 +92,8 @@ class DataSet
             if ($this->readWriteMode) {
                 $this->lockDatasource();
             }
+            $this->initData();
         }
-        $this->initData();
     } // __construct
 
 
@@ -857,8 +857,14 @@ class DataSet
     public function clone(): object
     {
         $new = new DataSet(false);
-        foreach ($this as $key => $value) {
-            $new->set($key, $value);
+        foreach ($this as $key => $elem) {
+            if ($key === 'data') {
+                foreach ($elem as $k => $v) {
+                    $new->data[$k] = clone $v;
+                }
+            } else {
+                $new->set($key, $elem);
+            }
         }
         return $new;
     } // clone
@@ -976,7 +982,6 @@ class DataSet
                 $this->importFromMasterFile();
                 $this->updateCacheFile();
             } else {
-//                $this->data = unserialize(readFileLocking($this->cacheFile));
                 $this->data = $this->readCacheFile();
                 if (!$this->data) { // just in case cacheFile was empty, e.g. due to a previously aborted run
                     $this->importFromMasterFile();
@@ -1130,11 +1135,10 @@ class DataSet
     protected function updateCacheFile(): void
     {
         try {
-            $data = [];
-            // remove parent references as serializing that can crash
-            foreach ($this->data as $key => $rec) {
-                unset($rec->parent);
-                $data[$key] = $rec;
+            $ds = $this->clone();
+            $data = $ds->data;
+            foreach ($data as $key => $rec) {
+                $data[$key]->parent = null;
             }
             writeFileLocking($this->cacheFile, serialize($data));
 
@@ -1156,7 +1160,7 @@ class DataSet
     protected function readCacheFile(): array
     {
         $data = unserialize(readFileLocking($this->cacheFile));
-        // restore parent references
+        // restore parent references:
         if ($data && is_array($data)) {
             foreach ($data as $key => $rec) {
                 $data[$key]->parent = $this;
