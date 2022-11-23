@@ -172,9 +172,11 @@ EOT;
                 case 'help': // ?help
                     $this->showHelp();
                     break;
+
                 case 'notranslate': // ?notranslate
                     TransVars::$noTranslate = $arg? intval($arg): 1;
                     break;
+
                 case 'reset': // ?reset
                     Assets::reset();
                     $this->pfy->session->clear();
