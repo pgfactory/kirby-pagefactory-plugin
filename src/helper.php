@@ -2267,21 +2267,30 @@ function convertToPx(string $str): float
 
 
  /**
-  * Clears PageFactory's cache folder
+  * Clears PageFactory's cache folder, also delete Kirby's media/ folder.
   * @return void
   */
 function clearCache(): void
 {
-    $files = getDirDeep(PFY_CACHE_PATH, false, false, true);
-    foreach ($files as $file) {
-        unlink($file);
-    }
-    $files = getDirDeep(PFY_CACHE_PATH, true, false, true);
-    rsort($files);
-    foreach ($files as $file) {
-        @rmdir($file);
-    }
+    rrmdir(PFY_CACHE_PATH);
+    rrmdir('media');
 } // clearCache
+
+
+ /**
+  * Remove a folder recursively, even if not empty.
+  * @param string $dir
+  * @return bool
+  */
+ function rrmdir(string $dir): bool
+{
+     $files = array_diff(scandir($dir), ['.','..']);
+     foreach ($files as $file) {
+         (is_dir("$dir/$file") &&
+             !is_link($dir)) ? rrmdir("$dir/$file") : unlink("$dir/$file");
+     }
+     return rmdir($dir);
+} // rrmdir
 
 
  /**
