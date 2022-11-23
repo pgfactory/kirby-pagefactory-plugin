@@ -8,12 +8,12 @@ CSS-Variables:
 
 /* === Extended Resets =============================== */
 html {
-	height: -webkit-fill-available;
+	height: fill-available;
 }
 body {
 	min-width: 100vw;
 	min-height: 100vh;
-	min-height: -webkit-fill-available;
+	min-height: fill-available;
 }
 
 html, body, section {
