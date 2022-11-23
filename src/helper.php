@@ -2284,6 +2284,9 @@ function clearCache(): void
   */
  function rrmdir(string $dir): bool
 {
+    if (!file_exists($dir)) {
+        return false;
+    }
      $files = array_diff(scandir($dir), ['.','..']);
      foreach ($files as $file) {
          (is_dir("$dir/$file") &&
