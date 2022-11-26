@@ -145,9 +145,6 @@ class PageFactory
      */
     public function __destruct()
     {
-//        if (method_exists('Usility\PageFactory\DataSet', 'unlockDatasources')) {
-//            Usility\PageFactory\DataSet::unlockDatasources(self::$absAppRoot);
-//        }
         $dataCachePath = self::$absAppRoot.PFY_CACHE_PATH.'data/';
         $sessionId = PageFactory::$phpSessionId;
         $lockFiles = getDir("$dataCachePath*.lock");

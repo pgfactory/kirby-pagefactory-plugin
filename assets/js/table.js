@@ -13,3 +13,11 @@ $('#pfy-table-delete-submit').click(function () {
     $(this).closest('form').submit();
   }
 });
+
+$('#pfy-table-download-start').click(function () {
+  let fileUrl = hostUrl + $(this).data('file');
+  if (!$('#pfy-temp-iframe').length) {
+    $('body').append('<iframe id="pfy-temp-iframe" style="display:none;"></iframe>');
+  }
+  $('#pfy-temp-iframe').attr('src', fileUrl);
+});

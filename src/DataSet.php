@@ -4,6 +4,8 @@ namespace Usility\PageFactory;
 
 use Kirby\Filesystem\F;
 use Kirby\Data\Yaml as Yaml;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
  // meta keys:
 const DATAREC_KEY = '_origRecKey';
@@ -15,6 +17,9 @@ const DEFAULT_MAX_DB_LOCK_TIME      = 600; // sec
 const DEFAULT_MAX_DB_BLOCKING_TIME  = 500; // ms
 const DEFAULT_MAX_REC_LOCK_TIME     = 20; // sec
 const DEFAULT_MAX_REC_BLOCKING_TIME = 5; // sec
+
+const DOWNLOAD_PATH                 = 'download/';
+const DOWNLOAD_PATH_LINK_FILE       = '.#download.link';
 
 
 class DataSet
@@ -30,6 +35,10 @@ class DataSet
     protected $options;
     protected $includeMeta;
     protected $data;
+    protected $data2DNormalized;
+    protected $officeFormatAvailable;
+    protected $officeDoc = false;
+    protected $downloadFileName;
     protected $nCols;
     protected $nRows;
     protected $lastModified = 0;
@@ -58,6 +67,7 @@ class DataSet
         $this->readWriteMode =          $options['readWriteMode'] ?? true;
         $this->maxRecLockTime =         $options['maxRecLockTime'] ?? DEFAULT_MAX_REC_LOCK_TIME;
         $this->maxRecBlockingTime =     $options['maxRecBlockingTime'] ?? DEFAULT_MAX_REC_BLOCKING_TIME;
+        $this->downloadFilename =       $options['downloadFilename'] ?? false;
 
         if (isset($options['blocking'])) {
             if (is_int($options['blocking'])) {
@@ -94,6 +104,8 @@ class DataSet
             }
             $this->initData();
         }
+
+        $this->officeFormatAvailable = (class_exists('PhpOffice\PhpSpreadsheet\Spreadsheet'));
     } // __construct
 
 
@@ -466,24 +478,32 @@ class DataSet
         if ($includeMeta === null) {
             $includeMeta = $this->includeMeta;
         }
+        if ($this->data2DNormalized[$includeHeader][$includeMeta]??false) {
+            $data2D = $this->data2DNormalized[$includeHeader][$includeMeta];
+            $this->nRows = sizeof($data2D); //???
+            $this->nCols = sizeof(reset($data2D));
+            return $data2D;
+        }
+
         $data = $this->data($includeMeta);
-        $newData = [];
+        $data2D = [];
         $headers = $this->getElementLabels($includeMeta);
 
         if ($includeHeader) {
-            $newData['_hdr'] = array_combine($headers, $headers);
+            $data2D['_hdr'] = array_combine($headers, $headers);
         }
         foreach ($data as $key => $rec) {
             $newRec = [];
             foreach (array_keys($headers) as $k) {
                 $newRec[$k] = $rec[$k] ?? '';
             }
-            $newData[$key] = $newRec;
+            $data2D[$key] = $newRec;
         }
-        $this->nRows = sizeof($newData);
-        $this->nCols = sizeof(reset($newData));
-        return $newData;
-    } // normalize2D
+        $this->nRows = sizeof($data2D);
+        $this->nCols = sizeof(reset($data2D));
+        $this->data2DNormalized[$includeHeader][$includeMeta] = $data2D;
+        return $data2D;
+    } // get2DNormalizedData
 
 
     /**
@@ -893,24 +913,43 @@ class DataSet
      *    $ds->export('output/export2.csv', includeMeta: true); -> includes meta-data
      *    $ds->export('output/export3.csv', includeHeader: false); -> includes meta-data and omits header-row
      *      *) before exporting to csv, data is 2D-normalized to fit in a rectangular table
-     * @param string $toFile
+     * @param mixed $toFile
      * @param mixed $includeMeta
      * @param mixed|null $includeHeader
-     * @return void
+     * @param mixed|null $fileType
+     * @return string
      * @throws \Exception
      */
-    public function export(string $toFile,
+    public function export(mixed $toFile = false,
                            bool  $includeMeta = false,
-                           bool  $includeHeader = true): void
+                           bool  $includeHeader = true,
+                           mixed $fileType = false): string
     {
+        if ($fileType === true || $fileType === 'office') {
+            if ($this->officeFormatAvailable) {
+                $fileType = 'office';
+            } else {
+                $fileType = 'csv';
+            }
+        }
+        if (!$toFile) {
+            $toFile = $this->getDownloadFilename();
+        }
+        if (!$fileType) {
+            $fileType = fileExt($toFile);
+        }
         $toFile = resolvePath($toFile);
         if ($toFile === $this->file) {
             throw new \Exception("Export to original data file '$toFile' is not allowed.");
         }
-        $type = fileExt($toFile);
+        preparePath($toFile);
         try {
-            if ($type === 'csv') {
-                $this->exportToCsv($toFile, $includeHeader, $includeMeta);
+            if ($fileType === 'office') {
+                $toFile .= 'xlsx';
+                $this->exportToOfficeDoc($toFile, $includeMeta, $includeHeader);
+            } elseif ($fileType === 'csv') {
+                $toFile .= 'csv';
+                $this->exportToCsv($toFile, $includeMeta, $includeHeader);
             } else {
                 $data = $this->data($includeMeta);
                 writeFileLocking($toFile, $data);
@@ -918,6 +957,7 @@ class DataSet
         } catch (\Exception $e) {
             throw new \Exception($e->getMessage());
         }
+        return $toFile;
     } // export
 
 
@@ -945,6 +985,53 @@ class DataSet
         }
         fclose($fp);
     } // exportToCsv
+
+
+
+    public function exportToOfficeDoc(string $file,
+                                bool  $includeMeta = false,
+                                bool  $includeHeader = true): string
+    {
+        if (!$this->officeFormatAvailable) {
+            throw new \Exception("Support for Office Formats not available in this installation.");
+        }
+        $data2D = $this->get2DNormalizedData($includeHeader, $includeMeta);
+
+        if (!$this->officeDoc) {
+            $this->officeDoc = new OfficeFormat($data2D);
+        }
+        $this->officeDoc->export($file);
+        return $file;
+    } // exportToOfficeDoc
+
+
+    protected function getDownloadFilename(mixed $basename = false): string
+    {
+        // use name of master file 
+        $basename = $basename ?: $this->file;
+        
+        // determine download filename:
+        if ($this->downloadFilename) {
+            // basename can be overridden by option:
+            $downloadFileName = base_name($this->downloadFilename, false);
+        } else {
+            $downloadFileName = base_name($basename, false);
+        }
+        // determine download path (i.e. random hash static per page):
+        $dlLinkFile = resolvePath('~page/'.DOWNLOAD_PATH_LINK_FILE);
+        if (file_exists($dlLinkFile)) {
+            $dlHash = file_get_contents($dlLinkFile);
+        } else {
+            $dlHash = createHash(8, false, true);
+            file_put_contents($dlLinkFile, $dlHash);
+        }
+        // define time dependent sub-folder:
+        $ts = filemtime($this->file);
+        $ts = date('Ymd_Hi_', $ts);
+        // assemble path and filename:
+        $file = DOWNLOAD_PATH."$dlHash/$ts/$downloadFileName.";
+        return $file;
+    } // getDownloadFilename
 
 
 

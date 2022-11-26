@@ -1119,6 +1119,10 @@ pfy-table-delete-recs-popup:
     de: 'Alle ausgewählten Zeilen löschen?'
     _:  'Delete selected records?'
 
+pfy-table-delete-recs-title:
+    de: 'Ausgewählten Datensätze löschen'
+    _:  'Delete selected records'
+
 pfy-form-rec-deleted:
     de: 'Datensatz gelöscht'
     _:  'Data record deleted'

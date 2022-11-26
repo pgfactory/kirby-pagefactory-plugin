@@ -2,6 +2,8 @@
 
 namespace Usility\PageFactory;
 
+use Usility\PageFactory\OfficeFormat;
+
 const TABLE_SUM_SYMBOL = '%sum';
 const TABLE_COUNT_SYMBOL = '%count';
 
@@ -49,9 +51,11 @@ class DataTable extends DataSet
         $captionPosition = isset($options['captionPosition']) && $options['captionPosition'] ? $options['captionPosition'] : 'b';
         $this->captionAbove = $captionPosition[0] === 'a';
         $this->tableButtons = isset($options['tableButtons']) ? $options['tableButtons'] : false;
+        $this->downloadFileName = isset($options['downloadFileName']) && $options['downloadFileName'] ? $options['downloadFileName'] : base_name($file, false);
         $this->showRowNumbers = isset($options['showRowNumbers']) ? $options['showRowNumbers'] : false;
         $this->showRowSelectors = isset($options['showRowSelectors']) && $options['showRowSelectors'] ? $options['showRowSelectors'] : false;
         $this->sort = isset($options['sort']) ? $options['sort'] : false;
+        $this->export = isset($options['export']) ? $options['export'] : false;
 
         if (isset($this->options['tableHeaders'])) {
             $this->options['tableHeaders'] = $this->options['headers'];
@@ -253,18 +257,8 @@ class DataTable extends DataSet
     {
         $data = &$this->tableData;
         $out = "\n<div class='$this->tableWrapperClass'$this->dataReference>\n";
-        if ($this->tableButtons) {
-            $out .= "  <form method='post'>\n";
-        }
-        if ($this->tableButtonDelete) {
-            $icon = renderIcon('trash');
-            $out .= "<button id='pfy-table-delete-submit' class='pfy-button pfy-button-lean' type='button'>$icon</button>\n";
-        }
-        if ($this->tableButtonDownload) {
-            $icon = renderIcon('cloud_download_alt');
-            $out .= "<button id='pfy-table-download-submit' class='pfy-button pfy-button-lean'>$icon</button>\n";
-            $this->pfy::$pg->addJs('const pfyTableDeletePopup = "{{ pfy-table-delete-recs-popup }}";');
-        }
+        $out .= $this->renderTableButtons();
+
         $out .= "<table id='$this->tableId' class='$this->tableClass'>\n";
 
         // caption:
@@ -386,6 +380,26 @@ class DataTable extends DataSet
     } // renderTableTail
 
 
+    private function renderTableButtons()
+    {
+        $out = '';
+        if ($this->tableButtons) {
+            $out .= "  <form method='post'>\n";
+        }
+        if ($this->tableButtonDelete) {
+            $icon = renderIcon('trash');
+            $out .= "<button id='pfy-table-delete-submit' class='pfy-button pfy-button-lean' type='button' title='{{ pfy-table-delete-recs-title }}'>$icon</button>\n";
+            $this->pfy::$pg->addJs('const pfyTableDeletePopup = "{{ pfy-table-delete-recs-popup }}";');
+        }
+        if ($this->tableButtonDownload) {
+            $file = $this->exportDownloadDocs();
+            $icon = renderIcon('cloud_download_alt');
+            $out .= "<button id='pfy-table-download-start' class='pfy-button pfy-button-lean' type='button' data-file='$file' title='{{ pfy-opens-download }}'>$icon</button>\n";
+        }
+        return $out;
+    } // renderTableButtons
+
+
     /**
      * Handles requests to delete records
      * @return void
@@ -405,5 +419,13 @@ class DataTable extends DataSet
         reloadAgent(message: $msg);
     } // handleTableRequests
 
+
+    private function exportDownloadDocs(): string
+    {
+//        $file = $this->getDownloadFilename();
+//        $file = $this->export($file, fileType: true);
+        $file = $this->export(fileType: true);
+        return $file;
+    } // exportDownloadDocs
 
 } // DataTable
