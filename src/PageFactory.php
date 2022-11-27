@@ -16,7 +16,7 @@ const PFY_CUSTOM_PATH =            'site/custom/';
 const PFY_USER_CODE_PATH =         PFY_CUSTOM_PATH.'macros/';
 const PFY_MACROS_PATH =            PFY_BASE_PATH.'macros/';
 const PFY_LOGS_PATH =              'site/logs/';
-const PFY_CACHE_PATH =             PFY_CUSTOM_PATH.'.#cache/';
+define('PFY_CACHE_PATH',           PFY_CUSTOM_PATH.'.#cache/'); // available in extensions
 const PFY_MKDIR_MASK =             0700; // permissions for file accesses by PageFactory
 const PFY_DEFAULT_TRANSVARS =      PFY_BASE_PATH.'variables/pagefactory.yaml';
 
@@ -169,6 +169,10 @@ class PageFactory
 
         // check for presence of site/plugins/pagefactory-*':
         self::$pg->loadExtensions();
+
+        if (self::$assets->prepareAssets()) {
+            reloadAgent();
+        }
 
         if ($options['mdVariant']??false) {
             MarkdownPlus::$mdVariant = $options['mdVariant'];

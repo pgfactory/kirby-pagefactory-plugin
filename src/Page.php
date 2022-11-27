@@ -48,13 +48,13 @@ class Page
         // check for and load extensions:
         if (PageFactory::$availableExtensions) {
             foreach (PageFactory::$availableExtensions as $extPath) {
-                $className = rtrim(substr($extPath, strlen(PFY_BASE_PATH)), '/');
-                $file = "{$extPath}src/$className.php";
-                if (file_exists($file)) {
+                // look for 'src/index.php' within the extension:
+                $indexFile = "{$extPath}src/index.php";
+                if (file_exists($indexFile)) {
+                    // === load index.php now:
+                    $extensionClassName = require_once $indexFile;
 
-                    // === load extension now:
-                    require_once $file;
-
+                    // load all further class files within 'src/':
                     $dir = \Usility\PageFactory\getDir($extPath . 'src/*.php');
                     foreach ($dir as $file) {
                         require_once $file;
@@ -62,11 +62,21 @@ class Page
                     $extensionName = '';
                     PageFactory::$loadedExtensions[] = $extensionName;
                 }
-                $cls = "\Usility\PageFactory\\$className\\$className";
-                $obj = new $cls($this->pfy);
+
+                // instantiate extension object:
+                $extensionClass = "\Usility\PageFactory\\$extensionClassName\\$extensionClassName";
+                $obj = new $extensionClass($this->pfy);
+
+                // check for and load extension's asset-definitions:
                 if (method_exists($obj, 'getAssetDefs')) {
                     $newAssets = $obj->getAssetDefs();
                     self::$definitions = array_merge_recursive(self::$definitions, ['assets' => $newAssets]);
+                }
+
+                // check for and load extension's asset-definitions:
+                if (method_exists($obj, 'getAssetGroups')) {
+                    $newAssetGroupss = $obj->getAssetGroups();
+                    PageFactory::$assets->addAssetGroups($newAssetGroupss);
                 }
             }
         }

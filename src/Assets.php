@@ -67,6 +67,8 @@ class Assets
     private $definitions;
     private $frameworkFiles;
     private $filePriority = [];
+    private $assetGroups;
+
 
     /**
      * @param $pfy
@@ -81,14 +83,17 @@ class Assets
         $this->pageFolderfiles = page()->files()->data();
         $this->pageFolderPath = page()->contentFileDirectory().'/';
 
-        $this->definitions = Page::$definitions;
-
-        // performance optimization: preparing assets:
-        $this->prepareAssets();
-        if ($this->scssModified) {
-            reloadAgent();
+        $this->definitions = &Page::$definitions;
+        if (!($this->assetGroups = $pfy->config['assetGroups']??false)) {
+            $this->assetGroups = DEFAULT_ASSET_GROUPS;
         }
     } // __construct
+
+
+    public function addAssetGroups($newAssetGroups)
+    {
+        $this->assetGroups = array_merge_recursive($this->assetGroups, $newAssetGroups);
+    } // addAssetGroups
 
 
     /**
@@ -270,14 +275,12 @@ class Assets
     } // reset
 
 
-
-    // === private =============================================
     /**
      * Prepares required folders and aggregates system assets if necessary.
      * @return void
      * @throws \Exception
      */
-    private function prepareAssets(): void
+    public function prepareAssets(): bool
     {
         preparePath(PFY_CACHE_PATH . 'compiledScss/');
         preparePath(PFY_CONTENT_ASSETS_PATH . 'css/');
@@ -292,9 +295,7 @@ class Assets
 
         // prepare asset groups:
         //   asset group definitions from site/config/pagefactory.php or DEFAULT_ASSET_GROUPS:
-        if (!($assetGroups = $this->pfy->config['assetGroups']??false)) {
-            $assetGroups = DEFAULT_ASSET_GROUPS;
-        }
+        $assetGroups = $this->assetGroups;
         if ($assetGroups && is_array($assetGroups)) {
             foreach ($assetGroups as $dest => $sources) {
                 if ($dest1 = $this->extractPriorityHint($dest)) {
@@ -330,9 +331,12 @@ class Assets
                 }
             }
         }
+        return $this->scssModified;
     } // prepareAssets
 
 
+
+    // === private =============================================
     /**
      * Returns queued assets of given type (css or js).
      * @param string $jsOrCss
