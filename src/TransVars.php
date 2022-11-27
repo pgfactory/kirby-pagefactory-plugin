@@ -286,7 +286,7 @@ class TransVars
      * @return void
      * @throws \Kirby\Exception\InvalidArgumentException
      */
-    private function loadTransVarsFromFiles($files)
+    public static function loadTransVarsFromFiles($files)
     {
         if (is_dir($files)) {
             $files = getDir($files.'*.yaml');
