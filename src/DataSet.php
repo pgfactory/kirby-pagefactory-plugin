@@ -38,7 +38,7 @@ class DataSet
     protected $data2DNormalized;
     protected $officeFormatAvailable;
     protected $officeDoc = false;
-    protected $downloadFileName;
+    protected $downloadFilename;
     protected $nCols;
     protected $nRows;
     protected $lastModified = 0;
@@ -63,11 +63,13 @@ class DataSet
      */
     public function __construct(string $file, array $options = [])
     {
-        $this->includeMeta =            $options['includeMeta'] ?? false;
-        $this->readWriteMode =          $options['readWriteMode'] ?? true;
-        $this->maxRecLockTime =         $options['maxRecLockTime'] ?? DEFAULT_MAX_REC_LOCK_TIME;
-        $this->maxRecBlockingTime =     $options['maxRecBlockingTime'] ?? DEFAULT_MAX_REC_BLOCKING_TIME;
-        $this->downloadFilename =       $options['downloadFilename'] ?? false;
+        $this->includeMeta =            isset($options['includeMeta']) ? $options['includeMeta'] : false;
+        $this->readWriteMode =          isset($options['readWriteMode']) ? $options['readWriteMode'] : true;
+        $this->maxRecLockTime =         (isset($options['maxRecLockTime']) && $options['maxRecLockTime']) ?
+                                            $options['maxRecLockTime']: DEFAULT_MAX_REC_LOCK_TIME;
+        $this->maxRecBlockingTime =     (isset($options['maxRecBlockingTime']) && $options['maxRecBlockingTime'])
+                                            ?$options['maxRecBlockingTime'] : DEFAULT_MAX_REC_BLOCKING_TIME;
+        $this->downloadFilename =       isset($options['downloadFilename']) ? $options['downloadFilename'] : false;
 
         if (isset($options['blocking'])) {
             if (is_int($options['blocking'])) {
@@ -1013,9 +1015,9 @@ class DataSet
         // determine download filename:
         if ($this->downloadFilename) {
             // basename can be overridden by option:
-            $downloadFileName = base_name($this->downloadFilename, false);
+            $downloadFilename = base_name($this->downloadFilename, false);
         } else {
-            $downloadFileName = base_name($basename, false);
+            $downloadFilename = base_name($basename, false);
         }
         // determine download path (i.e. random hash static per page):
         $dlLinkFile = resolvePath('~page/'.DOWNLOAD_PATH_LINK_FILE);
@@ -1029,7 +1031,7 @@ class DataSet
         $ts = filemtime($this->file);
         $ts = date('Ymd_Hi_', $ts);
         // assemble path and filename:
-        $file = DOWNLOAD_PATH."$dlHash/$ts/$downloadFileName.";
+        $file = DOWNLOAD_PATH."$dlHash/$ts/$downloadFilename.";
         return $file;
     } // getDownloadFilename
 

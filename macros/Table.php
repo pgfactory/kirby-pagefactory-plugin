@@ -29,7 +29,7 @@ $macroConfig =  [
             'various actions. Available buttons: \'delete\', \'download\'.', false],
 //            'various actions. Available buttons: \'delete\', \'download\', \'add\'.', false],
 //        'editableBy' => ['(role) If set, restricts availability of tableButtons to specified user roles.', false],
-        'downloadFileName' => ['Defines the name of the download-file (if option "tableButtons" is active).', false],
+        'downloadFilename' => ['Defines the name of the download-file (if option "tableButtons" is active).', false],
         'showRowSelectors' => ['If true, prepends a column with checkboxes to select rows.', false],
         'sort' => ['(element name) If set, data is sorted on given data element.', false],
         'export' => ['(true|filename) If set, the table data is exported to files in Xslx and Ods format.', false],

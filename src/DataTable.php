@@ -51,7 +51,7 @@ class DataTable extends DataSet
         $captionPosition = isset($options['captionPosition']) && $options['captionPosition'] ? $options['captionPosition'] : 'b';
         $this->captionAbove = $captionPosition[0] === 'a';
         $this->tableButtons = isset($options['tableButtons']) ? $options['tableButtons'] : false;
-        $this->downloadFileName = isset($options['downloadFileName']) && $options['downloadFileName'] ? $options['downloadFileName'] : base_name($file, false);
+        $this->downloadFilename = isset($options['downloadFilename']) && $options['downloadFilename'] ? $options['downloadFilename'] : base_name($file, false);
         $this->showRowNumbers = isset($options['showRowNumbers']) ? $options['showRowNumbers'] : false;
         $this->showRowSelectors = isset($options['showRowSelectors']) && $options['showRowSelectors'] ? $options['showRowSelectors'] : false;
         $this->sort = isset($options['sort']) ? $options['sort'] : false;
