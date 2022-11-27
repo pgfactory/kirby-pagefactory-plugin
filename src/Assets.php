@@ -373,7 +373,6 @@ class Assets
 
         // translate paths to urls:
         $queue = $this->translateToUrls($queue, $jsOrCss);
-
         return $queue;
     } // getQueuedFiles
 
@@ -404,10 +403,10 @@ class Assets
                 if ($url && file_exists($file1)) {
                     $url = dirname($url).'/'.basename($file1);
                 } else {
-                    mylog("Error: requested asset `$file` not found.");
+                    // mylog("Error: requested asset `$file` not found.");
                     unset($queue[$i]);
                     continue;
-//                    throw new \Exception("Error: requested asset `$file` not found.");
+                    // throw new \Exception("Error: requested asset `$file` not found.");
                 }
             }
 

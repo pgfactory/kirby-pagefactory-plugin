@@ -364,7 +364,7 @@ EOT;
         }
 
         // if PageElements extension is loaded -> handle overlay,popup,message:
-        if (file_exists('site/plugins/pagefactory-PageElements')) {
+        if (in_array('pageelements', array_keys(PageFactory::$availableExtensions))) {
             if (Page::$frontmatter['overlay']??false) {
                 $pe = new \Usility\PageFactory\PageElements\Overlay($this->pfy);
                 $pe->set(Page::$frontmatter['overlay'], true);
