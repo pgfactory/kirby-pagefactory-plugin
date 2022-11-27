@@ -75,6 +75,7 @@ class Table extends Macros
         $args['inx'] = self::$inx++;
         $file = $args['file'];
 
+        $file = resolvePath($file, relativeToPage: true);
         $ds = new DataTable($file, $args, $this->pfy);
         $str = $ds->render();
 
