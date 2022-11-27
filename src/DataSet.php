@@ -881,8 +881,12 @@ class DataSet
         $new = new DataSet(false);
         foreach ($this as $key => $elem) {
             if ($key === 'data') {
-                foreach ($elem as $k => $v) {
-                    $new->data[$k] = clone $v;
+                if (is_array($elem)) {
+                    foreach ($elem as $k => $v) {
+                        $new->data[$k] = clone $v;
+                    }
+                } else {
+                    $new->set('data', []);
                 }
             } else {
                 $new->set($key, $elem);
@@ -1077,7 +1081,9 @@ class DataSet
                 }
             }
         }
-        $this->nRows = sizeof($this->data);
+        if (is_array($this->data)) {
+            $this->nRows = sizeof($this->data);
+        }
     } // initData
 
 
@@ -1226,10 +1232,12 @@ class DataSet
         try {
             $ds = $this->clone();
             $data = $ds->data;
-            foreach ($data as $key => $rec) {
-                $data[$key]->parent = null;
+            if (is_array($data)) {
+                foreach ($data as $key => $rec) {
+                    $data[$key]->parent = null;
+                }
+                writeFileLocking($this->cacheFile, serialize($data));
             }
-            writeFileLocking($this->cacheFile, serialize($data));
 
             // export debug copy if debug enabled:
             if (PageFactory::$debug) {
