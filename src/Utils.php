@@ -50,7 +50,6 @@ class Utils
         }
         $this->execAsAnon('printview,printpreview,print');
         $this->execAsAdmin('help,localhost,timer,reset,notranslate');
-        $this->handleExtendedAgentRequests();
     } // handleAgentRequests
 
 
@@ -257,25 +256,6 @@ EOT;
             PageFactory::$pg->setOverlay($str);
         }
     } // handleAgentRequestsOnRenderedPage
-
-
-    /**
-     * Checks available extension modules and calls their agent-request handlers
-     */
-    private function handleExtendedAgentRequests(): void
-    {
-        $dir = getDir('site/plugins/pagefactory-*');
-        if (!$dir) {
-            return;
-        }
-        $handlers = [];
-        foreach($dir as $path) {
-            $indexFile = "$path/src/index.php";
-            if (file_exists($indexFile)) {
-                require $indexFile;
-            }
-        }
-    } // handleExtendedAgentRequests
 
 
     /**

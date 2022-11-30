@@ -101,8 +101,11 @@ class PageFactory
             self::$availableExtensions[$extensionName] = $extension;
         }
 
+        self::$hostUrl = $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].'/';
+
         self::$trans = new TransVars($this);
 
+        self::$assets = new Assets($this);
         self::$md = new MarkdownPlus($this);
         self::$pg = new Page($this);
         self::$pg->set('pageParams', $this->page->content()->data());
@@ -118,7 +121,6 @@ class PageFactory
         self::$pagePath = substr($this->page->root(), strlen(site()->root())+1) . '/';
         self::$absAppRoot = kirby()->root().'/';
         self::$absPfyRoot = __DIR__.'/';
-        self::$hostUrl = $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].'/';
         self::$appRoot = dirname(substr($_SERVER['SCRIPT_FILENAME'], -strlen($_SERVER['SCRIPT_NAME']))).'/';
         self::$appUrl = dirname(substr($_SERVER['SCRIPT_FILENAME'], -strlen($_SERVER['SCRIPT_NAME']))).'/';
         self::$appRootUrl = kirby()->url().'/';
@@ -133,8 +135,6 @@ class PageFactory
         $this->utils->handleUrlToken();
 
         $this->siteTitle = (string)site()->title()->value();
-
-        self::$assets = new Assets($this);
 
         preparePath(PFY_LOGS_PATH);
     } // __construct

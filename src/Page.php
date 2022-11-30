@@ -36,7 +36,7 @@ class Page
         $this->trans = $pfy::$trans;
         $this->sc = new Scss($this->pfy);
         $this->assetFiles = &$pfy->assetFiles;
-        self::$definitions = require_once 'site/plugins/pagefactory/src/definitions.php';
+        self::$definitions['assets'] = ASSET_URL_DEFINITIONS;
         self::$content = (string)page()->text()->kt();
     } // __construct
 
@@ -53,14 +53,7 @@ class Page
                 if (file_exists($indexFile)) {
                     // === load index.php now:
                     $extensionClassName = require_once $indexFile;
-
-                    // load all further class files within 'src/':
-                    $dir = \Usility\PageFactory\getDir($extPath . 'src/*.php');
-                    foreach ($dir as $file) {
-                        require_once $file;
-                    }
-                    $extensionName = '';
-                    PageFactory::$loadedExtensions[] = $extensionName;
+                    PageFactory::$loadedExtensions[] = $extensionClassName;
                 }
 
                 // instantiate extension object:
@@ -430,6 +423,7 @@ EOT;
 
         $js = "var screenSizeBreakpoint = $screenSizeBreakpoint\n";
         $js .= "const hostUrl = '" . PageFactory::$appRoot . "';\n";
+        $js .= "const pageUrl = '" . PageFactory::$pageUrl . "';\n";
         $js .= "const loggedinUser = '" . PageFactory::$user . "';\n";
         $js .= $this->js . (self::$frontmatter['js']??'');
         if ($js) {

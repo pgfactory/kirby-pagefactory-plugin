@@ -40,6 +40,21 @@ const DEFAULT_ASSET_GROUPS = [
     ],
 ];
 
+const ASSET_URL_DEFINITIONS = [
+    'QUICKVIEW' => [
+        'site/plugins/pagefactory/assets/js/quickview.js',
+        'site/plugins/pagefactory/assets/css/-quickview.css',
+    ],
+    'REVEAL' => [
+        'site/plugins/pagefactory/assets/js/reveal.js',
+        'site/plugins/pagefactory/assets/css/-reveal.css',
+    ],
+    'PAGE_SWITCHER' => [
+        'site/plugins/pagefactory/assets/css/-page-switcher.css',
+        'site/plugins/pagefactory/assets/js/page-switcher.js',
+    ],
+];
+
  // define system assets:
 const SYSTEM_ASSETS = [
     'css' => [

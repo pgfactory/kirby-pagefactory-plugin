@@ -80,7 +80,7 @@ pfy-link-to-prev-page:
 # Display-Name:
 #     de: Anzeigename
 #     _:  Display-Name
-
+/*
 cancel:
     de: abbrechen
     en: cancel
@@ -121,6 +121,7 @@ Continue:
 Continue_:
     de: Weiter...
     en: Continue...
+*/
 
 pfy-cancel:
     de: 'Nein'
@@ -291,8 +292,8 @@ pfy-opens-in-new-win:
 
 
 pfy-opens-download:
-    de: Datei herunter laden
-    en: Download file
+    de: Tabelle herunter laden
+    en: Download table
 
 
 pfy-opens-pdf:
@@ -1115,6 +1116,11 @@ pfy-table-select-all-rows:
     de: 'Alle Zeilen auswählen'
     _:  'Select/deselect all rows'
 
+pfy-table-delete-nothing-selected:
+    de: 'Um Datensätze zu löschen, müssen Sie diese zuerst auswählen.'
+    de2: 'Um Datensätze zu löschen, musst du diese zuerst auswählen.'
+    _:  'To delete data records, you need to select them first.'
+
 pfy-table-delete-recs-popup:
     de: 'Alle ausgewählten Zeilen löschen?'
     _:  'Delete selected records?'
@@ -1172,13 +1178,16 @@ pfy-table-download-title:
 
 
 pfy-table-download-text:
-    de: 'Tabelle herunter laden:'
-    _:  'Click to download:'
+    de: 'Tabelle herunter laden'
+    _:  'Click to download'
 
 
 pfy-table-download-header:
     de: 'Download'
     _:  'Download'
+
+pfy-table-download-csv:
+    _: 'CSV-File (.csv)'
 
 pfy-table-download-excel:
     _: 'Excel (.xlsx)'
