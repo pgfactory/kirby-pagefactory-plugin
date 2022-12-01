@@ -1411,7 +1411,7 @@ function parseArgumentStr(string $str, string $delim = ',', mixed $superBrackets
     }
 
     // if string starts with { we assume it's json:
-    if (($str[0] === '{') && (strpos($str, '{raw{') !== 0) && (strpos($str, '{md{') !== 0)) {
+    if (($str[0] === '{') && (strpos($str, '<raw>') !== 0) && (strpos($str, '{md{') !== 0)) {
         return Json::decode($str);
     }
 
@@ -1425,27 +1425,37 @@ function parseArgumentStr(string $str, string $delim = ',', mixed $superBrackets
         $rest = rtrim($mm[1], " \t\n");
     }
 
-    $out = '';
+    $yaml = '';
     $counter = 100;
     while ($rest && ($counter-- > 0)) {
         $key = parseArgKey($rest, $delim);
         $ch = ltrim($rest);
         $ch = $ch[0]??'';
         if ($ch !== ':') {
-            $out .= "- $key\n";
+            $yaml .= "- $key\n";
             $rest = ltrim($rest, " $delim\n");
         } else {
             $rest = substr($rest, 1);
             $value = parseArgValue($rest, $delim);
             if (trim($value) !== '') {
-                $out .= "$key: $value\n";
+                $yaml .= "$key: $value\n";
             } else {
-                $out .= "$key:\n";
+                $yaml .= "$key:\n";
             }
         }
     }
 
-    $options = Yaml::decode($out);
+    $options = Yaml::decode($yaml);
+
+    // case a value was written in '{...}' notation -> unpack:
+    if (str_contains($yaml, '<raw>')) {
+        foreach ($options as $key => $value) {
+            if (str_starts_with($value, '<raw>')) {
+                $options[$key] = unshieldStr($value, true);
+            }
+        }
+    }
+
     if ($superBrackets) {
         $options = superBracketsDecode($options);
     }
@@ -1562,7 +1572,13 @@ function parseArgValue(string &$rest, string $delim): string
             $rest = ltrim($m[3], ', ');
         }
 
-        // case naked key or value:
+    // case '{'-wrapped value -> shield value from Yaml-compiler (workaround for bug in Yaml-compiler):
+    } elseif ($ch1 === '{') {
+        $p = strPosMatching($rest, 0, '{', '}');
+        $value = substr($rest, $p[0]+1, $p[1]-$p[0]-1);
+        $rest = substr($rest, $p[1]+1);
+        return shieldStr($value);
+
     } else {
         // case value without key:
         $pattern = "[^$delim\n]+";
@@ -1973,9 +1989,9 @@ function compileMarkdown(string $mdStr): string
 function shieldStr(string $str, bool $mdCompile = false): string
 {
     if ($mdCompile) {
-        return '{md{' . base64_encode($str) . '}md}';
+        return '<md>' . base64_encode($str) . '</md>';
     } else {
-        return '{raw{' . base64_encode($str) . '}raw}';
+        return '<raw>' . base64_encode($str) . '</raw>';
     }
 } // shieldStr
 
@@ -1988,13 +2004,13 @@ function shieldStr(string $str, bool $mdCompile = false): string
 */
 function unshieldStr(string $str, bool $unshieldLiteral = false): string
 {
-    if ($unshieldLiteral && preg_match_all('/{raw{(.*?)}raw}/m', $str, $m)) {
+    if ($unshieldLiteral && preg_match_all('|<raw>(.*?)</raw>|m', $str, $m)) {
         foreach ($m[1] as $i => $item) {
             $literal = base64_decode($m[1][$i]);
             $str = str_replace($m[0][$i], $literal, $str);
         }
     }
-    if (preg_match_all('/{md{(.*?)}md}/m', $str, $m)) {
+    if (preg_match_all('|<md>(.*?)</md>|m', $str, $m)) {
         foreach ($m[1] as $i => $item) {
             $md = base64_decode($m[1][$i]);
             $html = compileMarkdown($md);
