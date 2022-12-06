@@ -2,16 +2,15 @@
  * styles for mobile view
  */
 
-
  @import '../_scss-variables.scss';
- 
+
 
 // === Small/Mobile Screen:
 #pfy.pfy-default-styling.pfy-small-screen .pfy-encapsulated,
 .pfy-default-styling.pfy-small-screen {
-
-    background: $mobile-nav-bg-color;
-    background: var(--pfy-mobile-nav-bg-color, $mobile-nav-bg-color);
+  font-family: Verdana, sans-serif;
+//    background: $mobile-nav-bg-color;
+//    background: var(--pfy-mobile-nav-bg-color, $mobile-nav-bg-color);
 
     .pfy-small-screen-header {
         display: block !important;

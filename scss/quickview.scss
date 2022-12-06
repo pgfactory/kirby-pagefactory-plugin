@@ -1,50 +1,44 @@
 /*
 **	Quickview Styles
 */
-//
-.pfy-quickview {
-	cursor: zoom-in;
-}
-#pfy .pfy-quickview-overlay {
-	position: fixed;
-	opacity: 0;
-	display: none;
-	top: 0;
-	right: 0;
-	width: 100vw;
-	height: 100vh;
-	z-index: -1;
-	background-color: rgba(200, 200, 200, 0.8);
-	cursor: zoom-out;
-}
-#pfy .pfy-quickview-overlay img {
-	position: absolute;
-	opacity: 0;
-	padding: 0;
-	margin: 0;
-	max-width: 100vw;
-}
-#pfy .pfy-quickview-overlay-active {
-	display: block;
-	opacity: 1;
-	z-index: 999;
+
+#pfy .pfy-encapsulated.pfy-default-styling,
+.pfy-default-styling {
+  .pfy-quickview {
+    cursor: zoom-in;
+  }
+  .pfy-quickview-overlay {
+    position: fixed;
+    opacity: 0;
+    display: none;
+    top: 0;
+    right: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
+    background-color: rgba(200, 200, 200, 0.8);
+    cursor: zoom-out;
+
+    img {
+      position: absolute;
+      opacity: 0;
+      padding: 0;
+      margin: 0;
+      max-width: 100vw;
+    }
+  }
+  .pfy-quickview-overlay-active {
+    display: block;
+    opacity: 1;
+    z-index: 999;
+  }
+  .pfy-laziest-load,
+  .pfy-late-loading {
+    position: relative;
+    background: #444;
+    background-image: url( ../icons/loader_white.gif );
+    background-repeat: no-repeat;
+    background-position: center;
+  }
 }
 
-.sr-only {
-	position: absolute !important;
-	display: inline;
-	right: 200vw;
-	width: 1px;
-	height: 1px;
-	overflow: hidden;
-	clip: rect(1px, 1px, 1px, 1px);
-}
-
-.pfy-laziest-load,
-.pfy-late-loading {
-	position: relative;
-	background: #444;
-	background-image: url( ../rsc/loader_white.gif );
-	background-repeat: no-repeat;
-	background-position: center;
-}

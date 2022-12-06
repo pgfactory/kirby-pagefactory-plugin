@@ -1,6 +1,6 @@
 /* === Reveal block ================== */
-#pfy .pfy-form.pfy-encapsulated,
-body {
+#pfy .pfy-encapsulated.pfy-default-styling,
+.pfy-default-styling {
   .pfy-reveal-controller label,
   input.pfy-reveal-icon,
   input.pfy-reveal-icon::before{
@@ -58,43 +58,43 @@ body {
     border: 1px solid #ddd;
     border-top: none;
   }
-}
-
-.pfy-reveal-container {
-  overflow: hidden;
-  &.pfy-elem-revealed {
-    transition: margin-bottom 0.3s;
+  .pfy-reveal-container {
+    overflow: hidden;
+    &.pfy-elem-revealed {
+      transition: margin-bottom 0.3s;
+      > div {
+        margin-top: 0 !important;
+        transition: margin-top 0.3s;
+      }
+    }
     > div {
-      margin-top: 0 !important;
-      transition: margin-top 0.3s;
+      margin-top: -10000px;
     }
   }
-  > div {
-    margin-top: -10000px;
+
+  .pfy-reveal-controller {
+    padding: 0.5em 0;
+    &:focus-within {
+      outline: 1px solid var( --pfy-form-focus-color, magenta);
+    }
+    input:focus-visible {
+      outline: unset !important;
+    }
+  }
+  .pfy-reveal-triangle {
+    input.pfy-reveal-icon {
+      margin-right: 0.4em;
+      font-size: 90%;
+      transform: translateY( 0.2em );
+    }
+    input.pfy-reveal-icon::before {
+      content: '\25B7';
+    }
+    input.pfy-reveal-icon:checked::before {
+      content: '\25B7';
+    }
+
   }
 }
 
-.pfy-reveal-controller {
-  padding: 0.5em 0;
-  &:focus-within {
-    outline: 1px solid var( --pfy-form-focus-color, magenta);
-  }
-  input:focus-visible {
-    outline: unset !important;
-  }
-}
-.pfy-reveal-triangle {
-  input.pfy-reveal-icon {
-    margin-right: 0.4em;
-    font-size: 90%;
-    transform: translateY( 0.2em );
-  }
-  input.pfy-reveal-icon::before {
-    content: '\25B7';
-  }
-  input.pfy-reveal-icon:checked::before {
-    content: '\25B7';
-  }
-
-}
 
