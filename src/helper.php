@@ -210,7 +210,11 @@ function getFile(string $file, mixed $removeComments = true)
      if ($removeComments) {
          $data = zapFileEND($data);
      }
-     if (is_string($removeComments)) {
+     if ($removeComments === true) {
+         $data = removeCStyleComments($data);
+         $data = removeEmptyLines($data);
+
+     } elseif (is_string($removeComments)) {
          if (stripos($removeComments, 'cstyle') !== false) {
              $data = removeCStyleComments($data);
          }
@@ -544,15 +548,13 @@ function zapFileEND(string $str): string
   * @param string $str
   * @return string
   */
-function removeEmptyLines(string $str): string
+function removeEmptyLines(string $str, bool $leaveOne = true): string
 {
-    $lines = explode(PHP_EOL, $str);
-    foreach ($lines as $i => $l) {
-        if (!$l) {
-            unset($lines[$i]);
-        }
+    if ($leaveOne) {
+        return preg_replace("/\n\s*\n+/", "\n\n", $str);
+    } else {
+        return preg_replace("/\n\s*\n+/", "\n", $str);
     }
-    return implode("\n", $lines);
 } // removeEmptyLines
 
 
@@ -2111,12 +2113,12 @@ function translateToFilename(string $str, mixed $appendExt = true): string
  /**
   * Translates a given string to a legal identifier
   * @param string $str
-  * @param bool $removeDashes
+  * @param bool $toCamelCase
   * @param bool $removeNonAlpha
   * @param bool $toLowerCase
   * @return string
   */
-function translateToIdentifier(string $str, bool $removeDashes = false, bool $removeNonAlpha = false,
+function translateToIdentifier(string $str, bool $toCamelCase = false, bool $removeNonAlpha = false,
                                 bool   $toLowerCase = true): string
 {
     // translates special characters (such as , , ) into identifier which contains but safe characters:
@@ -2133,8 +2135,9 @@ function translateToIdentifier(string $str, bool $removeDashes = false, bool $re
     }
     $str = preg_replace('/\s+/', '_', $str);			// replace blanks with _
     $str = preg_replace("/[^[:alnum:]_-]/m", '', $str);	// remove any non-letters, except _ and -
-    if ($removeDashes) {
-        $str = str_replace("-", '_', $str);				// remove -, if requested
+    if ($toCamelCase) {
+        $str = str_replace(['-','_'], '', ucwords($str, '-'));
+        $str = lcfirst($str);
     }
     $str = trim($str, '_');
     return $str;
