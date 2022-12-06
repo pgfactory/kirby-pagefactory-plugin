@@ -1461,7 +1461,7 @@ EOT;
      */
     private function execAndIncludePhpFile(string $file, $args, $mdCompileOverride = null, $mdCompile = false): string
     {
-        if (!isset($this->pfy->config['allowCustomCode'])) {
+        if (!isset(PageFactory::$config['allowCustomCode'])) {
             throw new \Exception("Error: execution of custom-code not allowed. (→ to enable add 'allowCustomCode' to 'site/config/pagefactory.php'.)");
         }
 

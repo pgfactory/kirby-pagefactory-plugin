@@ -328,7 +328,7 @@ EOT;
         }
 
         // extract Kirby-Frontmatter: blocks at top of page, each one ending with '----':
-        if ($this->pfy->config['handleKirbyFrontmatter']??false) {
+        if (PageFactory::$config['handleKirbyFrontmatter']??false) {
             $options = $this->extractKirbyFrontmatter($mdStr);
             if ($options) {
                 $this->addToFrontmatter($options);
@@ -341,6 +341,10 @@ EOT;
                 $array[$varName] = $value;
                 PageFactory::$trans->setVariable($varName, $array);
             }
+        }
+
+        if ((Page::$frontmatter['template']??false)) {
+            $this->pfy->templateFile = 'site/templates/'.basename(Page::$frontmatter['template']);
         }
 
         // if PageElements extension is loaded -> handle overlay,popup,message:
@@ -555,7 +559,7 @@ EOT;
             if ($langObj = kirby()->language()) {
                 $lang = $langObj->code();
             } elseif (!($lang = kirby()->defaultLanguage())) {
-                if (!($lang = ($this->pfy->config['defaultLanguage']??false))) {
+                if (!($lang = (PageFactory::$config['defaultLanguage']??false))) {
                     $lang = 'en';
                 }
             }
@@ -569,6 +573,7 @@ EOT;
         }
 
         if ($lang) {
+            PageFactory::$defaultLanguage = kirby()->defaultLanguage()->code();
             PageFactory::$lang = $lang;
             PageFactory::$langCode = $langCode = substr($lang, 0, 2);
             if (!in_array($lang, $supportedLanguages) && !in_array($langCode, $supportedLanguages)) {
@@ -705,30 +710,30 @@ EOT;
      */
     public function loadPfyConfig():void
     {
-        $this->pfy->config = PageFactory::$siteOptions;
+        PageFactory::$config = PageFactory::$siteOptions;
         if ($a = self::readPfyConfig()) {
-            $this->pfy->config = array_merge($a, $this->pfy->config);
+            PageFactory::$config = array_merge($a, PageFactory::$config);
         }
         // propagate variables from config into TransVars:
-        if (isset($this->pfy->config['variables'])) {
-            PageFactory::$trans->setVariables($this->pfy->config['variables']);
+        if (isset(PageFactory::$config['variables'])) {
+            PageFactory::$trans->setVariables(PageFactory::$config['variables']);
         }
 
         // add values from site/site.txt:
         if ($s = site()->title()->value()) {
-            $this->pfy->config['title'] = $s;
+            PageFactory::$config['title'] = $s;
         }
         if ($s = site()->text()->value()) {
-            $this->pfy->config['text'] = $s;
+            PageFactory::$config['text'] = $s;
         }
         if ($s = site()->author()->value()) {
-            $this->pfy->config['author'] = $s;
+            PageFactory::$config['author'] = $s;
         }
         if ($s = site()->description()->value()) {
-            $this->pfy->config['description'] = $s;
+            PageFactory::$config['description'] = $s;
         }
         if ($s = site()->keywords()->value()) {
-            $this->pfy->config['keywords'] = $s;
+            PageFactory::$config['keywords'] = $s;
         }
     } // loadPfyConfig
 
@@ -796,7 +801,7 @@ EOT;
         $systemTimeZone = date_default_timezone_get();
         if (!preg_match('|\w+/\w+|', $systemTimeZone)) {
             // check whether timezone is defined in PageFactory's config settings:
-            $systemTimeZone = $this->pfy->config['timezone']??false;
+            $systemTimeZone = PageFactory::$config['timezone']??false;
             if (!$systemTimeZone) {
                 $systemTimeZone = $this->getServerTimezone();
                 $this->appendToConfigFile('timezone', $systemTimeZone, 'Automatically set by PageFactory');

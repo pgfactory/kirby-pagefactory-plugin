@@ -52,6 +52,7 @@ class PageFactory
     public static $pageUrl;
     public static $lang;
     public static $langCode;
+    public static $defaultLanguage;
     public static $trans;
     public static $pg;
     public static $md;
@@ -67,8 +68,8 @@ class PageFactory
     public static $availableIcons;
     public static $phpSessionId;
     public static $assets;
+    public static $config;
 
-    public $config;
     public $templateFile = '';
     public $session;
 
@@ -159,7 +160,7 @@ class PageFactory
 
     /**
      * renders the final HTML
-     * @param false $templateFile
+     * @param false $options
      * @return string
      */
     public function render($options = false): string
@@ -200,7 +201,9 @@ class PageFactory
      */
     private function assembleHtml(): string
     {
-        $html = loadFile($this->templateFile);
+        $html = loadFile($this->templateFile, false);
+        $this->checkDefaultStylingActive($html);
+
         $html = $this->utils->shieldLateTranslatationVariables($html); // {{@ ...}}
 
         // 'content' (everything that's defined by the page):
@@ -222,6 +225,9 @@ class PageFactory
         self::$pg->preparePageVariables();
 
         $html = self::$trans->translate($html);
+
+        self::$pg->extensionsFinalCode(); // -> invokes plugin/xy/src/_finalCode.php
+
         $html = $this->utils->resolveUrls($html);
         $html = unshieldStr($html, true);
 
@@ -306,8 +312,8 @@ class PageFactory
     private function determineAssetFilesList(): void
     {
         // get asset-files definition: first try site/config/pagefactory.php:
-        if ($this->config['assetFiles']??false) {
-            $this->assetFiles = $this->config['assetFiles'];
+        if (self::$config['assetFiles']??false) {
+            $this->assetFiles = self::$config['assetFiles'];
         } else { // if not found, use following as default values:
             $this->assetFiles = [
                 '-pagefactory.css' => [
@@ -347,5 +353,20 @@ class PageFactory
             $this->session->remove('pfy.message');
         }
     } // showPendingMessage
+
+
+    /**
+     * Checks whether template contains 'pfy-default-styling', i.e. uses default styling. If not, removes
+     * those entries from the asset queue
+     * @param mixed $html
+     * @return void
+     */
+    private function checkDefaultStylingActive(mixed $html): void
+    {
+        $this->useDefaultStyling = str_contains($html, 'pfy-default-styling');
+        if (!$this->useDefaultStyling) {
+            self::$assets->excludeSystemAssets();
+        }
+    } // checkDefaultStylingActive
 
 } // PageFactory

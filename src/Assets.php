@@ -99,12 +99,17 @@ class Assets
         $this->pageFolderPath = page()->contentFileDirectory().'/';
 
         $this->definitions = &Page::$definitions;
-        if (!($this->assetGroups = $pfy->config['assetGroups']??false)) {
+        if (!($this->assetGroups = PageFactory::$config['assetGroups']??false)) {
             $this->assetGroups = DEFAULT_ASSET_GROUPS;
         }
     } // __construct
 
 
+    /**
+     * Adds an asset group to the assets definition list
+     * @param $newAssetGroups
+     * @return void
+     */
     public function addAssetGroups($newAssetGroups)
     {
         $this->assetGroups = array_merge_recursive($this->assetGroups, $newAssetGroups);
@@ -151,6 +156,7 @@ class Assets
      */
     public function addAssets(mixed $assets, bool $treatAsJq = false): void
     {
+        // if arg is a string, transform:
         if (is_string($assets)) {
             if (isset($this->definitions['assets'][$assets])) {
                 $assets = $this->definitions['assets'][$assets];
@@ -158,6 +164,19 @@ class Assets
                 $assets = explodeTrim(',', $assets);
             }
         }
+
+        // loop over all requested assets and check whether it corresponds to a definition, if so, replace:
+        $i = 0;
+        foreach ($assets as $asset) {
+            if (isset($this->definitions['assets'][$asset])) {
+                $assets2 = $this->definitions['assets'][$asset];
+                array_splice($assets, $i, 1, $assets2);
+                $i += sizeof($assets2)-1;
+            }
+            $i++;
+        }
+
+        // finally loop over resulting array of assets, check for priority-hints and add to queue:
         foreach ($assets as $asset) {
             $type = fileExt($asset);
             if ($type === 'jq') {
@@ -169,7 +188,19 @@ class Assets
             $this->extractPriorityHint($asset);
             $this->assetQueue[$type][] = $asset;
         }
-    } // public function addAssets
+    } // addAssets
+
+
+    /**
+     * Removes stylem styles from asset queue -> called if template doesn't contain 'pfy-default-styling'
+     * @return void
+     */
+    public function excludeSystemAssets(): void
+    {
+        unset($this->systemAssets['css'][0]);
+        unset($this->systemAssets['css'][1]);
+    } // excludeSystemAssets
+
 
 
     /**
@@ -325,7 +356,7 @@ class Assets
         }
 
         // get framework assets from config/pagefactory.php or keep DEFAULT_FRONTEND_FRAMEWORK_URLS:
-        if ($frontendFrameworkUrls = $this->pfy->config['frontendFrameworkUrls']??false) {
+        if ($frontendFrameworkUrls = PageFactory::$config['frontendFrameworkUrls']??false) {
             $this->frameworkFiles = $frontendFrameworkUrls;
         } else {
             $this->frameworkFiles = DEFAULT_FRONTEND_FRAMEWORK_URLS;

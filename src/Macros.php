@@ -131,7 +131,7 @@ EOT;
         } else {
             if (isset($this->availableMacros[ $macroName ])) {
                 $macroFile = $this->availableMacros[ $macroName ];
-                if ((strpos($macroFile, 'site/plugins/pagefactory') === false) && !($this->pfy->config['allowCustomCode']??false)) {
+                if ((strpos($macroFile, 'site/plugins/pagefactory') === false) && !(PageFactory::$config['allowCustomCode']??false)) {
                     throw new \Exception("Error: execution of custom-code not allowed. (→ to enable add 'allowCustomCode' to 'site/config/pagefactory.php'.)");
                 }
 
@@ -146,7 +146,7 @@ EOT;
                 $macroName = "_$macroName";
                 $thisMacroName = 'Usility\\PageFactory\\' . ucfirst( $macroName );
                 $macroFile = $this->availableMacros[ $macroName ];
-                if ((strpos($macroFile, 'site/plugins/pagefactory') === false) && !($this->pfy->config['allowCustomCode']??false)) {
+                if ((strpos($macroFile, 'site/plugins/pagefactory') === false) && !(PageFactory::$config['allowCustomCode']??false)) {
                     throw new \Exception("Error: execution of custom-code not allowed. (→ to enable add 'allowCustomCode' to 'site/config/pagefactory.php'.)");
                 }
 

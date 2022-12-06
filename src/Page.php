@@ -53,7 +53,7 @@ class Page
                 if (file_exists($indexFile)) {
                     // === load index.php now:
                     $extensionClassName = require_once $indexFile;
-                    PageFactory::$loadedExtensions[] = $extensionClassName;
+                    PageFactory::$loadedExtensions[$extensionClassName] = $extPath;
                 }
 
                 // instantiate extension object:
@@ -73,7 +73,22 @@ class Page
                 }
             }
         }
-    } // __construct
+    } // loadExtensions
+
+
+    /**
+     * Checks loaded extensions whether tey contain a special file 'src/_finalCode.php' and executes it.
+     * @return void
+     */
+    public function extensionsFinalCode(): void
+    {
+        foreach (PageFactory::$loadedExtensions as $path) {
+            $file = $path.'src/_finalCode.php';
+            if (file_exists($file)) {
+                require_once $file;
+            }
+        }
+    } // extensionsFinalCode
 
 
 
@@ -290,7 +305,7 @@ EOT;
     public function setCss(string $str):void
     {
         $this->css = trim($str, "\t\n ")."\n";
-    }
+    } // setCss
 
 
     /**
@@ -364,6 +379,18 @@ EOT;
     }
 
 
+    /**
+     * Forwards call to Assets->addAssets()
+     * @param mixed $assets  array or comma separated list
+     * @param bool $treatAsJq
+     * @return void
+     */
+    public function addAssets(mixed $assets, bool $treatAsJq = false): void
+    {
+        PageFactory::$assets->addAssets($assets, $treatAsJq);
+    } // addAssets
+
+
     // === Rendering methods ==========================================
     /**
      * Assembles and renders the code that will be injected into the <head> element.
@@ -416,15 +443,16 @@ EOT;
         $jsInjection = '';
         $jqInjection = '';
         $miscInjection = "\n$this->bodyEndInjections";
-        $screenSizeBreakpoint = $this->pfy->config['screenSizeBreakpoint']??false;
+        $screenSizeBreakpoint = PageFactory::$config['screenSizeBreakpoint']??false;
         if (!$screenSizeBreakpoint) {
             $screenSizeBreakpoint = 480;
         }
 
         $js = "var screenSizeBreakpoint = $screenSizeBreakpoint\n";
-        $js .= "const hostUrl = '" . PageFactory::$appRoot . "';\n";
-        $js .= "const pageUrl = '" . PageFactory::$pageUrl . "';\n";
-        $js .= "const loggedinUser = '" . PageFactory::$user . "';\n";
+        $js .= "const hostUrl = '" .        PageFactory::$appRoot . "';\n";
+        $js .= "const pageUrl = '" .        PageFactory::$pageUrl . "';\n";
+        $js .= "const loggedinUser = '" .   PageFactory::$user . "';\n";
+        $js .= "const currLang = '" .       PageFactory::$langCode . "';\n";
         $js .= $this->js . (self::$frontmatter['js']??'');
         if ($js) {
             $js = "\t\t".str_replace("\n", "\n\t\t", rtrim($js, "\n"));
