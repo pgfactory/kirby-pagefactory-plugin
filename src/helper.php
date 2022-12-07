@@ -2236,10 +2236,10 @@ function var_r($var, string $varName = '', bool $flat = false, bool $toHtml = fa
 
  /**
   * Forces the agent (browser) to reload the page, optionally setting up a message to be displayed on next view
-  * @param string  $target
+  * @param mixed  $target
   * @param string  $message   if set, text will be briefly shown in message banner
   */
-function reloadAgent(string $target = '', string $message = ''): void
+function reloadAgent(mixed $target = '', string $message = ''): void
 {
     if (!$target) {
         $target = page()->url();
