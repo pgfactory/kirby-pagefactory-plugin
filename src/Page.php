@@ -211,7 +211,7 @@ class Page
      */
     public function setOverlay(string $str, $mdCompile = true): void
     {
-        if (isset(PageFactory::$availableExtensions['PageElements'])) {
+        if (isset(PageFactory::$availableExtensions['pageelements'])) {
             $pe = new \Usility\PageFactory\PageElements\Overlay($this->pfy);
             $pe->set($str, $mdCompile);
 
@@ -234,6 +234,28 @@ $str
 
 EOT;
             exit($html);
+        }
+    } // setOverlay
+
+
+    /**
+     * Proxy for extension PageElements -> Message -> displays message in upper right corner.
+     * @param string $str
+     * @param $mdCompile
+     * @return void
+     */
+    public function setMessage(string $str, $mdCompile = true): void
+    {
+        if (isset(PageFactory::$availableExtensions['pageelements'])) {
+            $pe = new \Usility\PageFactory\PageElements\Message($this->pfy);
+            $pe->set($str, $mdCompile);
+
+        // if PageElements are not loaded, we need to create bare page and exit immediately:
+        } else {
+            if ($mdCompile) {
+                $str = compileMarkdown($str);
+            }
+            $this->addJq("window.alert('$str')");
         }
     } // setOverlay
 
