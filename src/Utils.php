@@ -573,12 +573,14 @@ EOT;
         }
 
         if ($lang) {
+            $langCode = substr($lang, 0, 2);
+            if (!in_array($lang, $supportedLanguages) && !in_array($langCode, $supportedLanguages)) {
+                $lang = $langCode = kirby()->defaultLanguage()->code();
+//                throw new Exception("Error: language not defined"); //??? keep? -> non-debug-mode?
+            }
             PageFactory::$defaultLanguage = kirby()->defaultLanguage()->code();
             PageFactory::$lang = $lang;
-            PageFactory::$langCode = $langCode = substr($lang, 0, 2);
-            if (!in_array($lang, $supportedLanguages) && !in_array($langCode, $supportedLanguages)) {
-                throw new Exception("Error: language not defined");
-            }
+            PageFactory::$langCode = $langCode;
         } else {
             throw new Exception("Error: language not defined");
         }
