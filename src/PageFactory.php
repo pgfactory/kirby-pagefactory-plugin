@@ -165,15 +165,15 @@ class PageFactory
      */
     public function render($options = false): string
     {
-        // show message, if one is pending:
-        $this->showPendingMessage();
-
         // check for presence of site/plugins/pagefactory-*':
         self::$pg->loadExtensions();
 
         if (self::$assets->prepareAssets()) {
             reloadAgent();
         }
+
+        // show message, if one is pending:
+        $this->showPendingMessage();
 
         if ($options['mdVariant']??false) {
             MarkdownPlus::$mdVariant = $options['mdVariant'];
@@ -349,7 +349,7 @@ class PageFactory
     private function showPendingMessage(): void
     {
         if ($msg = $this->session->get('pfy.message')) {
-            self::$pg->addJq("window.alert('$msg')");
+            self::$pg->setMessage($msg);
             $this->session->remove('pfy.message');
         }
     } // showPendingMessage
