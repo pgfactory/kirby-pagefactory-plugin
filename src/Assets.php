@@ -331,8 +331,6 @@ class Assets
         preparePath(PFY_CACHE_PATH . 'compiledScss/');
         preparePath(PFY_CONTENT_ASSETS_PATH . 'css/');
         preparePath(PFY_CONTENT_ASSETS_PATH . 'js/');
-        preparePath(PFY_ASSETS_PATH . 'css/');
-        preparePath(PFY_ASSETS_PATH . 'js/');
 
         $this->assetQueue = ['css' =>[], 'js' => [], 'jq' => []];
 

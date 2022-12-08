@@ -16,12 +16,13 @@ return [
     'variables' => [
         'pfy-page-title' => '{{ page-title }} / {{ site-title }}',
         'webmaster-email' => 'webmaster@'.preg_replace('|^https?://([\w.-]+)(.*)|', "$1", site()->url()),
-        'pfy-small-screen-header' => <<<EOT
 
+        'pfy-small-screen-header' => <<<EOT
         <h1>{{ site-title }}</h1>
         <button id="pfy-nav-menu-icon">$menuIcon</button>
 EOT,
-        'pfy-footer' => ' Footer',
+
+        'pfy-footer' => ' Footer...',
     ],
 
     // optionally define files to be used as css/js framework (e.g. jQuery or bootstrap etc):
@@ -33,5 +34,6 @@ EOT,
 
     // Options for dev phase:
     'debug_compileScssWithLineNumbers'  => @(kirby()->options())['debug'],   // line numbers of original SCSS file
+    
     // 'timezone' => 'Europe/Zurich', // PageFactory tries to guess the timezone - you can override this manually here
 ];

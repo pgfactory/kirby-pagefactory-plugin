@@ -532,7 +532,7 @@ function fixPath(string $path): string
   */
 function zapFileEND(string $str, bool $reverse = false): string
 {
-    $p = strpos($str, "__END__");
+    $p = strpos($str, "__END__\n");
     if ($p === false) {
         if ($reverse) {
             return '';

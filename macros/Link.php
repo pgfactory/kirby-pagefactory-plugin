@@ -361,9 +361,7 @@ class Link extends Macros
     private function processRegularLink()
     {
         if ($this->isExternalLink) {
-            $this->addClass('pfy-link-https');
-            $this->addClass('pfy-external-link');
-            $this->addClass('pfy-print-url');
+            $this->addClass('pfy-link-https pfy-external-link pfy-print-url');
             $this->target = $this->pfy->config['defaultTargetForExternalLinks']??'';
         }
     } // processRegularLink
@@ -440,8 +438,11 @@ class Link extends Macros
      */
     private function addClass($class)
     {
-        if (strpos($this->class, $class) === false) {
-            $this->class .= " $class";
+        $classes = explodeTrim(', ', $class);
+        foreach ($classes as $class) {
+            if (strpos($this->class, $class) === false) {
+                $this->class .= " $class";
+            }
         }
     } // addClass
 
