@@ -208,20 +208,29 @@ function getFile(string $file, mixed $removeComments = true)
      $data = str_replace("\xEF\xBB\xBF", '', $data);
 
      if ($removeComments) {
-         $data = zapFileEND($data);
+         $reverse = str_contains((string)$removeComments, 'z'); // return zapped part
+         $data = zapFileEND($data, $reverse);
+         if ($reverse) {
+             return $data;
+         }
      }
      if ($removeComments === true) {
          $data = removeCStyleComments($data);
          $data = removeEmptyLines($data);
 
      } elseif (is_string($removeComments)) {
-         if (stripos($removeComments, 'cstyle') !== false) {
+         // extract first characters from comma-separated-list:
+         $removeComments = implode('', array_map(function ($elem){
+             return strtolower($elem[0]);
+         }, explodeTrim(',',$removeComments)));
+
+         if (str_contains($removeComments, 'c')) {    // c style
              $data = removeCStyleComments($data);
          }
-         if (stripos($removeComments, 'hash') !== false) {
+         if (str_contains($removeComments, 'h')) {    // hash style
              $data = removeHashTypeComments($data);
          }
-         if (stripos($removeComments, 'empty') !== false) {
+         if (str_contains($removeComments, 'e')) {    // empty lines
              $data = removeEmptyLines($data);
          }
      }
@@ -521,22 +530,19 @@ function fixPath(string $path): string
   * @param string $str
   * @return string
   */
-function zapFileEND(string $str): string
+function zapFileEND(string $str, bool $reverse = false): string
 {
     $p = strpos($str, "__END__");
     if ($p === false) {
-        return $str;
-    }
-
-    if ($p === 0) {     // on first line?
-        return '';
-    } else {
-        while ($str[$p - 1] !== "\n") {
-            $p = strpos($str, "__END__", $p+7);
-            if (!$p) {
-                return $str;
-            }
+        if ($reverse) {
+            return '';
+        } else {
+            return $str;
         }
+    }
+    if ($reverse) {
+        $str = substr($str, $p);
+    } else {
         $str = substr($str, 0, $p);
     }
     return $str;
