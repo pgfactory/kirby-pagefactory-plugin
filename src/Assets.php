@@ -293,8 +293,8 @@ class Assets
 
         $html = '';
         if ($queuedFiles) {
-            foreach ($queuedFiles as $filename) {
-                $html .= $this->renderAssetLoadingCode($filename, $jsOrCss);
+            foreach ($queuedFiles as $file) {
+                $html .= $this->renderAssetLoadingCode($file, $jsOrCss);
             }
         }
         return $html;
@@ -454,14 +454,17 @@ class Assets
                 }
             }
 
-            if (str_starts_with($url, 'site/plugins/')) {
+            if (str_starts_with($url, 'site/plugins/')) {       // filepath to asset in pluginXY/assets/
                 if (preg_match('|^site/plugins/(.+?)/.+?/(.*)|', $url, $m)) {
-                    $url = PageFactory::$appUrl . "media/plugins/usility/{$m[1]}/{$m[2]}";
+                    $url = PageFactory::$appUrl . PFY_BASE_ASSETS_URL . "{$m[1]}/{$m[2]}";
                 } else {
                     throw new \Exception("Internal Error: unexpected pattern '$url'");
                 }
     
-            } elseif (str_starts_with($url, 'content/assets/')) {
+            } elseif (str_starts_with($url, 'media/plugins/')) { // already a plugin-url
+                $url = PageFactory::$appUrl . $url;
+
+            } elseif (str_starts_with($url, 'content/assets/')) { // filepath to asset in content/assets/
                 $url = (string)($assetFolderFiles[substr($url, 8)] ?? '');
             }
     

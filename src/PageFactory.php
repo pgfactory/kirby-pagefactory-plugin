@@ -21,7 +21,8 @@ const PFY_MKDIR_MASK =             0700; // permissions for file accesses by Pag
 const PFY_DEFAULT_TRANSVARS =      PFY_BASE_PATH.'variables/pagefactory.yaml';
 
  // URLs:
-const PFY_ASSETS_URL =             'media/plugins/usility/pagefactory/';
+const PFY_BASE_ASSETS_URL =        'media/plugins/usility/';
+const PFY_ASSETS_URL =             PFY_BASE_ASSETS_URL.'pagefactory/';
 const PAGED_POLYFILL_SCRIPT_URL =  PFY_ASSETS_URL.'js/paged.polyfill.min.js';
 
 const DEFAULT_FRONTEND_FRAMEWORK_URLS = ['js' => PFY_ASSETS_URL.'js/jquery-3.6.1.min.js'];
@@ -243,7 +244,7 @@ class PageFactory
     {
         self::$trans->setVariable('page-url', self::$pageUrl);
         self::$trans->setVariable('lang', self::$langCode);
-        self::$trans->setVariable('lang-active', self::$lang);
+        self::$trans->setVariable('lang-active', self::$lang); // can be lang-variant, e.g. de2
         self::$trans->setVariable('pfy-body-tag-attributes', Page::$bodyTagAttributes);
         self::$trans->setVariable('php-version', phpversion());
 

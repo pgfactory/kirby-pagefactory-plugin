@@ -357,7 +357,7 @@ EOT;
      */
     public function render(): string
     {
-        PageFactory::$assets->addAssets('site/plugins/pagefactory/scss/transvar-list.scss');
+        PageFactory::$assets->addAssets(PFY_ASSETS_PATH.'css/-transvar-list.css');
         $out = "\t<dl class='pfy-transvar-list'>\n";
         $vars = self::$transVars;
         ksort($vars);
