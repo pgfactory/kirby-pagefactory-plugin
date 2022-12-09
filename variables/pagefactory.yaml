@@ -17,10 +17,6 @@ pfy-admin-panel-link-text:
     de: 'Admin'
     _: 'Admin'
 
-pfy-edit-user-account:
-    de: Benutzerkonto bearbeiten
-    _:  Edit user account
-
 
 
 #--- Page Switcher Links ------------------------
@@ -65,66 +61,53 @@ pfy-opens-download:
 
 
 pfy-opens-pdf:
-    de: Öffnet das PDF in einem neuen Fester
-    en: Opens the PDF in a new window
+    de: Öffnet das PDF
+    en: Opens the PDF
 
 pfy-opens-mail:
-    de: Öffnet die Mail-App in einem neuen Fenster
-    en: opens your mail app in a new window
+    de: Öffnet die Mail-App
+    en: opens your mail app
 
 pfy-opens-sms:
-    de: Öffnet die Messaging App in einem neuen Fenster
-    en: Opens your default messaging app in a new window
+    de: Öffnet die Messaging App
+    en: Opens your default messaging app
 
 pfy-opens-tel:
-    de: Öffnet die Telefon App in einem neuen Fenster
-    en: Opens your default telephone app in a new window
+    de: Öffnet die Telefon App
+    en: Opens your default telephone app
 
 pfy-opens-mobile:
-    de: Öffnet die Telefon App in einem neuen Fenster
-    en: Opens your default telephone app in a new window
+    de: Öffnet die Telefon App
+    en: Opens your default telephone app
 
 pfy-opens-gsm:
-    de: Öffnet die Telefon App in einem neuen Fenster
-    en: Opens your default telephone app in a new window
+    de: Öffnet die Telefon App
+    en: Opens your default telephone app
 
 pfy-opens-geo:
-    de: Öffnet die Karten App in einem neuen Fenster
-    en: Opens your default messaging app in a new window
+    de: Öffnet die Karten App
+    en: Opens your default messaging app
 
 pfy-opens-slack:
-    de: Öffnet die Slack App in einem neuen Fenster
-    en: Opens your Slack app in a new window
+    de: Öffnet die Slack App
+    en: Opens your Slack app
 
 pfy-opens-twitter:
-    de: Öffnet die Twitter App in einem neuen Fenster
-    en: Opens your Twitter app in a new window
+    de: Öffnet die Twitter App
+    en: Opens your Twitter app
 
 pfy-opens-facebook:
-    de: Öffnet die Facebook App in einem neuen Fenster
-    en: Opens your Facebook app in a new window
+    de: Öffnet die Facebook App
+    en: Opens your Facebook app
 
 pfy-opens-instagram:
-    de: Öffnet die Instragram App in einem neuen Fenster
-    en: Opens your Instragram app in a new window
+    de: Öffnet die Instragram App
+    en: Opens your Instragram app
 
 pfy-opens-tiktok:
     de: Öffnet die Tiktok App in einem neuen Fenster
-    en: Opens your Tiktok app in a new window
+    en: Opens your Tiktok app
 
-
-
-
-pfy-next-page-link-label: "<span class='pfy-next-link-arrow pfy-focus-only-visible' title='{{ pfy-to-next-page-title }}'>{{ pfy-to-next-page-title }}</span>%nextLabel%"
-pfy-prev-page-link-label: "%prevLabel%<span class='pfy-prev-link-arrow pfy-focus-only-visible' title='{{ pfy-to-prev-page-title }}'>{{ pfy-to-prev-page-title }}</span>"
-
-pfy-to-next-page-title:
-    de: 'zur nächsten Seite&nbsp;'
-    _: 'to next page&nbsp;'
-
-pfy-to-prev-page-title:
-    de: '&nbsp;zur vorherigen Seite'
-    _: '&nbsp;to previous page'
 
 
 
@@ -291,17 +274,6 @@ pfy-link-expired-explanation:
     de2: 'Der Link, mit dem du diese Website aufgerufen hast, ist abgelaufen oder war nie gültig:'
     _:  'The link you used to access this website has expired or has never been valid:'
 
-pfy-signup-username-not-available:
-    de: 'Benutzername bereits vergeben - bitte wählen Sie einen anderen.'
-    de2: 'Benutzername bereits vergeben - bitte wähle einen anderen.'
-    _:  'Username already taken - please chose another one.'
-
-pfy-email-change-successful:
-    de: 'Ihre neue E-Mail Adresse wurde gespeichert'
-    de2: 'Deine neue E-Mail Adresse wurde gespeichert'
-    _:  'Your new e-mail address has been stored successfully'
-
-
 
 #--- Date/time
 pfy-time-day:
@@ -344,5 +316,28 @@ pfy-data-converted to:
     de: 'Datei konvertiert nach:'
     _:  'File converted to:'
 
+
+
+#--- Misc -------------------------------
+pfy-close:
+    de: Schliessen
+    _:  Close
+
+
+#--- User Admin -------------------------
+
+pfy-edit-user-account:
+    de: Benutzerkonto bearbeiten
+    _:  Edit user account
+
+pfy-signup-username-not-available:
+    de: 'Benutzername bereits vergeben - bitte wählen Sie einen anderen.'
+    de2: 'Benutzername bereits vergeben - bitte wähle einen anderen.'
+    _:  'Username already taken - please chose another one.'
+
+pfy-email-change-successful:
+    de: 'Ihre neue E-Mail Adresse wurde gespeichert'
+    de2: 'Deine neue E-Mail Adresse wurde gespeichert'
+    _:  'Your new e-mail address has been stored successfully'
 
 
