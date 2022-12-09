@@ -362,7 +362,7 @@ class Link extends Macros
     {
         if ($this->isExternalLink) {
             $this->addClass('pfy-link-https pfy-external-link pfy-print-url');
-            $this->target = $this->pfy->config['defaultTargetForExternalLinks']??'';
+            $this->target = PageFactory::$config['defaultTargetForExternalLinks']??'';
         }
     } // processRegularLink
 

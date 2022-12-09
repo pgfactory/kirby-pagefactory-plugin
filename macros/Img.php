@@ -98,13 +98,13 @@ class Img extends Macros
             $attributes .= " {$args['imgTagAttributes']}";
         }
         if (($args['quickview'] === true) ||
-            (($args['quickview'] === '') && $this->pfy->config['imageAutoQuickview']??false)) {
+            (($args['quickview'] === '') && (PageFactory::$config['imageAutoQuickview']??false))) {
             $attributes .= $this->renderQuickview();
         }
 
         // determine srcset/sizes attributes:
         if (($args['srcset'] !== false) ||
-            (($args['srcset'] === '') && $this->pfy->config['imageAutoSrcset']??false)) {
+            (($args['srcset'] === '') && (PageFactory::$config['imageAutoSrcset']??false))) {
             $attributes .= $this->renderSrcset();
         }
 
@@ -305,7 +305,7 @@ EOT;
         $str = "\n\tsrcset='\n$str'";
 
         // Add 'sizes' attribute
-        $screenSizeBreakpoint = $this->pfy->config['screenSizeBreakpoint'];
+        $screenSizeBreakpoint = PageFactory::$config['screenSizeBreakpoint'];
         $str .= "\n\tsizes='(max-width: {$screenSizeBreakpoint}px) 100vw, {$this->nominalWidth}vw'";
 
         $str = rtrim($str, ",\n");
