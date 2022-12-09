@@ -1,6 +1,11 @@
 /* === Printing Support ============================== */
+// Paged.js: https://pagedjs.org/documentation/7-generated-content-in-margin-boxes/
+
 @page {
-    size: A4;
+  size: A4;
+    @bottom-center {
+      content: "– " counter(page) " –";
+    }
 }
 
 
@@ -67,12 +72,12 @@
         }
         .pfy-print-btns {
             position: absolute;
-            top: 20px; left: 0;
-//            top: -40px; left: 0;
+            top: -40px;
+            left: 38px;
         }
         .pfy-print-btns > a {
             background: linear-gradient(#fff 0%,#fffbe0 60%,#fff7c2 100%);
-            font-size: 12pt;
+            font-size: 9pt;
             padding: 0.7em 1.5em;
             margin: 1em 0 0 1em;
             box-shadow: 0 0 5px 1px gray;
@@ -80,6 +85,29 @@
             border-bottom: none; /* for <a> */
         }
 
+      .pfy-section-wrapper {
+        padding: 0;
+        color: black;
+      }
+      .pfy-page-switcher-wrapper, .pfy-sitemap, .pfy-footer {
+        padding: 0;
+        display: none!important;
+      }
+
+      // overlay:
+        &.pfy-overlay-open {
+          .pfy-page,
+          .pfy-close-overlay {
+            display: none;
+          }
+        }
+        .pfy-overlay {
+          border: none;
+          box-shadow: none;
+          background: white;
+          position: relative;
+          overflow: visible;
+        }
     } //.pfy-default-styling
 } // @media print
 

@@ -83,7 +83,7 @@ class Utils
      */
     private function printPreview()
     {
-        $pagedPolyfillScript = PAGED_POLYFILL_SCRIPT_URL;
+        $pagedPolyfillScript = PageFactory::$appUrl.PAGED_POLYFILL_SCRIPT_URL;
         $jq = <<<EOT
 setTimeout(function() {
     console.log('now running paged.polyfill.js');
@@ -106,7 +106,7 @@ EOT;
      */
     private function print()
     {
-        $pagedPolyfillScript = PAGED_POLYFILL_SCRIPT_URL;
+        $pagedPolyfillScript = PageFactory::$appUrl.PAGED_POLYFILL_SCRIPT_URL;
         $jq = <<<EOT
 setTimeout(function() {
     console.log('now running paged.polyfill.js'); 
@@ -586,7 +586,11 @@ EOT;
         }
 
         // check whether user requested a language explicitly via url-arg:
-        if ($lang = ($_GET['lang']??false)) {
+        if (isset($_GET['lang'])) {
+            $lang = $_GET['lang'];
+            if (!$lang) {
+                $lang = PageFactory::$defaultLanguage;
+            }
             $langCode = substr($lang, 0, 2);
             if (in_array($lang, $supportedLanguages) || in_array($langCode, $supportedLanguages)) {
                 PageFactory::$lang = $lang;
