@@ -42,7 +42,9 @@ function mylog(str) {
 function scrollIntoView( selector, container ) {
     // if (typeof container !== 'undefined') {
         let elem = document.querySelector( selector );
-        elem.scrollIntoView(false);
+        if (elem !== null) { // happens when on unlisted page
+          elem.scrollIntoView(false);
+        }
     // } else {
         // document.querySelector('html, body').animate({
         //     scrollTop: document.querySelector( selector ).offset().top
