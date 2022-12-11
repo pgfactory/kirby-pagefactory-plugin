@@ -56,7 +56,7 @@ class Nav extends Macros
             (strpos($wrapperClass, 'pfy-nav-collapsed') === false)) {
             $args['wrapperClass'] .= ' pfy-nav-collapsed pfy-nav-animated';
         }
-        $nav = new DefaultNav($this->pfy);
+        $nav = new SiteNav($this->pfy);
         $str = $nav->render($args);
         return$str;
     }

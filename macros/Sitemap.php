@@ -55,7 +55,7 @@ class Sitemap extends Macros
             (strpos($args['wrapperClass'], 'pfy-nav-collapsible') === false)){
             $args['wrapperClass'] .= ' pfy-nav-collapsible';
         }
-        $nav = new DefaultNav($this->pfy);
+        $nav = new SiteNav($this->pfy);
         $str = $nav->render($args);
         return$str;
     }

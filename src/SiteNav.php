@@ -12,7 +12,7 @@ define('NAV_LEVEL',     'pfy-lvl-');    // identifies the nesting level
 define('NAV_CURRENT',   'pfy-curr');    // the currently opened page
 define('NAV_ACTIVE',    'pfy-active');  // currently open page and all its ancestors
 
-class DefaultNav
+class SiteNav
 {
     public static $inx = 1;
 
