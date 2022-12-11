@@ -1,4 +1,13 @@
 <?php
+/*
+ * Default Template for PageFactory plugin.
+ * (this is the only one that PageFactory needs - you don't need to worry about php-templates)
+ *
+ * Note: the actual template that defines a page is in site/templates/page_template.html.
+ * -> you can modify that and/or create new ones for different pages.
+ * See https://pagefactory.info for reference.
+ */
+
 
 // start output buffering:
 ob_start();
