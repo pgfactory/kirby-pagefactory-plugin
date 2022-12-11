@@ -552,7 +552,8 @@ class Assets
                 $files = getDir($sourceDir);
                 foreach ($files as $sourceFile) {
                     $sourceFileName = basename($sourceFile);
-                    if (is_dir($sourceFile) || $sourceFileName[0] === '_' || $sourceFileName[0] === '-') {
+                    $fileExt = fileExt($sourceFileName);
+                    if ($fileExt !== 'scss' || $sourceFileName[0] === '_' || $sourceFileName[0] === '-') {
                         continue;
                     }
                     $targetFile = $dest.$sourceFileName;
