@@ -354,6 +354,38 @@ function cacheFileName(string $file, string $tag = ''): string
 
 
  /**
+  * Parses a string of key:value pairs and returns it as an array if possible.
+  * @param mixed $var
+  * @return string
+  */
+ function parseArrayArg(mixed $var): mixed
+ {
+     if (is_string($var)) {
+         $var = explodeTrim(',', $var);
+         $isAssoc = false;
+         foreach ($var as $value) {
+             if (strpos($value, ':') !== false) {
+                 $isAssoc = true;
+                 break;
+             }
+         }
+         if ($isAssoc) {
+             $tmp = [];
+             foreach ($var as $value) {
+                 if (preg_match('/(.*):\s*(.*)/', $value, $m)) {
+                     $tmp[$m[1]] = trim($m[2], '\'"');
+                 } else {
+                     $tmp[$value] = $value;
+                 }
+             }
+             $var = $tmp;
+         }
+     }
+     return $var;
+} // parseArrayArg
+
+
+ /**
   * Decodes Yaml to an array
   * @param string $str
   * @return array
