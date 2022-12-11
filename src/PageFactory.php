@@ -11,11 +11,11 @@ const PFY_CONTENT_ASSETS_PATH =    'content/assets/';
 const PFY_ASSETS_PATH =            'site/plugins/pagefactory/assets/';
 const PFY_ICONS_PATH =             'site/plugins/pagefactory/assets/icons/';
 const PFY_SVG_ICONS_PATH =         'site/plugins/pagefactory/assets/svg-icons/';
-const PFY_CONFIG_FILE =            'site/config/pagefactory.php';
+const PFY_CONFIG_FILE =            'site/config/config.php';
 const PFY_CUSTOM_PATH =            'site/custom/';
 const PFY_USER_CODE_PATH =         PFY_CUSTOM_PATH.'macros/';
 const PFY_MACROS_PATH =            PFY_BASE_PATH.'macros/';
-const PFY_LOGS_PATH =              'site/logs/';
+define('PFY_LOGS_PATH',           'site/logs/');
 define('PFY_CACHE_PATH',           PFY_CUSTOM_PATH.'.#cache/'); // available in extensions
 const PFY_MKDIR_MASK =             0700; // permissions for file accesses by PageFactory
 const PFY_DEFAULT_TRANSVARS =      PFY_BASE_PATH.'variables/pagefactory.yaml';
@@ -29,6 +29,42 @@ const DEFAULT_FRONTEND_FRAMEWORK_URLS = ['js' => PFY_ASSETS_URL.'js/jquery-3.6.1
 
  // use this name for meta-files (aka text-files) in page folders:
 define('PFY_PAGE_DEF_BASENAME',     'zzz_page'); // 'define' required by site/plugins/pagefactory/index.php
+
+define('OPTIONS_DEFAULTS', [
+    'handleKirbyFrontmatter'        => false,
+    'screenSizeBreakpoint'          => 480,
+    'defaultLanguage'               => 'en',
+    'allowCustomCode'               => false,  // -> used by Macro and Include
+    'allowNonPfyPages'              => false,  // -> if true, Pagefactory will skip checks for presence of metafiles
+    'defaultTargetForExternalLinks' => false,  // -> used by Link() -> whether to open external links in new window
+    'imageAutoQuickview'            => true,  // -> used by Img() macro
+    'imageAutoSrcset'               => true,  // -> used by Img() macro
+
+    'variables' => [
+        'pfy-page-title' => '{{ page-title }} / {{ site-title }}',
+        'webmaster-email' => 'webmaster@'.preg_replace('|^https?://([\w.-]+)(.*)|', "$1", site()->url()),
+        'pfy-menu-icon' => svg('site/plugins/pagefactory/assets/icons/menu.svg'),
+        'pfy-small-screen-header' => <<<EOT
+        <h1>{{ site-title }}</h1>
+        <button id="pfy-nav-menu-icon">{{ pfy-menu-icon }}</button>
+EOT,
+
+        'pfy-footer' => ' Footer...',
+    ],
+
+    // optionally define files to be used as css/js framework (e.g. jQuery or bootstrap etc):
+    //    'frontendFrameworkUrls' => [
+    //        'css' => 'assets/framework1.css, assets/framework12.css',
+    //        'js' => 'assets/framework1.js',
+    //    ],
+
+
+    // Options for dev phase:
+    'debug_compileScssWithLineNumbers'  => true,   // line numbers of original SCSS file
+//        'debug_compileScssWithLineNumbers'  => @(kirby()->options())['debug'],   // line numbers of original SCSS file
+
+    // 'timezone' => 'Europe/Zurich', // PageFactory tries to guess the timezone - you can override this manually here
+]);
 
 
 
@@ -57,7 +93,6 @@ class PageFactory
     public static $trans;
     public static $pg;
     public static $md;
-    public static $siteOptions;
     public static $availableExtensions = [];
     public static $loadedExtensions = [];
     public static $debug;
@@ -90,8 +125,6 @@ class PageFactory
 
         $this->page = page();
         $this->site = site();
-        self::$siteOptions = $this->kirby->options(); // from site/config/config.php
-        unset(self::$siteOptions['hooks']);
         $this->pageOptions = $this->page->content()->data();
 
         // find available icons:

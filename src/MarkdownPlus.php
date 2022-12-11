@@ -941,7 +941,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
 
 
         // handle smartypants:
-        if (PageFactory::$siteOptions['smartypants']??false) {
+        if (kirby()->option('smartypants')) {
             $str = $this->smartypants($str);
         }
 

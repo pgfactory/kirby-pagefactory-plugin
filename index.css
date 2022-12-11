@@ -1,0 +1,14 @@
+/* === Automatically created from custom-panel.scss - do not modify! === */
+
+.k-textarea-input-native {
+  /* content: 'custom-panel.scss:3'; */
+  --size: calc(100vh - 22rem);
+}
+.k-tabs nav {
+  /* content: 'custom-panel.scss:7'; */
+  justify-content: left;
+}
+.k-file-preview {
+  /* content: 'custom-panel.scss:11'; */
+  display: none;
+}

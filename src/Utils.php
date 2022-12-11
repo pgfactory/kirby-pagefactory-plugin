@@ -559,9 +559,7 @@ EOT;
             if ($langObj = kirby()->language()) {
                 $lang = $langObj->code();
             } elseif (!($lang = kirby()->defaultLanguage())) {
-                if (!($lang = (PageFactory::$config['defaultLanguage']??false))) {
-                    $lang = 'en';
-                }
+                $lang = 'en';
             }
             PageFactory::$lang = $lang;
             PageFactory::$langCode = substr($lang, 0, 2);
@@ -576,7 +574,6 @@ EOT;
             $langCode = substr($lang, 0, 2);
             if (!in_array($lang, $supportedLanguages) && !in_array($langCode, $supportedLanguages)) {
                 $lang = $langCode = kirby()->defaultLanguage()->code();
-//                throw new Exception("Error: language not defined"); //??? keep? -> non-debug-mode?
             }
             PageFactory::$defaultLanguage = kirby()->defaultLanguage()->code();
             PageFactory::$lang = $lang;
@@ -640,12 +637,7 @@ EOT;
      */
     public function determineDebugState():void
     {
-        $debug = false;
-        $kirbyDebugState = @(kirby()->options())['debug'];
-        if ($kirbyDebugState !== null) {
-            $debug = $kirbyDebugState;
-
-        }
+        $debug = kirby()->option('debug');
         if (isAdminOrLocalhost()) {
             $debug = $_GET['debug']??false;
             if (($debug === null) && $this->pfy->session->get('pfy.debug')) {
@@ -716,53 +708,36 @@ EOT;
      */
     public function loadPfyConfig():void
     {
-        PageFactory::$config = PageFactory::$siteOptions;
-        if ($a = self::readPfyConfig()) {
-            PageFactory::$config = array_merge($a, PageFactory::$config);
+        $optionsFromConfigFile = kirby()->option('usility.pagefactory.options');
+        if ($optionsFromConfigFile) {
+            PageFactory::$config = array_merge($optionsFromConfigFile, OPTIONS_DEFAULTS);
+        } else {
+            PageFactory::$config = OPTIONS_DEFAULTS;
         }
+
         // propagate variables from config into TransVars:
         if (isset(PageFactory::$config['variables'])) {
             PageFactory::$trans->setVariables(PageFactory::$config['variables']);
         }
 
         // add values from site/site.txt:
-        if ($s = site()->title()->value()) {
+        $site = site();
+        if ($s = $site->title()->value()) {
             PageFactory::$config['title'] = $s;
         }
-        if ($s = site()->text()->value()) {
+        if ($s = $site->text()->value()) {
             PageFactory::$config['text'] = $s;
         }
-        if ($s = site()->author()->value()) {
+        if ($s = $site->author()->value()) {
             PageFactory::$config['author'] = $s;
         }
-        if ($s = site()->description()->value()) {
+        if ($s = $site->description()->value()) {
             PageFactory::$config['description'] = $s;
         }
-        if ($s = site()->keywords()->value()) {
+        if ($s = $site->keywords()->value()) {
             PageFactory::$config['keywords'] = $s;
         }
     } // loadPfyConfig
-
-
-    /**
-     * Reads file content/config/pagefactory.php
-     * @param $key  -> all if no key supplied
-     * @param $default
-     * @return array|mixed
-     */
-    public static function readPfyConfig($key = false, $default = null)
-    {
-        if (file_exists(PFY_CONFIG_FILE)) {
-            if (is_array($a = include(PFY_CONFIG_FILE))) {
-                if ($key) {
-                    return isset($a[$key])? $a[$key]: $default;
-                } else {
-                    return $a;
-                }
-            }
-        }
-        return [];
-    } // readPfyConfig
 
 
     /**
@@ -819,7 +794,7 @@ EOT;
 
 
     /**
-     * Injects a new key,value pair into PageFactory's config file site/config/pagefactory.php
+     * Injects a new key,value pair into PageFactory's config file site/config/config.php
      * @param string $key
      * @param string $value
      * @param string|null $comment
@@ -829,22 +804,25 @@ EOT;
         if ($comment) {
             $comment = " // $comment";
         }
-        $str = "\t'$key' => '$value',$comment,\n";
 
         $config = fileGetContents(PFY_CONFIG_FILE);
-        if ($config) {
-           $config = str_replace('];', "$str];", $config);
-        } else {
-            $config = <<<EOT
-<?php
-// Configuration file for PageFactory plugin
 
-return [
-$str];
+        // check whether section pagefactory already exists, then inject values accordingly:
+        if (preg_match("/(['\"]usility.pagefactory.options['\"]\s*=>\s*\[)/", $config, $m)) {
+            $str = "\n\t\t'$key'\t\t\t\t=> '$value',$comment,";
+            $config = str_replace($m[0], $m[0].$str, $config);
+            file_put_contents(PFY_CONFIG_FILE, $config);
+
+        } elseif (preg_match("/(];)/", $config, $m)) {
+            $str = <<<EOT
+    'usility.pagefactory.options' => [
+		'$key'		=> '$value',$comment
+    ],
 
 EOT;
+            $config = str_replace($m[0], $str.$m[0], $config);
+            file_put_contents(PFY_CONFIG_FILE, $config);
         }
-        file_put_contents(PFY_CONFIG_FILE, $config);
     } // appendToConfigFile
 
 

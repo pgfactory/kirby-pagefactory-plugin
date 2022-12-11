@@ -13,7 +13,7 @@
  */
 function onPanelLoad($path)
 {
-    $allowNonPfyPages = \Usility\PageFactory\Utils::readPfyConfig('allowNonPfyPages', false);
+    $allowNonPfyPages = kirby()->option('allowNonPfyPages');
 
     $path = str_replace(['+', 'panel/pages/'], ['/', ''], $path);
     if (!($pg = page($path))) {
@@ -68,10 +68,12 @@ function onPanelLoad($path)
  */
 function checkMetaFiles()
 {
-    $allowNonPfyPages = \Usility\PageFactory\Utils::readPfyConfig('allowNonPfyPages', false);
+    $allowNonPfyPages = kirby()->option('allowNonPfyPages');
 
     if (!$language = kirby()->language()) {
-        $language = \Usility\PageFactory\Utils::readPfyConfig('defaultLanguage', 'en');
+        if (!$language = kirby()->defaultLanguage()) {
+            $language = 'en';
+        }
     }
     $langTag = '.'.$language;
     if (!$languages = kirby()->languages()->toArray()) {

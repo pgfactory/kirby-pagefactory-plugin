@@ -1,12 +1,13 @@
 <?php
 
+// start output buffering:
 ob_start();
 
-$html = $page->pageFactoryRender($pages, [
-    'templateFile' =>'page_template.html',
-//    'mdVariant' => 'kirby', // or 'extra'
-]);
+// let PageFactory render the page:
+$html = $page->pageFactoryRender($pages);
 
+// PageFactory does not create any output, so if there is any, it's some error or warning message.
+// -> We store that in a log file.
 if (ob_get_length()) {
     if (!file_exists(PFY_LOGS_PATH)) {
         mkdir(PFY_LOGS_PATH);
