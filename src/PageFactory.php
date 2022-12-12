@@ -343,7 +343,7 @@ class PageFactory
      */
     private function determineAssetFilesList(): void
     {
-        // get asset-files definition: first try site/config/pagefactory.php:
+        // get asset-files definition:
         if (self::$config['assetFiles']??false) {
             $this->assetFiles = self::$config['assetFiles'];
         } else { // if not found, use following as default values:

@@ -702,10 +702,6 @@ EOT;
     } // getContent
 
 
-    /**
-     * Obtains PageFactory's own config file 'site/config/pagefactory.yaml'.
-     * Also lead important values from 'site/site.txt'.
-     */
     public function loadPfyConfig():void
     {
         $optionsFromConfigFile = kirby()->option('usility.pagefactory.options');

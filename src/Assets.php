@@ -338,7 +338,6 @@ class Assets
         $this->systemAssets = SYSTEM_ASSETS;
 
         // prepare asset groups:
-        //   asset group definitions from site/config/pagefactory.php or DEFAULT_ASSET_GROUPS:
         $assetGroups = $this->assetGroups;
         if ($assetGroups && is_array($assetGroups)) {
             foreach ($assetGroups as $dest => $sources) {
@@ -353,7 +352,7 @@ class Assets
             }
         }
 
-        // get framework assets from config/pagefactory.php or keep DEFAULT_FRONTEND_FRAMEWORK_URLS:
+        // get framework assets:
         if ($frontendFrameworkUrls = PageFactory::$config['frontendFrameworkUrls']??false) {
             $this->frameworkFiles = $frontendFrameworkUrls;
         } else {

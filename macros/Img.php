@@ -28,10 +28,14 @@ $macroConfig =  [
     'summary' => <<<EOT
 Renders an image tag.
 
-Configuration options in 'site/config/pagefactory.php':
+Configuration options in 'site/config/config.php':
 
-    'imageAutoQuickview'  \=> true,  \// turns quickview on by default
-    'imageAutoSrcset'  \=> true,     \// turns srcset on by default
+    'usility.pagefactory.options' \=> [
+        'variables' \=> [
+            'imageAutoQuickview'  \=> true,  \// turns quickview on by default
+            'imageAutoSrcset'  \=> true,     \// turns srcset on by default
+        ],
+    ],
 
 **Note**: if an attribute file exists (i.e. image-filename + '.txt') that will be read to extract attributes. 
 
