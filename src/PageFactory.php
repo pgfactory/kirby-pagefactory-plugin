@@ -34,7 +34,6 @@ define('OPTIONS_DEFAULTS', [
     'handleKirbyFrontmatter'        => false,
     'screenSizeBreakpoint'          => 480,
     'defaultLanguage'               => 'en',
-    'allowCustomCode'               => false,  // -> used by Macro and Include
     'allowNonPfyPages'              => false,  // -> if true, Pagefactory will skip checks for presence of metafiles
     'defaultTargetForExternalLinks' => false,  // -> used by Link() -> whether to open external links in new window
     'imageAutoQuickview'            => true,  // -> used by Img() macro
