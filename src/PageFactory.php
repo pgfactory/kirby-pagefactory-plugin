@@ -42,7 +42,7 @@ define('OPTIONS_DEFAULTS', [
     // 'timezone' => 'Europe/Zurich', // PageFactory tries to guess the timezone - you can override this manually
 
     'variables' => [
-        'pfy-page-title' => '{{ page-title }} / {{ site-title }}',
+        'pfy-page-title' => '{{ kirby-page-title }} / {{ kirby-site-title }}',
         'webmaster-email' => 'webmaster@'.preg_replace('|^https?://([\w.-]+)(.*)|', "$1", site()->url()),
         'pfy-menu-icon' => svg('site/plugins/pagefactory/assets/icons/menu.svg'),
         'pfy-small-screen-header' => <<<EOT
@@ -145,6 +145,7 @@ class PageFactory
 
         $this->utils = new Utils($this);
         $this->utils->loadPfyConfig();
+        self::$trans->loadCustomVariables(); // overrides other sources of variable definitions
         $this->utils->determineDebugState();
 
         $this->utils->setTimezone();
@@ -285,7 +286,7 @@ class PageFactory
         $siteAttributes = site()->content()->data();
         foreach ($siteAttributes as $key => $value) {
             if ($key === 'title') {
-                $key = 'site-title';
+                $key = 'kirby-site-title';
             }
             $key = str_replace('_', '-', $key);
             self::$trans->setVariable($key , (string)$value);
@@ -295,7 +296,7 @@ class PageFactory
         $pageAttributes = page()->content()->data();
         foreach ($pageAttributes as $key => $value) {
             if ($key === 'title') {
-                $key = 'page-title';
+                $key = 'kirby-page-title';
             }
             $key = str_replace('_', '-', $key);
             self::$trans->setVariable($key , (string)$value);
@@ -311,7 +312,7 @@ class PageFactory
         $version = 'Kirby v'. Kirby::version(). " + PageFactory $gitTag";
         self::$trans->setVariable('generator', $version);
 
-        // 'user', 'pfy-logged-in-as-user', 'pfy-backend-link':
+        // 'user', 'pfy-logged-in-as-user', 'pfy-admin-panel-link':
         $appUrl = self::$appUrl;
         $loginIcon = svg('site/plugins/pagefactory/assets/icons/user.svg');
         $user = kirby()->user();
@@ -323,7 +324,7 @@ class PageFactory
             self::$trans->setVariable('pfy-logged-in-as-user', "<a href='{$appUrl}login'>Login</a>");
             self::$trans->setVariable('pfy-login-button', "<button class='pfy-login-button' title='{{ pfy-login-button-label }}'>$loginIcon</button>");
         }
-        self::$trans->setVariable('pfy-backend-link', "<a href='{$appUrl}panel' target='_blank'>{{ pfy-admin-panel-link-text }}</a>");
+        self::$trans->setVariable('pfy-admin-panel-link', "<a href='{$appUrl}panel' target='_blank'>{{ pfy-admin-panel-link-text }}</a>");
     } // setStandardVariables
 
 

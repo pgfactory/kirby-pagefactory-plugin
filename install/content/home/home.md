@@ -17,7 +17,7 @@ To modify this page, edit the file ``site/1_home/home.md``.
 
 To add additional pages and administer your new website in general, 
 
-&rarr; open the {{ pfy-backend-link }} tool.
+&rarr; open the {{ pfy-admin-panel-link }} tool.
 
 {{ vgap(2em) }}
 
