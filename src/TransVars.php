@@ -33,13 +33,21 @@ class TransVars
             }
         }
 
-        // load custom variables:
-        if (file_exists(PFY_CUSTOM_PATH.'variables/')) {
-            $this->loadTransVarsFromFiles(PFY_CUSTOM_PATH.'variables/');
-        }
-
         $this->hideIfNotDefined = false;
     } // __construct
+
+
+    /**
+     * Loads variable definitions from /site/custom/variables/*'
+     * @return void
+     * @throws \Kirby\Exception\InvalidArgumentException
+     */
+    public function loadCustomVariables()
+    {
+        if (is_dir(PFY_CUSTOM_PATH.'variables/')) {
+            $this->loadTransVarsFromFiles(PFY_CUSTOM_PATH.'variables/');
+        }
+    } // loadCustomVariables
 
 
     /**
@@ -68,8 +76,12 @@ class TransVars
         $lang = $this->extractLang($varName, $lang);
         $transVars = &self::$transVars;
 
-        if (is_array($value)) {
+        if (is_string($varName) && is_array($value)) {
+            self::$transVars[$varName] = $value;
+
+        } elseif (is_array($value)) {
             $transVars = array_merge($transVars, $value);
+
         } elseif (is_string($value)) {
             unset(self::$transVars[$varName]);
             if (!$lang) {
