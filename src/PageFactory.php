@@ -100,7 +100,7 @@ class PageFactory
     public static $timer;
     public static $user;
     public static $slug;
-    public static $urlToken;
+    public static $urlToken; // the hash code extracted from HTTP request (e.g. home/ABCDEF)
     public static $availableIcons;
     public static $phpSessionId;
     public static $assets;
