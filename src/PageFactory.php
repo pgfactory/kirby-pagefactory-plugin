@@ -39,6 +39,7 @@ define('OPTIONS_DEFAULTS', [
     'defaultTargetForExternalLinks' => false,  // -> used by Link() -> whether to open external links in new window
     'imageAutoQuickview'            => true,  // -> used by Img() macro
     'imageAutoSrcset'               => true,  // -> used by Img() macro
+    // 'timezone' => 'Europe/Zurich', // PageFactory tries to guess the timezone - you can override this manually
 
     'variables' => [
         'pfy-page-title' => '{{ page-title }} / {{ site-title }}',
@@ -61,9 +62,6 @@ EOT,
 
     // Options for dev phase:
     'debug_compileScssWithLineNumbers'  => true,   // line numbers of original SCSS file
-//        'debug_compileScssWithLineNumbers'  => @(kirby()->options())['debug'],   // line numbers of original SCSS file
-
-    // 'timezone' => 'Europe/Zurich', // PageFactory tries to guess the timezone - you can override this manually here
 ]);
 
 
