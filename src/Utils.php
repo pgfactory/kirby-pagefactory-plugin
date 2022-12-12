@@ -710,7 +710,7 @@ EOT;
     {
         $optionsFromConfigFile = kirby()->option('usility.pagefactory.options');
         if ($optionsFromConfigFile) {
-            PageFactory::$config = array_merge($optionsFromConfigFile, OPTIONS_DEFAULTS);
+            PageFactory::$config = array_replace_recursive(OPTIONS_DEFAULTS, $optionsFromConfigFile);
         } else {
             PageFactory::$config = OPTIONS_DEFAULTS;
         }
