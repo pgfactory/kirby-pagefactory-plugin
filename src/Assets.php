@@ -600,7 +600,7 @@ class Assets
                 }
                 $lastModifiedFile = max($lastModifiedFile, $tSrc);
                 $out .= "/* @@@@@@@@ Imported from $filename @@@@@@@@ */\n\n";
-                $out .= getFile($srcFile);
+                $out .= getFile($srcFile, !PageFactory::$config['debug_compileScssWithLineNumbers']);
                 $out .= "\n\n";
             }
         }

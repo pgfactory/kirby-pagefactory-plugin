@@ -78,35 +78,93 @@ class Scss
      */
     private function getFile(string $file): string
     {
-        $compileScssWithLineNumbers = PageFactory::$config['debug_compileScssWithLineNumbers']??false;
-        if ($compileScssWithLineNumbers !== 'false') {
-            $out = loadFile($file);
+        $compileScssWithLineNumbers = PageFactory::$config['debug_compileScssWithLineNumbers'];
+        if ($compileScssWithLineNumbers) {
+            if (!file_exists($file)) {
+                throw new \Exception("Error: file '$file' not found.");
+            }
             $fname = basename($file);
-            $lines = explode(PHP_EOL, $out);
+            $lines = file($file, FILE_IGNORE_NEW_LINES);
             $out = '';
+            $inComment = false;
             foreach ($lines as $i => $l) {
-                $l = preg_replace('|^ (.*?) (?<!:)// .*|x', "$1", $l);
+                $cont = $this->skipComments($l, $inComment);
+                if ($cont === 'break') {
+                    break;
+                } elseif ($cont === 'continue') {
+                    continue;
+                }
                 if (preg_match('|^ [^/*]+ {|x', $l)) {  // add line-number in comment
-                    $l .= " [[* content: '$fname:".($i+1)."'; *]]";
+                    $l .= " /* content: '$fname:".($i+1)."'; */";
                 }
                 if ($l) {
                     $out .= $l . "\n";
                 }
             }
-
-            $p1 = strpos($out, '/*');
-            while ($p1 !== false) {
-                $p2 = strpos($out, '*/');
-                if (($p2 !== false) && ($p1 < $p2)) {
-                    $out = substr($out, 0, $p1) . substr($out, $p2 + 2);
-                }
-                $p1 = strpos($out, '/*', $p1 + 1);
-            }
-            $out = str_replace(['[[*', '*]]'], ['/*', '*/'], $out);
+            $out = $this->removeEmptyRules($out);
         } else {
             $out = loadFile($file);
         }
         return $out . "\n";
     } // getFile
+
+
+    /**
+     * Checks for c-style comments as well as __END__ marker.
+     * @param $l
+     * @param $inComment
+     * @return false|string
+     */
+    private function skipComments(&$l, &$inComment)
+    {
+        $result = false;
+        if ($l === '__END__') {
+            $result = 'break';
+        }
+        $l = preg_replace('|(?<!:)//.*|' ,'', $l);
+        if ($inComment) {
+            if (str_contains($l, '*/')) {
+                $l = preg_replace('|.*\*/|' ,'', $l);
+                $inComment = false;
+            } else {
+                $result = 'continue';
+            }
+        } elseif (str_contains($l, '/*')) {
+            if (str_contains($l, '*/')) {
+                $l = preg_replace('|/\*.*\*/|' ,'', $l);
+            } else {
+                $l = preg_replace('|/\*.*|', '', $l);
+                $inComment = true;
+            }
+        }
+        if (!$l) {
+            $result = 'continue';
+        }
+        return $result;
+    } // skipComments
+
+
+    /**
+     * Removes empty rules (including those only containing comments) from given CSS-string.
+     * @param string $css
+     * @return string
+     */
+    private function removeEmptyRules(string $css): string
+    {
+        $p1 = strpos($css, '}');
+        while ($p1 !== false) {
+            $p2 = strpos($css, '}', $p1+1);
+            if ($p2 === false) {
+                break;
+            }
+            $str = substr($css, $p1, ($p2 - $p1 + 1));
+            $str = preg_replace('| /\* .* \*/ |xms', '', $str);
+            if (preg_match('/\{ \s* }/xms', $str)) {
+                $css = substr($css, 0, $p1).substr($css, $p2);
+            }
+            $p1 = strpos($css, '}', $p2);
+        }
+        return $css;
+    } // removeEmptyRules
 
 } // Scss
