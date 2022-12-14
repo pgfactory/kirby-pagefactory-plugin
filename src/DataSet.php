@@ -407,7 +407,7 @@ class DataSet
         $sessionId = getSessionId();
         $sessionIdInFile = fileGetContents($this->lockFile);
         // check whether it's a permanent lock:
-        if (($sessionIdInFile[0]??'') === '!') {
+        if ($sessionIdInFile && ($sessionIdInFile[0]??'') === '!') {
             // if it's locked by somebody else: quit immediately:
             if ($sessionId !== substr($sessionIdInFile, 1)) {
                 return true;

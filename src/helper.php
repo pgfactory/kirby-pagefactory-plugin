@@ -123,7 +123,7 @@ function loadFile(string $file, mixed $removeComments = true, bool $useCaching =
     }
     if ($useCaching) {
         $data = checkDataCache($file);
-        if ($data !== null) {
+        if ($data !== false) {
             return $data;
         }
     }
@@ -153,11 +153,11 @@ function loadFile(string $file, mixed $removeComments = true, bool $useCaching =
 function loadFiles(mixed $files, mixed $removeComments = true, bool $useCaching = false): mixed
 {
     if (!$files || !is_array($files)) {
-        return null;
+        return false;
     }
 
     if ($useCaching) {
-        if (($data = checkDataCache($files)) !== null) {
+        if (($data = checkDataCache($files)) !== false) {
             return $data;
         }
     }
@@ -241,14 +241,14 @@ function getFile(string $file, mixed $removeComments = true)
  /**
   * file_get_contents() replacement with file_exists check
   * @param $file
-  * @return false|string|null
+  * @return false|string
   */
  function fileGetContents(string $file): mixed
  {
      if (file_exists($file)) {
          return @file_get_contents($file);
      } else {
-         return null;
+         return false;
      }
  } // fileGetContents
 
@@ -296,7 +296,7 @@ function checkDataCache(mixed $file): mixed
         $file1 = $file[0]??'';
         $cacheFile = cacheFileName($file1, '.0');
         if (!file_exists($cacheFile)) {
-            return null;
+            return false;
         }
         $tCache = fileTime($cacheFile);
         $tFiles = 0;
@@ -319,7 +319,7 @@ function checkDataCache(mixed $file): mixed
             }
         }
     }
-    return null;
+    return false;
 } // checkDataCache
 
 

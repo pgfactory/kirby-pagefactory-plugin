@@ -801,7 +801,7 @@ EOT;
             $comment = " // $comment";
         }
 
-        $config = fileGetContents(PFY_CONFIG_FILE);
+        $config = (string)fileGetContents(PFY_CONFIG_FILE);
 
         // check whether section pagefactory already exists, then inject values accordingly:
         if (preg_match("/(['\"]usility.pagefactory.options['\"]\s*=>\s*\[)/", $config, $m)) {
