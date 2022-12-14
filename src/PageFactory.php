@@ -304,7 +304,7 @@ class PageFactory
         // 'generator':
         // for performance reasons we cache the gitTag, so, if that changes you need to remember to clear site/.#pfy-cache
         $gitTag = fileGetContents(PFY_CACHE_PATH.'gitTag.txt');
-        if ($gitTag === false) {
+        if (!$gitTag) {
             $gitTag = getGitTag();
             file_put_contents(PFY_CACHE_PATH.'gitTag.txt', $gitTag);
         }
