@@ -13,9 +13,10 @@ Installation Script
 
 1) Download installation script:
       https://pagefactory.info/download/install.sh
+      (e.g. curl https://pagefactory.info/download/install.sh > install.sh )
     → best store it in the parent folder of your new web-app
 
-2) Run install.sh <path-to-webapp> (e.g. ./install.sh webapp)
+2) Run install.sh <path-to-webapp> (e.g. sh ./install.sh webapp)
 
 3) Open page in your browser, e.g. http://localhost:8888/webapp/
 
