@@ -28,7 +28,7 @@ const PAGED_POLYFILL_SCRIPT_URL =  PFY_ASSETS_URL.'js/paged.polyfill.min.js';
 const DEFAULT_FRONTEND_FRAMEWORK_URLS = ['js' => PFY_ASSETS_URL.'js/jquery-3.6.1.min.js'];
 
  // use this name for meta-files (aka text-files) in page folders:
-define('PFY_PAGE_DEF_BASENAME',     'zzz_page'); // 'define' required by site/plugins/pagefactory/index.php
+define('PFY_PAGE_DEF_BASENAME',     'z_pfy'); // 'define' required by site/plugins/pagefactory/index.php
 
 define('OPTIONS_DEFAULTS', [
     'handleKirbyFrontmatter'        => false,

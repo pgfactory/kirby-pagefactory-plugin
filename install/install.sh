@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
-
+#
+# Installation script for Kirby and Pagefactory-plugin
+#
 cwd=`pwd`
 
 if [[ -z "$1" ]]; then
 	echo 
-	echo "Installation script for Kirby/Pagefactory"
-	echo "-----------------------------------------"
+	echo "Installation script for Kirby and Pagefactory-plugin"
+	echo "----------------------------------------------------"
 	echo "Usage:"
 	echo "  install.sh  path-to-webapp-folder  {branch}"
 	echo "     path-to-webapp-folder='.' for current folder"
@@ -35,7 +37,7 @@ fi
 ## Check/clone Kirby plainkit:
 if [[ ! -e kirby/ ]]; then
 	echo "Now installing Kirby to folder -> `pwd`"
-	/usr/local/bin/git clone https://github.com/getkirby/plainkit.git .
+	/usr/bin/env git clone https://github.com/getkirby/plainkit.git .
 	echo Kirby installed
 else
 	echo Kirby already installed
@@ -56,10 +58,11 @@ if [[ -e site/plugins/pagefactory/ ]]; then
 	exit
 fi
 
+
 echo Now installing Pagefactory
 
 ## Clone PageFactory:
-/usr/local/bin/git clone $branch https://github.com/pgfactory/kirby-pagefactory-plugin.git site/plugins/pagefactory
+/usr/bin/env git clone $branch https://github.com/pgfactory/kirby-pagefactory-plugin.git site/plugins/pagefactory
 echo PageFactory installed
 
 
@@ -67,7 +70,7 @@ echo PageFactory installed
 if [ ! -e site/templates/page_template.html ]; then
 	cp -R site/plugins/pagefactory/install/content/  content
 	cp -R site/plugins/pagefactory/install/site/     site
-	mv content/home/home.txt content/home/zzz_page.txt
+	mv content/home/home.txt content/home/z_pfy.txt
 	mv content/home content/1_home
 	echo Essential files copied to final location
 fi

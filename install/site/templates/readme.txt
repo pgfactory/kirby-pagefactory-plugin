@@ -1,7 +1,7 @@
 # PageFactory Template(s)
 
-Pages to be rendered by PageFactory must use a meta-file 'zzz_page.txt'.
-Thus, Kirby invokes site/templates/zzz_page.php, which redirects rendering to PageFactory.
+Pages to be rendered by PageFactory must use a meta-file 'z_pfy.txt'.
+Thus, Kirby invokes site/templates/z_pfy.php, which redirects rendering to PageFactory.
 
 PageFactory in turns determines which template file (.html) to use. Default is 'page_template.html'.
 (-> template can be spedified in Frontmatter of each page.)

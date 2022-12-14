@@ -6,7 +6,7 @@
 
 /**
  * Invoked by hook 'route:before' in site/config.php
- * Copies content of .md files in given folder to page's meta file, i.e. zzz_page.txt
+ * Copies content of .md files in given folder to page's meta file, i.e. z_pfy.txt
  * Note: this is a work-around till somebody develops a panel plugin that directly accesses .md files
  * @param $path
  * @return void
@@ -119,7 +119,7 @@ function checkMetaFiles()
 
 /**
  * Invoked by hook 'page.create:after' in site/config.php
- * When user creates a page in panel, meta-file is renamed to PFY_PAGE_DEF_BASENAME (i.e. zzz_page.txt) and
+ * When user creates a page in panel, meta-file is renamed to PFY_PAGE_DEF_BASENAME (i.e. z_pfy.txt) and
  * an .md file is created with H1 preset to pagename
  * Note: this is a work-around till somebody develops a panel plugin that directly accesses .md files
  * @param \Kirby\Cms\Page $page
