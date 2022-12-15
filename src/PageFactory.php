@@ -65,7 +65,6 @@ EOT,
 
 
 
-require_once __DIR__ . '/../third_party/vendor/autoload.php';
 require_once __DIR__ . '/helper.php';
 
 

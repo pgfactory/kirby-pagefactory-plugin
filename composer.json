@@ -5,8 +5,8 @@
     },
     "autoload": {
         "psr-4": {
-            "Usility\\PageFactory\\": "../src/",
-            "Usility\\PageFactory\\Macros\\": "../../pagefactory-macros/"
+            "Usility\\PageFactory\\": "src/",
+            "Usility\\PageFactoryElements\\": "../pagefactory-pageelements/src/"
         }
     }
 }

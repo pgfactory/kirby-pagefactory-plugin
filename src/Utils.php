@@ -350,15 +350,15 @@ EOT;
         // if PageElements extension is loaded -> handle overlay,popup,message:
         if (in_array('pageelements', array_keys(PageFactory::$availableExtensions))) {
             if (Page::$frontmatter['overlay']??false) {
-                $pe = new \Usility\PageFactory\PageElements\Overlay($this->pfy);
+                $pe = new \Usility\PageFactoryElements\Overlay($this->pfy);
                 $pe->set(Page::$frontmatter['overlay'], true);
             }
             if (Page::$frontmatter['message']??false) {
-                $pe = new \Usility\PageFactory\PageElements\Message($this->pfy);
+                $pe = new \Usility\PageFactoryElements\Message($this->pfy);
                 $pe->set(Page::$frontmatter['message'], true);
             }
             if (Page::$frontmatter['popup']??false) {
-                $pe = new \Usility\PageFactory\PageElements\Popup($this->pfy);
+                $pe = new \Usility\PageFactoryElements\Popup($this->pfy);
                 $pe->set(Page::$frontmatter['popup'], true);
             }
         }

@@ -7,8 +7,8 @@
 
 namespace Usility\PageFactory;
 
-use Usility\PageFactory\PageElements as PageElements;
 use Exception;
+
 
 class Page
 {
@@ -57,7 +57,7 @@ class Page
                 }
 
                 // instantiate extension object:
-                $extensionClass = "\Usility\PageFactory\\$extensionClassName\\$extensionClassName";
+                $extensionClass = "Usility\\PageFactoryElements\\$extensionClassName";
                 $obj = new $extensionClass($this->pfy);
 
                 // check for and load extension's asset-definitions:
@@ -212,7 +212,7 @@ class Page
     public function setOverlay(string $str, $mdCompile = true): void
     {
         if (isset(PageFactory::$availableExtensions['pageelements'])) {
-            $pe = new \Usility\PageFactory\PageElements\Overlay($this->pfy);
+            $pe = new \Usility\PageFactoryElements\Overlay($this->pfy);
             $pe->set($str, $mdCompile);
 
         // if PageElements are not loaded, we need to create bare page and exit immediately:
@@ -247,7 +247,7 @@ EOT;
     public function setMessage(string $str, $mdCompile = true): void
     {
         if (isset(PageFactory::$availableExtensions['pageelements'])) {
-            $pe = new \Usility\PageFactory\PageElements\Message($this->pfy);
+            $pe = new \Usility\PageFactoryElements\Message($this->pfy);
             $pe->set($str, $mdCompile);
 
         // if PageElements are not loaded, we need to create bare page and exit immediately:

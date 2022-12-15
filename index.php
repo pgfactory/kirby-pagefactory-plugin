@@ -11,7 +11,7 @@
  * @license   MIT <https://opensource.org/licenses/MIT>
  */
 
-require_once __DIR__ . '/src/PageFactory.php';
+require_once __DIR__ . '/vendor/autoload.php';
 
 use Kirby\Cms\App as Kirby;
 use Usility\PageFactory\PageFactory as PageFactory;
