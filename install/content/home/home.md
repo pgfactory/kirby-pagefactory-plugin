@@ -11,17 +11,21 @@ You successfully installed **[Kirby CMS](https://getkirby.com/)** and the **[Pag
 
 {{ vgap( 2em ) }}
 
-To modify this page, edit the file ``site/1_home/home.md``.
+To modify this page,
+
+-> edit the file ``site/home/home.md``.
 
 {{ vgap( 2em ) }}
 
 To add additional pages and administer your new website in general, 
 
-&rarr; open the {{ pfy-admin-panel-link }} tool.
+&rarr; open the {{ pfy-admin-panel-link }}.
 
 {{ vgap(2em) }}
 
--> Visit the {{ link('https://pagefactory.info/','PageFactory Documentation Website', target:newwin) }}.
+For more information,
+
+-> visit the {{ link('https://pagefactory.info/','PageFactory Documentation Website', target:newwin) }}.
 
 Have fun!
 
