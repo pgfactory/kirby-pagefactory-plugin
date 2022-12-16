@@ -4,6 +4,10 @@
  * Panel Helper
 */
 
+if (!defined('PFY_PAGE_DEF_BASENAME')) {
+    define('PFY_PAGE_DEF_BASENAME', 'z_pfy');
+}
+
 /**
  * Invoked by hook 'route:before' in site/config.php
  * Copies content of .md files in given folder to page's meta file, i.e. z_pfy.txt
