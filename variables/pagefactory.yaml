@@ -14,8 +14,7 @@ pfy-login-icon: "<span class='pfy-icon -user_male_circle'></span>"
 pfy-login-button-label: Login
 
 pfy-admin-panel-link-text:
-    de: 'Admin'
-    _: 'Admin'
+    _: 'Admin-Panel'
 
 
 
