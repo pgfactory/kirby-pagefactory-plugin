@@ -35,7 +35,7 @@ define('OPTIONS_DEFAULTS', [
     'screenSizeBreakpoint'          => 480,
     'defaultLanguage'               => 'en',
     'allowNonPfyPages'              => false,  // -> if true, Pagefactory will skip checks for presence of metafiles
-    'defaultTargetForExternalLinks' => false,  // -> used by Link() -> whether to open external links in new window
+    'externalLinksToNewWindow'      => true,   // -> used by Link() -> whether to open external links in new window
     'imageAutoQuickview'            => true,  // -> used by Img() macro
     'imageAutoSrcset'               => true,  // -> used by Img() macro
     // 'timezone' => 'Europe/Zurich', // PageFactory tries to guess the timezone - you can override this manually
