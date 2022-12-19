@@ -20,6 +20,7 @@ class Macros
     protected $pages;
     protected $trans;
     public static $registeredMacros = [];
+    public static $availableMacros = [];
 
 
     public function __construct($pfy = null)
@@ -59,18 +60,18 @@ class Macros
         }
         $macroLocations[] = PFY_MACROS_PATH;
 
-        $this->availableMacros = [];
+        self::$availableMacros = [];
         foreach ($macroLocations as $location) {
             $dir = \Usility\PageFactory\getDir($location . '*');
             foreach ($dir as $item) {
                 if (is_file($item)) {
                     $macroName = strtolower(basename($item, '.php'));
-                    $this->availableMacros[ $macroName ] = $item;
+                    self::$availableMacros[ $macroName ] = $item;
                 } elseif (is_dir($item)) {
                     $macroName = strtolower(basename(trim($item, '/')));
                     $item = "{$item}code/index.php";
                     if (file_exists($item)) {
-                        $this->availableMacros[ $macroName ] = $item;
+                        self::$availableMacros[ $macroName ] = $item;
                     }
                 }
             }
@@ -142,8 +143,8 @@ EOT;
             $macroObj = self::$registeredMacros[ $macroName ];
 
         } else {
-            if (isset($this->availableMacros[ $macroName ])) {
-                $macroFile = $this->availableMacros[ $macroName ];
+            if (isset(self::$availableMacros[ $macroName ])) {
+                $macroFile = self::$availableMacros[ $macroName ];
 
                 // ===> Load the macro object now:
                 $macroObj = include $macroFile;
@@ -152,11 +153,11 @@ EOT;
 
                 // workaround: if intendet macro name collides with PHP keyword, define macro as "_Macroname" instead.
                 //  -> example: list() => class _List() and file _List.php
-            } elseif (isset($this->availableMacros[ "_$macroName" ])) {
+            } elseif (isset(self::$availableMacros[ "_$macroName" ])) {
                 $macroName0 = $macroName;
                 $macroName = "_$macroName";
                 $thisMacroName = 'Usility\\PageFactory\\' . ucfirst( $macroName );
-                $macroFile = $this->availableMacros[ $macroName ];
+                $macroFile = self::$availableMacros[ $macroName ];
 
                 // ===> Load the macro object now:
                 $macroObj = include $macroFile;
@@ -272,7 +273,7 @@ EOT;
     {
         $str = '';
         $registeredMacros = self::$registeredMacros;
-        $availableMacros = $this->availableMacros;
+        $availableMacros = self::$availableMacros;
         foreach ($availableMacros as $k => $rec) {
             if ($k[0] === '_') {
                 $availableMacros[substr($k,1)] = $rec;
