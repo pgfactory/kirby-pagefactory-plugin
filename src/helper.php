@@ -1475,7 +1475,7 @@ function parseArgumentStr(string $str, string $delim = ',', mixed $superBrackets
             $yaml .= "- $key\n";
             $rest = ltrim($rest, " $delim\n");
         } else {
-            $rest = substr($rest, 1);
+            $rest = ltrim(substr($rest, 1));
             $value = parseArgValue($rest, $delim);
             if (trim($value) !== '') {
                 $yaml .= "$key: $value\n";
@@ -2356,16 +2356,11 @@ function clearCache(): void
  /**
   * Returns the time since PageFactory started its execution.
   * @param bool $verbose
-  * @return float|string
+  * @return float
   */
- function readTimer(bool $verbose = false ): mixed
+ function readTimer(): float
  {
-     $t = (round((microtime(true) - PageFactory::$timer)*1000000) / 1000 - 0.005);
-     if ($verbose) {
-         return "Time: {$t}ms";
-     } else {
-         return $t;
-     }
+     return round(((microtime(true) - PageFactory::$timer)*1000000) / 1000 - 0.005, 1);
  } // readTimer
 
 
