@@ -13,7 +13,6 @@ define('DOWNLOAD_TYPES',        ',txt,doc,docx,dotx,xls,xlsx,xltx,ppt,pptx,potx,
 
 
 $macroConfig =  [
-    'name' => strtolower( $macroName ),
     'parameters' => [
         'url' => ['Path or URL to link target', false],
         'text' => ['Link-text. If missing, "href" will be displayed instead.', false],
@@ -31,7 +30,7 @@ $macroConfig =  [
         'body' => ['In case of "mail": mail body to be preset.', false],
     ],
     'summary' => <<<EOT
-Renders an link tag.
+Renders an HTML-link (\<a> tag).
 
 Supported link-types: mail, pdf, sms, tel, geo, gsm, slack, twitter, tiktok, instagram, facebook.
 
@@ -51,12 +50,6 @@ class Link extends Macros
       'gsm' => 'mobile',
       'mailto' => 'mail',
     ];
-
-    public function __construct($pfy = null)
-    {
-        $this->name = strtolower(__CLASS__);
-        parent::__construct($pfy);
-    }
 
 
     /**
@@ -413,6 +406,8 @@ class Link extends Macros
             $icon = $this->args['icon'];
         } elseif ($this->icon) {
             $icon = $this->icon;
+        } elseif ($this->isExternalLink && PageFactory::$config['externalLinksToNewWindow']) {
+            $icon = 'external';
         }
 
         if ($icon) {

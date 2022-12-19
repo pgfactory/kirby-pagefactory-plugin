@@ -4,7 +4,6 @@ namespace Usility\PageFactory;
 
 
 $macroConfig =  [
-    'name' => strtolower( $macroName ),
     'parameters' => [
         'wrapperClass' => ['Class applied to the Nav\'s wrapper.', ''],
         'class' => ['Class applied to the Nav element.', ''],
@@ -33,13 +32,6 @@ EOT,
 
 class Nav extends Macros
 {
-    public function __construct($pfy = null)
-    {
-        $this->name = strtolower(__CLASS__);
-        parent::__construct($pfy);
-    }
-
-
     public function render($args, $argStr)
     {
         $wrapperClass = $args['wrapperClass'];
@@ -60,7 +52,7 @@ class Nav extends Macros
         $str = $nav->render($args);
         return$str;
     }
-}
+} // Nav
 
 
 

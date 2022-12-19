@@ -3,20 +3,21 @@
 namespace Usility\PageFactory;
 
 $macroConfig =  [
-    'name' => strtolower( $macroName ),
     'parameters' => [
-        'path' => ['Selects the folder to be read', false],
-        'pattern' => ['The search-pattern with which to look for files (-> \'glob style\'. e.g. "{&#92;&#42;.js,&#92;&#42;.css}")', '*'],
-        'deep' => ['[false,true,hierarchical] Whether to recursively descend into sub-folders. ("flat" means deep, but rendered as a non-hierarchical list.)', false],
-        'showPath' => ['[false,true] Whether to render the entire path per file in deep mode.', false],
-        'order' => ['[reverse] Displays result in reversed order.', false],
+        'path' => ['Selects the folder to be read. May include an optional '.
+            'selection-pattern  (-> \'glob style\', e.g. "*.pdf" or "{&#92;&#42;.js,&#92;&#42;.css}")', false],
         'id' => ['Id to be applied to the enclosing li-tag (Default: pfy-dir-#)', false],
         'class' => ['Class to be applied to the enclosing li-tag (Default: pfy-dir)', 'pfy-dir'],
         'target' => ['"target" attribute to be applied to the a-tag.', false],
-        'exclude' => ['Pattern by which to exclude specific elements.', false],
+        'exclude' => ['Regex pattern by which to exclude specific elements.', false],
+        'flags' => ['[REVERSE_ORDER, EXCLUDE_EXTENSION, INCLUDE_PATH, DEEP, HIERARCHICAL, ORDERED_LIST, DOWNLOAD, AS_LINK] Activates miscellaneous modes.', false],
+//        'flags' => ['[REVERSE_ORDER, EXCLUDE_EXTENSION, INCLUDE_PATH, DEEP, ORDERED_LIST, DOWNLOAD, AS_LINK] Activates miscellaneous modes.', false],
+        'prefix' => ['If defined, string will be placed before each element.', false],
+        'postfix' => ['If defined, string will be placed behind each element.', false],
+        'linkPath' => ['(For internal use only)', false],
+        'replaceOnElem' => ['(pattern,replace) If defined, regular expression is applied to each element. '.
+            'Example: remove leading underscore:  "^_,&#39;&#39;"', false],
         'maxAge' => ['[integer] Maximum age of file (in number of days).', false],
-        'orderedList' => ['If true, renders found objects as an ordered list (&lt;ol>).', false],
-        'download' => ['If true, renders download links.', false],
     ],
     'summary' => <<<EOT
 Renders the content of a directory.
@@ -29,33 +30,43 @@ class Dir extends Macros
 {
     public static $inx = 1;
 
-    public function __construct($pfy = null)
-    {
-        $this->name = strtolower(__CLASS__);
-        parent::__construct($pfy);
-    }
-
-
     public function render($args, $argStr)
     {
         $inx = self::$inx++;
 
         $this->path = $args['path'];
-        $pattern = $args['pattern'];
-        $this->deep = $args['deep'];
-        $this->showPath = $args['showPath'];
-        $this->order = $args['order'];
         $this->id = $args['id'];
         $this->class = $args['class'];
         $this->target = $args['target'];
         $this->exclude = $args['exclude'];
+        $this->flags = $args['flags'];
         $this->maxAge = $args['maxAge'];
-        $this->download = $args['download'];
+        $this->prefix = $args['prefix'];
+        $this->postfix = $args['postfix'];
+        $this->linkPath = $args['linkPath'];
+        $this->replaceOnElem = $args['replaceOnElem'];
 
-        $this->tag = $args['orderedList'] ? 'ol' : 'ul';
+        $this->order = str_contains($this->flags, 'REVERSE_ORDER');
+        $this->deep = str_contains($this->flags, 'DEEP');
+        $this->flat = true;
+        if (str_contains($this->flags, 'HIERARCHICAL')) {
+            $this->flat = false;
+            $this->deep = true;
+        }
+        $this->showPath = str_contains($this->flags, 'INCLUDE_PATH');
+        $this->excludeExt = str_contains($this->flags, 'EXCLUDE_EXTENSION');
+        $this->tag = str_contains($this->flags, 'ORDERED_LIST') ? 'ol' : 'ul';
+        $this->download = str_contains($this->flags, 'DOWNLOAD');
+        $this->asLink = str_contains($this->flags, 'AS_LINK');
 
         if ($this->download) {
             $this->download = ' download';
+            $this->asLink = true;
+        }
+        if ($filename = base_name($this->path)) {
+            $pattern = $filename;
+        } else {
+            $pattern = '*';
         }
         $this->path = dir_name($this->path);
         if ($this->path) {
@@ -89,12 +100,12 @@ class Dir extends Macros
         if ($this->target) {
             $this->linkClass = " class='pfy-link pfy-newwin_link'";
         }
-
         $path = resolvePath($this->path);
         if ($this->deep) {
             $dir = getDirDeep($path . $pattern);
             sort($dir);
-            if (($this->deep === true) || ($this->deep === 'flat')) {
+            if ($this->flat) {
+//            if (($this->deep === true) || ($this->deep === 'flat')) {
                 $str = $this->straightList($dir);
             } else {
                 $str = $this->hierarchicalList($path, $dir);
@@ -107,6 +118,9 @@ class Dir extends Macros
 
         } else {
             $dir = getDir($path . $pattern);
+            if ($this->exclude) {
+                $dir = preg_grep("|$this->exclude|", $dir, PREG_GREP_INVERT);
+            }
             $str = $this->straightList($dir);
         }
         return $str;
@@ -126,6 +140,9 @@ class Dir extends Macros
         if ($this->maxAge) {
             $maxAge = time() - 86400 * $this->maxAge;
         }
+        if ($this->replaceOnElem) {
+            list($pattern, $replace) = explodeTrim(',', $this->replaceOnElem);
+        }
         foreach ($dir as $file) {
             if (is_dir($file) || (filemtime($file) < $maxAge)) {
                 continue;
@@ -135,12 +152,33 @@ class Dir extends Macros
             } else {
                 $name = $file;
             }
-            $url = $this->parseUrlFile($file); // check whether it's a link file (.url or .webloc)
-            if ($url) {
-                $str .= "\t\t<li class='pfy-dir-file'><a href='$url'{$this->targetAttr}{$this->linkClass}{$this->download}>$url</a></li>\n";
-            } else {    // it's regular local file:
-                $url = '~/' . $file;
-                $str .= "\t\t<li class='pfy-dir-file'><a href='$url'{$this->targetAttr}{$this->linkClass}{$this->download}>$name</a></li>\n";
+            if ($this->excludeExt) {
+                $name = fileExt($name, true);
+            }
+            if ($this->replaceOnElem) {
+                $name = preg_replace("|$pattern|", $replace, $name);
+            }
+            $name = "$this->prefix$name$this->postfix";
+            if ($this->asLink) {
+                if ($this->linkPath) {
+                    if (str_contains($this->linkPath, '%basename%')) {
+                        $file = str_replace('%basename%', base_name($file, false), $this->linkPath);
+                    }
+                    $file = strtolower($file);
+                }
+                $url = $this->parseUrlFile($file); // check whether it's a link file (.url or .webloc)
+                if ($url) {
+                    $str .= "\t\t<li class='pfy-dir-file'><a href='$url'{$this->targetAttr}{$this->linkClass}{$this->download}>$url</a></li>\n";
+                } else {    // it's regular local file:
+                    if (str_starts_with($file, '~')) {
+                        $url = $file;
+                    } else {
+                        $url = '~/' . $file;
+                    }
+                    $str .= "\t\t<li class='pfy-dir-file'><a href='$url'{$this->targetAttr}{$this->linkClass}{$this->download}>$name</a></li>\n";
+                }
+            } else {
+                $str .= "\t\t<li class='pfy-dir-file'>$name</li>\n";
             }
         }
         $str = <<<EOT

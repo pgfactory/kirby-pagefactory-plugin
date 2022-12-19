@@ -7,13 +7,12 @@
 namespace Usility\PageFactory;
 
 $macroConfig =  [
-    'name' => strtolower( $macroName ),
     'parameters' => [
         'file' => ['[filename] Loads given file and injects its content into the page. '.
             'If "file" contains glob-style wildcards, then all matching files will be loaded. '.
             'If file-extension is ".md", loaded content will be markdown-compiled automatically.', false],
-        'snippet' => ['[filename] Loads given Kirby snippet, compiles it and '.
-            'injects the resulting string into the HTML output.', false],
+//        'snippet' => ['[filename] Loads given Kirby snippet, compiles it and '.
+//            'injects the resulting string into the HTML output.', false],
         'literal' => ['If true, file content will be rendered as is - i.e. in \<pre> tags.', false],
         'mdCompile' => ['If true, file content will be markdown-compiled before rendering.', false],
         'wrapperTag' => ['If defined, output will be wrapped in given tag.', false],
@@ -31,11 +30,6 @@ EOT,
 class Import extends Macros
 {
     public static $inx = 1;
-    public function __construct($pfy = null)
-    {
-        $this->name = strtolower(__CLASS__);
-        parent::__construct($pfy);
-    }
 
 
     /**
@@ -49,7 +43,7 @@ class Import extends Macros
         $inx = self::$inx++;
 
         $file = $args['file'];
-        $snippet = $args['snippet'];
+//        $snippet = $args['snippet'];
         $literal = $args['literal'];
         $wrapperTag = $args['wrapperTag'];
         $wrapperClass = $args['wrapperClass'];
@@ -62,9 +56,9 @@ class Import extends Macros
         }
 
         // handle 'snippet':
-        if ($snippet) {
-            $str .= $this->importSnippet($snippet);
-        }
+//        if ($snippet) {
+//            $str .= $this->importSnippet($snippet);
+//        }
 
         if ($literal && !$wrapperTag) {
             $wrapperTag = 'pre';
@@ -132,6 +126,10 @@ EOT;
         $str = '';
         $snippetStr = @file_get_contents($file);
         if ($snippetStr) {
+$class = '';
+$image = '';
+$src = 'https://www.youtube.com/watch?v=9ocG1FWjTbk';
+$id = '9ocG1FWjTbk';
             $this->handlePrematureOutput();
             eval(" ?>$snippetStr<?php");
             $str = ob_get_contents();

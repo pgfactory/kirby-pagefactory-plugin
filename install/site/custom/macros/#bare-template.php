@@ -7,7 +7,6 @@
 namespace Usility\PageFactory;
 
 $macroConfig =  [
-    'name' => strtolower( $macroName ),
     'parameters' => [
         '' => ['', false],
     ],
@@ -23,12 +22,6 @@ EOT,
 class replace_with_filename extends Macros
 {
     public static $inx = 1;
-    public function __construct($pfy = null)
-    {
-        $this->name = strtolower(__CLASS__);
-        parent::__construct($pfy);
-    }
-
 
     /**
      * Macro rendering method
@@ -40,7 +33,7 @@ class replace_with_filename extends Macros
     {
         $inx = self::$inx++;
 
-        $arg = $args['my-arg'];
+        // $arg = $args['my-arg'];
         $str = '';
 
         return $str;

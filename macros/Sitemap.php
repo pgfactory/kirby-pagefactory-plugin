@@ -4,7 +4,6 @@ namespace Usility\PageFactory;
 
 
 $macroConfig =  [
-    'name' => strtolower( $macroName ),
     'parameters' => [
         'type' => ['[branches].', ''],
         'wrapperClass' => ['Class applied to the Nav\'s wrapper.', ''],
@@ -34,13 +33,6 @@ EOT,
 
 class Sitemap extends Macros
 {
-    public function __construct($pfy = null)
-    {
-        $this->name = strtolower(__CLASS__);
-        parent::__construct($pfy);
-    }
-
-
     public function render($args)
     {
         $args['wrapperClass'] = 'pfy-sitemap pfy-nav-vertical pfy-nav-indented pfy-nav-animated'.$args['wrapperClass'];

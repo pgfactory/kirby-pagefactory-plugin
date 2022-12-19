@@ -3,7 +3,6 @@
 namespace Usility\PageFactory;
 
 $macroConfig =  [
-    'name' => strtolower( $macroName ),
     'parameters' => [
         'min' => ['If set, defines the minimum number of random words to be rendered.', false],
         'max' => ['If set, defines the maximum number of random words to be rendered.', false],
@@ -24,11 +23,6 @@ EOT,
 class Lorem extends Macros
 {
     public static $inx = 1;
-    public function __construct($pfy = null)
-    {
-        $this->name = strtolower(__CLASS__);
-        parent::__construct($pfy);
-    }
 
 
     public function render($args, $argStr)

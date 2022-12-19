@@ -37,6 +37,15 @@ class Macros
         $this->page = $pfy->page;
         $this->pages = PageFactory::$pages;
 
+    } // __construct
+
+
+    /**
+     * Finds available macros in locations custom-folder, pfy-extensions and this plugin.
+     * @return void
+     */
+    public function init(): void
+    {
         // find macro folders in custom/, extensions and pagefactory:
         $macroLocations = [];
         $macroLocations[] = PFY_USER_CODE_PATH;
@@ -66,7 +75,7 @@ class Macros
                 }
             }
         }
-    } // __construct
+    } // init
 
 
     /**
@@ -116,7 +125,11 @@ EOT;
     } // execute
 
 
-
+    /**
+     * @param $macroName
+     * @return array|mixed|null
+     * @throws \Exception
+     */
     public function loadMacro($macroName)
     {
         $this->trans = PageFactory::$trans;
@@ -134,6 +147,7 @@ EOT;
 
                 // ===> Load the macro object now:
                 $macroObj = include $macroFile;
+                $macroObj['name'] = $macroName;
                 self::$registeredMacros[ $macroName ] = $macroObj;
 
                 // workaround: if intendet macro name collides with PHP keyword, define macro as "_Macroname" instead.
