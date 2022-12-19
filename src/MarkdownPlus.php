@@ -1484,7 +1484,15 @@ EOT;
         if (preg_match_all('/(\(\w*:.*?\))/ms', $str, $m)) {
             foreach ($m[1] as $i => $value) {
                 $value = strip_tags(str_replace("\n", ' ', $value));
-                
+
+                // check whether this pattern is just part of the param list of a macro:
+                $pat = preg_quote($value);
+                $pat = str_replace('|', '\\|', $pat);
+                if (!preg_match("|\{{\S+$pat|", $str)) {
+                    continue;
+                }
+
+
                 // intercept '(link:' and process by link() macro:
                 if (preg_match('/^ \(link: \s* ["\']? ([^\s"\']+) ["\']? (.*) \) /x', $value, $mm)) {
                     $value = "url:'{$mm[1]}' {$mm[2]}";
