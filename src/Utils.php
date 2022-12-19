@@ -338,8 +338,7 @@ EOT;
         // if variables were defined in Frontmatter, propagate them into PFY's variables:
         if ((Page::$frontmatter['variables']??false) && is_array(Page::$frontmatter['variables'])) {
             foreach (Page::$frontmatter['variables'] as $varName => $value) {
-                $array[$varName] = $value;
-                PageFactory::$trans->setVariable($varName, $array);
+                PageFactory::$trans->setVariable($varName, $value);
             }
         }
 
@@ -493,10 +492,24 @@ EOT;
      */
     public function resolveUrls(string $html): string
     {
+        $l = strlen(PageFactory::$hostUrl);
+        // special case: ~assets/ -> need to get url from Kirby:
+        if (preg_match_all('|~assets/([^\s"\']*)|', $html, $m)) {
+            foreach ($m[1] as $i => $item) {
+                $filename = 'assets/'.$m[1][$i];
+                $file= site()->index()->files()->find($filename);
+                if ($file) {
+                    $url = $file->url();
+                    $url = substr($url, $l);
+                    $html = str_replace($m[0][$i], $url, $html);
+                } else {
+                    throw new \Exception("Error: unable to find asset '~$filename'");
+                }
+            }
+        }
         $patterns = [
             '~/'        => PageFactory::$appUrl,
             '~media/'   => PageFactory::$appRootUrl.'media/',
-            '~assets/'  => PageFactory::$appRootUrl.'content/assets/',
             '~data/'    => PageFactory::$appRootUrl.'site/custom/data/',
             '~page/'    => PageFactory::$pageUrl,
         ];
