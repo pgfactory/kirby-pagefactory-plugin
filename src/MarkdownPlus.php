@@ -233,7 +233,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
                 if (preg_match('|^<p>(.*)</p>$|', $cell, $m)) {
                     $cell = $m[1];
                 }
-                $out .= "\t\t\t<th class='th$col'>$cell</th>\n";
+                $out .= "\t\t\t<th class='col".($col+1)."'>$cell</th>\n";
             }
             $out .= "\t    </tr>\n\t  </thead>\n";
         }
@@ -1142,8 +1142,10 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
                 '/(?<!\.)\.\.\.(?!\.)/ms'  => '&hellip;',
                 '/(?<!-|!)--(?!-|>)/ms'  => '&ndash;', // in particular: <!-- -->
                 '/(?<!-)---(?!-)/ms'  => '&mdash;',
-                '/(?<!&lt;)&lt;&lt;(?!&lt;)/ms'  => '&#171;',
-                '/(?<!&gt;)&gt;&gt;(?!&gt;)/ms'  => '&#187;',
+                '/(?<!&lt;)&lt;<(?!&lt;)/ms'  => '&#171;',      // <<
+                '/(?<!&lt;)&lt;&lt;(?!&lt;)/ms'  => '&#171;',   // <<
+                '/(?<!&gt;)>&gt;(?!&gt;)/ms'  => '&#187;',      // >>
+                '/(?<!&gt;)&gt;&gt;(?!&gt;)/ms'  => '&#187;',   // >>
                 '/\bEURO\b/ms'  => '&euro;',
                 '/sS/ms'  => 'ß',
                 '|1/4|ms'  => '&frac14;',
@@ -1671,7 +1673,7 @@ EOT;
         if (preg_match_all('/( \( (date|email|file|gist|image|link|tel|twitter|video) : .*? \) )/xms', $str, $m)) {
             foreach ($m[1] as $i => $value) {
                 // check whether it's part of a macro call, skip if so:
-                $pat = '\{\{\s*\w+'.str_replace('|', '\\|', preg_quote($value));
+                $pat = '\{\{\s*[\w-]+'.str_replace('|', '\\|', preg_quote($value));
                 if (preg_match("|$pat|", $str)) {
                     continue;
                 }
