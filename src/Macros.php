@@ -148,7 +148,6 @@ EOT;
 
                 // ===> Load the macro object now:
                 $macroObj = include $macroFile;
-                $macroObj['name'] = $macroName;
                 self::$registeredMacros[ $macroName ] = $macroObj;
 
                 // workaround: if intendet macro name collides with PHP keyword, define macro as "_Macroname" instead.
@@ -198,9 +197,9 @@ EOT;
                 PageFactory::$assets->addAssets($asset);
             }
         }
-
+        $macroObj['name'] = $macroName;
         return $macroObj;
-    } // preloadMacro
+    } // loadMacro
 
 
     /**
@@ -237,7 +236,7 @@ EOT;
      */
     private function renderHelpText(array $macroObj): string
     {
-        $macroName = $macroObj['name']??'';
+        $macroName = $macroObj['name']??' ';
         if ($macroName[0] === '_') {
             $macroName = substr($macroName, 1);
         }
@@ -274,23 +273,28 @@ EOT;
         $str = '';
         $registeredMacros = self::$registeredMacros;
         $availableMacros = self::$availableMacros;
-        foreach ($availableMacros as $k => $rec) {
-            if ($k[0] === '_') {
-                $availableMacros[substr($k,1)] = $rec;
-                unset($availableMacros[$k]);
-            }
+        $keys0 = array_keys($availableMacros);
+        $keys = array_map(function ($e) { return str_replace('_', '', $e);}, $keys0);
+        $a = array_combine($keys, $keys0);
+        ksort($a);
+        $am = [];
+        foreach ($a as $k => $v) {
+            $am[$v] = $availableMacros[$v];
         }
-        ksort($availableMacros);
-        foreach ($availableMacros as $macroName => $macroFile) {
+        foreach ($am as $macroName => $macroFile) {
             $thisMacroName = 'Usility\\PageFactory\\' . ucfirst( $macroName );
             if ($registeredMacros[ $macroName ]??false) {
                 $macroObj = $registeredMacros[ $macroName ];
             } elseif ($registeredMacros[substr($macroName,1)]??false) {
                 $macroObj = $registeredMacros[ substr($macroName,1) ];
             } else {
+                if (!file_exists($macroFile)) {
+                    throw new \Exception("Macro file '$macroFile' not found.");
+                }
                 $macroObj = include $macroFile;
                 self::$registeredMacros[ $macroName ] = $macroObj;
             }
+            $macroObj['name'] = $macroName;
             if (stripos($option, 'short') !== false) {
                 $str .= "- $macroName()\n";
             } else {
