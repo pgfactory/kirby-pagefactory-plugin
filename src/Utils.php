@@ -11,7 +11,10 @@ use Exception;
 class Utils
 {
     private $mdContent;
-    
+
+    /**
+     * @param $pfy
+     */
     public function __construct($pfy)
     {
         $this->pfy = $pfy;
@@ -715,6 +718,10 @@ EOT;
     } // getContent
 
 
+    /**
+     * Optains config values from Kirby and adds values from site/site.txt
+     * @return void
+     */
     public function loadPfyConfig():void
     {
         $optionsFromConfigFile = kirby()->option('usility.pagefactory.options');
@@ -722,11 +729,6 @@ EOT;
             PageFactory::$config = array_replace_recursive(OPTIONS_DEFAULTS, $optionsFromConfigFile);
         } else {
             PageFactory::$config = OPTIONS_DEFAULTS;
-        }
-
-        // propagate variables from config into TransVars:
-        if (isset(PageFactory::$config['variables'])) {
-            PageFactory::$trans->setVariables(PageFactory::$config['variables']);
         }
 
         // add values from site/site.txt:
@@ -747,6 +749,19 @@ EOT;
             PageFactory::$config['keywords'] = $s;
         }
     } // loadPfyConfig
+
+
+    /**
+     * Propagate variables from config into TransVars after Page has been instantiated
+     * @return void
+     */
+    public function init(): void
+    {
+        // propagate variables from config into TransVars:
+        if (isset(PageFactory::$config['variables'])) {
+            PageFactory::$trans->setVariables(PageFactory::$config['variables']);
+        }
+    } // init
 
 
     /**
