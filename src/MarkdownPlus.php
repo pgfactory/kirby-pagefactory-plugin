@@ -11,6 +11,8 @@ use Exception;
  *  -> required by DivBlock pattern
  */
 
+// HTML tags that must not have a closing tag:
+const PFY_SINGLETON_TAGS = 'img,input,br,hr,meta,embed,link,source,track,wbr,col,area';
 
 class MarkdownPlus extends \cebe\markdown\MarkdownExtra
 {
@@ -22,11 +24,14 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
             'map,object,output,q,samp,script,select,small,span,strong,sub,sup,textarea,time,tt,var,skip,';
     // 'skip' is a pseudo tag used by MarkdownPlus.
 
+    /**
+     * @param $pfy
+     */
     public function __construct($pfy = false)
     {
-        $this->pfy          = $pfy;
-        $this->kirby        = kirby();
-        $this->trans        = PageFactory::$trans;
+        $this->pfy           = $pfy;
+        $this->kirby         = kirby();
+        $this->divblockChars = PageFactory::$config['divblock-chars']??'@';
     }
 
 
@@ -58,6 +63,12 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
     } // compile
 
 
+    /**
+     * Compiles string on non-block level, i.e. like inside a paragraph
+     * @param string $str
+     * @return string
+     * @throws Exception
+     */
     public function compileParagraph(string $str):string
     {
         if (!$str) {
@@ -90,16 +101,25 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
 
 
     // === AsciiTable ==================
-    protected function identifyAsciiTable($line)
+    /**
+     * @param string $line
+     * @return bool
+     */
+    protected function identifyAsciiTable(string $line): bool
     {
         // asciiTable starts with '|==='
         if (strncmp($line, '|===', 4) === 0) {
-            return 'asciiTable';
+            return true;
         }
         return false;
     }
 
-    protected function consumeAsciiTable($lines, $current)
+    /**
+     * @param array $lines
+     * @param int $current
+     * @return array
+     */
+    protected function consumeAsciiTable(array $lines, int $current): array
     {
         $block = [
             'asciiTable',
@@ -122,7 +142,11 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
         return [$block, $i];
     }
 
-    protected function renderAsciiTable($block)
+    /**
+     * @param array $block
+     * @return string
+     */
+    protected function renderAsciiTable(array $block): string
     {
         $table = [];
         $nCols = 0;
@@ -230,7 +254,8 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
                 if ($colspan > 1) {
                     $colspanAttr = " colspan='$colspan'";
                 }
-                $out .= "\t\t\t<td class='row".($row+1)." col".($col+1)."'$colspanAttr>$cell</td>\n";
+                $out .= "\t\t\t<td class='row".($row+1)." col".($col+1)."'$colspanAttr>\n\t\t\t\t$cell\t\t\t</td>\n";
+//                $out .= "\t\t\t<td class='row".($row+1)." col".($col+1)."'$colspanAttr>$cell</td>\n";
                 $colspan = 1;
             }
             $out .= "\t\t</tr>\n";
@@ -246,17 +271,27 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
 
 
     // === DivBlock ==================
-    protected function identifyDivBlock($line)
+    /**
+     * @param string $line
+     * @return bool
+     */
+    protected function identifyDivBlock(string $line): bool
     {
         // if a line starts with at least 3 colons it is identified as a div-block
-        // fence chars ':$@' -> block
-        if (preg_match('/^[:$@%]{3,10}\s+\S/', $line)) {
-            return 'divBlock';
+        // fence chars e.g. ':$@' -> defined in PageFactory::$config['divblock-chars']
+        if (preg_match("/^[$this->divblockChars]{3,10}\s+\S/", $line)) {
+            return true;
         }
         return false;
     } // identifyDivBlock
 
-    protected function consumeDivBlock($lines, $current)
+    /**
+     * @param array $lines
+     * @param int $current
+     * @return array
+     * @throws Exception
+     */
+    protected function consumeDivBlock(array $lines, int $current): array
     {
         $line = rtrim($lines[$current]);
         // create block array
@@ -292,12 +327,11 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
             }
         }
 
-        $block['tag'] = $tag ? $tag : (($marker === '%') ? 'span' : 'div');
+        $block['tag'] = $tag ?: (($marker === '%') ? 'span' : '');
         $block['attributes'] = $attrs['htmlAttrs'];
-        $block['lang'] = $attrs['lang'];;
-        $block['literal'] = $attrs['literal'];;
+        $block['lang'] = $attrs['lang'];
+        $block['literal'] = $attrs['literal'];
         $block['meta'] = '';
-        $block['mdCompile'] = ($attrs['mdCompile'] !== false);
 
         // consume all lines until end-tag, e.g. @@@
         for($i = $current + 1, $count = count($lines); $i < $count; $i++) {
@@ -325,24 +359,63 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
         }
 
         $content = implode("\n", $block['content']);
-        if ($block['literal'] || ($block['mdCompile'] === false)) {
-            unset($block['content']);
+        unset($block['content']);
+        if ($block['literal']) {
             $block['content'][0] = shieldStr($content);
 
-        } else {
-            unset($block['content']);
-            // fence type '%' means parse inline only:
-            if ($fence[0] === '%') {
-                $block['content'][0] = parent::parseParagraph($content);
+        } elseif ($attrs['inline']){
+            $content = $this->compileEmbeddedDivBlock($content);
+            $block['content'][0] = parent::parseParagraph($content);
 
-            } else {
-                $block['content'][0] = shieldStr($content, true);
-            }
+        } else {
+            $block['content'][0] = shieldStr($content, true);
         }
         return [$block, $i];
     } // consumeDivBlock
 
-    protected function renderDivBlock($block)
+    /**
+     * @param string $str
+     * @return string
+     */
+    private function compileEmbeddedDivBlock(string $str): string
+    {
+        $lines = explode("\n", $str);
+        $block = false;
+        $str = '';
+        foreach ($lines as $line) {
+            if ($block === false) {
+                if (preg_match("/([$this->divblockChars]{3,10})(.*)/",$line, $m)) {
+                    $fence = $m[1];
+                    $l = strlen($fence);
+                    $block = '';
+                    $attrs = parseInlineBlockArguments($line);
+                } else {
+                    $str .= "$line\n";
+                }
+            } else {
+                if (substr($line, 0, $l) === $fence) {
+                    if ($attrs['inline']??false) {
+                        $html = parent::parseParagraph($block);
+                    } else {
+                        $html = parent::parse($block);
+                    }
+                    $tag = $attrs['tag'] ?: 'div';
+                    $_tag = str_contains(PFY_SINGLETON_TAGS, $tag)? '': "</$tag>";
+                    $str .= "<$tag{$attrs['htmlAttrs']}>\n$html\n$_tag\n";
+                    $block = false;
+                } else {
+                    $block .= $line;
+                }
+            }
+        }
+        return $str;
+    } // compileEmbeddedDivBlock
+
+    /**
+     * @param array $block
+     * @return string
+     */
+    protected function renderDivBlock(array $block): string
     {
         $tag = $block['tag'];
         $attrs = $block['attributes'];
@@ -358,22 +431,37 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
             return $out;
         }
 
-        return "\n\n<$tag $attrs>\n$out</$tag><!-- $attrs -->\n\n\n";
+        if (($tag === '') && !$attrs) {
+            return $out;
+        } else {
+            $tag = $tag?: 'div';
+            $_tag = str_contains(PFY_SINGLETON_TAGS, $tag)? '': "</$tag>";
+            return "\n\n<$tag$attrs>\n$out$_tag<!-- $tag$attrs -->\n\n\n";
+        }
     } // renderDivBlock
 
 
 
 
     // === Tabulator ==================
-    protected function identifyTabulator($line)
+    /**
+     * @param string $line
+     * @return bool
+     */
+    protected function identifyTabulator(string $line): bool
     {
         if (preg_match('/(\s\s|\t) ([.\d]{1,3}\w{1,2})? >> [\s\t]/x', $line)) { // identify patterns like '{{ tab( 7em ) }}'
-            return 'tabulator';
+            return true;
         }
         return false;
     } // identifyTabulator
 
-    protected function consumeTabulator($lines, $current)
+    /**
+     * @param array $lines
+     * @param int $current
+     * @return array
+     */
+    protected function consumeTabulator(array $lines, int $current): array
     {
         $block = [
             'tabulator',
@@ -414,7 +502,11 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
         return [$block, $last];
     } // consumeTabulator
 
-    protected function renderTabulator($block)
+    /**
+     * @param array $block
+     * @return string
+     */
+    protected function renderTabulator(array $block): string
     {
         $inx = self::$tabulatorInx++;
         $out = '';
@@ -460,16 +552,27 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
 
 
     // === DefinitionList ==================
-    protected function identifyDefinitionList($line, $lines, $current)
+    /**
+     * @param string $line
+     * @param array $lines
+     * @param int $current
+     * @return bool
+     */
+    protected function identifyDefinitionList(string $line, array $lines, int $current): bool
     {
         // if next line starts with ': ', it's a dl:
         if (isset($lines[$current+1]) && strncmp($lines[$current+1], ': ', 2) === 0) {
-            return 'definitionList';
+            return true;
         }
         return false;
     } // identifyDefinitionList
 
-    protected function consumeDefinitionList($lines, $current)
+    /**
+     * @param array $lines
+     * @param int $current
+     * @return array
+     */
+    protected function consumeDefinitionList(array $lines, int $current): array
     {
         // create block array
         $block = [
@@ -492,7 +595,11 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
         return [$block, $i];
     } // consumeDefinitionList
 
-    protected function renderDefinitionList($block)
+    /**
+     * @param array $block
+     * @return string
+     */
+    protected function renderDefinitionList(array $block): string
     {
         $out = '';
         $md = '';
@@ -524,15 +631,24 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
 
 
     // === OrderedList ==================
-    protected function identifyOrderedList($line)
+    /**
+     * @param string $line
+     * @return bool
+     */
+    protected function identifyOrderedList(string $line): bool
     {
         if (preg_match('/^\d+ !? \. /x', $line)) {
-            return 'orderedList';
+            return true;
         }
         return false;
     } // identifyOrderedList
 
-    protected function consumeOrderedList($lines, $current)
+    /**
+     * @param array $lines
+     * @param int $current
+     * @return array
+     */
+    protected function consumeOrderedList(array $lines, int $current): array
     {
         // create block array
         $block = [
@@ -557,7 +673,11 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
         return [$block, $i];
     } // consumeOrderedList
 
-    protected function renderOrderedList($block)
+    /**
+     * @param array $block
+     * @return string
+     */
+    protected function renderOrderedList(array $block): string
     {
         $out = '';
         $start = '';
@@ -579,7 +699,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
      * @marker ~~
      */
 
-    protected function parseStrike($markdown)
+    protected function parseStrike(string $markdown): array
     {
         // check whether the marker really represents a strikethrough (i.e. there is a closing ~~)
         if (preg_match('/^~~(.+?)~~/', $markdown, $matches)) {
@@ -596,7 +716,12 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
     }
 
     // rendering is the same as for block elements, we turn the abstract syntax array into a string.
-    protected function renderStrike($element)
+
+    /**
+     * @param array $element
+     * @return string
+     */
+    protected function renderStrike(array $element): string
     {
         return '<del>' . $this->renderAbsy($element[1]) . '</del>';
     }
@@ -608,7 +733,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
      * @marker ~
      */
 
-    protected function parseSubscript($markdown)
+    protected function parseSubscript(string $markdown): array
     {
         // check whether the marker really represents a strikethrough (i.e. there is a closing ~)
         if (preg_match('/^~(.{1,9}?)~/', $markdown, $matches)) {
@@ -625,7 +750,12 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
     }
 
     // rendering is the same as for block elements, we turn the abstract syntax array into a string.
-    protected function renderSubscript($element)
+
+    /**
+     * @param array $element
+     * @return string
+     */
+    protected function renderSubscript(array $element): string
     {
         return '<sub>' . $this->renderAbsy($element[1]) . '</sub>';
     }
@@ -635,7 +765,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
     /**
      * @marker ^
      */
-    protected function parseSuperscript($markdown)
+    protected function parseSuperscript(string $markdown): array
     {
         // check whether the marker really represents a strikethrough (i.e. there is a closing ~)
         if (preg_match('/^\^(.{1,20}?)\^/', $markdown, $matches)) {
@@ -652,7 +782,12 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
     }
 
     // rendering is the same as for block elements, we turn the abstract syntax array into a string.
-    protected function renderSuperscript($element)
+
+    /**
+     * @param array $element
+     * @return string
+     */
+    protected function renderSuperscript(array $element): string
     {
         return '<sup>' . $this->renderAbsy($element[1]) . '</sup>';
     }
@@ -662,7 +797,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
     /**
      * @marker ==
      */
-    protected function parseMarked($markdown)
+    protected function parseMarked(string $markdown): array
     {
         // check whether the marker really represents a strikethrough (i.e. there is a closing ==)
         if (preg_match('/^==(.+?)==/', $markdown, $matches)) {
@@ -679,6 +814,11 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
     }
 
     // rendering is the same as for block elements, we turn the abstract syntax array into a string.
+
+    /**
+     * @param array $element
+     * @return string
+     */
     protected function renderMarked(array $element): string
     {
         return '<mark>' . $this->renderAbsy($element[1]) . '</mark>';
@@ -689,7 +829,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
     /**
      * @marker ++
      */
-    protected function parseInserted($markdown)
+    protected function parseInserted(string $markdown): array
     {
         // check whether the marker really represents a strikethrough (i.e. there is a closing ~)
         if (preg_match('/^\+\+(.+?)\+\+/', $markdown, $matches)) {
@@ -706,7 +846,12 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
     }
 
     // rendering is the same as for block elements, we turn the abstract syntax array into a string.
-    protected function renderInserted($element)
+
+    /**
+     * @param array $element
+     * @return string
+     */
+    protected function renderInserted(array $element): string
     {
         return '<ins>' . $this->renderAbsy($element[1]) . '</ins>';
     }
@@ -716,7 +861,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
     /**
      * @marker __
      */
-    protected function parseUnderlined($markdown)
+    protected function parseUnderlined(string $markdown): array
     {
         // check whether the marker really represents a strikethrough (i.e. there is a closing ~)
         if (preg_match('/^__(.+?)__/', $markdown, $matches)) {
@@ -733,7 +878,12 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
     }
 
     // rendering is the same as for block elements, we turn the abstract syntax array into a string.
-    protected function renderUnderlined($element)
+
+    /**
+     * @param array $element
+     * @return string
+     */
+    protected function renderUnderlined(array $element): string
     {
         return '<span class="underline">' . $this->renderAbsy($element[1]) . '</span>';
     }
@@ -743,7 +893,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
     /**
      * @marker ``
      */
-    protected function parseDoubleBacktick($markdown)
+    protected function parseDoubleBacktick(string $markdown): array
     {
         // check whether the marker really represents a strikethrough (i.e. there is a closing `)
         if (preg_match('/^``(.+?)``/', $markdown, $matches)) {
@@ -760,7 +910,12 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
     }
 
     // rendering is the same as for block elements, we turn the abstract syntax array into a string.
-    protected function renderDoubleBacktick($element)
+
+    /**
+     * @param array $element
+     * @return string
+     */
+    protected function renderDoubleBacktick(array $element): string
     {
         return "<samp>" . $this->renderAbsy($element[1]) .  "</samp>";
     }
@@ -790,6 +945,12 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
     }
 
     // rendering is the same as for block elements, we turn the abstract syntax array into a string.
+
+    /**
+     * @param $element
+     * @return mixed|string
+     * @throws \Kirby\Exception\InvalidArgumentException
+     */
     protected function renderImage($element)
     {
         self::$imageInx++;
@@ -847,6 +1008,12 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
     }
 
     // rendering is the same as for block elements, we turn the abstract syntax array into a string.
+
+    /**
+     * @param $element
+     * @return mixed|string
+     * @throws \Kirby\Exception\InvalidArgumentException
+     */
     protected function renderLink($element)
     {
         $link = trim($element[1], '"\'');
@@ -868,7 +1035,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
     /**
      * @marker :
      */
-    protected function parseIcon($markdown)
+    protected function parseIcon(string $markdown): array
     {
         // check whether the marker really represents a strikethrough (i.e. there is a closing ~)
         if (preg_match('/^:(\w+):/', $markdown, $matches)) {
@@ -887,7 +1054,13 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
     }
 
     // rendering is the same as for block elements, we turn the abstract syntax array into a string.
-    protected function renderIcon($element)
+
+    /**
+     * @param array $element
+     * @return string
+     * @throws Exception
+     */
+    protected function renderIcon(array $element): string
     {
         $iconName = $element[1];
         $icon = renderIcon($iconName);
@@ -1177,7 +1350,7 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
                     } else {
                         $textBlock = shieldStr($textBlock);
                     }
-                    $this->trans->setVariable($var, $textBlock);
+                    PageFactory::$trans->setVariable($var, $textBlock);
                     $mdCompileTextBlock = false;
                 } else {
                     $textBlock .= $l."\n";
@@ -1192,11 +1365,11 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
                 }
                 if (strpos($val, '{{') !== false) {
                     $val = $this->replaceMdVariables($val);
-                    $val = $this->trans->translate($val);
+                    $val = PageFactory::$trans->translate($val);
                 }
 
                 $val = $this->replaceMdVariables($val);
-                $this->trans->setVariable($var, $val);
+                PageFactory::$trans->setVariable($var, $val);
                 continue;
             }
             if ($l && (($p = strpos($l, '$')) !== false)) {
@@ -1246,22 +1419,24 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
      * @return string
      * @throws \Kirby\Exception\InvalidArgumentException
      */
-    private function handleInclude(string $file, string $delim = ','): string
+    private function handleInclude(string $argsStr, string $delim = ','): string
     {
         $out = '';
-        $argsStr = $file;
-        $mdCompile = false;
+//        $argsStr = $file;
+//        $mdCompile = false;
         $mdCompileOverride = null;
-        $file = trim($file, '"\'');
-        $args = parseArgumentStr($file, $delim);
-        $file = $args[0];
-        if (in_array('literal', $args)) {
-            $mdCompileOverride = false;
-        } elseif (isset($args['literal'])) {
-            $mdCompileOverride = $args['literal'];
-        }
+        $file = trim($argsStr, '"\'');
+        $args = parseArgumentStr($argsStr, $delim);
+        $mdCompile = $args['mdCompile']??true;
+        $literal = $args['literal']??false;
+        $file = $args[0]??'';
+//        if (in_array('literal', $args)) {
+//            $mdCompileOverride = false;
+//        } elseif (isset($args['literal'])) {
+//            $mdCompileOverride = $args['literal'];
+//        }
 
-        if (strpos($file, '.php') !== false) {
+        if (str_ends_with($file, '.php')) {
             $out = $this->execAndIncludePhpFile($file, $args, $mdCompileOverride, $mdCompile);
 
         } else {
@@ -1301,6 +1476,18 @@ EOT;
                 $out = $this->includeFile($file, $mdCompileOverride);
             }
         }
+        if ($literal) {
+            $out = shieldStr($out);
+            $out = <<<EOT
+<pre>
+$out
+</pre>
+EOT;
+
+        }
+        if (!$mdCompile) {
+            $out = shieldStr($out);
+        }
         return $out;
     } // handleInclude
 
@@ -1331,12 +1518,12 @@ EOT;
 
     /**
      * Helper for handleInclude(): intercepts instances of MD-Variables
-     * @param $l
-     * @param false $p
+     * @param string $l
+     * @param false|int $p
      * @return string
      * @throws Exception
      */
-    private function replaceMdVariables($l, $p = false): string
+    private function replaceMdVariables(string $l, $p = false): string
     {
         // replaces $var or ${var} with its content, unless shielded as \$var
         //  if variable is not defined, leaves source string untouched. exception: one of below
@@ -1354,10 +1541,10 @@ EOT;
                 if (preg_match('/^\$ ([\w.]+) (.*)/x', $str, $m)) {
                     $varName = $m[1];
                     $rest = $m[2];
-                    $val = $this->trans->getVariable($varName);
+                    $val = PageFactory::$trans->getVariable($varName);
                     if ($val !== null) {
                         if (strpos($val, '{{') !== false) {
-                            $val = $this->trans->translate($val);
+                            $val = PageFactory::$trans->translate($val);
                         }
 
                         // ++ or -- in front of var:
@@ -1366,14 +1553,14 @@ EOT;
                             $p = $p - 2;
                             if (preg_match('/^-?[\d.]$/', $val)) {
                                 $val =  (string) (intval($val) + 1);
-                                $this->trans->setVariable($varName, $val);
+                                PageFactory::$trans->setVariable($varName, $val);
                             }
                         } elseif (($p > 2) && (substr($l, $p-2, 2) === '--')) {
                             $l = substr($l, 0, $p-2) . substr($l, $p);
                             $p = $p - 2;
                             if (preg_match('/^-?[\d.]$/', $val)) {
                                 $val = (string) (intval($val) - 1);
-                                $this->trans->setVariable($varName, $val);
+                                PageFactory::$trans->setVariable($varName, $val);
                             }
                         }
 
@@ -1381,12 +1568,12 @@ EOT;
                         if (strpos($rest, '++') === 0) {
                             $rest = substr($rest, 2);
                             if (preg_match('/^-?[\d.]$/', $val)) {
-                                $this->trans->setVariable($varName, (string) (intval($val) + 1));
+                                PageFactory::$trans->setVariable($varName, (string) (intval($val) + 1));
                             }
                         } elseif (strpos($rest, '--') === 0) {
                             $rest = substr($rest, 2);
                             if (preg_match('/^-?[\d.]$/', $val)) {
-                                $this->trans->setVariable($varName, (string) (intval($val) - 1));
+                                PageFactory::$trans->setVariable($varName, (string) (intval($val) - 1));
                             }
                         }
                         $l = substr($l, 0, $p) . $val . $rest;
@@ -1397,10 +1584,10 @@ EOT;
                     $varName = $mm[1];
 
                     if ((strpos($varName, '++') === false) && (strpos($varName, '--') === false) && (strpos($varName, '=') === false)) {
-                        $val = $this->trans->getVariable($varName);
+                        $val = PageFactory::$trans->getVariable($varName);
                         if ($val !== null) {
                             if (strpos($val, '{{') !== false) {
-                                $val = $this->trans->translate($val);
+                                $val = PageFactory::$trans->translate($val);
                             }
                         } else {
                             $val = '';
@@ -1411,13 +1598,13 @@ EOT;
                     } elseif (preg_match('/^ (\w+?) \s* = \s* (.*)/x', $varName, $mmm)) {
                         $varName = $mmm[1];
                         $val = $mmm[2];
-                        $this->trans->setVariable($varName, $val);
+                        PageFactory::$trans->setVariable($varName, $val);
                         $rest = $mm[2];
 
                         // increment/decrement:
                     } elseif (preg_match('/^\$ { (\+\+|--)? (\w+) (\+\+|--)? } (.*)/x', $str, $mm)) {
                         $varName = $mm[2];
-                        $val = $this->trans->getVariable($varName);
+                        $val = PageFactory::$trans->getVariable($varName);
                         if ($val === null) {
                             $val = 0;
                         }
@@ -1426,17 +1613,17 @@ EOT;
                         $rest = $mm[4];
                         if ($op1 === '++') {
                             $val = (string)($val + 1);
-                            $this->trans->setVariable($varName, $val);
+                            PageFactory::$trans->setVariable($varName, $val);
                         } elseif ($op1 === '--') {
                             $val = (string)($val - 1);
-                            $this->trans->setVariable($varName, $val);
+                            PageFactory::$trans->setVariable($varName, $val);
                         }
 
                         if ($op2 === '++') {
-                            $this->trans->setVariable($varName, (string)($val + 1));
+                            PageFactory::$trans->setVariable($varName, (string)($val + 1));
 
                         } elseif ($op2 === '--') {
-                            $this->trans->setVariable($varName, (string)($val - 1));
+                            PageFactory::$trans->setVariable($varName, (string)($val - 1));
                         }
                     }
                     $l = substr($l, 0, $p) . $val . $rest;
@@ -1481,17 +1668,15 @@ EOT;
      */
     private function handleKirbyTags(string $str): string
     {
-        if (preg_match_all('/(\(\w*:.*?\))/ms', $str, $m)) {
+        if (preg_match_all('/( \( (date|email|file|gist|image|link|tel|twitter|video) : .*? \) )/xms', $str, $m)) {
             foreach ($m[1] as $i => $value) {
-                $value = strip_tags(str_replace("\n", ' ', $value));
-
-                // check whether this pattern is just part of the param list of a macro:
-                $pat = preg_quote($value);
-                $pat = str_replace('|', '\\|', $pat);
-                if (!preg_match("|\{{\S+$pat|", $str)) {
+                // check whether it's part of a macro call, skip if so:
+                $pat = '\{\{\s*\w+'.str_replace('|', '\\|', preg_quote($value));
+                if (preg_match("|$pat|", $str)) {
                     continue;
                 }
 
+                $value = strip_tags(str_replace("\n", ' ', $value));
 
                 // intercept '(link:' and process by link() macro:
                 if (preg_match('/^ \(link: \s* ["\']? ([^\s"\']+) ["\']? (.*) \) /x', $value, $mm)) {
@@ -1506,6 +1691,11 @@ EOT;
                     $str = str_replace($m[0][$i], $str1, $str);
 
                 } else {
+                    // (file: ~/assets/test.pdf text: Download File)
+                    if (preg_match('|(\(\w+:\s*)(~[.\w/]+)|', $value, $mm)) {
+                        $path = PageFactory::$absAppRoot.resolvePath($mm[2]);
+                        $value = str_replace($mm[0], $mm[1].$path, $value);
+                    }
                     $str1 = kirby()->kirbytags($value);
                     $str = str_replace($m[0][$i], $str1, $str);
                 }
@@ -1523,11 +1713,11 @@ EOT;
      */
     private function processByMacro(string $macroName, string $argStr): string
     {
-        if (strpos($argStr, ',') === false) {
-            $args = parseArgumentStr($argStr, ' ');
-        } else {
-            $args = parseArgumentStr($argStr);
+        // insert commas between arguments:
+        if (!str_contains($argStr, ',')) {
+            $argStr = preg_replace('/(\s\w+:)/', ",$1", $argStr);
         }
+        $args = parseArgumentStr($argStr);
         $mac = new Macros($this->pfy);
         $macroObj = $mac->loadMacro($macroName);
         $args = $mac->fixArgs($args, $macroObj['parameters']);
