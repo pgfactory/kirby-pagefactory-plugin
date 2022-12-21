@@ -27,7 +27,7 @@ EOT,
 
 
 
-class Import extends Macros
+class _Include extends Macros
 {
     public static $inx = 1;
 

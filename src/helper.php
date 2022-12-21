@@ -207,17 +207,21 @@ function getFile(string $file, mixed $removeComments = true)
      // remove BOM
      $data = str_replace("\xEF\xBB\xBF", '', $data);
 
-     if ($removeComments) {
-         $reverse = str_contains((string)$removeComments, 'z'); // return zapped part
-         $data = zapFileEND($data, $reverse);
-         if ($reverse) {
-             return $data;
-         }
+     // special option 'zapped' -> return what would be zapped:
+     if (str_contains((string)$removeComments, 'zapped')) {
+         return zapFileEND($data, true);
      }
+
+     // always zap, unless $removeComments === false:
+     if ($removeComments) {
+         $data = zapFileEND($data);
+     }
+     // default (== true):
      if ($removeComments === true) {
          $data = removeCStyleComments($data);
          $data = removeEmptyLines($data);
 
+     // specific instructions:
      } elseif (is_string($removeComments)) {
          // extract first characters from comma-separated-list:
          $removeComments = implode('', array_map(function ($elem){
@@ -1475,7 +1479,7 @@ function parseArgumentStr(string $str, string $delim = ',', mixed $superBrackets
             $yaml .= "- $key\n";
             $rest = ltrim($rest, " $delim\n");
         } else {
-            $rest = substr($rest, 1);
+            $rest = ltrim(substr($rest, 1));
             $value = parseArgValue($rest, $delim);
             if (trim($value) !== '') {
                 $yaml .= "$key: $value\n";
@@ -1777,7 +1781,7 @@ function findNextPattern(string $str, string $pat, mixed $p1 = 0): mixed
 function parseInlineBlockArguments(string $str): array
 {
     $tag = $id = $class = $style = $text = $lang = '';
-    $literal = $mdCompile = 0;
+    $literal = $inline = 0;
     $attr = [];
 
     // catch quoted elements:
@@ -1839,7 +1843,7 @@ function parseInlineBlockArguments(string $str): array
         $arg1 = substr($arg,1);
         switch ($c1) {
             case '<':
-                $tag = $arg1;
+                $tag = rtrim($arg1, '>');
                 break;
             case '#':
                 $id = $arg1;
@@ -1849,7 +1853,7 @@ function parseInlineBlockArguments(string $str): array
                 $class = $class? "$class $arg1" : $arg1;
                 break;
             case '!':
-                _parseMetaCmds($arg1, $lang, $literal, $mdCompile, $style, $tag);
+                _parseMetaCmds($arg1, $lang, $literal, $inline, $style, $tag);
                 break;
             case '"':
                 $t = rtrim($arg1, '"');
@@ -1864,8 +1868,8 @@ function parseInlineBlockArguments(string $str): array
     if ($literal === 0) {
         $literal = null;
     }
-    if ($mdCompile === 0) {
-        $mdCompile = null;
+    if ($inline === 0) {
+        $inline = null;
     }
     $style = trim($style);
     list($htmlAttrs, $htmlAttrArray) = _assembleHtmlAttrs($id, $class, $style, $attr);
@@ -1878,7 +1882,7 @@ function parseInlineBlockArguments(string $str): array
         'attr' => $attr,
         'text' => $text,
         'literal' => $literal,
-        'mdCompile' => $mdCompile,
+        'inline' => $inline,
         'lang' => $lang,
         'htmlAttrs' => $htmlAttrs,
         'htmlAttrArray' => $htmlAttrArray,
@@ -1891,19 +1895,19 @@ function parseInlineBlockArguments(string $str): array
   * @param string $arg
   * @param string $lang
   * @param string $literal
-  * @param bool $mdCompile
+  * @param bool $inline
   * @param string $style
   * @param string $tag
   */
-function _parseMetaCmds(string $arg, string &$lang, &$literal, &$mdCompile, string &$style, string &$tag): void
+function _parseMetaCmds(string $arg, string &$lang, &$literal, &$inline, string &$style, string &$tag): void
 {
     if (preg_match('/^([\w-]+) [=:]? (.*) /x', $arg, $m)) {
         $arg = strtolower($m[1]);
         $param = $m[2];
         if ($arg === 'literal') {
             $literal = true;
-        } elseif ($arg === 'mdCompile') {
-            $mdCompile = true;
+        } elseif ($arg === 'inline') {
+            $inline = true;
         } elseif ($arg === 'lang') {
             $lang = $param;
             if (($lang === 'skip') || ($lang === 'none') || ($lang !== PageFactory::$langCode)) {
@@ -2356,16 +2360,11 @@ function clearCache(): void
  /**
   * Returns the time since PageFactory started its execution.
   * @param bool $verbose
-  * @return float|string
+  * @return float
   */
- function readTimer(bool $verbose = false ): mixed
+ function readTimer(): float
  {
-     $t = (round((microtime(true) - PageFactory::$timer)*1000000) / 1000 - 0.005);
-     if ($verbose) {
-         return "Time: {$t}ms";
-     } else {
-         return $t;
-     }
+     return round(((microtime(true) - PageFactory::$timer)*1000000) / 1000 - 0.005, 1);
  } // readTimer
 
 

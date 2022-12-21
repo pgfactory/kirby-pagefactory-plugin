@@ -20,6 +20,7 @@ class Macros
     protected $pages;
     protected $trans;
     public static $registeredMacros = [];
+    public static $availableMacros = [];
 
 
     public function __construct($pfy = null)
@@ -37,6 +38,15 @@ class Macros
         $this->page = $pfy->page;
         $this->pages = PageFactory::$pages;
 
+    } // __construct
+
+
+    /**
+     * Finds available macros in locations custom-folder, pfy-extensions and this plugin.
+     * @return void
+     */
+    public function init(): void
+    {
         // find macro folders in custom/, extensions and pagefactory:
         $macroLocations = [];
         $macroLocations[] = PFY_USER_CODE_PATH;
@@ -50,23 +60,23 @@ class Macros
         }
         $macroLocations[] = PFY_MACROS_PATH;
 
-        $this->availableMacros = [];
+        self::$availableMacros = [];
         foreach ($macroLocations as $location) {
             $dir = \Usility\PageFactory\getDir($location . '*');
             foreach ($dir as $item) {
                 if (is_file($item)) {
                     $macroName = strtolower(basename($item, '.php'));
-                    $this->availableMacros[ $macroName ] = $item;
+                    self::$availableMacros[ $macroName ] = $item;
                 } elseif (is_dir($item)) {
                     $macroName = strtolower(basename(trim($item, '/')));
                     $item = "{$item}code/index.php";
                     if (file_exists($item)) {
-                        $this->availableMacros[ $macroName ] = $item;
+                        self::$availableMacros[ $macroName ] = $item;
                     }
                 }
             }
         }
-    } // __construct
+    } // init
 
 
     /**
@@ -116,7 +126,11 @@ EOT;
     } // execute
 
 
-
+    /**
+     * @param $macroName
+     * @return array|mixed|null
+     * @throws \Exception
+     */
     public function loadMacro($macroName)
     {
         $this->trans = PageFactory::$trans;
@@ -129,8 +143,8 @@ EOT;
             $macroObj = self::$registeredMacros[ $macroName ];
 
         } else {
-            if (isset($this->availableMacros[ $macroName ])) {
-                $macroFile = $this->availableMacros[ $macroName ];
+            if (isset(self::$availableMacros[ $macroName ])) {
+                $macroFile = self::$availableMacros[ $macroName ];
 
                 // ===> Load the macro object now:
                 $macroObj = include $macroFile;
@@ -138,11 +152,11 @@ EOT;
 
                 // workaround: if intendet macro name collides with PHP keyword, define macro as "_Macroname" instead.
                 //  -> example: list() => class _List() and file _List.php
-            } elseif (isset($this->availableMacros[ "_$macroName" ])) {
+            } elseif (isset(self::$availableMacros[ "_$macroName" ])) {
                 $macroName0 = $macroName;
                 $macroName = "_$macroName";
                 $thisMacroName = 'Usility\\PageFactory\\' . ucfirst( $macroName );
-                $macroFile = $this->availableMacros[ $macroName ];
+                $macroFile = self::$availableMacros[ $macroName ];
 
                 // ===> Load the macro object now:
                 $macroObj = include $macroFile;
@@ -183,9 +197,9 @@ EOT;
                 PageFactory::$assets->addAssets($asset);
             }
         }
-
+        $macroObj['name'] = $macroName;
         return $macroObj;
-    } // preloadMacro
+    } // loadMacro
 
 
     /**
@@ -222,7 +236,7 @@ EOT;
      */
     private function renderHelpText(array $macroObj): string
     {
-        $macroName = $macroObj['name']??'';
+        $macroName = $macroObj['name']??' ';
         if ($macroName[0] === '_') {
             $macroName = substr($macroName, 1);
         }
@@ -258,24 +272,29 @@ EOT;
     {
         $str = '';
         $registeredMacros = self::$registeredMacros;
-        $availableMacros = $this->availableMacros;
-        foreach ($availableMacros as $k => $rec) {
-            if ($k[0] === '_') {
-                $availableMacros[substr($k,1)] = $rec;
-                unset($availableMacros[$k]);
-            }
+        $availableMacros = self::$availableMacros;
+        $keys0 = array_keys($availableMacros);
+        $keys = array_map(function ($e) { return str_replace('_', '', $e);}, $keys0);
+        $a = array_combine($keys, $keys0);
+        ksort($a);
+        $am = [];
+        foreach ($a as $k => $v) {
+            $am[$v] = $availableMacros[$v];
         }
-        ksort($availableMacros);
-        foreach ($availableMacros as $macroName => $macroFile) {
+        foreach ($am as $macroName => $macroFile) {
             $thisMacroName = 'Usility\\PageFactory\\' . ucfirst( $macroName );
             if ($registeredMacros[ $macroName ]??false) {
                 $macroObj = $registeredMacros[ $macroName ];
             } elseif ($registeredMacros[substr($macroName,1)]??false) {
                 $macroObj = $registeredMacros[ substr($macroName,1) ];
             } else {
+                if (!file_exists($macroFile)) {
+                    throw new \Exception("Macro file '$macroFile' not found.");
+                }
                 $macroObj = include $macroFile;
                 self::$registeredMacros[ $macroName ] = $macroObj;
             }
+            $macroObj['name'] = $macroName;
             if (stripos($option, 'short') !== false) {
                 $str .= "- $macroName()\n";
             } else {

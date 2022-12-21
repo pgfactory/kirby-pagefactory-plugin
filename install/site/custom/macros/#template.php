@@ -7,7 +7,6 @@
 namespace Usility\PageFactory;
 
 $macroConfig =  [
-    'name' => strtolower( $macroName ), // <- don't modify
     'parameters' => [
 //      'my-arg' => ['Help text for this argument', 'default value'],
         '' => ['', false],              // <- add your arguments here
@@ -24,11 +23,6 @@ EOT,                                    // <- Help text to explain function of t
 class replace_with_filename extends Macros // <- modify classname (must be qual to name of this file w/t extension!)
 {
     public static $inx = 1;
-    public function __construct($pfy = null)
-    {
-        $this->name = strtolower(__CLASS__);
-        parent::__construct($pfy);
-    }
 
 
     /**
@@ -46,8 +40,7 @@ class replace_with_filename extends Macros // <- modify classname (must be qual 
 
         // Your code goes here...
 
-//        $this->mdCompile = true;       // <- another way to request markdown compilatoin of output
-    return $str;
+        return $str;
     } // render
 }
 

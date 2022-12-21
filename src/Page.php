@@ -257,7 +257,29 @@ EOT;
             }
             $this->addJq("window.alert('$str')");
         }
-    } // setOverlay
+    } // setMessage
+
+
+    /**
+     * Proxy for extension PageElements -> Message -> displays message in upper right corner.
+     * @param string $str
+     * @param $mdCompile
+     * @return void
+     */
+    public function setPopup(string $str, $mdCompile = true): void
+    {
+        if (isset(PageFactory::$availableExtensions['pageelements'])) {
+            $pe = new \Usility\PageFactoryElements\Popup($this->pfy);
+            $pe->set($str, $mdCompile);
+
+        // if PageElements are not loaded, we need to create bare page and exit immediately:
+        } else {
+            if ($mdCompile) {
+                $str = compileMarkdown($str);
+            }
+            $this->addJq("window.alert('$str')");
+        }
+    } // setMessage
 
 
     /**
@@ -526,14 +548,9 @@ EOT;
     {
         // checks page-attrib, then site-attrib for requested keyword and returns it
         $out = self::$frontmatter[$name]??'';
-        if ($name === 'robots') {
-            if ($out === false) {   // false => activates default values
-                $out = 'noindex,nofollow,noarchive';
-            } elseif ($out === true) {
-                return ''; // skip, 'index' is already default
-            }
-            // => any other value rendered as is in robots meta tag
-
+        if (($name === 'robots') && is_bool($out)) {
+            // => any string value is rendered as is in robots meta tag
+            $out = 'noindex,nofollow,noarchive';
         }
         if (!$out) {
             if (!$out = page()->$name()->value()) {

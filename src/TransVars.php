@@ -18,6 +18,7 @@ class TransVars
         $this->langCode = \Usility\PageFactory\PageFactory::$langCode;
         if (!$this->macros) {
             $this->macros = new Macros($pfy);
+            $this->macros->init();
         }
 
         // load PageFactory's standard variables:
@@ -134,6 +135,7 @@ class TransVars
             $s2 = substr($str, $p1+2, $p2-$p1-2);
             $s2 = str_replace(["\n", "\t"], ['↵', '    '], $s2);
             $s3 = substr($str, $p2+2);
+            $this->hideIfNotDefined = false;
 
             if (preg_match('/^([#^mM]*) \s* ([^(]+) (.*)/x', $s2, $m)) {
                 $modif = $m[1];

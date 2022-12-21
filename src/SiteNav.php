@@ -62,7 +62,8 @@ class SiteNav
         // default type
         } elseif ($this->site->hasListedChildren()) {
             $tree = $this->site->children()->listed();
-            if (sizeof($tree) > 1) {
+            // render nav if homepage has siblings or children:
+            if ((sizeof($tree->data()) > 1) || (sizeof($tree->children()->listed()->data()) > 0)) {
                 $out = $this->_render($tree);
             }
         }

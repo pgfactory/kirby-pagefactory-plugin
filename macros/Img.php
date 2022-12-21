@@ -7,7 +7,6 @@
 namespace Usility\PageFactory;
 
 $macroConfig =  [
-    'name' => strtolower( $macroName ),
     'parameters' => [
         'src' => ['Image source file.', false],
         'alt' => ['Alt-text for image, i.e. a short text that describes the image.', false],
@@ -31,10 +30,8 @@ Renders an image tag.
 Configuration options in 'site/config/config.php':
 
     'usility.pagefactory.options' \=> [
-        'variables' \=> [
-            'imageAutoQuickview'  \=> true,  \// turns quickview on by default
-            'imageAutoSrcset'  \=> true,     \// turns srcset on by default
-        ],
+        'imageAutoQuickview'  \=> true,  \// turns quickview on by default
+        'imageAutoSrcset'  \=> true,     \// turns srcset on by default
     ],
 
 **Note**: if an attribute file exists (i.e. image-filename + '.txt') that will be read to extract attributes. 
@@ -56,12 +53,6 @@ class Img extends Macros
     private $args = [];
     private $srcsetDefaultStepSize = 250;
     private $imageDefaultMaxWidth = 1920;
-
-    public function __construct($pfy = null)
-    {
-        $this->name = strtolower(__CLASS__);
-        parent::__construct($pfy);
-    }
 
 
     /**

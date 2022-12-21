@@ -3,7 +3,6 @@
 namespace Usility\PageFactory;
 
 $macroConfig =  [
-    'name' => strtolower( $macroName ),
     'parameters' => [
         'width' => ['Width of inserted space. Use any form allowed in CSS, e.g. 3em, 20px or 1cm', '4ch'],
         'class' => ['Class applied to SPAN', ''],
@@ -19,12 +18,6 @@ EOT,
 class Space extends Macros
 {
     public static $inx = 1;
-    public function __construct($pfy = null)
-    {
-        $this->name = strtolower(__CLASS__);
-        parent::__construct($pfy);
-        $this->counter = 0;
-    }
 
 
     public function render($args, $argStr)

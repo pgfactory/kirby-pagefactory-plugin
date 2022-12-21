@@ -7,7 +7,6 @@
 namespace Usility\PageFactory;
 
 $macroConfig =  [
-    'name' => strtolower( $macroName ),
     'parameters' => [
         'type' => ['Selects the objects to be listed.', false],
         'options' => ['[short] Specifies how to render the list.', false],
@@ -32,11 +31,6 @@ EOT,
 class _List extends Macros
 {
     public static $inx = 1;
-    public function __construct($pfy = null)
-    {
-        $this->name = strtolower(__CLASS__);
-        parent::__construct($pfy);
-    }
 
 
     /**

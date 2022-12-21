@@ -7,7 +7,6 @@
 namespace Usility\PageFactory;
 
 $macroConfig =  [
-    'name' => strtolower( $macroName ), // <- don't modify
     'parameters' => [
         'class' => ['Class to be applied to the element', false],
         'wrapperClass' => ['Class to be applied to the wrapper element. '.
@@ -35,11 +34,6 @@ EOT,                                    // <- Help text to explain function of t
 class PrevNextLinks extends Macros // <- modify classname (must be qual to name of this file w/t extension!)
 {
     public static $inx = 1;
-    public function __construct($pfy = null)
-    {
-        $this->name = strtolower(__CLASS__);
-        parent::__construct($pfy);
-    }
 
 
     /**

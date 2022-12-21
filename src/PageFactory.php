@@ -35,9 +35,10 @@ define('OPTIONS_DEFAULTS', [
     'screenSizeBreakpoint'          => 480,
     'defaultLanguage'               => 'en',
     'allowNonPfyPages'              => false,  // -> if true, Pagefactory will skip checks for presence of metafiles
-    'defaultTargetForExternalLinks' => false,  // -> used by Link() -> whether to open external links in new window
+    'externalLinksToNewWindow'      => true,   // -> used by Link() -> whether to open external links in new window
     'imageAutoQuickview'            => true,  // -> used by Img() macro
     'imageAutoSrcset'               => true,  // -> used by Img() macro
+    'divblock-chars'                => '@%',  // possible alternative: ':$@%'
     // 'timezone' => 'Europe/Zurich', // PageFactory tries to guess the timezone - you can override this manually
 
     'variables' => [
@@ -134,6 +135,8 @@ class PageFactory
 
         self::$hostUrl = $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].'/';
 
+        $this->utils = new Utils($this);
+        $this->utils->loadPfyConfig();
         self::$trans = new TransVars($this);
 
         self::$assets = new Assets($this);
@@ -141,8 +144,7 @@ class PageFactory
         self::$pg = new Page($this);
         self::$pg->set('pageParams', $this->page->content()->data());
 
-        $this->utils = new Utils($this);
-        $this->utils->loadPfyConfig();
+        $this->utils->init();
         self::$trans->loadCustomVariables(); // overrides other sources of variable definitions
         $this->utils->determineDebugState();
 
@@ -325,16 +327,6 @@ class PageFactory
         self::$trans->setVariable('pfy-admin-panel-link', "<a href='{$appUrl}panel' target='_blank'>{{ pfy-admin-panel-link-text }}</a>");
     } // setStandardVariables
 
-
-    /**
-     * @return static
-     * @throws Kirby\Exception\InvalidArgumentException
-     */
-//ToDo: remove?
-//    public static function instance(): object
-//    {
-//        return static::$instance ?? new static(pages());
-//    } // instance
 
 
     /**

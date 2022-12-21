@@ -4,7 +4,6 @@ namespace Usility\PageFactory;
 
 
 $macroConfig =  [
-    'name' => strtolower( $macroName ),
     'parameters' => [
         'gapSize' => ['Height of inserted space. Use any form allowed in CSS, e.g. 3em, 20px or 1cm.', '1em'],
         'class' => ['Class applied to DIV', ''],
@@ -20,13 +19,6 @@ EOT,
 class Vgap extends Macros
 {
     public static $inx = 1;
-    public function __construct($pfy = null)
-    {
-        $this->name = strtolower(__CLASS__);
-        parent::__construct($pfy);
-        $this->counter = 0;
-    }
-
 
     public function render($args, $argStr)
     {
