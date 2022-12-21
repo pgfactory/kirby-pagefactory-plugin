@@ -207,17 +207,21 @@ function getFile(string $file, mixed $removeComments = true)
      // remove BOM
      $data = str_replace("\xEF\xBB\xBF", '', $data);
 
-     if ($removeComments) {
-         $reverse = str_contains((string)$removeComments, 'z'); // return zapped part
-         $data = zapFileEND($data, $reverse);
-         if ($reverse) {
-             return $data;
-         }
+     // special option 'zapped' -> return what would be zapped:
+     if (str_contains((string)$removeComments, 'zapped')) {
+         return zapFileEND($data, true);
      }
+
+     // always zap, unless $removeComments === false:
+     if ($removeComments) {
+         $data = zapFileEND($data);
+     }
+     // default (== true):
      if ($removeComments === true) {
          $data = removeCStyleComments($data);
          $data = removeEmptyLines($data);
 
+     // specific instructions:
      } elseif (is_string($removeComments)) {
          // extract first characters from comma-separated-list:
          $removeComments = implode('', array_map(function ($elem){
