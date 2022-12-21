@@ -328,16 +328,6 @@ class PageFactory
     } // setStandardVariables
 
 
-    /**
-     * @return static
-     * @throws Kirby\Exception\InvalidArgumentException
-     */
-//ToDo: remove?
-//    public static function instance(): object
-//    {
-//        return static::$instance ?? new static(pages());
-//    } // instance
-
 
     /**
      * @return void

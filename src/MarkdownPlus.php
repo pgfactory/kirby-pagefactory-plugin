@@ -1424,19 +1424,12 @@ class MarkdownPlus extends \cebe\markdown\MarkdownExtra
     private function handleInclude(string $argsStr, string $delim = ','): string
     {
         $out = '';
-//        $argsStr = $file;
-//        $mdCompile = false;
         $mdCompileOverride = null;
         $file = trim($argsStr, '"\'');
         $args = parseArgumentStr($argsStr, $delim);
         $mdCompile = $args['mdCompile']??true;
         $literal = $args['literal']??false;
         $file = $args[0]??'';
-//        if (in_array('literal', $args)) {
-//            $mdCompileOverride = false;
-//        } elseif (isset($args['literal'])) {
-//            $mdCompileOverride = $args['literal'];
-//        }
 
         if (str_ends_with($file, '.php')) {
             $out = $this->execAndIncludePhpFile($file, $args, $mdCompileOverride, $mdCompile);
