@@ -91,29 +91,29 @@ class Macros
         $this->trans = PageFactory::$trans;
 
         // load macro code:
-        $macroObj = $this->loadMacro($macroName);
-        if (!$macroObj || !method_exists($macroObj['macroObj'], 'render')) {
+        $macro = $this->loadMacro($macroName);
+        if (!$macro || !isset($macro['macroObj']) || !method_exists($macro['macroObj'], 'render')) {
             return null;
         }
 
         // handle help request:
         if (($args[0]??'') === 'help') {
-            return $this->renderHelpText($macroObj);
+            return $this->renderHelpText($macro);
         }
 
         // prepare arguments before execution:
-        $args = $this->fixArgs($args, $macroObj['parameters']);
+        $args = $this->fixArgs($args, $macro['parameters']);
 
         // === Execute the macro now:
-        $str = $macroObj['macroObj']->render($args, $argStr);
+        $str = $macro['macroObj']->render($args, $argStr);
 
         // mdCompile if requested:
-        if ($macroObj['mdCompile']??false || $macroObj['macroObj']->get('mdCompile')) {
+        if ($macro['mdCompile']??false || $macro['macroObj']->get('mdCompile')) {
             $str = \Usility\PageFactory\compileMarkdown($str);
         }
 
         // wrap in comment if requested:
-        if (($macroObj['wrapInComment']??false) || $macroObj['macroObj']->get('wrapInComment')) {
+        if (($macro['wrapInComment']??false) || $macro['macroObj']->get('wrapInComment')) {
             $str = <<<EOT
 
 <!-- $macroName() -->
