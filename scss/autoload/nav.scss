@@ -194,6 +194,11 @@ $slidedownX6: calc(var(--pfy-nav-top-horizontal-first-indent, #{$nav-top-horizon
         //li.pfy-has-children > div > ol {
         //    margin-top: -10000px;
         //}
+
+        // avoid flicker during slow loading:
+        &.pfy-nav-top-horizontal li.pfy-lvl-1.pfy-has-children > div > ol {
+            margin-top: -10000px;
+        }
         li.pfy-has-children.pfy-open > div > ol {
             margin-top: 0 !important;
         }
