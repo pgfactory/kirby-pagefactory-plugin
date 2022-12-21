@@ -46,7 +46,7 @@ define('OPTIONS_DEFAULTS', [
         'webmaster-email' => 'webmaster@'.preg_replace('|^https?://([\w.-]+)(.*)|', "$1", site()->url()),
         'pfy-menu-icon' => svg('site/plugins/pagefactory/assets/icons/menu.svg'),
         'pfy-small-screen-header' => <<<EOT
-        <h1>{{ site-title }}</h1>
+        <h1>{{ kirby-site-title }}</h1>
         <button id="pfy-nav-menu-icon">{{ pfy-menu-icon }}</button>
 EOT,
 
