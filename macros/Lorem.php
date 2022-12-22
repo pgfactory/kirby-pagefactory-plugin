@@ -5,7 +5,7 @@ namespace Usility\PageFactory;
 $macroConfig =  [
     'parameters' => [
         'min' => ['If set, defines the minimum number of random words to be rendered.', false],
-        'max' => ['If set, defines the maximum number of random words to be rendered.', false],
+        'max' => ['If set, defines the maximum number of random words to be rendered (max: 99).', false],
         'dot' => ['If true, a dot will be appended at the end of all random words', false],
         'class' => ['Class to be applied to the wrapper element', ''],
         'wrapper' => ['Allows to define the tag of the wrapper element', 'div'],
@@ -25,7 +25,7 @@ class Lorem extends Macros
     public static $inx = 1;
 
 
-    public function render($args, $argStr)
+    public function render($args)
     {
         $inx = self::$inx++;
 
@@ -34,7 +34,14 @@ class Lorem extends Macros
         $dot = $args['dot'];
         $class = $args['class'];
         $wrapper = $args['wrapper'];
-        $lorem = 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.';
+        $lorem = <<<EOT
+Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore 
+et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. 
+Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, 
+consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, 
+sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no 
+sea takimata sanctus est Lorem ipsum dolor sit amet.
+EOT;
         if (!$min && !$max) {
             $str = $lorem;
 
