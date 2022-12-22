@@ -97,6 +97,7 @@ class PageFactory
     public static $timer;
     public static $user;
     public static $slug;
+    public static $pageId;
     public static $urlToken; // the hash code extracted from HTTP request (e.g. home/ABCDEF)
     public static $availableIcons;
     public static $phpSessionId;
@@ -158,6 +159,8 @@ class PageFactory
         self::$appRoot = dirname(substr($_SERVER['SCRIPT_FILENAME'], -strlen($_SERVER['SCRIPT_NAME']))).'/';
         self::$appUrl = dirname(substr($_SERVER['SCRIPT_FILENAME'], -strlen($_SERVER['SCRIPT_NAME']))).'/';
         self::$appRootUrl = kirby()->url().'/';
+        self::$slug = page()->slug();
+        self::$pageId = page()->id();
         self::$pageRoot = 'content/' . self::$pagePath;
         self::$absPageRoot = $this->page->root() . '/';
         self::$absPageUrl = (string)$this->page->url() . '/';
