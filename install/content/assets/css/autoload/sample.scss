@@ -1,4 +1,4 @@
-// Sample styles - remove or modify as desired
+// Sample styles - remove or modify as you like
 
 .pfy-page {
 	padding: 2em;
@@ -7,6 +7,12 @@
 	display: flex;
 	justify-content: flex-end;
 }
+#pfy .pfy-primary-nav li.pfy-lvl-1:last-child > div {
+    right: 0;
+    left: unset !important;
+    text-align: right;
+}
+
 .pfy-footer {
 	margin-top: 3em;
 	border-top: 1px solid #ccc;
