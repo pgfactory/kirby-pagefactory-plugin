@@ -111,7 +111,7 @@ class Page
         }
         $this->trans->setVariable('pfy-body-classes', $bodyClasses);
 
-        $this->trans->setVariable('pfy-body-tag-attributes', Page::$bodyTagAttributes);
+        $this->trans->setVariable('pfy-body-tag-attributes', Page::$bodyTagAttributes??'');
 
         $bodyEndInjections = $this->renderBodyEndInjections();
         $this->trans->setVariable('pfy-body-end-injections', $bodyEndInjections);

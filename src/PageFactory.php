@@ -280,7 +280,6 @@ class PageFactory
         self::$trans->setVariable('page-url', self::$pageUrl);
         self::$trans->setVariable('lang', self::$langCode);
         self::$trans->setVariable('lang-active', self::$lang); // can be lang-variant, e.g. de2
-        self::$trans->setVariable('pfy-body-tag-attributes', Page::$bodyTagAttributes);
         self::$trans->setVariable('php-version', phpversion());
 
         $this->utils->setLanguageSelector();
