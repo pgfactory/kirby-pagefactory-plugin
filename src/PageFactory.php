@@ -6,7 +6,6 @@ use Kirby;
 
  // filesystem paths:
 const PFY_BASE_PATH =              'site/plugins/pagefactory/';
-const PFY_DEFAULT_TEMPLATE_FILE =  'site/templates/page_template.html';
 const PFY_CONTENT_ASSETS_PATH =    'content/assets/';
 const PFY_ASSETS_PATH =            'site/plugins/pagefactory/assets/';
 const PFY_ICONS_PATH =             'site/plugins/pagefactory/assets/icons/';
@@ -15,10 +14,9 @@ const PFY_CONFIG_FILE =            'site/config/config.php';
 const PFY_CUSTOM_PATH =            'site/custom/';
 const PFY_USER_CODE_PATH =         PFY_CUSTOM_PATH.'macros/';
 const PFY_MACROS_PATH =            PFY_BASE_PATH.'macros/';
-define('PFY_LOGS_PATH',           'site/logs/');
-define('PFY_CACHE_PATH',           PFY_CUSTOM_PATH.'.#cache/'); // available in extensions
+define('PFY_LOGS_PATH',            'site/logs/');
+define('PFY_CACHE_PATH',           'site/cache/pagefactory/'); // available in extensions
 const PFY_MKDIR_MASK =             0700; // permissions for file accesses by PageFactory
-const PFY_DEFAULT_TRANSVARS =      PFY_BASE_PATH.'variables/pagefactory.yaml';
 
  // URLs:
 const PFY_BASE_ASSETS_URL =        'media/plugins/usility/';
@@ -71,7 +69,10 @@ require_once __DIR__ . '/helper.php';
 
 class PageFactory
 {
+    public static $kirby;
+    public static $page;
     public static $pages;
+    public static $site;
     public static $siteFiles;
     public static $appRoot;
     public static $appRootUrl;
@@ -87,6 +88,7 @@ class PageFactory
     public static $lang;
     public static $langCode;
     public static $defaultLanguage;
+    public static $supportedLanguages;
     public static $trans;
     public static $pg;
     public static $md;
@@ -103,27 +105,23 @@ class PageFactory
     public static $phpSessionId;
     public static $assets;
     public static $config;
-
-    public $templateFile = '';
     public $session;
 
-    /**
-     * @param $pages
-     * @throws Kirby\Exception\InvalidArgumentException
-     */
-    public function __construct($pages)
+
+    public function __construct($data)
     {
         self::$timer = microtime(true);
         self::$isLocalhost = isLocalhost();
-        self::$pages = $pages;
-        self::$siteFiles = $pages->files();
-        $this->kirby = kirby();
-        $this->session = $this->kirby->session();
+
+        self::$kirby = $data['kirby'];
+        self::$pages = $data['pages'];
+        self::$page = $data['page'];
+        self::$site = $data['site'];
+        self::$siteFiles = self::$pages->files();
+        $this->session = self::$kirby->session();
         self::$phpSessionId = getSessionId();
 
-        $this->page = page();
-        $this->site = site();
-        $this->pageOptions = $this->page->content()->data();
+        $this->pageOptions = self::$page->content()->data();
 
         // find available icons:
         self::$availableIcons = findAvailableIcons();
@@ -138,22 +136,20 @@ class PageFactory
 
         $this->utils = new Utils($this);
         $this->utils->loadPfyConfig();
-        self::$trans = new TransVars($this);
+        $this->utils->determineLanguage();
+        self::$trans = new TwigVars();
 
         self::$assets = new Assets($this);
-        self::$md = new MarkdownPlus($this);
         self::$pg = new Page($this);
-        self::$pg->set('pageParams', $this->page->content()->data());
+        self::$pg->set('pageParams', self::$page->content()->data());
+        self::$pg->loadExtensions();
 
         $this->utils->init();
-        self::$trans->loadCustomVariables(); // overrides other sources of variable definitions
         $this->utils->determineDebugState();
 
         $this->utils->setTimezone();
 
-        $this->utils->determineLanguage();
-
-        self::$pagePath = substr($this->page->root(), strlen(site()->root())+1) . '/';
+        self::$pagePath = substr(self::$page->root(), strlen(site()->root())+1) . '/';
         self::$absAppRoot = kirby()->root().'/';
         self::$absPfyRoot = __DIR__.'/';
         self::$appRoot = dirname(substr($_SERVER['SCRIPT_FILENAME'], -strlen($_SERVER['SCRIPT_NAME']))).'/';
@@ -162,18 +158,19 @@ class PageFactory
         self::$slug = page()->slug();
         self::$pageId = page()->id();
         self::$pageRoot = 'content/' . self::$pagePath;
-        self::$absPageRoot = $this->page->root() . '/';
-        self::$absPageUrl = (string)$this->page->url() . '/';
+        self::$absPageRoot = self::$page->root() . '/';
+        self::$absPageUrl = (string)self::$page->url() . '/';
         self::$pageUrl = substr(self::$absPageUrl, strlen(self::$hostUrl)-1);
-        if ($user = $this->kirby->user()) {
+        if ($user = self::$kirby->user()) {
             self::$user = (string)$user->name();
         }
 
         $this->utils->handleUrlToken();
 
-        $this->siteTitle = (string)site()->title()->value();
-
         preparePath(PFY_LOGS_PATH);
+        $this->utils->showPendingMessage();
+        $this->utils->handleAgentRequests();
+        self::$trans->init();
     } // __construct
 
 
@@ -195,203 +192,63 @@ class PageFactory
 
 
     /**
-     * renders the final HTML
-     * @param false $options
+     * Renders the actual content of the current page,
+     *   i.e. what is invoked in template as {{ page.text.kirbytext | raw }}
      * @return string
+     * @throws Kirby\Exception\LogicException
      */
-    public function render($options = false): string
+    public function renderPageContent(): string
     {
-        // check for presence of site/plugins/pagefactory-*':
-        self::$pg->loadExtensions();
+        self::$pg->extensionsFinalCode(); //??? best position?
+        self::$trans->prepareStandardVariables();
 
-        if (self::$assets->prepareAssets()) {
-            reloadAgent();
-        }
+        $this->utils->handleAgentRequestsOnRenderedPage();
 
-        // show message, if one is pending:
-        $this->showPendingMessage();
+        $mdStr = self::$page->text()->value();
+        if ($mdStr) {
 
-        if ($options['mdVariant']??false) {
-            MarkdownPlus::$mdVariant = $options['mdVariant'];
-        }
-        $this->utils->handleAgentRequests(); // login,logout,printpreview,print' and 'help,localhost,timer,reset,notranslate'
+            // strip comments:
+            $mdStr = zapFileEND($mdStr);
+            $mdStr = removeCStyleComments($mdStr);
 
-        $this->utils->determineTemplateFile($options['templateFile']??'');
-
-        $this->utils->loadMdFiles();
-        $this->setStandardVariables();
-
-        $html = $this->assembleHtml();
-
-        // report execution time (see result in browser/dev-tools/network -> main file):
-        header("Server-Timing: total;dur=" . readTimer());
-        return $html;
-    } // render
-
-
-    /**
-     * Loads the template, obtains the page content und keeps translating variables till none are left.
-     * Then in the last step 'late-translation-variables' are translated. They are the ones that define injections
-     * into the <head> and the bottom of <body>. They include CSS and load CSS- and JS files. 
-     * @return string
-     */
-    private function assembleHtml(): string
-    {
-        $html = loadFile($this->templateFile, false);
-        $this->checkDefaultStylingActive($html);
-
-        $html = $this->utils->shieldLateTranslatationVariables($html); // {{@ ...}}
-
-        // 'content' (everything that's defined by the page):
-        $content = $this->utils->getContent(); // content of all .md files in page folder
-        self::$trans->setVariable('content', $content);
-
-        // repeat until no more variables appear in html:
-        $depth = 1;
-        while (preg_match('/(?<!\\\){{/', $html)) {
-            $html = self::$trans->translate($html, $depth++);
-            $html = unshieldStr($html);
-        }
-
-        $this->utils->handleAgentRequestsOnRenderedPage(); // list variables, macros
-
-        // last pass: now replace injection variables:
-        $html = $this->utils->unshieldLateTranslatationVariables($html);
-
-        self::$pg->preparePageVariables();
-
-        $html = self::$trans->translate($html);
-
-        self::$pg->extensionsFinalCode(); // -> invokes plugin/xy/src/_finalCode.php
-
-        $html = $this->utils->resolveUrls($html);
-        $html = unshieldStr($html, true);
-
-        return $html;
-    } // assembleHtml
-
-
-    /**
-     * Defines standard variables used in most webpages, e.g. 'lang' and 'page-title' etc.
-     * @throws Kirby\Exception\InvalidArgumentException
-     */
-    private function setStandardVariables(): void
-    {
-        self::$trans->setVariable('page-url', self::$pageUrl);
-        self::$trans->setVariable('lang', self::$langCode);
-        self::$trans->setVariable('lang-active', self::$lang); // can be lang-variant, e.g. de2
-        self::$trans->setVariable('php-version', phpversion());
-
-        $this->utils->setLanguageSelector();
-
-        // Copy site field values to transvars:
-        $siteAttributes = site()->content()->data();
-        foreach ($siteAttributes as $key => $value) {
-            if ($key === 'title') {
-                $key = 'kirby-site-title';
+            // shield argument lists enclosed in '({' and '})'
+            if (preg_match_all('/\(\{ (.*?) }\)/x', $mdStr, $m)) {
+                foreach ($m[1] as $i => $pattern) {
+                    $str = shieldStr($pattern);
+                    $mdStr = str_replace($m[0][$i], "('$str')", $mdStr);
+                }
             }
-            $key = str_replace('_', '-', $key);
-            self::$trans->setVariable($key , (string)$value);
-        }
 
-        // Copy page field values to transvars:
-        $pageAttributes = page()->content()->data();
-        foreach ($pageAttributes as $key => $value) {
-            if ($key === 'title') {
-                $key = 'kirby-page-title';
+            $mdStr = str_replace('\\{{', '{!!{', $mdStr);
+            $mdStr = str_replace('\\(', '⟮', $mdStr);
+
+            // add '|raw' to simple variables:
+            if (preg_match_all('/\{\{ ( [^}|(]+ ) }}/msx', $mdStr, $m)) {
+                foreach ($m[1] as $i => $pattern) {
+                    $str = "$pattern|raw";
+                    $mdStr = str_replace($m[0][$i], "{{ $str }}", $mdStr);
+                }
             }
-            $key = str_replace('_', '-', $key);
-            self::$trans->setVariable($key , (string)$value);
-        }
 
-        // 'generator':
-        // for performance reasons we cache the gitTag, so, if that changes you need to remember to clear site/.#pfy-cache
-        $gitTag = fileGetContents(PFY_CACHE_PATH.'gitTag.txt');
-        if (!$gitTag) {
-            $gitTag = getGitTag();
-            file_put_contents(PFY_CACHE_PATH.'gitTag.txt', $gitTag);
-        }
-        $version = 'Kirby v'. Kirby::version(). " + PageFactory $gitTag";
-        self::$trans->setVariable('generator', $version);
+//ToD0: case {{ link('https://xy.com') }} ->
+//        // add '|raw' to simple variables:
+//        if (preg_match_all('|\{\{ .*? https?:// .* }}|msx', $mdStr, $m)) {
+//            foreach ($m[1] as $i => $pattern) {
+//                $str = "$pattern|raw";
+//                $mdStr = str_replace($m[0][$i], "{{ $str }}", $mdStr);
+//            }
+//        }
 
-        // 'user', 'pfy-logged-in-as-user', 'pfy-admin-panel-link':
-        $appUrl = self::$appUrl;
-        $loginIcon = svg('site/plugins/pagefactory/assets/icons/user.svg');
-        $user = kirby()->user();
-        if ($user) {
-            $username = (string)$user->nameOrEmail();
-            self::$trans->setVariable('user', $username);
-            self::$trans->setVariable('pfy-login-button', "<button class='pfy-login-button' title='{{ pfy-edit-user-account }}'>$loginIcon</span></button>");
+            $html = twig($mdStr, TwigVars::$variables);
+            $html = str_replace('{!!{', '{{', $html);
+//        $html = unshieldStr($html, true);
         } else {
-            self::$trans->setVariable('pfy-logged-in-as-user', "<a href='{$appUrl}login'>Login</a>");
-            self::$trans->setVariable('pfy-login-button', "<button class='pfy-login-button' title='{{ pfy-login-button-label }}'>$loginIcon</button>");
+            $html = '';
         }
-        self::$trans->setVariable('pfy-admin-panel-link', "<a href='{$appUrl}panel' target='_blank'>{{ pfy-admin-panel-link-text }}</a>");
-    } // setStandardVariables
 
+        self::$trans->prepareTemplateVariables();
 
-
-    /**
-     * @return void
-     */
-    private function determineAssetFilesList(): void
-    {
-        // get asset-files definition:
-        if (self::$config['assetFiles']??false) {
-            $this->assetFiles = self::$config['assetFiles'];
-        } else { // if not found, use following as default values:
-            $this->assetFiles = [
-                '-pagefactory.css' => [
-                    'site/plugins/pagefactory/scss/autoload/*',
-                ],
-                '-pagefactory-async.css' => [
-                    'site/plugins/pagefactory/scss/autoload-async/*',
-                ],
-                '-styles.css' => [
-                    'content/assets/autoload/*',
-                ],
-                '-styles-async.css' => [
-                    'content/assets/autoload-async/*',
-                ],
-
-                '-pagefactory.js' => [
-                    'site/plugins/pagefactory/assets/js/autoload/*',
-                ],
-
-                // prepare rest as individual files ready for explicit queueing/loading:
-                '*' => [
-                    'site/plugins/pagefactory/scss/*',
-                ],
-            ];
-        }
-    } // determineAssetFilesList
-
-
-    /**
-     * reloadAgent() can prepare a message to be shown on next page view, here we show the message:
-     * @return void
-     */
-    private function showPendingMessage(): void
-    {
-        if ($msg = $this->session->get('pfy.message')) {
-            self::$pg->setMessage($msg);
-            $this->session->remove('pfy.message');
-        }
-    } // showPendingMessage
-
-
-    /**
-     * Checks whether template contains 'pfy-default-styling', i.e. uses default styling. If not, removes
-     * those entries from the asset queue
-     * @param mixed $html
-     * @return void
-     */
-    private function checkDefaultStylingActive(mixed $html): void
-    {
-        $this->useDefaultStyling = str_contains($html, 'pfy-default-styling');
-        if (!$this->useDefaultStyling) {
-            self::$assets->excludeSystemAssets();
-        }
-    } // checkDefaultStylingActive
+        return $html;
+    } // renderPageContent
 
 } // PageFactory

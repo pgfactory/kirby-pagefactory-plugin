@@ -1,5 +1,4 @@
 <?php
-
 namespace Usility\PageFactory;
 
  // Use helper functions with prefix '\Usility\PageFactory\'
@@ -604,7 +603,10 @@ function fixPath(string $path): string
   */
 function zapFileEND(string $str, bool $reverse = false): string
 {
-    $p = strpos($str, "__END__\n");
+    if (($p = str_starts_with($str, '__END__')? 0 : false) === false) {
+        $p = strpos($str, "\n__END__");
+    }
+    // __END__ not found:
     if ($p === false) {
         if ($reverse) {
             return '';
@@ -612,6 +614,8 @@ function zapFileEND(string $str, bool $reverse = false): string
             return $str;
         }
     }
+
+    // __END__ found:
     if ($reverse) {
         $str = substr($str, $p);
     } else {
@@ -1160,8 +1164,11 @@ function writeFile(string $file, string $content, int $flags = 0): void
              $array = parseCsv($str);
              $array2 = [];
              $headers = array_shift($array);
+             $nElems = sizeof($headers);
              foreach ($array as $rec) {
-                 $array2[] = array_combine($headers, $rec);
+                 if (sizeof($rec) === $nElems) {
+                     $array2[] = array_combine($headers, $rec);
+                 }
              }
              return $array2;
      }
@@ -1299,42 +1306,59 @@ function writeFile(string $file, string $content, int $flags = 0): void
 
 
  /**
-  * Parses a CSV string, converts it to an array
-  *  -> tries to guess delimiter and enclosing quotes, if not specified
-  * @param string $str
-  * @param bool $delim
-  * @param bool $enclos
+  * Converts a CSV-string into an array
+  * @param string $csv_string
+  * @param string $delimiter
   * @return array
   */
- function parseCsv(string $str, bool $delim = false, bool $enclos = false): array
- {
+function parseCsv (string $csv_string, mixed $delimiter = false): array
+{
+    if (!$delimiter) {
+        $delimiter = (substr_count($csv_string, ',') > substr_count($csv_string, ';')) ? ',' : ';';
+        $delimiter = (substr_count($csv_string, $delimiter) > substr_count($csv_string, "\t")) ? $delimiter : "\t";
+    }
+    $enc = decodeCharset($csv_string);
+    $lines = preg_split('/( *\R)+/s', $enc);
+    $lines = array_filter($lines);
+    return array_map(
+        function ($line) use ($delimiter) {
+            $fields = array_map('trim', explode($delimiter, $line));
+            return array_map(
+                function ($field) {
+                    if (preg_match('/^ (["\']) (.*) \1 $/x', $field, $m)) {
+                        $field = $m[2];
+                    }
+                    $field = preg_replace('/(?<!")""/', '"', $field);
+                    return $field;
+                },
+                $fields
+            );
+        },
+        $lines
+    );
+} // parseCsv
 
-     if (!$delim) {
-         $delim = (substr_count($str, ',') > substr_count($str, ';')) ? ',' : ';';
-         $delim = (substr_count($str, $delim) > substr_count($str, "\t")) ? $delim : "\t";
-     }
-     if (!$enclos) {
-         if (strpbrk($str[0], '"\'')) {
-             $enclos = $str[0];
-         } else {
-             $enclos = (substr_count($str, '"') > substr_count($str, "'")) ? '"' : "'";
-         }
-     }
-     if (strpos($str,"\r") !== false) {
-         $str = str_replace(["\n\r","\r\n","\r"], "\n", $str);
-     }
-     $lines = explode(PHP_EOL, $str);
-     $array = array();
-     foreach ($lines as $line) {
-         if (!$line) { continue; }
-         $line = str_replace("\\n", "\n", $line);
-         $array[] = str_getcsv($line, $delim, $enclos);
-     }
-     return $array;
- } // parseCsv
 
-
-
+ /**
+  * Re-codes given string to UTF-8. If $textEncoding is not defined, tries to guess the correct charset.
+  * @param string $str
+  * @param mixed $textEncoding
+  * @return string
+  */
+ function decodeCharset(string $str, mixed $textEncoding = true): string
+{
+    if ($textEncoding) {
+        if ($textEncoding !== true) {
+            $str = iconv($textEncoding, 'UTF-8', $str);
+        } else { // try to auto-detect:
+            $encoding = mb_detect_encoding($str) ?: 'macintosh';
+            if ($encoding !== 'UTF-8') {
+                $str = iconv($encoding, 'UTF-8', $str);
+            }
+        }
+    }
+    return $str;
+} // decodeCharset
 
 
  /**
@@ -1606,9 +1630,12 @@ function superBracketsDecode(mixed $item): mixed
   */
 function parseArgKey(string &$rest, string $delim): string
 {
-    $lead = '';
+//    $lead = '';
     $key = '';
     $rest = ltrim($rest);
+//    if (preg_match('|^https?://|', $rest)) {
+//        return "'$rest'";
+//    }
     // case quoted key or value:
     if ((($ch1 = ($rest[0]??'')) === '"') || ($ch1 === "'")) {
         $pattern = "$ch1 (.*?) $ch1";
@@ -2055,7 +2082,12 @@ function explodeTrim(string $sep, string $str, bool $excludeEmptyElems = false):
 */
 function compileMarkdown(string $mdStr): string
 {
-    return PageFactory::$md->compile($mdStr);
+    if ($mdStr) {
+        return markdown($mdStr);
+//        return MarkdownPlus::compile($mdStr);
+    } else {
+        return '';
+    }
 } // compileMarkdown
 
 
@@ -2238,6 +2270,15 @@ function translateToClassName(string $str): string
     }
     return $str;
 } // translateToClassName
+
+
+
+function camelCase($str)
+{
+    $str = str_replace(['-','_'], '', ucwords($str, '-'));
+    return lcfirst($str);
+}    // camelCase
+
 
 
  /**
@@ -2524,4 +2565,6 @@ function iconExists(string $iconName): bool
          + $replacement
          + array_slice($input, $offset + $length, NULL, TRUE);
  } // array_splice_assoc
+
+
 

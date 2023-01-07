@@ -1,7 +1,6 @@
 {
     "require": {
-        "scssphp/scssphp": "^1.8",
-        "cebe/markdown": "^1.2"
+        "scssphp/scssphp": "^1.8"
     },
     "autoload": {
         "psr-4": {

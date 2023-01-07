@@ -6,7 +6,6 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
-    'cebe\\markdown\\' => array($vendorDir . '/cebe/markdown'),
     'Usility\\PageFactory\\' => array($baseDir . '/src'),
     'Usility\\PageFactoryElements\\' => array($baseDir . '/../pagefactory-pageelements/src'),
     'ScssPhp\\ScssPhp\\' => array($vendorDir . '/scssphp/scssphp/src'),

@@ -1,0 +1,59 @@
+<?php
+namespace Usility\PageFactory;
+
+/*
+ * Twig extension
+ */
+
+require_once __DIR__.'/../src/Link.php';
+
+function link($args = '')
+{
+    // Definition of arguments and help-text:
+    $config =  [
+        'options' => [
+            'url' => ['Path or URL to link target', false],
+            'text' => ['Link-text. If missing, "href" will be displayed instead.', false],
+            'type' => ['[intern, extern or mail, pdf, sms, tel, gsm, geo, slack] "mail" renders link as "mailto:", "intern" suppresses automatic prepending of "https://", "extern" causes link target to be opened in new window.', false],
+            'id' => ['ID to be applied to the &lt;a> Tag.', false],
+            'class' => ['Class to be applied to the &lt;a> Tag.', false],
+            'title' => ['Title attribute to be applied to the &lt;a> Tag.', false],
+            'icon' => ['Icon to be added to the link text.', null],
+            'iconPosition' => ['[before,after] Where to add the icon.', 'before'],
+            'attr' => ['Generic attribute applied to the &lt;a> Tag.', false],
+            'download' => ['If true, just adds "download" to tag attributes.', false],
+            'hiddenText' => ['Text appended to "text", but made visually hidden. I.e. text only available to assistive technologies.', false],
+            'target' => ['[newwin] Target attribute to be applied to the &lt;a> Tag. "newwin" means opening page in new window (or tab).', null],
+            'subject' => ['In case of "mail" and "sms": subject to be preset.', false],
+            'body' => ['In case of "mail": mail body to be preset.', false],
+        ],
+        'summary' => <<<EOT
+# Link()
+
+Renders an HTML-link (\<a> tag).
+
+Supported link-types: mail, pdf, sms, tel, geo, gsm, slack, twitter, tiktok, instagram, facebook.
+
+EOT,
+        'assetsToLoad' => '',
+        'mdCompile' => false,
+    ];
+
+    // render help text:
+    if ($args === 'help') {
+        return renderTwigFunctionHelp($config);
+    }
+
+    // get arguments:
+    $options = parseTwigFunctionArguments($config, $args);
+
+    // assemble output:
+    $lnk = new Link();
+    $str = $lnk->render($options);
+
+    if ($config['mdCompile']) {
+        $str = markdown($str);
+    }
+    return $str;
+}
+

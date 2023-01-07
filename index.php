@@ -11,18 +11,23 @@
  * @license   MIT <https://opensource.org/licenses/MIT>
  */
 
+const TWIG_FUNCTIONS_FOLDER = __DIR__.'/twig-functions/';
+
 require_once __DIR__ . '/vendor/autoload.php';
 
-use Kirby\Cms\App as Kirby;
+//use Kirby\Cms\App as Kirby;
 use Usility\PageFactory\PageFactory as PageFactory;
+
+// load twig-functions:
+$twigFunctions = glob(TWIG_FUNCTIONS_FOLDER.'*.php');
+foreach ($twigFunctions as $file) {
+    if (basename($file)[0] !== '#') {
+        require_once $file;
+    }
+}
 
 
 Kirby::plugin('usility/pagefactory', [
-    'pageMethods' => [
-        'pageFactoryRender' => function($pages, $options = false) {
-            return (new PageFactory($pages))->render($options);
-        }
-    ],
 
     'routes' => [
         [
@@ -55,6 +60,19 @@ Kirby::plugin('usility/pagefactory', [
     ],
 
     'hooks' => [
+        'page.render:before' => function (string $contentType, array $data, Kirby\Cms\Page $page) {
+            $pfy = new PageFactory($data);
+
+            // render page content and store in page.text variable, where the twig template picks it up:
+            $page->text()->value = $pfy->renderPageContent();
+
+            return $data;
+        },
+
+        'page.render:after' => function (string $contentType, array $data, string $html, Kirby\Cms\Page $page) {
+            return Usility\PageFactory\unshieldStr($html, true);
+        },
+
         // when user opens panel -> update .txt files according to .md content:
         'route:before' => function (\Kirby\Http\Route $route, string $path) {
             if (strpos($path, 'panel/pages/') === 0) {

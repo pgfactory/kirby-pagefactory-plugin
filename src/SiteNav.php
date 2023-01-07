@@ -15,12 +15,15 @@ define('NAV_ACTIVE',    'pfy-active');  // currently open page and all its ances
 class SiteNav
 {
     public static $inx = 1;
+    private bool $deep = true;
+//    private bool $deep = false;
+    private $args;
 
-    public function __construct($pfy)
+    public function __construct()
     {
-        $this->pfy = $pfy;
-        $this->page = $pfy->page;
-        $this->site = $pfy->site;
+//        $this->pfy = $pfy;
+        $this->page = page();
+        $this->site = site();
         $this->arrow = NAV_ARROW;
         $this->hidden = 'false';
         PageFactory::$assets->addJqFiles('site/plugins/pagefactory/assets/js/nav.jq');
@@ -35,13 +38,16 @@ class SiteNav
     public function render($args): string
     {
         $inx = self::$inx++;
-        $this->args = $args;
-        $wrapperClass = $args['wrapperClass'];
+        $this->args = &$args;
+        $wrapperClass = &$args['wrapperClass'];
         $class = $args['class'];
 
-        $this->deep = ($this->args['type'] !== 'top');
-
-        if (strpos($wrapperClass, 'pfy-nav-collapsed')) {
+       if ($args['type'] === 'top') {
+           $args['wrapperClass'] .= ' pfy-nav-top-horizontal pfy-nav-indented pfy-nav-collapsed pfy-nav-animated pfy-nav-hoveropen pfy-encapsulated pfy-nav-small-tree';
+//           $this->deep = true;
+       }
+//ToDo: when $this->deep = false; ??
+        if (str_contains($wrapperClass, 'pfy-nav-collapsed')) {
             $this->hidden = 'true';
         }
         $out = '';
@@ -74,11 +80,11 @@ class SiteNav
 
         $out = <<<EOT
 
-    <div id='pfy-nav-$inx' class='pfy-nav-wrapper $wrapperClass'>
-      <nav class='pfy-nav $class'>
+<div id='pfy-nav-$inx' class='pfy-nav-wrapper $wrapperClass'>
+  <nav class='pfy-nav $class'>
 $out
-      </nav>
-    </div><!-- /pfy-nav-wrapper -->
+  </nav>
+</div><!-- /pfy-nav-wrapper -->
 EOT;
         return $out;
     } // render

@@ -176,7 +176,8 @@ EOT;
                     break;
 
                 case 'notranslate': // ?notranslate
-                    TransVars::$noTranslate = $arg? intval($arg): 1;
+                    TwigVars::$noTranslate = $arg? intval($arg): 1; //???
+//                    TransVars::$noTranslate = $arg? intval($arg): 1;
                     break;
 
                 case 'reset': // ?reset
@@ -203,7 +204,7 @@ EOT;
 
 [?help](./?help)       12em>> this information 
 [?variables](./?variables)      >> show currently defined variables
-[?macros](./?macros)      >> show currently defined macros()
+[?functions](./?functions)      >> show currently defined functions()
 [?lang=](./?lang)      >> activate given language
 [?debug](./?debug)      >> activate debug mode
 [?localhost=false](./?localhost=false)      >> mimicks running on a remote host (for testing)
@@ -242,21 +243,30 @@ EOT;
         }
         // show variables:
         if (isset($_GET['variables']) && isAdminOrLocalhost()) {
+            $html = PageFactory::$trans->renderVariables();
             $str = <<<EOT
 <h1>Variables</h1>
-{{ list(variables) }}
+$html
 EOT;
-            $str = PageFactory::$trans->translate($str);
             PageFactory::$pg->setOverlay($str, false);
 
         // show macros:
-        } elseif (isset($_GET['macros']) && isAdminOrLocalhost()) {
+        } elseif (isset($_GET['functions']) && isAdminOrLocalhost()) {
+            $html = "<ul class='pfy-list-functions'>\n";
+            $dir = glob('site/plugins/pagefactory/twig-functions/*.php');
+            foreach ($dir as $file) {
+                $name = basename($file, '.php');
+                if ($name[0] !== '#') {
+                    $html .= "\t<li>$name()</li>\n";
+                }
+            }
+            $html .= "</ul>\n";
+
             $str = <<<EOT
-<h1>Macros</h1>
-{{ list(macros) }}
+<h1>Functions</h1>
+$html
 EOT;
-            $str = PageFactory::$trans->translate($str);
-            PageFactory::$pg->setOverlay($str);
+            PageFactory::$pg->setOverlay($str, false);
         }
     } // handleAgentRequestsOnRenderedPage
 
@@ -268,45 +278,45 @@ EOT;
      *      b) files starting with '-' (-> reserved for explicit loading)
      *      c) files ending with '.XX.md', where XX is a language code and doesn't match the currently active language
      */
-    public function loadMdFiles(): void
-    {
-        $files = $this->findMdFiles();
-        $inx = 1;
-        $currLang = PageFactory::$langCode;
-        foreach ($files as $fileObj) {
-            $file = $fileObj->root();
-            if (preg_match('/\.(\w\w\d?)\.\w{2,5}$/', $file, $m)) {
-                if ($m[1] !== $currLang) {
-                    continue;
-                }
-            }
-            $mdStr = loadFile($file, 'cStyle');
-            $mdStr = $this->extractFrontmatter($mdStr);
-            $html = PageFactory::$md->compile($mdStr);
-            $class = translateToClassName(basename($fileObj->id(), '.md'));
-            $wrapperTag = Page::$frontmatter['wrapperTag']??null;
-            if ($wrapperTag === null) {
-                $wrapperTag = 'section';
-            }
-            $this->sectionClass = "pfy-section-$class";
-            $this->sectionId = "pfy-section-$inx";
-            $this->fixFrontmatterCss();
-            if ($wrapperTag) {
-             Page::$content .= <<<EOT
-
-<$wrapperTag id='pfy-section-$inx' class='pfy-section-wrapper pfy-section-$inx pfy-section-$class'>
-
-$html
-
-</$wrapperTag>
-
-EOT;
-            } else {
-                Page::$content .= $html;
-            }
-            $inx++;
-        }
-    } // loadMdFiles
+//    public function loadMdFiles(): void
+//    {
+//        $files = $this->findMdFiles();
+//        $inx = 1;
+//        $currLang = PageFactory::$langCode;
+//        foreach ($files as $fileObj) {
+//            $file = $fileObj->root();
+//            if (preg_match('/\.(\w\w\d?)\.\w{2,5}$/', $file, $m)) {
+//                if ($m[1] !== $currLang) {
+//                    continue;
+//                }
+//            }
+//            $mdStr = loadFile($file, 'cStyle');
+//            $mdStr = $this->extractFrontmatter($mdStr);
+//            $html = PageFactory::$md->compile($mdStr);
+//            $class = translateToClassName(basename($fileObj->id(), '.md'));
+//            $wrapperTag = Page::$frontmatter['wrapperTag']??null;
+//            if ($wrapperTag === null) {
+//                $wrapperTag = 'section';
+//            }
+//            $this->sectionClass = "pfy-section-$class";
+//            $this->sectionId = "pfy-section-$inx";
+//            $this->fixFrontmatterCss();
+//            if ($wrapperTag) {
+//             Page::$content .= <<<EOT
+//
+//<$wrapperTag id='pfy-section-$inx' class='pfy-section-wrapper pfy-section-$inx pfy-section-$class'>
+//
+//$html
+//
+//</$wrapperTag>
+//
+//EOT;
+//            } else {
+//                Page::$content .= $html;
+//            }
+//            $inx++;
+//        }
+//    } // loadMdFiles
 
 
     /**
@@ -315,114 +325,114 @@ EOT;
      * @return string
      * @throws Kirby\Exception\InvalidArgumentException
      */
-    public function extractFrontmatter(string $mdStr):string
-    {
-        // extract MD-Frontmatter: block at top of page starting and ending with '---':
-        if (strpos($mdStr, '---') === 0) {
-            $p = strpos($mdStr, "\n");
-            $marker = substr($mdStr, 0, $p);
-            $mdStr = substr($mdStr, $p+1);
-            $p = strpos($mdStr, $marker);
-            $frontmatter = substr($mdStr, 0, $p);
-            $p = strpos($mdStr, "\n", $p);
-            $mdStr = substr($mdStr, $p+1);
-            $frontmatter = Yaml::decode($frontmatter, 'yaml');
-            $this->addToFrontmatter($frontmatter);
-        }
-
-        // extract Kirby-Frontmatter: blocks at top of page, each one ending with '----':
-        if (PageFactory::$config['handleKirbyFrontmatter']??false) {
-            $options = $this->extractKirbyFrontmatter($mdStr);
-            if ($options) {
-                $this->addToFrontmatter($options);
-            }
-        }
-
-        // if variables were defined in Frontmatter, propagate them into PFY's variables:
-        if ((Page::$frontmatter['variables']??false) && is_array(Page::$frontmatter['variables'])) {
-            foreach (Page::$frontmatter['variables'] as $varName => $value) {
-                PageFactory::$trans->setVariable($varName, $value);
-            }
-        }
-
-        if ((Page::$frontmatter['template']??false)) {
-            $this->pfy->templateFile = 'site/templates/'.basename(Page::$frontmatter['template']);
-        }
-
-        // if PageElements extension is loaded -> handle overlay,popup,message:
-        if (in_array('pageelements', array_keys(PageFactory::$availableExtensions))) {
-            if (Page::$frontmatter['overlay']??false) {
-                $pe = new \Usility\PageFactoryElements\Overlay($this->pfy);
-                $pe->set(Page::$frontmatter['overlay'], true);
-            }
-            if (Page::$frontmatter['message']??false) {
-                $pe = new \Usility\PageFactoryElements\Message($this->pfy);
-                $pe->set(Page::$frontmatter['message'], true);
-            }
-            if (Page::$frontmatter['popup']??false) {
-                $pe = new \Usility\PageFactoryElements\Popup($this->pfy);
-                $pe->set(Page::$frontmatter['popup'], true);
-            }
-        }
-
-        if (Page::$frontmatter['loadAssets']??false) {
-            PageFactory::$assets->addAssets(Page::$frontmatter['loadAssets']);
-        }
-        if (Page::$frontmatter['assets']??false) {
-            PageFactory::$assets->addAssets(Page::$frontmatter['assets']);
-        }
-        if (Page::$frontmatter['jqFile']??false) {
-            PageFactory::$assets->addAssets(Page::$frontmatter['jqFile'], true);
-        }
-        if (Page::$frontmatter['jqFiles']??false) {
-            PageFactory::$assets->addJqFiles(Page::$frontmatter['jqFiles']);
-        }
-
-        // save frontmatter for further use (e.g. by macros):
-
-        return $mdStr;
-    } // extractFrontmatter
+//    public function extractFrontmatter(string $mdStr):string
+//    {
+//        // extract MD-Frontmatter: block at top of page starting and ending with '---':
+//        if (strpos($mdStr, '---') === 0) {
+//            $p = strpos($mdStr, "\n");
+//            $marker = substr($mdStr, 0, $p);
+//            $mdStr = substr($mdStr, $p+1);
+//            $p = strpos($mdStr, $marker);
+//            $frontmatter = substr($mdStr, 0, $p);
+//            $p = strpos($mdStr, "\n", $p);
+//            $mdStr = substr($mdStr, $p+1);
+//            $frontmatter = Yaml::decode($frontmatter, 'yaml');
+//            $this->addToFrontmatter($frontmatter);
+//        }
+//
+//        // extract Kirby-Frontmatter: blocks at top of page, each one ending with '----':
+//        if (PageFactory::$config['handleKirbyFrontmatter']??false) {
+//            $options = $this->extractKirbyFrontmatter($mdStr);
+//            if ($options) {
+//                $this->addToFrontmatter($options);
+//            }
+//        }
+//
+//        // if variables were defined in Frontmatter, propagate them into PFY's variables:
+//        if ((Page::$frontmatter['variables']??false) && is_array(Page::$frontmatter['variables'])) {
+//            foreach (Page::$frontmatter['variables'] as $varName => $value) {
+//                PageFactory::$trans->setVariable($varName, $value);
+//            }
+//        }
+//
+//        if ((Page::$frontmatter['template']??false)) {
+//            $this->pfy->templateFile = 'site/templates/'.basename(Page::$frontmatter['template']);
+//        }
+//
+//        // if PageElements extension is loaded -> handle overlay,popup,message:
+//        if (in_array('pageelements', array_keys(PageFactory::$availableExtensions))) {
+//            if (Page::$frontmatter['overlay']??false) {
+//                $pe = new \Usility\PageFactoryElements\Overlay($this->pfy);
+//                $pe->set(Page::$frontmatter['overlay'], true);
+//            }
+//            if (Page::$frontmatter['message']??false) {
+//                $pe = new \Usility\PageFactoryElements\Message($this->pfy);
+//                $pe->set(Page::$frontmatter['message'], true);
+//            }
+//            if (Page::$frontmatter['popup']??false) {
+//                $pe = new \Usility\PageFactoryElements\Popup($this->pfy);
+//                $pe->set(Page::$frontmatter['popup'], true);
+//            }
+//        }
+//
+//        if (Page::$frontmatter['loadAssets']??false) {
+//            PageFactory::$assets->addAssets(Page::$frontmatter['loadAssets']);
+//        }
+//        if (Page::$frontmatter['assets']??false) {
+//            PageFactory::$assets->addAssets(Page::$frontmatter['assets']);
+//        }
+//        if (Page::$frontmatter['jqFile']??false) {
+//            PageFactory::$assets->addAssets(Page::$frontmatter['jqFile'], true);
+//        }
+//        if (Page::$frontmatter['jqFiles']??false) {
+//            PageFactory::$assets->addJqFiles(Page::$frontmatter['jqFiles']);
+//        }
+//
+//        // save frontmatter for further use (e.g. by macros):
+//
+//        return $mdStr;
+//    } // extractFrontmatter
 
 
     /**
      * Adds new frontmatter values to PageExtruder::$frontmatter
      * @param array $frontmatter
      */
-    private function addToFrontmatter(array $frontmatter): void
-    {
-        if (!Page::$frontmatter) {
-            Page::$frontmatter = $frontmatter;
-        } else {
-            foreach ($frontmatter as $key => $value) {
-                if ((Page::$frontmatter[$key]??false) && is_string($value)) {
-                    Page::$frontmatter[$key] .= $value;
-
-                } elseif ((Page::$frontmatter[$key]??false) && is_array($value)) {
-                    Page::$frontmatter[$key] = array_merge(Page::$frontmatter[$key], $value);
-                } else {
-                    Page::$frontmatter[$key] = $value;
-                }
-            }
-        }
-    } // addToFrontmatter
+//    private function addToFrontmatter(array $frontmatter): void
+//    {
+//        if (!Page::$frontmatter) {
+//            Page::$frontmatter = $frontmatter;
+//        } else {
+//            foreach ($frontmatter as $key => $value) {
+//                if ((Page::$frontmatter[$key]??false) && is_string($value)) {
+//                    Page::$frontmatter[$key] .= $value;
+//
+//                } elseif ((Page::$frontmatter[$key]??false) && is_array($value)) {
+//                    Page::$frontmatter[$key] = array_merge(Page::$frontmatter[$key], $value);
+//                } else {
+//                    Page::$frontmatter[$key] = $value;
+//                }
+//            }
+//        }
+//    } // addToFrontmatter
 
 
     /**
      * Replaces placeholders '#this' and '.this' with current values.
      * @return void
      */
-    private function fixFrontmatterCss(): void
-    {
-        $css = &Page::$frontmatter['css'];
-        if ($css) {
-            $css = str_replace(['#this', '.this'], ['#'.$this->sectionId, '.'.$this->sectionClass], $css);
-        }
-
-        $scss = &Page::$frontmatter['scss'];
-        if ($scss) {
-            $scss = str_replace(['#this', '.this'], ['#'.$this->sectionId, '.'.$this->sectionClass], $scss);
-        }
-    } // fixFrontmatterCss
+//    private function fixFrontmatterCss(): void
+//    {
+//        $css = &Page::$frontmatter['css'];
+//        if ($css) {
+//            $css = str_replace(['#this', '.this'], ['#'.$this->sectionId, '.'.$this->sectionClass], $css);
+//        }
+//
+//        $scss = &Page::$frontmatter['scss'];
+//        if ($scss) {
+//            $scss = str_replace(['#this', '.this'], ['#'.$this->sectionId, '.'.$this->sectionClass], $scss);
+//        }
+//    } // fixFrontmatterCss
 
 
     /**
@@ -431,41 +441,41 @@ EOT;
      * @param string $string
      * @return array
      */
-    public function extractKirbyFrontmatter(&$string): array
-    {
-        if ($string === null || $string === '') {
-            return [];
-        }
-        if (!preg_match('/\n----/ms', $string)) {
-            return [];
-        }
-
-        $p = strrpos($string, "\n----");
-        $frontmatter = substr($string, 0, $p);
-        $string = substr($string, $p+5);
-
-        // explode all fields by the line separator
-        $fields = preg_split('!\n----\s*\n*!', $frontmatter);
-        $data = [];
-
-        // loop through all fields and add them to the content
-        foreach ($fields as $field) {
-            $pos = strpos($field, ':');
-            $key = str_replace(['-', ' '], '_', strtolower(trim(substr($field, 0, $pos))));
-
-            // Don't add fields with empty keys
-            if (empty($key) === true) {
-                continue;
-            }
-
-            $value = trim(substr($field, $pos + 1));
-
-            // unescape escaped dividers within a field
-            $data[$key] = preg_replace('!(?<=\n|^)\\\\----!', '----', $value);
-        }
-
-        return $data;
-    } // extractKirbyFrontmatter
+//    public function extractKirbyFrontmatter(&$string): array
+//    {
+//        if ($string === null || $string === '') {
+//            return [];
+//        }
+//        if (!preg_match('/\n----/ms', $string)) {
+//            return [];
+//        }
+//
+//        $p = strrpos($string, "\n----");
+//        $frontmatter = substr($string, 0, $p);
+//        $string = substr($string, $p+5);
+//
+//        // explode all fields by the line separator
+//        $fields = preg_split('!\n----\s*\n*!', $frontmatter);
+//        $data = [];
+//
+//        // loop through all fields and add them to the content
+//        foreach ($fields as $field) {
+//            $pos = strpos($field, ':');
+//            $key = str_replace(['-', ' '], '_', strtolower(trim(substr($field, 0, $pos))));
+//
+//            // Don't add fields with empty keys
+//            if (empty($key) === true) {
+//                continue;
+//            }
+//
+//            $value = trim(substr($field, $pos + 1));
+//
+//            // unescape escaped dividers within a field
+//            $data[$key] = preg_replace('!(?<=\n|^)\\\\----!', '----', $value);
+//        }
+//
+//        return $data;
+//    } // extractKirbyFrontmatter
 
 
     /**
@@ -570,7 +580,7 @@ EOT;
      */
     public function determineLanguage(): void
     {
-        $supportedLanguages = $this->pfy->supportedLanguages = kirby()->languages()->codes();
+        $supportedLanguages = PageFactory::$supportedLanguages = kirby()->languages()->codes();
         if (!$supportedLanguages) {
             if ($langObj = kirby()->language()) {
                 $lang = $langObj->code();
@@ -610,34 +620,12 @@ EOT;
                 PageFactory::$langCode = $langCode;
                 kirby()->session()->set('pfy.lang', $lang);
                 kirby()->setCurrentLanguage($langCode);
-                $url = $this->pfy->page->url();
+                $url = page()->url();
                 reloadAgent($url);
             }
         }
     } // determineLanguage
 
-
-    /**
-     * Defines variable 'pfy-lang-selection', which expands to a language selection block,
-     * one language icon per supported language
-     */
-    public function setLanguageSelector():void
-    {
-        $out = '';
-        if (sizeof($this->pfy->supportedLanguages) > 1) {
-            foreach ($this->pfy->supportedLanguages as $lang) {
-                $langCode = substr($lang, 0, 2);
-                if ($lang === PageFactory::$lang) {
-                    $out .= "<span class='pfy-lang-elem pfy-active-lang $langCode'><span>{{^ pfy-lang-select-$langCode }}</span></span> ";
-                } else {
-                    $out .= "<span class='pfy-lang-elem $langCode'><a href='?lang=$lang' title='{{ pfy-lang-select-title-$langCode }}'>{{^ pfy-lang-select-$langCode }}</a></span> ";
-                }
-            }
-            $out = "\t<span class='pfy-lang-selection'>$out</span>\n";
-        }
-
-        PageFactory::$trans->setVariable('pfy-lang-selection', $out);
-    } // setLanguageSelector
 
 
     /**
@@ -758,9 +746,9 @@ EOT;
     public function init(): void
     {
         // propagate variables from config into TransVars:
-        if (isset(PageFactory::$config['variables'])) {
-            PageFactory::$trans->setVariables(PageFactory::$config['variables']);
-        }
+//        if (isset(PageFactory::$config['variables'])) {
+//            PageFactory::$trans->setVariables(PageFactory::$config['variables']);
+//        }
     } // init
 
 
@@ -772,26 +760,56 @@ EOT;
      *  d) default template 'site/templates/page_template.html'
      * @param mixed $templateFile
      */
-    public function determineTemplateFile($templateFile = false): void
+//    public function determineTemplateFile($templateFile = false): void
+//    {
+//        $templatePath = dir_name(PFY_DEFAULT_TEMPLATE_FILE);
+//        if (!$templateFile) {
+//            $intendedTemplate = $this->pfy->page->content()->parent()->intendedTemplate()->name();
+//            if ($intendedTemplate) {
+//                $templateFile = "$templatePath$intendedTemplate.html";
+//            }
+//        }
+//        if (!file_exists($templateFile)) {
+//            $templateFile = $templatePath.$templateFile;
+//            if (!file_exists($templateFile)) {
+//                $templateFile = $templatePath . $this->pfy->page->dirname() . '.html';
+//                if (!file_exists($templateFile)) {
+//                    $templateFile = PFY_DEFAULT_TEMPLATE_FILE;
+//                }
+//            }
+//        }
+//        $this->pfy->templateFile = $templateFile;
+//    } // determineTemplateFile
+
+
+    /**
+     * Checks whether template contains 'pfy-default-styling', i.e. uses default styling. If not, removes
+     * those entries from the asset queue
+     * @param mixed $html
+     * @return void
+     */
+    private function checkDefaultStylingActive(mixed $html): void
     {
-        $templatePath = dir_name(PFY_DEFAULT_TEMPLATE_FILE);
-        if (!$templateFile) {
-            $intendedTemplate = $this->pfy->page->content()->parent()->intendedTemplate()->name();
-            if ($intendedTemplate) {
-                $templateFile = "$templatePath$intendedTemplate.html";
-            }
+        $this->useDefaultStyling = str_contains($html, 'pfy-default-styling');
+        if (!$this->useDefaultStyling) {
+            PageFactory::$assets->excludeSystemAssets();
         }
-        if (!file_exists($templateFile)) {
-            $templateFile = $templatePath.$templateFile;
-            if (!file_exists($templateFile)) {
-                $templateFile = $templatePath . $this->pfy->page->dirname() . '.html';
-                if (!file_exists($templateFile)) {
-                    $templateFile = PFY_DEFAULT_TEMPLATE_FILE;
-                }
-            }
+    } // checkDefaultStylingActive
+
+
+
+    /**
+     * reloadAgent() can prepare a message to be shown on next page view, here we show the message:
+     * @return void
+     */
+    public function showPendingMessage(): void
+    {
+        if ($msg = $this->pfy->session->get('pfy.message')) {
+            PageFactory::$pg->setMessage($msg);
+            $this->pfy->session->remove('pfy.message');
         }
-        $this->pfy->templateFile = $templateFile;
-    } // determineTemplateFile
+    } // showPendingMessage
+
 
 
     /**

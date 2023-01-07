@@ -12,16 +12,16 @@ use Exception;
 
 class Page
 {
-    public static $content;
+    public static $content = '';
     public $headInjections = '';
     public $bodyEndInjections;
     public $bodyTagClasses;
-    public static $bodyTagAttributes;
+    public $bodyTagAttributes;
     public $css;
     public $scss;
     public $js;
     public $jq;
-    public static $frontmatter = [];
+//    public static $frontmatter = [];
     public $assetFiles = [];
     public $overrideContent = false;
     public static $definitions;
@@ -37,7 +37,6 @@ class Page
         $this->sc = new Scss($this->pfy);
         $this->assetFiles = &$pfy->assetFiles;
         self::$definitions['assets'] = ASSET_URL_DEFINITIONS;
-        self::$content = (string)page()->text()->kt();
     } // __construct
 
 
@@ -77,7 +76,7 @@ class Page
 
 
     /**
-     * Checks loaded extensions whether tey contain a special file 'src/_finalCode.php' and executes it.
+     * Checks loaded extensions whether they contain a special file 'src/_finalCode.php' and executes it.
      * @return void
      */
     public function extensionsFinalCode(): void
@@ -89,33 +88,6 @@ class Page
             }
         }
     } // extensionsFinalCode
-
-
-
-    /**
-     * Main method: populates injection variables that go into the page-template.
-     */
-    public function preparePageVariables(): void
-    {
-        $out = $this->renderHeadInjections();
-        $this->trans->setVariable('pfy-head-injections', $out);
-
-        $bodyClasses = $this->bodyTagClasses? $this->bodyTagClasses: 'pfy-large-screen';
-        if (isAdmin()) {
-            $bodyClasses .= ' pfy-admin';
-        } elseif (kirby()->user()) {
-            $bodyClasses .= ' pfy-loggedin';
-        }
-        if (PageFactory::$debug) {
-            $bodyClasses = trim("debug $bodyClasses");
-        }
-        $this->trans->setVariable('pfy-body-classes', $bodyClasses);
-
-        $this->trans->setVariable('pfy-body-tag-attributes', Page::$bodyTagAttributes??'');
-
-        $bodyEndInjections = $this->renderBodyEndInjections();
-        $this->trans->setVariable('pfy-body-end-injections', $bodyEndInjections);
-    } // preparePageVariables
 
 
 
@@ -218,7 +190,7 @@ class Page
         // if PageElements are not loaded, we need to create bare page and exit immediately:
         } else {
             if ($mdCompile) {
-                $str = compileMarkdown($str);
+                $str = markdown($str);
             }
             $html = <<<EOT
 <!DOCTYPE html>
@@ -457,14 +429,14 @@ EOT;
         $html .= PageFactory::$assets->renderQueuedAssets('css');
 
         // add CSS-Code (compile if it's SCSS):
-        $css = ($this->pageParams['css']??'') . (self::$frontmatter['css']??'') . $this->css;
-        $this->pageParams['css'] = self::$frontmatter['css'] = $this->css = false;
+        $css = $this->css ? "$this->css\n": '';
+        $css .= PageFactory::$page->css()->value() ?? '';
 
-        $scss = ($this->pageParams['scss']??'') . (self::$frontmatter['scss']??''). $this->scss;
-        $this->pageParams['scss'] = self::$frontmatter['scss'] = $this->scss = false;
+        $scss = $this->scss ? "$this->scss\n": '';
+        $scss .= PageFactory::$page->scss()->value() ?? '';
 
         if ($scss) {
-            $css .= $this->sc->compileStr($scss);
+            $css .= "\n".$this->sc->compileStr($scss);
         }
         if ($css) {
             $css = indentLines($css, 8);
@@ -482,7 +454,7 @@ EOT;
      * Assembles and renders the body-end-injections, i.e. js-code and js-files loading instructions
      * @return string
      */
-    private function renderBodyEndInjections(): string
+    public function renderBodyEndInjections(): string
     {
         $jsInjection = '';
         $jqInjection = '';
@@ -497,7 +469,9 @@ EOT;
         $js .= "const pageUrl = '" .        PageFactory::$pageUrl . "';\n";
         $js .= "const loggedinUser = '" .   PageFactory::$user . "';\n";
         $js .= "const currLang = '" .       PageFactory::$langCode . "';\n";
-        $js .= $this->js . (self::$frontmatter['js']??'');
+        $js .= $this->js ? "$this->js\n": '';
+        $js .= PageFactory::$page->js()->value() ?? '';
+
         if ($js) {
             $js = "\t\t".str_replace("\n", "\n\t\t", rtrim($js, "\n"));
             $jsInjection .= <<<EOT
@@ -509,7 +483,8 @@ $js
 EOT;
         }
 
-        $jq = $this->jq . (self::$frontmatter['jq']??'');
+        $jq = $this->jq ? "$this->jq\n": '';
+        $jq .= PageFactory::$page->jq()->value() ?? '';
         if ($jq) {
             $this->requireFramework();
             $jq = "\t\t\t".str_replace("\n", "\n\t\t\t", rtrim($jq, "\n"));
@@ -522,6 +497,12 @@ $jq
     </script>
 
 EOT;
+        }
+
+        // check config settings, whether default-nav should be activated:
+        if (PageFactory::$config['default-nav']??false) {
+            $this->requireFramework();
+            $this->addAssets('site/plugins/pagefactory/assets/js/nav.jq');
         }
 
         $jsFilesInjection = PageFactory::$assets->renderQueuedAssets('js');
@@ -547,16 +528,16 @@ EOT;
     private function getHeaderElem(string $name): string
     {
         // checks page-attrib, then site-attrib for requested keyword and returns it
-        $out = self::$frontmatter[$name]??'';
-        if (($name === 'robots') && is_bool($out)) {
+        $out = PageFactory::$page->$name()->value() ?? '';
+        if (!$out) {
+            $out = site()->$name()->value();
+        }
+
+        if (($name === 'robots') && ($out === 'true' || $out === 'false')) {
             // => any string value is rendered as is in robots meta tag
             $out = 'noindex,nofollow,noarchive';
         }
-        if (!$out) {
-            if (!$out = page()->$name()->value()) {
-                $out = site()->$name()->value();
-            }
-        }
+
         if ($out) {
             if (stripos($out, '<meta') === false) {
                 $out = "\t<meta name='$name' content='$out'>\n";
