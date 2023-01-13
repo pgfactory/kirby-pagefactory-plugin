@@ -7,24 +7,26 @@
 
 namespace Usility\PageFactory;
 
-use Exception;
 
+use ScssPhp\ScssPhp\Exception\SassException;
 
 class Page
 {
-    public static $content = '';
-    public $headInjections = '';
-    public $bodyEndInjections;
-    public $bodyTagClasses;
-    public $bodyTagAttributes;
-    public $css;
-    public $scss;
-    public $js;
-    public $jq;
-//    public static $frontmatter = [];
-    public $assetFiles = [];
-    public $overrideContent = false;
-    public static $definitions;
+    public static string $content = '';
+    public string $headInjections = '';
+    public string $bodyEndInjections = '';
+    public string $bodyTagClasses = '';
+    public string $bodyTagAttributes = '';
+    public string $css = '';
+    public string $scss = '';
+    public string $js = '';
+    public string $jq = '';
+    public array|null $assetFiles = [];
+    public bool $overrideContent = false;
+    public static array|null $definitions;
+    private object $pfy;
+    private object $trans;
+    private Scss $sc;
 
 
     /**
@@ -34,7 +36,7 @@ class Page
     {
         $this->pfy = $pfy;
         $this->trans = $pfy::$trans;
-        $this->sc = new Scss($this->pfy);
+        $this->sc = new Scss();
         $this->assetFiles = &$pfy->assetFiles;
         self::$definitions['assets'] = ASSET_URL_DEFINITIONS;
     } // __construct
@@ -49,11 +51,12 @@ class Page
             foreach (PageFactory::$availableExtensions as $extPath) {
                 // look for 'src/index.php' within the extension:
                 $indexFile = "{$extPath}src/index.php";
-                if (file_exists($indexFile)) {
-                    // === load index.php now:
-                    $extensionClassName = require_once $indexFile;
-                    PageFactory::$loadedExtensions[$extensionClassName] = $extPath;
+                if (!file_exists($indexFile)) {
+                    return;
                 }
+                // === load index.php now:
+                $extensionClassName = require_once $indexFile;
+                PageFactory::$loadedExtensions[$extensionClassName] = $extPath;
 
                 // instantiate extension object:
                 $extensionClass = "Usility\\PageFactoryElements\\$extensionClassName";
@@ -106,7 +109,7 @@ class Page
     /**
      * Generic getter
      * @param string $key
-     * @param $value
+     * @return mixed
      */
     public function get(string $key): mixed
     {
@@ -180,8 +183,9 @@ class Page
     /**
      * Proxy for extension PageElements -> Overlay -> overrides page if Overlay not available.
      * @param string $str
+     * @param bool $mdCompile
      */
-    public function setOverlay(string $str, $mdCompile = true): void
+    public function setOverlay(string $str, bool $mdCompile = true): void
     {
         if (isset(PageFactory::$availableExtensions['pageelements'])) {
             $pe = new \Usility\PageFactoryElements\Overlay($this->pfy);
@@ -213,10 +217,10 @@ EOT;
     /**
      * Proxy for extension PageElements -> Message -> displays message in upper right corner.
      * @param string $str
-     * @param $mdCompile
+     * @param bool $mdCompile
      * @return void
      */
-    public function setMessage(string $str, $mdCompile = true): void
+    public function setMessage(string $str, bool $mdCompile = true): void
     {
         if (isset(PageFactory::$availableExtensions['pageelements'])) {
             $pe = new \Usility\PageFactoryElements\Message($this->pfy);
@@ -280,7 +284,7 @@ EOT;
      */
     public function setBodyTagAttributes($str): void
     {
-        Page::$bodyTagAttributes = "$str ";
+        $this->bodyTagAttributes = "$str ";
     }
 
 
@@ -290,7 +294,7 @@ EOT;
      */
     public function addBodyTagAttributes($str): void
     {
-        Page::$bodyTagAttributes .= "$str ";
+        $this->bodyTagAttributes .= "$str ";
     }
 
 
@@ -412,6 +416,7 @@ EOT;
      * Assembles and renders the code that will be injected into the <head> element.
      * (Note: css-files containing '-async' will automatically be rendered for async loading)
      * @return string
+     * @throws SassException
      */
     public function renderHeadInjections(): string
     {
@@ -522,7 +527,7 @@ EOT;
     // === Helper methods ============================================
     /**
      * Retrieves data regarding one of head, description, keywords, author, robots
-     * @param $name
+     * @param string $name
      * @return string
      */
     private function getHeaderElem(string $name): string

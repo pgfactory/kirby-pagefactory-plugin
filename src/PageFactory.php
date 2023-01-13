@@ -3,6 +3,7 @@
 namespace Usility\PageFactory;
 
 use Kirby;
+use Kirby\Data\Yaml;
 
  // filesystem paths:
 const PFY_BASE_PATH =              'site/plugins/pagefactory/';
@@ -29,7 +30,6 @@ const DEFAULT_FRONTEND_FRAMEWORK_URLS = ['js' => PFY_ASSETS_URL.'js/jquery-3.6.1
 define('PFY_PAGE_DEF_BASENAME',     'z_pfy'); // 'define' required by site/plugins/pagefactory/index.php
 
 define('OPTIONS_DEFAULTS', [
-    'handleKirbyFrontmatter'        => false,
     'screenSizeBreakpoint'          => 480,
     'defaultLanguage'               => 'en',
     'allowNonPfyPages'              => false,  // -> if true, Pagefactory will skip checks for presence of metafiles
@@ -38,18 +38,6 @@ define('OPTIONS_DEFAULTS', [
     'imageAutoSrcset'               => true,  // -> used by Img() macro
     'divblock-chars'                => '@%',  // possible alternative: ':$@%'
     // 'timezone' => 'Europe/Zurich', // PageFactory tries to guess the timezone - you can override this manually
-
-    'variables' => [
-        'pfy-page-title' => '{{ kirby-page-title }} / {{ kirby-site-title }}',
-        'webmaster-email' => 'webmaster@'.preg_replace('|^https?://([\w.-]+)(.*)|', "$1", site()->url()),
-        'pfy-menu-icon' => svg('site/plugins/pagefactory/assets/icons/menu.svg'),
-        'pfy-small-screen-header' => <<<EOT
-        <h1>{{ kirby-site-title }}</h1>
-        <button id="pfy-nav-menu-icon">{{ pfy-menu-icon }}</button>
-EOT,
-
-        'pfy-footer' => ' Footer...',
-    ],
 
     // optionally define files to be used as css/js framework (e.g. jQuery or bootstrap etc):
     //    'frontendFrameworkUrls' => [
@@ -170,7 +158,6 @@ class PageFactory
         preparePath(PFY_LOGS_PATH);
         $this->utils->showPendingMessage();
         $this->utils->handleAgentRequests();
-        self::$trans->init();
     } // __construct
 
 
@@ -204,51 +191,120 @@ class PageFactory
 
         $this->utils->handleAgentRequestsOnRenderedPage();
 
-        $mdStr = self::$page->text()->value();
-        if ($mdStr) {
+        // get and compile meta-file's text field:
+        $mdStr = self::$page->text()->value()."\n\n";
+        $html = $this->compile($mdStr);
 
-            // strip comments:
-            $mdStr = zapFileEND($mdStr);
-            $mdStr = removeCStyleComments($mdStr);
+        // load content from .md files:
+        $html .= $this->loadMdFiles();
 
-            // shield argument lists enclosed in '({' and '})'
-            if (preg_match_all('/\(\{ (.*?) }\)/x', $mdStr, $m)) {
-                foreach ($m[1] as $i => $pattern) {
-                    $str = shieldStr($pattern);
-                    $mdStr = str_replace($m[0][$i], "('$str')", $mdStr);
-                }
+        // finalize:
+        if ($html) {
+            self::$trans->lastPreparations();
+
+            // resolve (nested) variables:
+            $cnt = 3;
+            while ($cnt-- && str_contains($html, '{{')) {
+                $html = twig($html, TwigVars::$variables);
             }
-
-            $mdStr = str_replace('\\{{', '{!!{', $mdStr);
-            $mdStr = str_replace('\\(', '⟮', $mdStr);
-
-            // add '|raw' to simple variables:
-            if (preg_match_all('/\{\{ ( [^}|(]+ ) }}/msx', $mdStr, $m)) {
-                foreach ($m[1] as $i => $pattern) {
-                    $str = "$pattern|raw";
-                    $mdStr = str_replace($m[0][$i], "{{ $str }}", $mdStr);
-                }
-            }
-
-//ToD0: case {{ link('https://xy.com') }} ->
-//        // add '|raw' to simple variables:
-//        if (preg_match_all('|\{\{ .*? https?:// .* }}|msx', $mdStr, $m)) {
-//            foreach ($m[1] as $i => $pattern) {
-//                $str = "$pattern|raw";
-//                $mdStr = str_replace($m[0][$i], "{{ $str }}", $mdStr);
-//            }
-//        }
-
-            $html = twig($mdStr, TwigVars::$variables);
             $html = str_replace('{!!{', '{{', $html);
-//        $html = unshieldStr($html, true);
-        } else {
-            $html = '';
         }
-
         self::$trans->prepareTemplateVariables();
 
         return $html;
     } // renderPageContent
 
+
+    private function loadMdFiles()
+    {
+        $path = self::$page->root();
+        $dir = getDir("$path/*.md");
+        $inx = 1;
+        $finalHtml = '';
+        foreach ($dir as $file) {
+            if (str_contains('#-_', basename($file)[0])) {
+                continue;
+            }
+            $mdStr = getFile($file);
+            $this->extractFrontmatter($mdStr);
+            $html = $this->compile($mdStr);
+            $finalHtml .= <<<EOT
+
+<section id='pfy-section-$inx' class='pfy-section.pfy-section-$inx'>
+
+$html
+
+</section>
+
+EOT;
+        }
+
+        return $finalHtml;
+    } // loadMdFiles
+
+
+    private function compile(string $mdStr, $inx = 0): string
+    {
+        if (!$mdStr = removeComments($mdStr)) {
+            return '';
+        }
+
+        $mdStr = twig($mdStr, TwigVars::$variables);
+        $mdp = new \Usility\MarkdownPlus\MarkdownPlus();
+        $html =  $mdp->compile($mdStr, sectionIdentifier: "pfy-section-$inx");
+
+        // shield argument lists enclosed in '({' and '})'
+        if (preg_match_all('/\(\{ (.*?) }\)/x', $html, $m)) {
+            foreach ($m[1] as $i => $pattern) {
+                $str = shieldStr($pattern);
+                $html = str_replace($m[0][$i], "('$str')", $html);
+            }
+        }
+
+        $html = str_replace('\\{{', '{!!{', $html);
+        $html = str_replace('\\(', '⟮', $html);
+
+        // add '|raw' to simple variables:
+        if (preg_match_all('/\{\{ ( [^}|(]+ ) }}/msx', $html, $m)) {
+            foreach ($m[1] as $i => $pattern) {
+                $str = "$pattern|raw";
+                $html = str_replace($m[0][$i], "{{ $str }}", $html);
+            }
+        }
+
+        return $html;
+    } // compile
+
+
+    private function extractFrontmatter(&$mdStr)
+    {
+        $fields = preg_split('!\n----\s*\n*!', $mdStr);
+        $n = sizeof($fields)-1;
+        $mdStr = $fields[$n];
+
+        // loop through all fields and add them to the content
+        for ($i=0; $i<$n; $i++) {
+            $field = trim($fields[$i]);
+            $pos = strpos($field, ':');
+            $key = camelCase(trim(substr($field, 0, $pos)));
+
+            // Don't add fields with empty keys
+            if (empty($key) === true) {
+                continue;
+            }
+
+            $value = trim(substr($field, $pos + 1));
+
+            if ($key === 'variables') {
+                $values = Yaml::decode($value);
+                foreach ($values as $k => $v) {
+                    self::$trans->setVariable($k, $v);
+                }
+
+            } else {
+                // unescape escaped dividers within a field
+                self::$trans->setVariable($key, $value);
+            }
+        }
+    } // extractFrontmatter
 } // PageFactory

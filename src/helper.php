@@ -2,13 +2,15 @@
 namespace Usility\PageFactory;
 
  // Use helper functions with prefix '\Usility\PageFactory\'
-use \Kirby\Data\Yaml as Yaml;
-use \Kirby\Data\Json as Json;
+use Kirby\Data\Yaml as Yaml;
+use Kirby\Data\Json as Json;
 use Kirby\Data\Data;
-use \Kirby\Filesystem\F;
+ use Kirby\Exception\InvalidArgumentException;
+ use Kirby\Filesystem\F;
 use Exception;
+ use Usility\MarkdownPlus\MarkdownPlus;
 
-const FILE_BLOCKING_MAX_TIME = 500; //ms
+ const FILE_BLOCKING_MAX_TIME = 500; //ms
 const FILE_BLOCKING_CYCLE_TIME = 50; //ms
 
  /**
@@ -21,8 +23,8 @@ function isLocalhost(): bool
     if (($_GET['localhost']??'') === 'false') {
         return false;
     }
-    $remoteAddress = isset($_SERVER["REMOTE_ADDR"]) ? $_SERVER["REMOTE_ADDR"] : 'REMOTE_ADDR';
-    return (($remoteAddress == 'localhost') || (strpos($remoteAddress, '192.') === 0) || ($remoteAddress == '::1'));
+    $remoteAddress = $_SERVER["REMOTE_ADDR"] ?? 'REMOTE_ADDR';
+    return (($remoteAddress == 'localhost') || (str_starts_with($remoteAddress, '192.')) || ($remoteAddress == '::1'));
 } // isLocalhost
 
 
@@ -110,35 +112,6 @@ function isLoggedinOrLocalhost(): bool
 
 
  /**
-  * Appends string to a file.
-  * @param string $file
-  * @param string $str
-  * @param string $headerIfEmpty    If the file is empty, $headerIfEmpty will be written at the top.
-  * @throws Exception
-  */
-function appendFile(string $file, string $str, string $headerIfEmpty = ''): void
-{
-    if (!$file || !is_string($file)) {
-        return;
-    }
-
-    $file = resolvePath($file);
-    preparePath($file);
-    $data = fileGetContents($file);
-    if (!$data) {
-        file_put_contents($file, $headerIfEmpty . $str);
-
-    } elseif (($p = strpos($data, '__END__')) === false) {
-        file_put_contents($file, $str, FILE_APPEND);
-
-    } else {
-        $str = substr($data, 0, $p) . $str . substr($data, $p);
-        file_put_contents($file, $str);
-    }
-} // appendFile
-
-
- /**
   * Loads content of file, applies some cleanup on demand: remove comments, zap end after __END__.
   * If file extension is yaml, csv or json, data is decoded and returned as a data structure.
   * @param string $file
@@ -147,11 +120,11 @@ function appendFile(string $file, string $str, string $headerIfEmpty = ''): void
   *         'hash'  -> #...
   *         'empty' -> remove empty lines
   *         'cStyle' -> // or /*
-  * @param bool $useCaching     In case of yaml files caching can be activated
-  * @return array|mixed|string|string[]
-  * @throws \Kirby\Exception\InvalidArgumentException
+  * @param bool $useCaching In case of yaml files caching can be activated
+  * @return string
+  * @throws InvalidArgumentException
   */
-function loadFile(string $file, mixed $removeComments = true, bool $useCaching = false)
+function loadFile(string $file, mixed $removeComments = true, bool $useCaching = false): mixed
 {
     if (!$file || !is_string($file)) {
         return '';
@@ -166,7 +139,7 @@ function loadFile(string $file, mixed $removeComments = true, bool $useCaching =
 
     // if it's data of a known format (i.e. yaml,json etc), decode it:
     $ext = fileExt($file);
-    if (strpos(',yaml,yml,json,csv', $ext) !== false) {
+    if (str_contains(',yaml,yml,json,csv', $ext)) {
         $data = Yaml::decode($data, $ext);
         if ($useCaching) {
             updateDataCache($file, $data);
@@ -183,7 +156,7 @@ function loadFile(string $file, mixed $removeComments = true, bool $useCaching =
   * @param mixed $removeComments
   * @param bool $useCaching
   * @return array|mixed|string|null
-  * @throws \Kirby\Exception\InvalidArgumentException
+  * @throws InvalidArgumentException
   */
 function loadFiles(mixed $files, mixed $removeComments = true, bool $useCaching = false): mixed
 {
@@ -242,37 +215,8 @@ function getFile(string $file, mixed $removeComments = true)
      // remove BOM
      $data = str_replace("\xEF\xBB\xBF", '', $data);
 
-     // special option 'zapped' -> return what would be zapped:
-     if (str_contains((string)$removeComments, 'zapped')) {
-         return zapFileEND($data, true);
-     }
+     $data = removeComments($data, $removeComments);
 
-     // always zap, unless $removeComments === false:
-     if ($removeComments) {
-         $data = zapFileEND($data);
-     }
-     // default (== true):
-     if ($removeComments === true) {
-         $data = removeCStyleComments($data);
-         $data = removeEmptyLines($data);
-
-     // specific instructions:
-     } elseif (is_string($removeComments)) {
-         // extract first characters from comma-separated-list:
-         $removeComments = implode('', array_map(function ($elem){
-             return strtolower($elem[0]);
-         }, explodeTrim(',',$removeComments)));
-
-         if (str_contains($removeComments, 'c')) {    // c style
-             $data = removeCStyleComments($data);
-         }
-         if (str_contains($removeComments, 'h')) {    // hash style
-             $data = removeHashTypeComments($data);
-         }
-         if (str_contains($removeComments, 'e')) {    // empty lines
-             $data = removeEmptyLines($data);
-         }
-     }
      return $data;
  } // getFile
 
@@ -428,7 +372,7 @@ function cacheFileName(string $file, string $tag = ''): string
   * Decodes Yaml to an array
   * @param string $str
   * @return array
-  * @throws \Kirby\Exception\InvalidArgumentException
+  * @throws InvalidArgumentException
   */
 function decodeYaml(string $str): array
  {
@@ -465,7 +409,7 @@ function extractKirbyFrontmatter(string $frontmatter): array
      // loop through all fields and add them to the content
      foreach ($fields as $field) {
          $pos = strpos($field, ':');
-         $key = str_replace(['-', ' '], '_', strtolower(trim(substr($field, 0, $pos))));
+         $key = camelCase(trim(substr($field, 0, $pos)));
 
          // Don't add fields with empty keys
          if (empty($key) === true) {
@@ -594,6 +538,44 @@ function fixPath(string $path): string
     }
     return $path;
 } // fixPath
+
+
+
+function removeComments(string $str, mixed $removeComments = true): string
+{
+    // special option 'zapped' -> return what would be zapped:
+    if (str_contains((string)$removeComments, 'zapped')) {
+        return zapFileEND($str, true);
+    }
+
+    // always zap, unless $removeComments === false:
+    if ($removeComments) {
+        $str = zapFileEND($str);
+    }
+    // default (== true):
+    if ($removeComments === true) {
+        $str = removeCStyleComments($str);
+        $str = removeEmptyLines($str);
+
+        // specific instructions:
+    } elseif (is_string($removeComments)) {
+        // extract first characters from comma-separated-list:
+        $removeComments = implode('', array_map(function ($elem){
+            return strtolower($elem[0]);
+        }, explodeTrim(',',$removeComments)));
+
+        if (str_contains($removeComments, 'c')) {    // c style
+            $str = removeCStyleComments($str);
+        }
+        if (str_contains($removeComments, 'h')) {    // hash style
+            $str = removeHashTypeComments($str);
+        }
+        if (str_contains($removeComments, 'e')) {    // empty lines
+            $str = removeEmptyLines($str);
+        }
+    }
+    return $str;
+} // removeComments
 
 
  /**
@@ -1500,7 +1482,7 @@ function indentLines(string $str, int $width = 4): string
   * @param string $delim
   * @param mixed $superBrackets
   * @return array
-  * @throws \Kirby\Exception\InvalidArgumentException
+  * @throws InvalidArgumentException
   */
 function parseArgumentStr(string $str, string $delim = ',', mixed $superBrackets = false): array
 {
@@ -1630,12 +1612,8 @@ function superBracketsDecode(mixed $item): mixed
   */
 function parseArgKey(string &$rest, string $delim): string
 {
-//    $lead = '';
     $key = '';
     $rest = ltrim($rest);
-//    if (preg_match('|^https?://|', $rest)) {
-//        return "'$rest'";
-//    }
     // case quoted key or value:
     if ((($ch1 = ($rest[0]??'')) === '"') || ($ch1 === "'")) {
         $pattern = "$ch1 (.*?) $ch1";
@@ -2080,11 +2058,28 @@ function explodeTrim(string $sep, string $str, bool $excludeEmptyElems = false):
 * @param string $mdStr
 * @return string
 */
-function compileMarkdown(string $mdStr): string
+function compileMarkdown(string $mdStr, bool $omitPWrapperTag = false): string
+{
+    return markdown($mdStr, $omitPWrapperTag);
+} // compileMarkdown
+
+
+function markdown(string $mdStr, bool $omitPWrapperTag = false): string
 {
     if ($mdStr) {
-        return markdown($mdStr);
-//        return MarkdownPlus::compile($mdStr);
+        $md = new MarkdownPlus();
+        return $md->compile($mdStr, $omitPWrapperTag);
+    } else {
+        return '';
+    }
+} // compileMarkdown
+
+
+function markdownParagrah(string $mdStr, bool $omitPWrapperTag = false): string
+{
+    if ($mdStr) {
+        $md = new MarkdownPlus();
+        return $md->compileParagraph($mdStr, $omitPWrapperTag);
     } else {
         return '';
     }
@@ -2275,7 +2270,7 @@ function translateToClassName(string $str): string
 
 function camelCase($str)
 {
-    $str = str_replace(['-','_'], '', ucwords($str, '-'));
+    $str = str_replace(['-','_'], '', ucwords(str_replace(' ','-', $str), '-'));
     return lcfirst($str);
 }    // camelCase
 
@@ -2296,7 +2291,7 @@ function var_r($var, string $varName = '', bool $flat = false, bool $toHtml = fa
     if ($varName) {
         $varName .= ': ';
     }
-    $str = '';
+
     if (is_scalar($var)) {
         $out = "$varName$var";
 

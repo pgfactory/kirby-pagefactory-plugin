@@ -12,6 +12,7 @@ const DEFAULT_ASSET_GROUPS = [
     // Note: plugin assets are made available via URL 'media/plugins/usility/pagefactory/...':
     'site/plugins/pagefactory/assets/css/-pagefactory.css' => [   // $dest
         'site/plugins/pagefactory/scss/autoload/*',               // $sources
+        'site/plugins/markdownplus/assets/css/*',
     ],
     // scss-compile to site/plugins/pagefactory/css/xy.css, where xy is filename of source
     'site/plugins/pagefactory/assets/css/' => [

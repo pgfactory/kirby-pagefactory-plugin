@@ -64,7 +64,7 @@ Kirby::plugin('usility/pagefactory', [
             $pfy = new PageFactory($data);
 
             // render page content and store in page.text variable, where the twig template picks it up:
-            $page->text()->value = $pfy->renderPageContent();
+            $page->pageContent()->value = $pfy->renderPageContent();
 
             return $data;
         },
