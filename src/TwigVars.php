@@ -19,7 +19,8 @@ class TwigVars
     public function __construct()
     {
         // determine currently active language:
-        $lang = kirby()->language()->code() ?: (kirby()->defaultLanguage()->code() ?: 'en');
+        $lang = kirby()->language() ?? kirby()->defaultLanguage();
+        $lang = $lang? $lang->code() : 'en';
         $this->lang = PageFactory::$lang ?: $lang;
         $this->langCode = PageFactory::$langCode ?: $lang;
 
@@ -43,18 +44,6 @@ class TwigVars
             self::$variables[camelCase($key)] = $this->translateVariable($key);
         }
     } // __construct
-
-
-
-    public function lastPreparations()
-    {
-        if (self::$noTranslate) {
-            foreach (self::$transVars as $varName => $rec) {
-                self::$variables[camelCase($varName)] =
-                    "<span class='pfy-untranslated'>&#123;&#123; $varName &#125;&#125;</span>";
-            }
-        }
-    } // lastPreparations
 
 
     /**
@@ -327,5 +316,41 @@ class TwigVars
         }
         return $out;
     } // translateVariable
+
+
+    /**
+     * Replaces all occurences of {{ }} patterns with variable contents.
+     * @param string $str
+     * @return string
+     */
+    public function resolveVariables(string $str): string
+    {
+        while (preg_match('/\{\{ \s* (.*?) \s* }}/x', $str, $m)) {
+            $key = $m[1];
+            if (self::$noTranslate) {
+                $value = "<span class='pfy-untranslated'>&#123;&#123; $key &#125;&#125;</span>";;
+            } else {
+                $value = $this->getVariable($key);
+            }
+            $str = str_replace($m[0], $value, $str);
+        }
+        return $str;
+    } // resolveVariables
+
+
+
+    /**
+     * if ?notranslate is active, all variables are replaced with untranslated var-names
+     * @return void
+     */
+    public function lastPreparations()
+    {
+        if (self::$noTranslate) {
+            foreach (self::$transVars as $varName => $rec) {
+                self::$variables[camelCase($varName)] =
+                    "<span class='pfy-untranslated'>&#123;&#123; $varName &#125;&#125;</span>";
+            }
+        }
+    } // lastPreparations
 
 } // TwigVars

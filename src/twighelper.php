@@ -77,7 +77,6 @@ function prepareTwigFunction(string $file, array $config, string $args): string|
         $str = shieldStr("<pre><code>{{ $funcName1('$args$multiline')$multiline2}}\n</code></pre>\n\n");
     }
     return [$options, $str, $inx, $funcName];
-//    return [$str, $options, $inx, $funcName];
 } // prepareTwigFunction
 
 

@@ -49,6 +49,6 @@ EOT,
     $lnk = new Link();
     $str = $lnk->render($args);
 
-    return $sourceCode . markdown($str, true);
+    return $sourceCode . $str;
 }
 

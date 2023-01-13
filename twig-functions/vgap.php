@@ -14,7 +14,8 @@ function vgap($argStr = '')
             'class' => ['Class applied to DIV', ''],
         ],
         'summary' => <<<EOT
-# Vgap()
+# vgap()
+
 Inserts a vertical gap of given height.
 
 EOT,
@@ -37,8 +38,6 @@ EOT,
         $gapSize = ($m[1] / 2).$m[2];
     }
     $class = trim("pfy-vgap pfy-vgap-{$inx} $class");
-    $str .= "<div id='pfy-vgap-$inx' class='$class' style='margin:$gapSize 0;'>&nbsp;</div>";
-
-    return $str;
+    return "<div id='pfy-vgap-$inx' class='$class' style='margin:$gapSize 0;'>&nbsp;</div>";
 }
 
