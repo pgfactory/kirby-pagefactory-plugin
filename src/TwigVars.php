@@ -325,7 +325,7 @@ class TwigVars
      */
     public function resolveVariables(string $str): string
     {
-        while (preg_match('/\{\{ \s* (.*?) \s* }}/x', $str, $m)) {
+        while (preg_match('/\{\{ \s* ([-\w]*?) \s* }}/x', $str, $m)) {
             $key = $m[1];
             if (self::$noTranslate) {
                 $value = "<span class='pfy-untranslated'>&#123;&#123; $key &#125;&#125;</span>";;

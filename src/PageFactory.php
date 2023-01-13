@@ -249,7 +249,8 @@ EOT;
             return '';
         }
 
-        $mdStr = twig($mdStr, TwigVars::$variables);
+        $mdStr = self::$trans->resolveVariables($mdStr);
+        $mdStr = twig($mdStr);
         $mdp = new \Usility\MarkdownPlus\MarkdownPlus();
         $html =  $mdp->compile($mdStr, sectionIdentifier: "pfy-section-$inx");
 
