@@ -6,12 +6,12 @@ use Kirby\Data\Yaml;
 
 class TwigVars
 {
-    public static $variables = [];
-    public static $transVars = [];
-    public static $funcIndexes = [];
-    public static $noTranslate = false;
-    private $lang;
-    private $langCode;
+    public static array $variables = [];
+    public static array $transVars = [];
+    public static array $funcIndexes = [];
+    public static bool $noTranslate = false;
+    private string $lang;
+    private string $langCode;
 
     /**
      * @throws \Kirby\Exception\InvalidArgumentException
@@ -38,53 +38,56 @@ class TwigVars
             }
         }
 
-        // obtain variable definitions from page meta file:
-        if ($varStr = (PageFactory::$page->variables()->value() ?? '')) {
-            $vars = Yaml::decode($varStr);
-            self::$transVars = array_merge_recursive(self::$transVars, $vars);
-        }
-
         // compile currently active set of variables and their values:
         foreach (self::$transVars as $key => $rec) {
             self::$variables[camelCase($key)] = $this->translateVariable($key);
         }
-
     } // __construct
 
 
-    public function init()
+
+    public function lastPreparations()
     {
         if (self::$noTranslate) {
-            foreach (self::$transVars as $key => $rec) {
-                self::$variables[camelCase($key)] = "&#123;&#123; $key &#125;&#125;";
+            foreach (self::$transVars as $varName => $rec) {
+                self::$variables[camelCase($varName)] =
+                    "<span class='pfy-untranslated'>&#123;&#123; $varName &#125;&#125;</span>";
             }
         }
-    } // init
-
+    } // lastPreparations
 
 
     /**
      * Assign value to a variable
      * @param string $varName
-     * @param string $value
-     * @return void
+     * @param mixed $value
+     * @return string
      */
-    public function setVariable(string $varName, string $value):void
+    public function setVariable(string $varName, mixed $value):string
     {
         $varName = camelCase($varName);
-        PageFactory::$page->$varName()->value = $value;
+        self::$transVars[$varName] = $value;
+
+        if (is_object($value)) {
+            $value = (string) $value;
+        } elseif (is_array($value)) {
+            $value = $this->translateVariable($varName);
+        }
         self::$variables[$varName] = $value;
+        PageFactory::$page->$varName()->value = $value;
+        return $value;
     } // setVariable
 
 
     /**
      * Get value of variable
-     * @param string $varName
+     * @param string $varName0
      * @return string
      */
     public function getVariable(string $varName0): mixed
     {
         $varName = camelCase($varName0);
+
         $out = self::$variables[$varName] ?? PageFactory::$page->$varName()->value;
         if ($out === null) {
             $out = $varName0;
@@ -92,15 +95,14 @@ class TwigVars
             $out = reset($out);
         }
         return $out;
-//        return self::$variables[$varName] ?? PageFactory::$page->$varName()->value;
     } // getVariable
 
 
     /**
-     * Return array of all variables
-     * @return mixed
+     * Return array of all variables as presentable HTML
+     * @return string
      */
-    public function renderVariables(): mixed
+    public function renderVariables(): string
     {
         $variables = self::$transVars;
         $fields = PageFactory::$page->content()->fields();
@@ -132,7 +134,10 @@ class TwigVars
     } // renderVariables
 
 
-
+    // Returns array of all variables
+    /**
+     * @return array
+     */
     public function getVariables(): array
     {
         $variables = self::$variables;
@@ -146,71 +151,98 @@ class TwigVars
 
     /**
      * Assign values to variables that are used in templates or in page content
-     *  - lang
-     *  - langActive
-     *  - pageUrl
-     *  - phpVersion
-     *  - generator
-     *  - headTitle
-     *  - smallScreenHeader
-     *  - pfyLangSelection
-     *  - user
-     *  - pfyLoginButton
-     *  - pfyLoggedInAsUser
-     *  - pfyLoginButton
-     *  - pfyAdminPanelLink
-     *      plus all fields defined for site, in particular 'kirbySiteTitle'
+       * - lang
+       * - langActive
+       * - pageUrl
+       * - appUrl
+       * - generator
+       * - phpVersion
+       * - pageTitle
+       * - siteTitle
+       * - headTitle
+       * - webmasterEmail
+       * - menuIcon
+       * - smallScreenHeader
+       * - langSelection
+       * - loggedInAsUser
+       * - loginButton
+       * - adminPanelLink
+     *      plus all fields defined for site, in particular 'siteTitle'
      * Note: variables used inside page content are handled/replaced elsewhere
      * @return void
-     * @throws \Kirby\Exception\LogicException
+     * @throws \Kirby\Exception\LogicException|\Kirby\Exception\InvalidArgumentException
      */
     public function prepareStandardVariables(): void
     {
-        PageFactory::$page->headTitle()->value = PageFactory::$page->title() . ' / ' . site()->title();
-        // 'generator':
-        // for performance reasons we cache the gitTag, so, if that changes you need to remember to clear site/cache/pagefactory
+        $kirbyPageTitle = $this->setVariable('title', PageFactory::$page->title());
+        $kirbySiteTitle = $this->setVariable('site', site()->title());
+        $this->setVariable('headTitle', "$kirbyPageTitle / $kirbySiteTitle");
+
+        // 'generator': we cache the gitTag, so, if that changes you need to remember to clear site/cache/pagefactory
         $gitTag = fileGetContents(PFY_CACHE_PATH.'gitTag.txt');
         if (!$gitTag) {
             $gitTag = getGitTag();
             file_put_contents(PFY_CACHE_PATH.'gitTag.txt', $gitTag);
         }
-        PageFactory::$page->generator()->value = 'Kirby v'. kirby()::version(). " + PageFactory $gitTag";
+        $this->setVariable('generator', 'Kirby v'. kirby()::version(). " + PageFactory $gitTag");
 
+
+        $appUrl = PageFactory::$appUrl;
+        $menuIcon         = svg('site/plugins/pagefactory/assets/icons/menu.svg');
+        $this->setVariable('menuIcon',$menuIcon);
         $smallScreenHeader = self::$variables['smallScreenHeader']?? site()->title()->value();
-        PageFactory::$page->smallScreenHeader()->value  = "\n<h1>$smallScreenHeader</h1>\n";
+        $this->setVariable('smallScreenHeader', "\n\t<h1>$smallScreenHeader</h1>\n".
+            "\t<button id='pfy-nav-menu-icon'>$menuIcon</button>\n");
 
-        PageFactory::$page->pfyLangSelection()->value   = $this->renderLanguageSelector();
-        PageFactory::$page->pageUrl()->value            = PageFactory::$pageUrl;
-        PageFactory::$page->lang()->value               = PageFactory::$langCode;
-        PageFactory::$page->langActive()->value         = PageFactory::$lang; // can be lang-variant, e.g. de2
-        PageFactory::$page->phpVersion()->value         = phpversion();
+        $this->setVariable('langSelection', $this->renderLanguageSelector());
+        $this->setVariable('pageUrl', PageFactory::$pageUrl);
+        $this->setVariable('appUrl', $appUrl);
+        $this->setVariable('lang', PageFactory::$langCode);
+        $this->setVariable('langActive', PageFactory::$lang); // can be lang-variant, e.g. de2
+        $this->setVariable('phpVersion', phpversion());
+
+        // default webmaster email derived from current domain:
+        $this->setVariable('webmasterEmail', 'webmaster@'.preg_replace('|^https?://([\w.-]+)(.*)|', "$1", site()->url()));
+
+
 
         // Copy site field values to transvars:
         $siteAttributes = site()->content()->data();
         foreach ($siteAttributes as $key => $value) {
             if ($key === 'title') {
-                $key = 'kirby-site-title';
+                continue;
             }
-            $key = camelCase($key);
-            PageFactory::$page->$key()->value = (string)$value;
+            $this->setVariable($key, $value);
         }
 
-        // 'user', 'pfy-logged-in-as-user', 'pfy-admin-panel-link':
-        $appUrl = PageFactory::$appUrl;
-        $loginIcon = svg('site/plugins/pagefactory/assets/icons/user.svg');
+        // Copy page field values to transvars:
+        $pageAttributes = page()->content()->data();
+        foreach ($pageAttributes as $key => $value) {
+            if (str_contains(',title,text,', ",$key,")) {
+                continue;
+            } elseif ($key === 'variables') {
+                $values = Yaml::decode($value);
+                foreach ($values as $k => $v) {
+                    $this->setVariable($k, $v);
+                }
+            } else {
+                $this->setVariable($key, (string)$value);
+            }
+        }
+
         $user = kirby()->user();
         if ($user) {
-            $username = (string)$user->nameOrEmail();
-            PageFactory::$page->user()->value = $username;
-            $pfyEditUserAccount = $this->getVariable('pfy-edit-user-account');
-            PageFactory::$page->pfyLoginButton()->value = "<button class='pfy-login-button' title='$pfyEditUserAccount'>$loginIcon</span></button>";
+            $this->setVariable('loggedInAsUser', (string)$user->nameOrEmail());
         } else {
-            PageFactory::$page->pfyLoggedInAsUser()->value = "<a href='{$appUrl}?login'>Login</a>";
-            $pfyLoginButtonLabel = $this->getVariable('pfy-login-button-label');
-            PageFactory::$page->pfyLoginButton()->value = "<button class='pfy-login-button' title='$pfyLoginButtonLabel'>$loginIcon</button>";
+            $this->setVariable('loggedInAsUser', "<a href='{$appUrl}?login'>Login</a>");
         }
+
+        $pfyLoginButtonLabel = $this->getVariable('pfy-login-button-label');
+        $loginIcon = svg('site/plugins/pagefactory/assets/icons/user.svg');
+        $this->setVariable('loginButton', "<button class='pfy-login-button' title='$pfyLoginButtonLabel'>$loginIcon</button>");
+
         $pfyAdminPanelLinkText = $this->getVariable('pfy-admin-panel-link-text');
-        PageFactory::$page->pfyAdminPanelLink()->value = "<a href='{$appUrl}panel' target='_blank'>$pfyAdminPanelLinkText</a>";
+        $this->setVariable('adminPanelLink', "<a href='{$appUrl}panel' target='_blank'>$pfyAdminPanelLinkText</a>");
     } // prepareStandardVariables
 
 
@@ -222,7 +254,7 @@ class TwigVars
      *  - bodyTagAttributes
      *  - bodyEndInjections
      * @return void
-     * @throws \Kirby\Exception\LogicException
+     * @throws \Kirby\Exception\LogicException|\ScssPhp\ScssPhp\Exception\SassException
      */
     public function prepareTemplateVariables(): void
     {

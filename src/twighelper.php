@@ -1,22 +1,23 @@
 <?php
 namespace Usility\PageFactory;
 
+use Kirby\Exception\InvalidArgumentException;
+
 /**
  * Renders Help output for given twig-function
  * @param array $config
- * @param $mdCompile
+ * @param bool $mdCompile
  * @return string
  */
-function renderTwigFunctionHelp(array $config, $mdCompile = true): string
+function renderTwigFunctionHelp(array $config, bool $mdCompile = true): string
 {
     $str = "<div class='pfy-help pfy-encapsulated'>\n";
-    if ($mdCompile) {
-        $summary = markdown($config['summary'] ?? '');
-    }
+    $summary = $mdCompile? markdown($config['summary'] ?? '') : '';
     $str .= "<div class='pfy-help-summary'>$summary</div>\n";
     $str .= "<h2>Arguments</h2>\n";
     foreach ($config['options'] as $key => $elem) {
         $text = $elem[0];
+        $text = markdown($text, true);
         $default = $elem[1]??'false';
         if (is_bool($default)) {
             $default = $default? 'true': 'false';
@@ -38,9 +39,10 @@ EOT;
  * @param string $file
  * @param array $config
  * @param string $args
- * @return mixed
+ * @return string|array
+ * @throws InvalidArgumentException
  */
-function prepareTwigFunction(string $file, array $config, string $args): mixed
+function prepareTwigFunction(string $file, array $config, string $args): string|array
 {
     $funcName = basename($file, '.php');
     // render help text:
@@ -49,7 +51,8 @@ function prepareTwigFunction(string $file, array $config, string $args): mixed
 
     // render as unprocessed (?notranslate):
     } elseif (TwigVars::$noTranslate) {
-        return "&#123;&#123; $funcName('$args') &#125;&#125;";
+        $funcName1 = ltrim($funcName, '_');
+        return "<span class='pfy-untranslated'>&#123;&#123; $funcName1('$args') &#125;&#125;</span>";
     }
 
     // get arguments:
@@ -70,10 +73,11 @@ function prepareTwigFunction(string $file, array $config, string $args): mixed
         } else {
             $args = rtrim($args, ' ,');
         }
-        $str = shieldStr("    {{ $funcName('$args$multiline')$multiline2}}\n\n", false);
-
+        $funcName1 = ltrim($funcName, '_');
+        $str = shieldStr("<pre><code>{{ $funcName1('$args$multiline')$multiline2}}\n</code></pre>\n\n");
     }
-    return [$str, $options, $inx, $funcName];
+    return [$options, $str, $inx, $funcName];
+//    return [$str, $options, $inx, $funcName];
 } // prepareTwigFunction
 
 
@@ -82,7 +86,7 @@ function prepareTwigFunction(string $file, array $config, string $args): mixed
  * @param array $config
  * @param mixed $args
  * @return array
- * @throws \Kirby\Exception\InvalidArgumentException
+ * @throws InvalidArgumentException
  */
 function parseTwigFunctionArguments(array $config, mixed $args): array
 {
@@ -108,8 +112,11 @@ function parseTwigFunctionArguments(array $config, mixed $args): array
 } // parseTwigFunctionArguments
 
 
-
-function renderTwigFunctions()
+/**
+ * Renders a list of all available twig-functions as presentable HTML
+ * @return string
+ */
+function renderTwigFunctions(): string
 {
     $functions = findTwigFunctions();
     $html = "<ul class='pfy-list-functions'>\n";
@@ -121,8 +128,12 @@ function renderTwigFunctions()
 } // renderTwigFunctions
 
 
-
-function findTwigFunctions($forRegistering = false)
+/**
+ * Finds available twig-functions
+ * @param bool $forRegistering
+ * @return array
+ */
+function findTwigFunctions(bool $forRegistering = false): array
 {
     $functions = [];
     $pfyPlugins = glob('site/plugins/pagefactory*');
