@@ -5,7 +5,12 @@ namespace Usility\PageFactory;
  * Twig function
  */
 
-function style($args = '')
+use Kirby\Exception\InvalidArgumentException;
+
+/**
+ * @throws InvalidArgumentException
+ */
+function style($argStr = ''): array|string
 {
     // Definition of arguments and help-text:
     $config =  [
@@ -19,26 +24,15 @@ function style($args = '')
 Renders text with given inline styles.
 EOT,
     ];
-    $funcName = basename(__FILE__, '.php');
 
-    // render help text:
-    if ($args === 'help') {
-        return renderTwigFunctionHelp($config);
-
-        // render as unprocessed (?notranslate):
-    } elseif (TwigVars::$noTranslate) {
-        return "&#123;&#123; $funcName('$args') &#125;&#125;";
+    // parse arguments, handle help and showSource:
+    if (is_string($str = prepareTwigFunction(__FILE__, $config, $argStr))) {
+        return $str;
+    } else {
+        list($options, ,$inx) = $str;
     }
 
-    // get arguments:
-    $options = parseTwigFunctionArguments($config, $args);
-
-    // get index:
-    $inx = TwigVars::$funcIndexes[$funcName] = (TwigVars::$funcIndexes[$funcName]??false) ? TwigVars::$funcIndexes[$funcName]+1: 1;
-
     // assemble output:
-    $str = "<span class='pfy-styled-$inx' style='{$options['style']}'>{$options['text']}</span>";
-
-    return $str;
+    return "<span class='pfy-styled-$inx' style='{$options['style']}'>{$options['text']}</span>";
 }
 

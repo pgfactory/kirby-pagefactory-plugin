@@ -6,7 +6,7 @@ require_once __DIR__.'/../src/helper.php';
 require_once __DIR__.'/../src/twighelper.php';
 require_once __DIR__.'/../src/SiteNav.php';
 
-function nav($args = '')
+function nav($argStr = '')
 {
     $funcName = basename(__FILE__, '.php');
     $config =  [
@@ -34,10 +34,10 @@ Supported wrapperClasses:
 
 EOT,
     ];
-    if ($args === 'help') {
-        return renderTwigFunctionHelp($config);
-    } elseif (TwigVars::$noTranslate) {
-        return "&#123;&#123; $funcName('$args') &#125;&#125;";
+    if (is_string($str = prepareTwigFunction(__FILE__, $config, $argStr))) {
+        return $str;
+    } else {
+        list($args, $sourceCode) = $str;
     }
 
     $options = parseTwigFunctionArguments($config, $args);
@@ -46,6 +46,6 @@ EOT,
     $nav = new SiteNav();
     $str = $nav->render($options);
 
-    return $str;
+    return $sourceCode.$str;
 } // nav
 

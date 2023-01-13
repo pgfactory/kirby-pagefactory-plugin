@@ -5,7 +5,7 @@ namespace Usility\PageFactory;
  * Twig function
  */
 
-function space($args = '')
+function space($argStr = '')
 {
     // Definition of arguments and help-text:
     $config =  [
@@ -21,10 +21,10 @@ EOT,
     ];
 
     // parse arguments, handle help and showSource:
-    if (is_string($str = prepareTwigFunction(__FILE__, $config, $args))) {
+    if (is_string($str = prepareTwigFunction(__FILE__, $config, $argStr))) {
         return $str;
     } else {
-        list($str, $options, $inx, $funcName) = $str;
+        list($options,,$inx) = $str;
     }
 
     // assemble output:
@@ -34,8 +34,6 @@ EOT,
     $width = ($width) ? " style='width:$width'" : '';
     $class = trim("pfy-h-space pfy-h-space-{$inx} $class");
     $str .= "<span class='$class'$width></span>";
-
-    //$str = markdown($str); // markdown-compile
 
     return $str;
 }

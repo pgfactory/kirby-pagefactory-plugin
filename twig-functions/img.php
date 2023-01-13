@@ -5,7 +5,9 @@ namespace Usility\PageFactory;
  * Twig function
  */
 
-function img($args = '')
+use Kirby\Exception\InvalidArgumentException;
+
+function img($argStr = '')
 {
     // Definition of arguments and help-text:
     $config =  [
@@ -44,15 +46,15 @@ EOT,
     ];
 
     // parse arguments, handle help and showSource:
-    if (is_string($str = prepareTwigFunction(__FILE__, $config, $args))) {
+    if (is_string($str = prepareTwigFunction(__FILE__, $config, $argStr))) {
         return $str;
     } else {
-        list($str, $options, $inx, $funcName) = $str;
+        list($options, $str) = $str;
     }
 
     // assemble output:
     $obj = new Img();
-    $str .= $obj->render($options, $args);
+    $str .= $obj->render($options);
 
     $str = shieldStr($str);
 
@@ -77,10 +79,10 @@ class Img
     /**
      * Macro rendering method
      * @param array $args
-     * @param string $argStr
      * @return string
+     * @throws InvalidArgumentException
      */
-    public function render(array $args, string $argStr): string
+    public function render(array $args): string
     {
         $inx = self::$inx++;
         $this->args = &$args;

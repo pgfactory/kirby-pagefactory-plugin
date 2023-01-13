@@ -1,7 +1,7 @@
 <?php
 namespace Usility\PageFactory;
 
-function lorem($args = '')
+function lorem($argStr = '')
 {
     $config =  [
         'options' => [
@@ -21,11 +21,12 @@ If you set min or max values, rendered words are selected at random.
 EOT,
     ];
 
-    if ($args === 'help') {
-        return renderTwigFunctionHelp($config);
+    // parse arguments, handle help and showSource:
+    if (is_string($str = prepareTwigFunction(__FILE__, $config, $argStr))) {
+        return $str;
+    } else {
+        list($args, $sourceCode) = $str;
     }
-
-    $options = parseTwigFunctionArguments($config, $args);
 
     $lorem = <<<EOT
 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore 
@@ -37,11 +38,11 @@ sea takimata sanctus est Lorem ipsum dolor sit amet.
 EOT;
     $words = explode(' ', $lorem);
     $nWords = sizeof($words) - 1;
-    $min = intval($options['min']);
-    if (!intval($options['max'])) {
+    $min = intval($args['min']);
+    if (!intval($args['max'])) {
         $n = $min;
     } else {
-        $max = intval($options['max']);
+        $max = intval($args['max']);
         $n = rand($min, min($nWords, $max));
     }
 
@@ -52,6 +53,6 @@ EOT;
     $str = preg_replace('/\W$/', '', trim($str));
     $str = "<div class='lorem'>" . ucfirst($str) . "</div>";
 
-    return $str;
+    return $sourceCode.$str;
 } // lorem
 

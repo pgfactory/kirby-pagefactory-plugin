@@ -7,7 +7,7 @@ namespace Usility\PageFactory;
 
 require_once __DIR__.'/../src/Link.php';
 
-function link($args = '')
+function link($argStr = '')
 {
     // Definition of arguments and help-text:
     $config =  [
@@ -36,24 +36,19 @@ Supported link-types: mail, pdf, sms, tel, geo, gsm, slack, twitter, tiktok, ins
 
 EOT,
         'assetsToLoad' => '',
-        'mdCompile' => false,
     ];
 
-    // render help text:
-    if ($args === 'help') {
-        return renderTwigFunctionHelp($config);
+    // parse arguments, handle help and showSource:
+    if (is_string($str = prepareTwigFunction(__FILE__, $config, $argStr))) {
+        return $str;
+    } else {
+        list($args, $sourceCode) = $str;
     }
-
-    // get arguments:
-    $options = parseTwigFunctionArguments($config, $args);
 
     // assemble output:
     $lnk = new Link();
-    $str = $lnk->render($options);
+    $str = $lnk->render($args);
 
-    if ($config['mdCompile']) {
-        $str = markdown($str);
-    }
-    return $str;
+    return $sourceCode . markdown($str, true);
 }
 

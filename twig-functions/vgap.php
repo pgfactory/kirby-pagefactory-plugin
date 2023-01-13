@@ -5,7 +5,7 @@ namespace Usility\PageFactory;
  * Twig function
  */
 
-function vgap($args = '')
+function vgap($argStr = '')
 {
     // Definition of arguments and help-text:
     $config =  [
@@ -21,10 +21,10 @@ EOT,
     ];
 
     // parse arguments, handle help and showSource:
-    if (is_string($str = prepareTwigFunction(__FILE__, $config, $args))) {
+    if (is_string($str = prepareTwigFunction(__FILE__, $config, $argStr))) {
         return $str;
     } else {
-        list($str, $options, $inx) = $str;
+        list($options, ,$inx) = $str;
     }
 
     // assemble output:

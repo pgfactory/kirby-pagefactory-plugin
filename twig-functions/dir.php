@@ -5,7 +5,7 @@ namespace Usility\PageFactory;
  * Twig function
  */
 
-function dir($args = '')
+function dir($argStr = '')
 {
     // Definition of arguments and help-text:
     $config =  [
@@ -17,7 +17,6 @@ function dir($args = '')
             'target' => ['"target" attribute to be applied to the a-tag.', false],
             'exclude' => ['Regex pattern by which to exclude specific elements.', false],
             'flags' => ['[REVERSE_ORDER, EXCLUDE_EXTENSION, INCLUDE_PATH, DEEP, HIERARCHICAL, ORDERED_LIST, DOWNLOAD, AS_LINK] Activates miscellaneous modes.', false],
-//        'flags' => ['[REVERSE_ORDER, EXCLUDE_EXTENSION, INCLUDE_PATH, DEEP, ORDERED_LIST, DOWNLOAD, AS_LINK] Activates miscellaneous modes.', false],
             'prefix' => ['If defined, string will be placed before each element.', false],
             'postfix' => ['If defined, string will be placed behind each element.', false],
             'linkPath' => ['(For internal use only)', false],
@@ -33,15 +32,15 @@ EOT,
     ];
 
     // parse arguments, handle help and showSource:
-    if (is_string($str = prepareTwigFunction(__FILE__, $config, $args))) {
+    if (is_string($str = prepareTwigFunction(__FILE__, $config, $argStr))) {
         return $str;
     } else {
-        list($str, $options, $inx, $funcName) = $str;
+        list($options, $str) = $str;
     }
 
     // assemble output:
     $obj = new Dir();
-    $str .= $obj->render($options, $args);
+    $str .= $obj->render($options);
 
     return $str;
 }
@@ -52,7 +51,7 @@ class Dir
 {
     public static $inx = 1;
 
-    public function render($args, $argStr)
+    public function render($args)
     {
         $inx = self::$inx++;
 

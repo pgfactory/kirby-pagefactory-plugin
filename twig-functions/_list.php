@@ -32,13 +32,11 @@ EOT,
     if (is_string($str = prepareTwigFunction(__FILE__, $config, $argStr))) {
         return $str;
     } else {
-        list($str, $args, $inx, $funcName) = $str;
+        list($args, $sourceCode, $inx) = $str;
     }
 
     // assemble output:
     $type = $args['type'].' ';
-    //$options = $args['options'] ?: '';
-    //$options .= $args['option'] ?: '';
 
     if ($type[0] === 'v') {     // variables
         $str = PageFactory::$trans->renderVariables();
@@ -58,6 +56,7 @@ EOT,
 
     }
     $str = <<<EOT
+$sourceCode
 <div class='pfy-list pfy-list-$inx'>
 $str
 </div>

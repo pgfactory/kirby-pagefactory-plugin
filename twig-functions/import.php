@@ -5,7 +5,7 @@ namespace Usility\PageFactory;
  * Twig function
  */
 
-function import($args = '')
+function import($argStr = '')
 {
     // Definition of arguments and help-text:
     $config =  [
@@ -28,15 +28,15 @@ EOT,
     ];
 
     // parse arguments, handle help and showSource:
-    if (is_string($str = prepareTwigFunction(__FILE__, $config, $args))) {
+    if (is_string($str = prepareTwigFunction(__FILE__, $config, $argStr))) {
         return $str;
     } else {
-        list($str, $options, $inx, $funcName) = $str;
+        list($args, $str) = $str;
     }
 
     // assemble output:
     $imp = new Import();
-    $str .= $imp->render($options, $args);
+    $str .= $imp->render($args);
 
     $str = shieldStr($str);
 
@@ -53,10 +53,9 @@ class Import
     /**
      * Macro rendering method
      * @param $args                     // array of arguments
-     * @param $argStr                   // original argument string
      * @return string                   // HTML or Markdown
      */
-    public function render(array $args, string $argStr): string
+    public function render(array $args): string
     {
         $inx = self::$inx++;
 
