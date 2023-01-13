@@ -176,8 +176,7 @@ EOT;
                     break;
 
                 case 'notranslate': // ?notranslate
-                    TwigVars::$noTranslate = $arg? intval($arg): 1; //???
-//                    TransVars::$noTranslate = $arg? intval($arg): 1;
+                    TwigVars::$noTranslate = true;
                     break;
 
                 case 'reset': // ?reset
