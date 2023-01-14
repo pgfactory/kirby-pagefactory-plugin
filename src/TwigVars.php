@@ -71,18 +71,22 @@ class TwigVars
     /**
      * Get value of variable
      * @param string $varName0
+     * @param bool $varNameIfNotFound
      * @return string
      */
-    public function getVariable(string $varName0): mixed
+    public function getVariable(string $varName0, bool $varNameIfNotFound = false): mixed
     {
         $varName = camelCase($varName0);
-
+        $out = null;
         if (!isset(self::$variables[$varName])) {
-            return '';
+            if (PageFactory::$page->$varName()) {
+                $out = PageFactory::$page->$varName()->value;
+            }
+        } else {
+            $out = self::$variables[$varName];
         }
-        $out = PageFactory::$page->$varName()->value;
         if ($out === null) {
-            $out = $varName0;
+            $out = $varNameIfNotFound ? $varName0: '';
         } elseif (is_array($out)) {
             $out = reset($out);
         }
