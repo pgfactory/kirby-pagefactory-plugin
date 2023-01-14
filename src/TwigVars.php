@@ -77,7 +77,10 @@ class TwigVars
     {
         $varName = camelCase($varName0);
 
-        $out = self::$variables[$varName] ?? PageFactory::$page->$varName()->value;
+        if (!isset(self::$variables[$varName])) {
+            return '';
+        }
+        $out = PageFactory::$page->$varName()->value;
         if ($out === null) {
             $out = $varName0;
         } elseif (is_array($out)) {
