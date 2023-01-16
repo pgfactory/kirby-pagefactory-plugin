@@ -4,13 +4,13 @@
  * Panel Helper
 */
 
-if (!defined('PFY_PAGE_DEF_BASENAME')) {
-    define('PFY_PAGE_DEF_BASENAME', 'z_pfy');
+if (!defined('PFY_PAGE_META_FILE_BASENAME')) {
+    define('PFY_PAGE_META_FILE_BASENAME', 'z');
 }
 
 /**
  * Invoked by hook 'route:before' in site/config.php
- * Copies content of .md files in given folder to page's meta file, i.e. z_pfy.txt
+ * Copies content of .md files in given folder to page's meta file, i.e. z.txt
  * Note: this is a work-around till somebody develops a panel plugin that directly accesses .md files
  * @param $path
  * @return void
@@ -26,12 +26,12 @@ function onPanelLoad($path)
     checkMetaFiles();
 
     $path = $pg->root();
-    $txts = glob("$path/".PFY_PAGE_DEF_BASENAME."*.txt");
+    $txts = glob("$path/".PFY_PAGE_META_FILE_BASENAME."*.txt");
     if (!$txts) {
         if ($allowNonPfyPages) {
             return;
         } else {
-            throw new Exception("Meta-file missing in page folder (i.e. '" . PFY_PAGE_DEF_BASENAME . ".txt')");
+            throw new Exception("Meta-file missing in page folder (i.e. '" . PFY_PAGE_META_FILE_BASENAME . ".txt')");
         }
     }
 
@@ -93,9 +93,9 @@ function checkMetaFiles()
             (strpos($path, 'content/error') !== false)) {
             continue;
         }
-        $primaryMetaFilename = "$path/".PFY_PAGE_DEF_BASENAME."$langTag.txt";
+        $primaryMetaFilename = "$path/".PFY_PAGE_META_FILE_BASENAME."$langTag.txt";
         if (!file_exists($primaryMetaFilename)) {
-            $primaryMetaFilename0 = "$path/".PFY_PAGE_DEF_BASENAME.".txt";
+            $primaryMetaFilename0 = "$path/".PFY_PAGE_META_FILE_BASENAME.".txt";
             if (file_exists($primaryMetaFilename0)) {
                 if ($languages) {
                     rename($primaryMetaFilename0, $primaryMetaFilename);
@@ -110,7 +110,7 @@ function checkMetaFiles()
         }
         foreach ($languages as $lang) {
             $lang = $lang['code'];
-            $metaFilename = "$path/".PFY_PAGE_DEF_BASENAME.".$lang.txt";
+            $metaFilename = "$path/".PFY_PAGE_META_FILE_BASENAME.".$lang.txt";
             if (($primaryMetaFilename === $metaFilename) || file_exists($metaFilename)) {
                 continue;
             }
@@ -123,7 +123,7 @@ function checkMetaFiles()
 
 /**
  * Invoked by hook 'page.create:after' in site/config.php
- * When user creates a page in panel, meta-file is renamed to PFY_PAGE_DEF_BASENAME (i.e. z_pfy.txt) and
+ * When user creates a page in panel, meta-file is renamed to PFY_PAGE_META_FILE_BASENAME (i.e. z.txt) and
  * an .md file is created with H1 preset to pagename
  * Note: this is a work-around till somebody develops a panel plugin that directly accesses .md files
  * @param \Kirby\Cms\Page $page
@@ -147,7 +147,7 @@ function onPageCreateAfter(Kirby\Cms\Page $page)
     $languages = kirby()->language();
     $lang = $languages ? '.'.$languages->code() : '';
     $origMetaFile = "$path$template$lang.txt";
-    $metaFilename = PFY_PAGE_DEF_BASENAME."$lang.txt";
+    $metaFilename = PFY_PAGE_META_FILE_BASENAME."$lang.txt";
     $newMetaFile = "$path$metaFilename";
     if (!file_exists($origMetaFile)) {
         return;
