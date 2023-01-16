@@ -58,7 +58,6 @@ class TransVars
 
 
 
-
     /**
      * Assign value to a variable
      * @param string $varName
@@ -259,6 +258,10 @@ class TransVars
     } // renderLanguageSelector
 
 
+    /**
+     * @param $str
+     * @return string
+     */
     public static function translate($str): string
     {
         return self::translateVariable($str);
@@ -346,6 +349,11 @@ class TransVars
     } // resolveVariables
 
 
+    /**
+     * @param $str
+     * @return string
+     * @throws \Exception
+     */
     public static function executeMacros($str)
     {
         list($p1, $p2) = strPosMatching($str);
@@ -447,7 +455,7 @@ class TransVars
                 $args = rtrim($args, ' ,');
             }
             $macroName1 = ltrim($macroName, '_');
-            $str = shieldStr("<pre><code>\\{{ $macroName1('$args$multiline')$multiline2}}\n</code></pre>")."\n\n";
+            $str = shieldStr("<pre><code>\\{{ $macroName1($args$multiline)$multiline2}}\n</code></pre>")."\n\n";
         }
         return [$options, $str, $inx, $macroName];
     } // initMacro
@@ -497,7 +505,6 @@ EOT;
             $options = $args;
         } else {
             $args = unshieldStr($args, true);
-            $args = preg_replace('/^(["\'])(.*)\1$/', "$2", $args);
             $options = parseArgumentStr($args);
         }
         foreach ($config['options'] as $key => $value) {
@@ -515,7 +522,10 @@ EOT;
     } // parseTwigFunctionArguments
 
 
-
+    /**
+     * Helper for renderMacros()
+     * @return array
+     */
     private static function findAllMacros(): array
     {
         $functions = findTwigFunctions();
