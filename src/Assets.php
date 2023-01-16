@@ -68,7 +68,6 @@ const SYSTEM_ASSETS = [
 
 class Assets
 {
-    private $pfy;
     public  $assetQueue = [];
     public  $jsFrameworkRequired = false;
     private $scssModified = false;
@@ -87,8 +86,7 @@ class Assets
      */
     public function __construct($pfy = null)
     {
-        $this->pfy = $pfy;
-        $this->sc = new Scss($this->pfy);
+        new Scss();
 
         $this->hostUrl = PageFactory::$hostUrl;
         $this->hostUrlLen = strlen($this->hostUrl)-1;
@@ -490,7 +488,7 @@ class Assets
         if (($jsOrCss === 'css') && ($scssFiles = getDir($this->pageFolderPath.'*.scss'))) {
             // compile any scss files in page folder:
             foreach ($scssFiles as $file) {
-                $this->compileScss($file, $file);
+                Scss::updateFile($file, $file);
             }
         }
 
@@ -627,7 +625,7 @@ class Assets
         $tTarget = lastModified($targetFile, false);
         $tSrc = lastModified($srcFile, false);
         if ($tTarget < $tSrc) {
-            $this->sc->compileFile($srcFile, $targetFile);
+            Scss::compileFile($srcFile, $targetFile);
             $this->scssModified = true;
         }
         return $targetFile;
