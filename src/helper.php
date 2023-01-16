@@ -508,16 +508,11 @@ function localPath(string $absPath): string
   */
 function dir_name(string $path): string
 {
-    // last element considered a filename, if doesn't end in '/' and contains a dot
-    if (!$path) {
-        return '';
-    }
-
-    if ($path[strlen($path) - 1] === '/') {  // ends in '/'
+    if (!$path || str_starts_with($path, '/')) {
         return $path;
     }
-    $path = preg_replace('/[#?*].*/', '', $path);
-    if (strpos(basename($path), '.') !== false) {  // if it contains a '.' we assume it's a file
+    $path = preg_replace('/[#?*].*/', '', $path); //
+    if (str_contains(basename($path), '.')) {  // if it contains a '.' we assume it's a file
         return dirname($path) . '/';
     } else {
         return rtrim($path, '/') . '/';
