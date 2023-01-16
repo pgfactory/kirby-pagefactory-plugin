@@ -176,7 +176,7 @@ EOT;
                     break;
 
                 case 'notranslate': // ?notranslate
-                    TwigVars::$noTranslate = true;
+                    TransVars::$noTranslate = true;
                     break;
 
                 case 'reset': // ?reset
@@ -242,7 +242,7 @@ EOT;
         }
         // show variables:
         if (isset($_GET['variables']) && isAdminOrLocalhost()) {
-            $html = PageFactory::$trans->renderVariables();
+            $html = TransVars::renderVariables();
             $str = <<<EOT
 <h1>Variables</h1>
 $html
@@ -350,7 +350,7 @@ EOT;
 //        // if variables were defined in Frontmatter, propagate them into PFY's variables:
 //        if ((Page::$frontmatter['variables']??false) && is_array(Page::$frontmatter['variables'])) {
 //            foreach (Page::$frontmatter['variables'] as $varName => $value) {
-//                PageFactory::$trans->setVariable($varName, $value);
+//                TwigVars::setVariable($varName, $value);
 //            }
 //        }
 //
@@ -746,7 +746,7 @@ EOT;
     {
         // propagate variables from config into TransVars:
 //        if (isset(PageFactory::$config['variables'])) {
-//            PageFactory::$trans->setVariables(PageFactory::$config['variables']);
+//            TwigVars::setVariables(PageFactory::$config['variables']);
 //        }
     } // init
 

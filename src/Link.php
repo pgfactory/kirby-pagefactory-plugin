@@ -60,7 +60,7 @@ class Link
         $this->addIcon();
 
         $str = "<a href='$this->proto$this->url' $attributes>$this->text</a>";
-        $str = PageFactory::$trans->resolveVariables($str);
+        $str = TransVars::resolveVariables($str);
         return $str;
     } // render
 

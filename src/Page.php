@@ -35,7 +35,6 @@ class Page
     public function __construct($pfy)
     {
         $this->pfy = $pfy;
-        $this->trans = $pfy::$trans;
         $this->sc = new Scss();
         $this->assetFiles = &$pfy->assetFiles;
         self::$definitions['assets'] = ASSET_URL_DEFINITIONS;

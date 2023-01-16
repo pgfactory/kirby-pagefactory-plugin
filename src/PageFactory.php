@@ -27,7 +27,7 @@ const PAGED_POLYFILL_SCRIPT_URL =  PFY_ASSETS_URL.'js/paged.polyfill.min.js';
 const DEFAULT_FRONTEND_FRAMEWORK_URLS = ['js' => PFY_ASSETS_URL.'js/jquery-3.6.1.min.js'];
 
  // use this name for meta-files (aka text-files) in page folders:
-define('PFY_PAGE_DEF_BASENAME',     'z_pfy'); // 'define' required by site/plugins/pagefactory/index.php
+define('PFY_PAGE_META_FILE_BASENAME','z'); // 'define' required by site/plugins/pagefactory/index.php
 
 define('OPTIONS_DEFAULTS', [
     'screenSizeBreakpoint'          => 480,
@@ -125,7 +125,7 @@ class PageFactory
         $this->utils = new Utils($this);
         $this->utils->loadPfyConfig();
         $this->utils->determineLanguage();
-        self::$trans = new TwigVars();
+        TransVars::init();
 
         self::$assets = new Assets($this);
         self::$pg = new Page($this);
@@ -187,7 +187,7 @@ class PageFactory
     public function renderPageContent(): string
     {
         self::$pg->extensionsFinalCode(); //??? best position?
-        self::$trans->prepareStandardVariables();
+        TransVars::prepareStandardVariables();
 
         $this->utils->handleAgentRequestsOnRenderedPage();
 
@@ -200,16 +200,16 @@ class PageFactory
 
         // finalize:
         if ($html) {
-            self::$trans->lastPreparations();
+            TransVars::lastPreparations();
 
             // resolve (nested) variables:
             $cnt = 3;
             while ($cnt-- && str_contains($html, '{{')) {
-                $html = twig($html, TwigVars::$variables);
+                $html = twig($html, TransVars::$variables);
             }
             $html = str_replace('{!!{', '{{', $html);
         }
-        self::$trans->prepareTemplateVariables();
+        TransVars::prepareTemplateVariables();
 
         return $html;
     } // renderPageContent
@@ -249,8 +249,9 @@ EOT;
             return '';
         }
 
-        $mdStr = self::$trans->resolveVariables($mdStr);
-        $mdStr = twig($mdStr);
+        $mdStr = TransVars::resolveVariables($mdStr);
+        $mdStr = TransVars::executeMacros($mdStr);
+//        $mdStr = twig($mdStr);
         $mdp = new \Usility\MarkdownPlus\MarkdownPlus();
         $html =  $mdp->compile($mdStr, sectionIdentifier: "pfy-section-$inx");
 
@@ -299,12 +300,12 @@ EOT;
             if ($key === 'variables') {
                 $values = Yaml::decode($value);
                 foreach ($values as $k => $v) {
-                    self::$trans->setVariable($k, $v);
+                    TransVars::setVariable($k, $v);
                 }
 
             } else {
                 // unescape escaped dividers within a field
-                self::$trans->setVariable($key, $value);
+                TransVars::setVariable($key, $value);
             }
         }
     } // extractFrontmatter
