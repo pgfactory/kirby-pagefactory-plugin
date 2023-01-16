@@ -70,7 +70,7 @@ echo PageFactory installed
 if [ ! -e site/templates/page_template.html ]; then
 	cp -R site/plugins/pagefactory/install/content/  content
 	cp -R site/plugins/pagefactory/install/site/     site
-	mv content/home/home.txt content/home/z_pfy.txt
+	mv content/home/home.txt content/home/z.txt
 	mv content/home content/1_home
 	echo Essential files copied to final location
 fi

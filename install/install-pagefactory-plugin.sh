@@ -41,12 +41,12 @@ if [ ! -e site/templates/page_template.html ]; then
 	echo Essential files copied to final location
 fi
 
-## text files in page folders (aka meta-files) need to be called 'z_pfy.txt' for PageFactory to become active:
+## text files in page folders (aka meta-files) need to be called 'z.txt' for PageFactory to become active:
 if [ -e content/home/home.txt ]; then
-	mv content/home/home.txt content/home/z_pfy.txt
+	mv content/home/home.txt content/home/z.txt
 fi
 if [ -e content/1_home/home.txt ]; then
-	mv content/1_home/home.txt content/1_home/z_pfy.txt
+	mv content/1_home/home.txt content/1_home/z.txt
 fi
 
 echo

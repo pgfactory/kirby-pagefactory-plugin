@@ -53,7 +53,7 @@ Kirby::plugin('usility/pagefactory', [
     ],
 
     'blueprints' => [
-        'pages/z_pfy' => function() {    // == PFY_PAGE_DEF_BASENAME
+        'pages/z' => function() {    // == PFY_PAGE_META_FILE_BASENAME
             require_once 'site/plugins/pagefactory/src/panelHelper.php';
             return assembleBlueprint();
         },
