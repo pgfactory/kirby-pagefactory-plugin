@@ -13,7 +13,7 @@
       margin-left: 0.6em;
     }
 
-    &.pfy-show-as-text {
+    &.pfy-show-as-arrows-and-text {
       display: flex;
       justify-content: space-between;
       flex-flow: row nowrap;
@@ -23,7 +23,7 @@
       }
     }
 
-    &.pfy-show-as-arrows {
+    &.pfy-show-as-top-arrows {
       .pfy-page-switcher-links a {
         position: absolute;
         top: 0;
@@ -36,13 +36,15 @@
         height: 3rem;
         line-height: 3rem;
       }
-      .pfy-prev-page-title,
-      .pfy-next-page-title {
+      .pfy-page-switcher-link-text {
         display: none;
       }
       .pfy-page-switcher-links a:focus,
       .pfy-page-switcher-links a:hover {
         opacity: 1;
+        .pfy-page-switcher-link-text {
+          display: inline-block;
+        }
       }
 
       .pfy-previous-page-link a {
