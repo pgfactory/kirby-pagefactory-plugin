@@ -22,7 +22,7 @@ EOT,
     ];
 
     // parse arguments, handle help and showSource:
-    if (is_string($str = prepareTwigFunction(__FILE__, $config, $argStr))) {
+    if (is_string($str = TransVars::initMacro(__FILE__, $config, $argStr))) {
         return $str;
     } else {
         list($options, ,$inx) = $str;

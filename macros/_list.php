@@ -29,7 +29,7 @@ EOT,
     ];
 
     // parse arguments, handle help and showSource:
-    if (is_string($str = prepareTwigFunction(__FILE__, $config, $argStr))) {
+    if (is_string($str = TransVars::initMacro(__FILE__, $config, $argStr))) {
         return $str;
     } else {
         list($args, $sourceCode, $inx) = $str;
@@ -37,12 +37,15 @@ EOT,
 
     // assemble output:
     $type = $args['type'].' ';
+    $class = '';
 
     if ($type[0] === 'v') {     // variables
-        $str = PageFactory::$trans->renderVariables();
+        $str = TransVars::renderVariables();
+        $class = 'pfy-variables';
 
-    } elseif ($type[0] === 'f') {   // functions
-        $str = renderTwigFunctions();
+    } elseif ($type[0] === 'm') {   // macros
+        $str = TransVars::renderMacros();
+        $class = 'pfy-macros';
 
     } elseif ($type[0] === 'u') {   // users
         $users = kirby()->users();
@@ -53,11 +56,12 @@ EOT,
             $str .= "\t<li>$username &lt;$email&gt;</li>\n";
         }
         $str .= "</ul>\n";
+        $class = 'pfy-users';
 
     }
     $str = <<<EOT
 $sourceCode
-<div class='pfy-list pfy-list-$inx'>
+<div class='pfy-list pfy-list-$inx $class'>
 $str
 </div>
 EOT;

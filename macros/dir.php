@@ -32,7 +32,7 @@ EOT,
     ];
 
     // parse arguments, handle help and showSource:
-    if (is_string($str = prepareTwigFunction(__FILE__, $config, $argStr))) {
+    if (is_string($str = TransVars::initMacro(__FILE__, $config, $argStr))) {
         return $str;
     } else {
         list($options, $str) = $str;
@@ -151,7 +151,7 @@ class Dir
     private function straightList($dir)
     {
         if (!$dir) {
-            return PageFactory::$trans->getVariable("nothing to display");
+            return TransVars::getVariable("nothing to display");
         }
         if (strpos($this->order, 'revers') !== false) {
             $dir = array_reverse($dir);

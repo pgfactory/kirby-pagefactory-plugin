@@ -34,14 +34,11 @@ Supported wrapperClasses:
 
 EOT,
     ];
-    if (is_string($str = prepareTwigFunction(__FILE__, $config, $argStr))) {
+    if (is_string($str = TransVars::initMacro(__FILE__, $config, $argStr))) {
         return $str;
     } else {
-        list($args, $sourceCode) = $str;
+        list($options, $sourceCode) = $str;
     }
-
-    $options = parseTwigFunctionArguments($config, $args);
-
 
     $nav = new SiteNav();
     $str = $nav->render($options);

@@ -11,8 +11,8 @@ function prevnextlinks($argStr = '')
     $config =  [
         'options' => [
             'class' => ['Class to be applied to the element', false],
-            'wrapperClass' => ['Class to be applied to the wrapper element. '.
-                'Predefined: ".pfy-show-as-text" and ".pfy-show-as-arrows".', false],
+            'wrapperClass' => ['Class to be applied to the wrapper element. ', false],
+            'type' => ['[top,bottom] Defines where the page switcher links will be displayed', 'bottom'],
         ],
         'summary' => <<<EOT
 # PrevNextLinks()
@@ -23,8 +23,8 @@ keys <- (left) and  -> (right).
 Classes:
 - .pfy-previous-page-link
 - .pfy-next-page-link
-- .pfy-show-as-text     13em>> predefined styles  (apply to wrapperClass)
-- .pfy-show-as-arrows     13em>> predefined styles  (apply to wrapperClass)
+- .pfy-show-as-arrows-and-text     13em>> predefined styles  (apply to wrapperClass)
+- .pfy-show-as-top-arrows     13em>> predefined styles  (apply to wrapperClass)
 
 Use variables ``\{{ pfy-previous-page-text }}`` and ``\{{ pfy-next-page-text }}`` to define the text (visible and invisible parts).
 
@@ -32,18 +32,20 @@ EOT,
     ];
 
     // parse arguments, handle help and showSource:
-    if (is_string($str = prepareTwigFunction(__FILE__, $config, $argStr))) {
+    if (is_string($str = TransVars::initMacro(__FILE__, $config, $argStr))) {
         return $str;
     } else {
-        list($options, $sourceCode) = $str;
+        list($options, $str) = $str;
     }
+
+    $options['wrapperClass'] = ($options['type'][0] === 't')? ' pfy-show-as-top-arrows': ' pfy-show-as-arrows-and-text';
 
     // assemble output:
     $obj = new PrevNextLinks();
 
     $str .= $obj->render($options);
 
-    return $sourceCode.shieldStr($str);
+    return shieldStr($str);
 }
 
 
@@ -62,16 +64,13 @@ class PrevNextLinks
     public function render(array $args): string
     {
         $this->class = $args['class'];
-        $this->page = page();
-        $this->pages = pages();
-        $this->twig = new TwigVars();
+        $this->page  = PageFactory::$page;
+        $this->pages = PageFactory::$pages;
 
         $out = "\n<div class='pfy-page-switcher-wrapper {$args['wrapperClass']}'>\n";
-//        $out = "\n    <div class='pfy-page-switcher-wrapper {$args['wrapperClass']}'>\n";
         $out .= $this->renderPrevLink();
         $out .= $this->renderNextLink();
         $out .= "</div>\n";
-//        $out .= "    </div>\n";
 
         return $out;
     } // render
@@ -83,23 +82,27 @@ class PrevNextLinks
      */
     private function renderPrevLink(): string
     {
-        $out = '<div></div>';
+        $out = "\t<div></div\n>";
+
+        // get first and current page:
         $current = $this->page->url();
-        $next = $this->pages->listed()->first();
-        $prev = false;
-        // parse sitemap till current page found:
+        $next = $this->pages->first(); // i.e. first page
+        $prev = false; // element 1 step behind, i.e. the right one once we hit the current
+
+        // start from first page and walk through sitemap till current page is found:
         while ($next && ($current !== $next->url())) {
             $prev = $next;
             $next = $this->findNext($next);
         }
 
         if ($prev) {
-            PageFactory::$trans->setVariable('pfy-prev-page-title', (string)$prev->title());
+            TransVars::setVariable('pfy-prev-page-title', (string)$prev->title());
             $url = $prev->url();
-            $title = $this->twig->getVariable('pfy-link-to-prev-page');
-            $text = $this->twig->getVariable('pfy-previous-page-text');
+            $title = TransVars::getVariable('pfy-link-to-prev-page');
+            $text = '<span class="pfy-page-switcher-link-text">'.$prev->title()->value().'</span>';
+            $text = TransVars::getVariable('pfy-previous-page-text').$text;
+//            $text = TransVars::getVariable('pfy-previous-page-text').$prev->title()->value();
             $prevLink = "<a href='$url' title='$title'>\n\t\t$text\n\t\t</a>";
-//            $prevLink = "<a href='$url' title='{{ pfy-link-to-prev-page }}'>\n\t\t{{ pfy-previous-page-text }}\n\t\t</a>";
             $out = <<<EOT
       <div class="pfy-page-switcher-links pfy-previous-page-link $this->class">
         $prevLink
@@ -117,17 +120,15 @@ EOT;
      */
     private function renderNextLink(): string
     {
-        $out = '<div></div>';
+        $out = "\t<div></div\n>";
         $next = $this->findNext(page());
         if ($next) {
-            $this->twig->setVariable('pfy-next-page-title', (string)$next->title());
-//            PageFactory::$trans->setVariable('pfy-next-page-title', (string)$next->title());
             $nextUrl = $next->url();
-            $title = $this->twig->getVariable('pfy-link-to-next-page');
-            $text = $this->twig->getVariable('pfy-next-page-text');
+            $title = TransVars::getVariable('pfy-link-to-next-page');
+            $text = '<span class="pfy-page-switcher-link-text">'.$next->title()->value().'</span>';
+            $text = $text.TransVars::getVariable('pfy-next-page-text');
+//            $text = $next->title()->value().TransVars::getVariable('pfy-next-page-text');
             $nextLink = "<a href='$nextUrl' title='$title'>\n\t\t$text\n\t\t</a>";
-//            $nextLink = twig($nextLink);
-//            $nextLink = "<a href='$nextUrl' title='{{ pfy-link-to-next-page }}'>\n\t\t{{ pfy-next-page-text }}\n\t\t</a>";
             $out = <<<EOT
       <div class="pfy-page-switcher-links pfy-next-page-link $this->class">
         $nextLink
