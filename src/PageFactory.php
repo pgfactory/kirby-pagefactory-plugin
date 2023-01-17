@@ -93,7 +93,7 @@ class PageFactory
     public static $phpSessionId;
     public static $assets;
     public static $config;
-    public $session;
+    public static $session;
 
 
     public function __construct($data)
@@ -106,7 +106,7 @@ class PageFactory
         self::$page = $data['page'];
         self::$site = $data['site'];
         self::$siteFiles = self::$pages->files();
-        $this->session = self::$kirby->session();
+        self::$session = self::$kirby->session();
         self::$phpSessionId = getSessionId();
 
         $this->pageOptions = self::$page->content()->data();
@@ -123,8 +123,8 @@ class PageFactory
         self::$hostUrl = $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].'/';
 
         $this->utils = new Utils($this);
-        $this->utils->loadPfyConfig();
-        $this->utils->determineLanguage();
+        Utils::loadPfyConfig();
+        Utils::determineLanguage();
         TransVars::init();
 
         self::$assets = new Assets($this);
@@ -132,10 +132,9 @@ class PageFactory
         self::$pg->set('pageParams', self::$page->content()->data());
         self::$pg->loadExtensions();
 
-        $this->utils->init();
-        $this->utils->determineDebugState();
+        Utils::determineDebugState();
 
-        $this->utils->setTimezone();
+        Utils::setTimezone();
 
         self::$pagePath = substr(self::$page->root(), strlen(site()->root())+1) . '/';
         self::$absAppRoot = kirby()->root().'/';
@@ -153,11 +152,11 @@ class PageFactory
             self::$user = (string)$user->name();
         }
 
-        $this->utils->handleUrlToken();
+        Utils::handleUrlToken();
 
         preparePath(PFY_LOGS_PATH);
-        $this->utils->showPendingMessage();
-        $this->utils->handleAgentRequests();
+        Utils::showPendingMessage();
+        Utils::handleAgentRequests();
     } // __construct
 
 
@@ -189,7 +188,7 @@ class PageFactory
         self::$pg->extensionsFinalCode(); //??? best position?
         TransVars::prepareStandardVariables();
 
-        $this->utils->handleAgentRequestsOnRenderedPage();
+        Utils::handleAgentRequestsOnRenderedPage();
 
         // get and compile meta-file's text field:
         $mdStr = self::$page->text()->value()."\n\n";
@@ -205,10 +204,12 @@ class PageFactory
             // resolve (nested) variables:
             $cnt = 3;
             while ($cnt-- && str_contains($html, '{{')) {
-                $html = twig($html, TransVars::$variables);
+                $html = TransVars::resolveVariables($html);
             }
             $html = str_replace('{!!{', '{{', $html);
+            $html = unshieldStr($html);
         }
+
         TransVars::prepareTemplateVariables();
 
         return $html;
@@ -228,9 +229,10 @@ class PageFactory
             $mdStr = getFile($file);
             $this->extractFrontmatter($mdStr);
             $html = $this->compile($mdStr);
+            $html = Utils::resolveUrls($html);
             $finalHtml .= <<<EOT
 
-<section id='pfy-section-$inx' class='pfy-section.pfy-section-$inx'>
+<section id='pfy-section-$inx' class='pfy-section-wrapper pfy-section-$inx'>
 
 $html
 
@@ -251,7 +253,7 @@ EOT;
 
         $mdStr = TransVars::resolveVariables($mdStr);
         $mdStr = TransVars::executeMacros($mdStr);
-//        $mdStr = twig($mdStr);
+
         $mdp = new \Usility\MarkdownPlus\MarkdownPlus();
         $html =  $mdp->compile($mdStr, sectionIdentifier: "pfy-section-$inx");
 
@@ -273,7 +275,6 @@ EOT;
                 $html = str_replace($m[0][$i], "{{ $str }}", $html);
             }
         }
-
         return $html;
     } // compile
 
@@ -301,6 +302,12 @@ EOT;
                 $values = Yaml::decode($value);
                 foreach ($values as $k => $v) {
                     TransVars::setVariable($k, $v);
+                }
+
+            } elseif ($key === 'assets') {
+                $assets = Yaml::decode($value);
+                foreach ($assets as $asset) {
+                    self::$pg->addAssets($asset);
                 }
 
             } else {
