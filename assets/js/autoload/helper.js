@@ -4,11 +4,20 @@
  */
 
 
+// perform late loading:
 var elem = document.getElementsByClassName('pfy-onload-css');
 for (i=0;i<elem.length;i++) {
+    let href = elem[i].getAttribute('href');
     elem[i].setAttribute('media', 'all');
-    console.log('async load: ');
-    console.log(elem[i]);
+    console.log('async load: ' + href);
+}
+
+elem = document.getElementsByClassName('pfy-onload');
+for (i=0;i<elem.length;i++) {
+    let src = elem[i].getAttribute('data-src');
+    elem[i].setAttribute('src', src);
+    elem[i].removeAttribute('data-src');
+    console.log('async load: ' + src);
 }
 
 window.onresize = function() {

@@ -70,6 +70,10 @@ class PrevNextLinks
         $out = "\n<div class='pfy-page-switcher-wrapper {$args['wrapperClass']}'>\n";
         $out .= $this->renderPrevLink();
         $out .= $this->renderNextLink();
+
+        // inject script code for page-switching:
+        $url = PageFactory::$appUrl."media/plugins/usility/pagefactory/js/page-switcher.js";
+        $out .= "\t<script data-src='$url' class='pfy-onload'></script>\n";
         $out .= "</div>\n";
 
         return $out;
@@ -120,7 +124,7 @@ EOT;
      */
     private function renderNextLink(): string
     {
-        $out = "\t<div></div\n>";
+        $out = "\t<div></div>\n";
         $next = $this->findNext(page());
         if ($next) {
             $nextUrl = $next->url();
