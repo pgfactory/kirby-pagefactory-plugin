@@ -763,6 +763,10 @@ function getDirDeep(string $path, bool $onlyDir = false, bool $assoc = false, bo
         $inclPat = false;
     }
 
+    if (!is_dir($path)) {
+        throw new Exception("Folder doesn't exist: '$path'");
+    }
+
     $it = new \RecursiveDirectoryIterator($path);
     foreach (new \RecursiveIteratorIterator($it) as $fileRec) {
         $f = $fileRec->getFilename();
@@ -2104,12 +2108,15 @@ function shieldStr(string $str, bool $mdCompile = false): string
 * @param string $str
 * @return string
 */
-function unshieldStr(string $str, bool $unshieldLiteral = false): string
+function unshieldStr(string $str, bool $unshieldLiteral = null): string
 {
-    if ($unshieldLiteral && preg_match_all('|<raw>(.*?)</raw>|m', $str, $m)) {
-        foreach ($m[1] as $i => $item) {
-            $literal = base64_decode($m[1][$i]);
-            $str = str_replace($m[0][$i], $literal, $str);
+    if ($unshieldLiteral !== false) {
+        $str = str_replace(['&lt;raw&gt;','&lt;/raw&gt;'], ['<raw>','</raw>'], $str);
+        if (preg_match_all('|<raw>(.*?)</raw>|m', $str, $m)) {
+            foreach ($m[1] as $i => $item) {
+                $literal = base64_decode($m[1][$i]);
+                $str = str_replace($m[0][$i], $literal, $str);
+            }
         }
     }
     if (preg_match_all('|<md>(.*?)</md>|m', $str, $m)) {

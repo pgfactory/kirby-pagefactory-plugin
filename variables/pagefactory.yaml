@@ -3,7 +3,7 @@
 
 
 vgap: "<div class='pfy-vgap' style='margin:0.7em 0;'>&nbsp;</div>"
-space: "<span class='pfy-h-space'' style='width:4ch'></span>"
+space: "<span class='pfy-h-space' style='width:4ch'></span>"
 clear: '<div style="clear:both;"></div>'
 
 #--- Login Link ----------------------------------
