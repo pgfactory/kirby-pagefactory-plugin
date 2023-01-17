@@ -259,16 +259,6 @@ class TransVars
 
 
     /**
-     * @param $str
-     * @return string
-     */
-    public static function translate($str): string
-    {
-        return self::translateVariable($str);
-    } // translate
-
-
-    /**
      * @param string $varName
      * @return string|bool
      */
@@ -327,6 +317,16 @@ class TransVars
         return $html;
 
     } // renderVariables
+
+
+    /**
+     * @param $str
+     * @return string
+     */
+    public static function translate($str): string
+    {
+        return self::resolveVariables($str);
+    } // translate
 
 
     /**
@@ -395,6 +395,12 @@ class TransVars
                 require_once $file;
             }
         }
+        $dir = getDir(PFY_USER_CODE_PATH.'*.php');
+        foreach ($dir as $file) {
+            if (basename($file)[0] !== '#') {
+                require_once $file;
+            }
+        }
     } // loadMacros
 
 
@@ -436,6 +442,27 @@ class TransVars
             return "<span class='pfy-untranslated'>&#123;&#123; $macroName1('$args') &#125;&#125;</span>";
         }
 
+        // handle showSource:
+        $src = '';
+        if (preg_match('/,?\s*showSource:\s*true/', $args, $m)) {
+            $args = str_replace($m[0], '', $args);
+            $src = markdownParagrah($args);
+            $args = strip_tags($src);
+
+            $multiline = str_contains($src, "\n")? "\n        " : '';
+            $multiline2 = $multiline? "\n    " : ' ';
+            $src = preg_replace('/\n\s*\n/', "\n", $src);
+            if ($multiline) {
+                $src = indentLines($src);
+            } else {
+                $src = rtrim($src, ' ,');
+            }
+            $src = str_replace('~', '&#126;', $src);
+            $macroName1 = ltrim($macroName, '_');
+            $src = "<pre><code>\\{{ $macroName1($src$multiline)$multiline2}}\n</code></pre>";
+            $src = shieldStr($src)."\n\n";
+        }
+
         // get arguments:
         $options = self::parseMacroArguments($config, $args);
 
@@ -443,22 +470,9 @@ class TransVars
         $inx = TransVars::$funcIndexes[$macroName] = (TransVars::$funcIndexes[$macroName]??false) ?
             TransVars::$funcIndexes[$macroName]+1: 1;
 
-        $str = '';
-        if ($options['showSource']??false) {
-            $multiline = str_contains($args, "\n")? "\n        " : '';
-            $multiline2 = $multiline? "\n    " : ' ';
-            $args = preg_replace('/showSource:[^,\n]+/', '', $args);
-            $args = preg_replace('/\n\s*\n/', "\n", $args);
-            if ($multiline) {
-                $args = indentLines($args);
-            } else {
-                $args = rtrim($args, ' ,');
-            }
-            $macroName1 = ltrim($macroName, '_');
-            $str = shieldStr("<pre><code>\\{{ $macroName1($args$multiline)$multiline2}}\n</code></pre>")."\n\n";
-        }
-        return [$options, $str, $inx, $macroName];
+        return [$options, $src, $inx, $macroName];
     } // initMacro
+
 
 
     /**
