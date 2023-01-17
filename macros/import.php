@@ -31,16 +31,16 @@ EOT,
     if (is_string($str = TransVars::initMacro(__FILE__, $config, $argStr))) {
         return $str;
     } else {
-        list($args, $str) = $str;
+        list($args, $source) = $str;
     }
 
     // assemble output:
     $imp = new Import();
-    $str .= $imp->render($args);
+    $str = $imp->render($args);
 
     $str = shieldStr($str);
 
-    return $str;
+    return $source.$str;
 }
 
 

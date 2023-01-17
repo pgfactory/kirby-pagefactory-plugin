@@ -57,7 +57,7 @@ EOT,
         $options['wrapperClass'] .= ' pfy-nav-collapsible';
     }
     $nav = new SiteNav();
-    $str .= $nav->render($options);
+    $str = $nav->render($options);
     return $sourceCode.shieldStr($str);
 }
 

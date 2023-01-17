@@ -295,7 +295,7 @@ class Link
 
             // check whether url points to a page within this site:
             if ($url[0] === '~') {
-                $url = $this->pfy->utils->resolveUrl($url);
+                $url = Utils::resolveUrl($url);
             }
             $pg = page($url);
             if ($pg) {

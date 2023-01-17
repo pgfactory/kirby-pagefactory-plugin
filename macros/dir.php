@@ -60,7 +60,7 @@ class Dir
         $this->class = $args['class'];
         $this->target = $args['target'];
         $this->exclude = $args['exclude'];
-        $this->flags = $args['flags'];
+        $this->flags = strtoupper($args['flags']);
         $this->maxAge = $args['maxAge'];
         $this->prefix = $args['prefix'];
         $this->postfix = $args['postfix'];
@@ -163,27 +163,32 @@ class Dir
         }
         if ($this->replaceOnElem) {
             list($pattern, $replace) = explodeTrim(',', $this->replaceOnElem);
+            $keys = array_map(function ($e) use ($pattern, $replace){
+                return preg_replace("|$pattern|", $replace, basename($e));
+            }, $dir);
+        } else {
+            $keys = array_map(function ($e) {
+                return basename($e);
+            }, $dir);
         }
-        foreach ($dir as $file) {
+        $dir = array_combine($keys, $dir);
+        ksort($dir);
+        foreach ($dir as $name => $file) {
             if (is_dir($file) || (filemtime($file) < $maxAge)) {
                 continue;
             }
-            if (!$this->showPath) {
-                $name = base_name($file);
-            } else {
+            if ($this->showPath) {
                 $name = $file;
             }
             if ($this->excludeExt) {
                 $name = fileExt($name, true);
             }
-            if ($this->replaceOnElem) {
-                $name = preg_replace("|$pattern|", $replace, $name);
-            }
+            $filename = $name;
             $name = "$this->prefix$name$this->postfix";
             if ($this->asLink) {
                 if ($this->linkPath) {
                     if (str_contains($this->linkPath, '%basename%')) {
-                        $file = str_replace('%basename%', base_name($file, false), $this->linkPath);
+                        $file = str_replace('%basename%', base_name($filename, false), $this->linkPath);
                     }
                     $file = strtolower($file);
                 }
@@ -204,11 +209,10 @@ class Dir
         }
         $str = <<<EOT
 
-    <{$this->tag}{$this->id}{$this->class}>
+<{$this->tag}{$this->id}{$this->class}>
 $str   
-    </{$this->tag}>
+</{$this->tag}>
 EOT;
-        $str = shieldStr($str);
         return $str;
     } // straightList
 
@@ -229,14 +233,16 @@ EOT;
 
     private function _hierarchicalList($hierarchy, $level)
     {
-        $indent = str_pad('', $level, "\t");
+        $indent = '';
+//        $indent = str_pad('', $level, "\t");
         $out = "$indent<{$this->tag}>\n";
         $sub = '';
         foreach ($hierarchy as $name => $rec) {
             if (is_array($rec)) {
                 $sub .= $this->_hierarchicalList($rec, $level+1);
             } else {
-                $out .= "$indent  <li>$rec</li>\n";
+                $out .= "$indent<li>$rec</li>\n";
+//                $out .= "$indent  <li>$rec</li>\n";
             }
         }
         $out .= $sub;

@@ -24,7 +24,7 @@ EOT,
     if (is_string($str = TransVars::initMacro(__FILE__, $config, $argStr))) {
         return $str;
     } else {
-        list($options,,$inx) = $str;
+        list($options,$sourceCode,$inx) = $str;
     }
 
     // assemble output:
@@ -33,8 +33,8 @@ EOT,
 
     $width = ($width) ? " style='width:$width'" : '';
     $class = trim("pfy-h-space pfy-h-space-{$inx} $class");
-    $str .= "<span class='$class'$width></span>";
+    $str = "<span class='$class'$width></span>";
 
-    return $str;
+    return $sourceCode.$str;
 }
 
