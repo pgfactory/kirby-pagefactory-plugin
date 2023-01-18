@@ -17,9 +17,10 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 //use Kirby\Cms\App as Kirby;
 use Usility\PageFactory\PageFactory as PageFactory;
+use Usility\PageFactory\TransVars;
 
 // load twig-functions:
-$twigFunctions = glob(TWIG_FUNCTIONS_FOLDER.'*.php');
+$twigFunctions = TransVars::findAllMacros(includePaths: true);
 foreach ($twigFunctions as $file) {
     if (basename($file)[0] !== '#') {
         require_once $file;

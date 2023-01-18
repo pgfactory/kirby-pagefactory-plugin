@@ -429,7 +429,7 @@ class TransVars
      * @return string|array
      * @throws InvalidArgumentException
      */
-    public static function initMacro(string $file, array $config, string $args): string|array
+    public static function initMacro(string $file, array $config, string|array $args): string|array
     {
         $macroName = basename($file, '.php');
         // render help text:
@@ -442,33 +442,38 @@ class TransVars
             return "<span class='pfy-untranslated'>&#123;&#123; $macroName1('$args') &#125;&#125;</span>";
         }
 
-        // handle showSource:
-        $src = '';
-        if (preg_match('/,?\s*showSource:\s*true/', $args, $m)) {
-            $args = str_replace($m[0], '', $args);
-            $src = markdownParagrah($args);
-            $args = strip_tags($src);
+        // get index:
+        $inx = TransVars::$funcIndexes[$macroName] = (TransVars::$funcIndexes[$macroName]??false) ?
+            TransVars::$funcIndexes[$macroName]+1: 1;
 
-            $multiline = str_contains($src, "\n")? "\n        " : '';
-            $multiline2 = $multiline? "\n    " : ' ';
-            $src = preg_replace('/\n\s*\n/', "\n", $src);
-            if ($multiline) {
-                $src = indentLines($src);
-            } else {
-                $src = rtrim($src, ' ,');
+        $src = '';
+        if (is_string($args)) {
+            // handle showSource:
+            if (preg_match('/,?\s*showSource:\s*true/', $args, $m)) {
+                $args = str_replace($m[0], '', $args);
+                $src = markdownParagrah($args);
+                $args = strip_tags($src);
+
+                $multiline = str_contains($src, "\n") ? "\n        " : '';
+                $multiline2 = $multiline ? "\n    " : ' ';
+                $src = preg_replace('/\n\s*\n/', "\n", $src);
+                if ($multiline) {
+                    $src = indentLines($src);
+                } else {
+                    $src = rtrim($src, ' ,');
+                }
+                $src = str_replace('~', '&#126;', $src);
+                $macroName1 = ltrim($macroName, '_');
+                $src = "<pre><code>\\{{ $macroName1($src$multiline)$multiline2}}\n</code></pre>";
+                $src = shieldStr($src) . "\n\n";
             }
-            $src = str_replace('~', '&#126;', $src);
-            $macroName1 = ltrim($macroName, '_');
-            $src = "<pre><code>\\{{ $macroName1($src$multiline)$multiline2}}\n</code></pre>";
-            $src = shieldStr($src)."\n\n";
+
+        } else {
+//ToDo: not implemented yet
         }
 
         // get arguments:
         $options = self::parseMacroArguments($config, $args);
-
-        // get index:
-        $inx = TransVars::$funcIndexes[$macroName] = (TransVars::$funcIndexes[$macroName]??false) ?
-            TransVars::$funcIndexes[$macroName]+1: 1;
 
         return [$options, $src, $inx, $macroName];
     } // initMacro
@@ -540,21 +545,46 @@ EOT;
      * Helper for renderMacros()
      * @return array
      */
-    private static function findAllMacros(): array
+    public static function findAllMacros(bool $forRegistering = false, bool $includePaths = false): array
     {
-        $functions = findTwigFunctions();
+        $functions = [];
         $pfyPlugins = glob('site/plugins/pagefactory*');
+        $pfyPlugins[] = 'site/custom/macros';
         foreach ($pfyPlugins as $plugin) {
             $dir = glob("$plugin/macros/*.php");
             foreach ($dir as $file) {
                 $actualName = basename($file, '.php');
                 if ($actualName[0] !== '#') {
-                    $functions[] = ltrim($actualName, '_');
+                    if ($forRegistering) {
+                        $name = ltrim($actualName, '_');
+                        $functions["*$name"] = "Usility\\PageFactory\\$actualName";
+                    } else {
+                        if ($includePaths) {
+                            $functions[] = $file;
+                        } else {
+                            $functions[] = ltrim($actualName, '_');
+                        }
+                    }
                 }
             }
         }
         return $functions;
     } // findAllMacros
+//    private static function findAllMacros(): array
+//    {
+//        $functions = findTwigFunctions();
+//        $pfyPlugins = glob('site/plugins/pagefactory*');
+//        foreach ($pfyPlugins as $plugin) {
+//            $dir = glob("$plugin/macros/*.php");
+//            foreach ($dir as $file) {
+//                $actualName = basename($file, '.php');
+//                if ($actualName[0] !== '#') {
+//                    $functions[] = ltrim($actualName, '_');
+//                }
+//            }
+//        }
+//        return $functions;
+//    } // findAllMacros
 
 
     /**

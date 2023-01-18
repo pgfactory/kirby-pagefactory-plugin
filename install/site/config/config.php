@@ -1,11 +1,10 @@
 <?php
 
 // find twig-functions in pagefactory:
-if (file_exists('site/plugins/pagefactory/src/twighelper.php')) {
-    require_once 'site/plugins/pagefactory/src/twighelper.php';
-    $functions = Usility\PageFactory\findTwigFunctions(true);
-} else {
-    $function = false;
+$functions = false;
+if (file_exists('site/plugins/pagefactory/src/TransVars.php')) {
+    require_once 'site/plugins/pagefactory/src/TransVars.php';
+    $functions = Usility\PageFactory\TransVars::findAllMacros(true);
 }
 
 // Defaults recommended by PageFactory plugin:
