@@ -15,7 +15,7 @@
 <div class='pfy-page'>
 
   <header class='pfy-header'>
-    {{ nav('wrapperClass: pfy-primary-nav, type: top') }}
+    {{ nav({ wrapperClass: 'pfy-primary-nav', type: 'top' }) }}
   </header>
 
 
@@ -52,6 +52,9 @@
   <div class="pfy-small-screen-header pfy-small-screen-only" style='display: none;'>
     {{ page.smallScreenHeader|raw }}
   </div><!-- /pfy-small-screen-header -->
+
+
+  {{ prevnextlinks() }}
 
 </div><!-- /.pfy-page -->
 

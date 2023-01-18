@@ -2,28 +2,30 @@
 namespace Usility\PageFactory;
 
 /*
- * Twig function
+ * PageFactory Macro (and Twig Function)
  */
 
-function NAME($argStr = '')
+function NAME($args = '')
 {
+    $funcName = basename(__FILE__, '.php');
     // Definition of arguments and help-text:
     $config =  [
         'options' => [
 //            '' => ['', false],
         ],
         'summary' => <<<EOT
-# NAME()
+
+# $funcName()
 
 ToDo: describe purpose of function
 EOT,
     ];
 
     // parse arguments, handle help and showSource:
-    if (is_string($str = TransVars::initMacro(__FILE__, $config, $argStr))) {
-        return $str;
+    if (is_string($res = TransVars::initMacro(__FILE__, $config, $args))) {
+        return $res;
     } else {
-        list($options, $sourceCode, $inx, $funcName) = $str;
+        list($options, $sourceCode, $inx) = $res;
         $str = $sourceCode;
     }
 
