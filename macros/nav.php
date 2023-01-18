@@ -2,11 +2,11 @@
 namespace Usility\PageFactory;
 
 
-require_once __DIR__.'/../src/helper.php';
-require_once __DIR__.'/../src/twighelper.php';
+//require_once __DIR__.'/../src/helper.php';
+//require_once __DIR__.'/../src/twighelper.php';
 require_once __DIR__.'/../src/SiteNav.php';
 
-function nav($argStr = '')
+function nav($args = null)
 {
     $funcName = basename(__FILE__, '.php');
     $config =  [
@@ -16,7 +16,7 @@ function nav($argStr = '')
             'type' => ['[top,branch].', ''],
         ],
         'summary' => <<<EOT
-## Nav()
+## $funcName()
 
 Renders a navigation menu that reflects the currently published pages.
 
@@ -34,10 +34,10 @@ Supported wrapperClasses:
 
 EOT,
     ];
-    if (is_string($str = TransVars::initMacro(__FILE__, $config, $argStr))) {
-        return $str;
+    if (is_string($res = TransVars::initMacro(__FILE__, $config, $args))) {
+        return $res;
     } else {
-        list($options, $sourceCode) = $str;
+        list($options, $sourceCode) = $res;
     }
 
     $nav = new SiteNav();
