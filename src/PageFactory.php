@@ -10,7 +10,7 @@ const PFY_BASE_PATH =              'site/plugins/pagefactory/';
 const PFY_CONTENT_ASSETS_PATH =    'content/assets/';
 const PFY_ASSETS_PATH =            'site/plugins/pagefactory/assets/';
 const PFY_ICONS_PATH =             'site/plugins/pagefactory/assets/icons/';
-const PFY_SVG_ICONS_PATH =         'site/plugins/pagefactory/assets/svg-icons/';
+const PFY_SVG_ICONS_PATH =         'site/plugins/markdownplus/assets/svg-icons/';
 const PFY_CONFIG_FILE =            'site/config/config.php';
 const PFY_CUSTOM_PATH =            'site/custom/';
 const PFY_USER_CODE_PATH =         PFY_CUSTOM_PATH.'macros/';
@@ -206,8 +206,8 @@ class PageFactory
             while ($cnt-- && str_contains($html, '{{')) {
                 $html = TransVars::resolveVariables($html);
             }
-            $html = str_replace('{!!{', '{{', $html);
             $html = unshieldStr($html);
+            $html = str_replace(['{!!{', '}!!}', '⟮'], ['{{', '}}', '('], $html);
         }
 
         TransVars::prepareTemplateVariables();
@@ -251,6 +251,7 @@ EOT;
             return '';
         }
 
+        $mdStr = str_replace(['\\{{', '\\}}', '\\('], ['{!!{', '}!!}', '⟮'], $mdStr);
         $mdStr = TransVars::resolveVariables($mdStr);
         $mdStr = TransVars::executeMacros($mdStr);
 
@@ -265,8 +266,7 @@ EOT;
             }
         }
 
-        $html = str_replace('\\{{', '{!!{', $html);
-        $html = str_replace('\\(', '⟮', $html);
+        $html = str_replace(['\\{{', '\\}}', '\\('], ['{!!{', '}!!}', '⟮'], $html);
 
         // add '|raw' to simple variables:
         if (preg_match_all('/\{\{ ( [^}|(]+ ) }}/msx', $html, $m)) {
