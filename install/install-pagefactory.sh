@@ -58,11 +58,24 @@ if [[ -e site/plugins/pagefactory/ ]]; then
 	exit
 fi
 
-
+echo
 echo Now installing Pagefactory
 
 ## Clone PageFactory:
-/usr/bin/env git clone $branch https://github.com/pgfactory/kirby-pagefactory-plugin.git site/plugins/pagefactory
+
+echo
+echo Kirby-Twig:
+git submodule add https://github.com/amteich/kirby-twig.git site/plugins/kirby-twig
+
+echo
+echo MarkdownPlus:
+git submodule add https://github.com/pgfactory/markdownplus.git site/plugins/markdownplus
+
+echo
+echo PageFactory:
+git submodule add $branch https://github.com/pgfactory/kirby-pagefactory-plugin.git site/plugins/pagefactory
+
+echo
 echo PageFactory installed
 
 
@@ -76,5 +89,5 @@ if [ ! -e site/templates/page_template.html ]; then
 fi
 
 echo
-echo Now open this website in your browser.
+echo ==> Now open this website in your browser.
 echo 
