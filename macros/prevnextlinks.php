@@ -86,7 +86,7 @@ class PrevNextLinks
      */
     private function renderPrevLink(): string
     {
-        $out = "\t<div></div\n>";
+        $out = "\t<div></div>\n";
 
         // get first and current page:
         $current = $this->page->url();
