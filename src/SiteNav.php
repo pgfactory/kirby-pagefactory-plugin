@@ -102,7 +102,7 @@ EOT;
         foreach ($subtree->listed() as $pg) {
             $depth = $pg->depth();
             $indent = '';
-            $curr = $pg->isActive();
+            $curr = $pg->isActive() ? ' aria-current="page"': '';
             $class = NAV_LEVEL . $depth;
             if ($curr) {
                 $class .= ' ' . NAV_CURRENT;
@@ -126,13 +126,13 @@ EOT;
                 $aElem = "<span class='pfy-nav-label'>$title</span><span class='pfy-nav-arrow' ".
                          "aria-hidden='{$this->hidden}'>{$this->arrow}</span>";
                 $class .= ' pfy-has-children pfy-nav-has-content';
-                $out .= "$indent<li class='$class'><a href='$url'>$aElem</a>\n";
+                $out .= "$indent<li class='$class'><a href='$url'$curr>$aElem</a>\n";
                 $out .= "$indent  <div class='pfy-nav-sub-wrapper' aria-hidden='{$this->hidden}'>\n";
                 $out .= $this->_render($pg->children());
                 $out .= "$indent</div>\n";
                 $out .= "$indent</li>\n";
             } else {
-                $out .= "$indent<li class='$class'><a href='$url'>$title</a></li>\n";
+                $out .= "$indent<li class='$class'><a href='$url'$curr>$title</a></li>\n";
             }
         }
         if (!$out) {
