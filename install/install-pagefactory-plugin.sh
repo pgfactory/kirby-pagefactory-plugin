@@ -30,9 +30,9 @@ fi
 echo Now installing Pagefactory
 
 ## Clone PageFactory:
-/usr/bin/env git clone https://github.com/amteich/kirby-twig.git site/plugins/kirby-twig
-/usr/bin/env git clone https://github.com/pgfactory/markdownplus.git site/plugins/markdownplus
-/usr/bin/env git clone $branch https://github.com/pgfactory/kirby-pagefactory-plugin.git site/plugins/pagefactory
+/usr/local/bin/git clone https://github.com/amteich/kirby-twig.git site/plugins/kirby-twig
+/usr/local/bin/git clone https://github.com/pgfactory/markdownplus.git site/plugins/markdownplus
+/usr/local/bin/git clone $branch https://github.com/pgfactory/kirby-pagefactory-plugin.git site/plugins/pagefactory
 echo PageFactory installed
 
 
