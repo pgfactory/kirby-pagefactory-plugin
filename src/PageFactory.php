@@ -32,11 +32,13 @@ define('PFY_PAGE_META_FILE_BASENAME','z'); // 'define' required by site/plugins/
 define('OPTIONS_DEFAULTS', [
     'screenSizeBreakpoint'          => 480,
     'defaultLanguage'               => 'en',
-    'allowNonPfyPages'              => false,  // -> if true, Pagefactory will skip checks for presence of metafiles
-    'externalLinksToNewWindow'      => true,   // -> used by Link() -> whether to open external links in new window
+    'allowNonPfyPages'              => false, // -> if true, Pagefactory will skip checks for presence of metafiles
+    'externalLinksToNewWindow'      => true,  // -> used by Link() -> whether to open external links in new window
     'imageAutoQuickview'            => true,  // -> used by Img() macro
     'imageAutoSrcset'               => true,  // -> used by Img() macro
     'divblock-chars'                => '@%',  // possible alternative: ':$@%'
+    'includeMetaFileContent'        => true,  // -> option for website using '(include: *.md)' in metafile
+                                              // e.g. when converting from MdP site to Pfy
     // 'timezone' => 'Europe/Zurich', // PageFactory tries to guess the timezone - you can override this manually
 
     // optionally define files to be used as css/js framework (e.g. jQuery or bootstrap etc):
@@ -190,9 +192,12 @@ class PageFactory
 
         Utils::handleAgentRequestsOnRenderedPage();
 
-        // get and compile meta-file's text field:
-        $mdStr = self::$page->text()->value()."\n\n";
-        $html = $this->compile($mdStr);
+        $html = '';
+        if (PageFactory::$config['includeMetaFileContent']) {
+            // get and compile meta-file's text field:
+            $mdStr = self::$page->text()->value() . "\n\n";
+            $html = $this->compile($mdStr);
+        }
 
         // load content from .md files:
         $html .= $this->loadMdFiles();
@@ -228,7 +233,7 @@ class PageFactory
             }
             $mdStr = getFile($file);
             $this->extractFrontmatter($mdStr);
-            $html = $this->compile($mdStr);
+            $html = $this->compile($mdStr, removeComments: false);
             $html = Utils::resolveUrls($html);
             $finalHtml .= <<<EOT
 
@@ -245,9 +250,12 @@ EOT;
     } // loadMdFiles
 
 
-    private function compile(string $mdStr, $inx = 0): string
+    private function compile(string $mdStr, $inx = 0, $removeComments = true): string
     {
-        if (!$mdStr = removeComments($mdStr)) {
+        if ($removeComments) {
+            $mdStr = removeComments($mdStr);
+        }
+        if (!$mdStr) {
             return '';
         }
 
@@ -256,7 +264,7 @@ EOT;
         $mdStr = TransVars::executeMacros($mdStr);
 
         $mdp = new \Usility\MarkdownPlus\MarkdownPlus();
-        $html =  $mdp->compile($mdStr, sectionIdentifier: "pfy-section-$inx");
+        $html =  $mdp->compile($mdStr, sectionIdentifier: "pfy-section-$inx", removeComments: false);
 
         // shield argument lists enclosed in '({' and '})'
         if (preg_match_all('/\(\{ (.*?) }\)/x', $html, $m)) {
