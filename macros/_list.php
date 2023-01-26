@@ -11,6 +11,7 @@ function _list($argStr = '')
     $config =  [
         'options' => [
             'type' => ['[users,variables,functions] Selects the objects to be listed.', false],
+            'options' => ['[AS_LINKS] Specifies how to render the list.', false],
             //'options' => ['[short] Specifies how to render the list.', false],
             //'option' => ['Synonym for "options".', false],
         ],
@@ -24,6 +25,7 @@ Available ``types``:
 - ``variables``     >> lists all variables
 - ``macros``     >> lists all macros including their help text
 - ``users``     >> lists all users
+- ``subpages``     >> lists all sub-pages
 
 EOT,
     ];
@@ -37,6 +39,7 @@ EOT,
 
     // assemble output:
     $type = $args['type'].' ';
+    $asLinks = str_contains(strtoupper($args['options']), 'AS-LINKS');
     $class = '';
 
     if ($type[0] === 'v') {     // variables
@@ -58,6 +61,19 @@ EOT,
         $str .= "</ul>\n";
         $class = 'pfy-users';
 
+    } elseif ($type[0] === 's') {   // sub-pages
+        $pages = page()->children()->listed();
+        $str = "<ul>\n";
+        foreach ($pages as $page) {
+            $elem = $page->title()->value();
+            if ($asLinks) {
+                $url = $page->url();
+                $elem = "<a href='$url'>$elem</a>";
+            }
+            $str .= "\t<li>$elem</li>\n";
+        }
+        $str .= "</ul>\n";
+        $class = 'pfy-subpages';
     }
     $str = <<<EOT
 $sourceCode
