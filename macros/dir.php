@@ -15,8 +15,10 @@ function dir($argStr = '')
             'id' => ['Id to be applied to the enclosing li-tag (Default: pfy-dir-#)', false],
             'class' => ['Class to be applied to the enclosing li-tag (Default: pfy-dir)', 'pfy-dir'],
             'target' => ['"target" attribute to be applied to the a-tag.', false],
+            'include' => ['[FILES,FOLDERS] Defines what to include in output', 'files'],
             'exclude' => ['Regex pattern by which to exclude specific elements.', false],
-            'flags' => ['[REVERSE_ORDER, EXCLUDE_EXTENSION, INCLUDE_PATH, DEEP, HIERARCHICAL, ORDERED_LIST, DOWNLOAD, AS_LINK] Activates miscellaneous modes.', false],
+            'flags' => ['[REVERSE_ORDER, EXCLUDE_EXTENSION, INCLUDE_PATH, DEEP, HIERARCHICAL, ORDERED_LIST, DOWNLOAD, '.
+                'AS_LINK] Activates miscellaneous modes.', false],
             'prefix' => ['If defined, string will be placed before each element.', false],
             'postfix' => ['If defined, string will be placed behind each element.', false],
             'linkPath' => ['(For internal use only)', false],
@@ -59,6 +61,8 @@ class Dir
         $this->id = $args['id'];
         $this->class = $args['class'];
         $this->target = $args['target'];
+        $this->includeFiles = str_contains(strtolower($args['include']), 'files');
+        $this->includeFolders = str_contains(strtolower($args['include']), 'folders');
         $this->exclude = $args['exclude'];
         $this->flags = strtoupper($args['flags']);
         $this->maxAge = $args['maxAge'];
@@ -174,7 +178,14 @@ class Dir
         $dir = array_combine($keys, $dir);
         ksort($dir);
         foreach ($dir as $name => $file) {
-            if (is_dir($file) || (filemtime($file) < $maxAge)) {
+            if (filemtime($file) < $maxAge) {
+                continue;
+            }
+            if (is_dir($file)) {
+                if (!$this->includeFolders) {
+                    continue;
+                }
+            } elseif (!$this->includeFiles) {
                 continue;
             }
             if ($this->showPath) {
