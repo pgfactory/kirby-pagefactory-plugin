@@ -4,8 +4,10 @@ namespace Usility\PageFactory;
 
 use Kirby;
 use Kirby\Data\Yaml;
+use Matrix\Exception;
+use ScssPhp\ScssPhp\Exception\SassException;
 
- // filesystem paths:
+// filesystem paths:
 const PFY_BASE_PATH =              'site/plugins/pagefactory/';
 const PFY_CONTENT_ASSETS_PATH =    'content/assets/';
 const PFY_ASSETS_PATH =            'site/plugins/pagefactory/assets/';
@@ -39,6 +41,9 @@ define('OPTIONS_DEFAULTS', [
     'divblock-chars'                => '@%',  // possible alternative: ':$@%'
     'includeMetaFileContent'        => true,  // -> option for website using '(include: *.md)' in metafile
                                               // e.g. when converting from MdP site to Pfy
+    'activateH1Sections'            => false, //
+    'sourceWrapperTag'              => 'section', //
+    'sourceWrapperClass'            => '', //
     // 'timezone' => 'Europe/Zurich', // PageFactory tries to guess the timezone - you can override this manually
 
     // optionally define files to be used as css/js framework (e.g. jQuery or bootstrap etc):
@@ -82,8 +87,6 @@ class PageFactory
     public static $trans;
     public static $pg;
     public static $md;
-    public static $availableExtensions = [];
-    public static $loadedExtensions = [];
     public static $debug;
     public static $isLocalhost;
     public static $timer;
@@ -96,7 +99,14 @@ class PageFactory
     public static $assets;
     public static $config;
     public static $session;
+    public $pageOptions;
+    public $utils;
+    public $value; //???
+    private string $wrapperTag;
+    private string $wrapperClass;
+    private string $wrapperClass2;
 
+    private bool $autoSplitSections;
 
     public function __construct($data)
     {
@@ -116,15 +126,11 @@ class PageFactory
         // find available icons:
         self::$availableIcons = findAvailableIcons();
 
-        $extensions = getDir(rtrim(PFY_BASE_PATH, '/').'-*');
-        foreach ($extensions as $extension) {
-            $extensionName = rtrim(substr($extension, 25), '/');
-            self::$availableExtensions[$extensionName] = $extension;
-        }
+        Extensions::findExtensions();
 
         self::$hostUrl = $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].'/';
 
-        $this->utils = new Utils($this);
+        $this->utils = new Utils();
         Utils::loadPfyConfig();
         Utils::determineLanguage();
         TransVars::init();
@@ -132,7 +138,8 @@ class PageFactory
         self::$assets = new Assets($this);
         self::$pg = new Page($this);
         self::$pg->set('pageParams', self::$page->content()->data());
-        self::$pg->loadExtensions();
+
+        Extensions::loadExtensions();
 
         Utils::determineDebugState();
 
@@ -153,6 +160,7 @@ class PageFactory
         if ($user = self::$kirby->user()) {
             self::$user = (string)$user->name();
         }
+        $this->autoSplitSections = self::$config['autoSplitSectionsOnH1'];
 
         Utils::handleUrlToken();
 
@@ -184,19 +192,22 @@ class PageFactory
      *   i.e. what is invoked in template as {{ page.text.kirbytext | raw }}
      * @return string
      * @throws Kirby\Exception\LogicException
+     * @throws SassException
      */
     public function renderPageContent(): string
     {
-        self::$pg->extensionsFinalCode(); //??? best position?
+        Extensions::extensionsFinalCode(); //??? best position?
         TransVars::prepareStandardVariables();
 
         Utils::handleAgentRequestsOnRenderedPage();
 
         $html = '';
+        $inx = 0;
+
         if (PageFactory::$config['includeMetaFileContent']) {
             // get and compile meta-file's text field:
             $mdStr = self::$page->text()->value() . "\n\n";
-            $html = $this->compile($mdStr);
+            $html = $this->compile($mdStr, $inx);
         }
 
         // load content from .md files:
@@ -223,25 +234,59 @@ class PageFactory
 
     private function loadMdFiles()
     {
+        $this->wrapperTag = PageFactory::$config['sourceWrapperTag'];
+        $this->wrapperClass = PageFactory::$config['sourceWrapperClass'];
         $path = self::$page->root();
         $dir = getDir("$path/*.md");
-        $inx = 1;
+        $inx = 0;
         $finalHtml = '';
         foreach ($dir as $file) {
+            $inx++;
+            $inx0 = $inx;
+            $this->wrapperClass2 = '';
             if (str_contains('#-_', basename($file)[0])) {
                 continue;
             }
             $mdStr = getFile($file);
             $this->extractFrontmatter($mdStr);
-            $html = $this->compile($mdStr, removeComments: false);
+            $wrapperClass2 = '';
+
+            if ($this->autoSplitSections) {
+                $sections = preg_split("/(\n|)#(?!#)/ms", $mdStr, 0, PREG_SPLIT_NO_EMPTY);
+                $html = '';
+                foreach ($sections as $i => $md) {
+                    $sectId = '';
+                    if (preg_match("/^\s+ ( .+? ) [\n{] /xms", $md, $m)) {
+                        $sectId = " $this->wrapperTag-".translateToClassName(rtrim($m[1]), false);
+                    }
+                    $md = "#$md";
+                    $html1 = $this->compile($md, $inx, removeComments: false);
+
+                    if ($i === 0) {
+                        $html = $html1;
+                        $wrapperClass2 = $sectId;
+                    } else {
+                        $section = "\n</$this->wrapperTag>\n\n\n<$this->wrapperTag id='pfy-$this->wrapperTag-$inx' class='pfy-$this->wrapperTag-wrapper pfy-$this->wrapperTag-$inx $sectId $this->wrapperClass'>\n";
+                        $html .= $section.$html1;
+                    }
+
+                    $inx++;
+                }
+
+            } else {
+                if (preg_match("/^\s* \# \s ( .+? ) [\n{] /xms", $md, $m)) {
+                    $wrapperClass2 = " $this->wrapperTag-".translateToClassName(trim($m[1]), false);
+                }
+                $html = $this->compile($mdStr, $inx, removeComments: false);
+            }
             $html = Utils::resolveUrls($html);
+
             $finalHtml .= <<<EOT
 
-<section id='pfy-section-$inx' class='pfy-section-wrapper pfy-section-$inx'>
-
+<$this->wrapperTag id='pfy-$this->wrapperTag-$inx0' class='pfy-$this->wrapperTag-wrapper pfy-$this->wrapperTag-$inx0 $this->wrapperClass$wrapperClass2'>
 $html
+</$this->wrapperTag>
 
-</section>
 
 EOT;
         }
@@ -312,6 +357,30 @@ EOT;
                     TransVars::setVariable($k, $v);
                 }
 
+            } elseif (str_contains('description,keywords,author', $key)) {
+                self::$pg->addHead("  <meta name='$key' content='$value'>\n");
+
+            } elseif ($key === 'robots') {
+                self::$pg->addHead("  <meta name='robots' content='noindex,nofollow,noarchive'>\n");
+
+            } elseif ($key === 'wrapperTag') {
+                $this->wrapperTag = $value;
+
+            } elseif ($key === 'wrapperClass') {
+                $this->wrapperClass = $value;
+
+            } elseif ($key === 'css') {
+                self::$pg->addCss($value);
+
+            } elseif ($key === 'scss') {
+                self::$pg->addScss($value);
+
+            } elseif ($key === 'js') {
+                self::$pg->addJs($value);
+
+            } elseif ($key === 'jq') {
+                self::$pg->addJq($value);
+
             } elseif ($key === 'assets') {
                 $assets = Yaml::decode($value);
                 foreach ($assets as $asset) {
@@ -324,4 +393,5 @@ EOT;
             }
         }
     } // extractFrontmatter
+
 } // PageFactory
