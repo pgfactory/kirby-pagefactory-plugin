@@ -16,10 +16,15 @@ function img($argStr = '')
             'alt' => ['Alt-text for image, i.e. a short text that describes the image.', false],
             'id' => ['Id that will be applied to the image.', false],
             'class' => ['Class-name that will be applied to the image.', ''],
-            'caption' => ['Optional caption. If set, Lizzy will wrap the image into a &lt;figure> tag and wrap the caption itself in &lt;figcaption> tag.', false],
+            'caption' => ['Optional caption. If set, Lizzy will wrap the image into a &lt;figure> tag and wrap the ".
+                "caption itself in &lt;figcaption> tag.', false],
             'srcset' => ["Let's you override the automatic srcset mechanism.", ''],
-            'imgTagAttributes' => ["Supplied string is put into the &lt;img> tag as is. This way you can apply advanced attributes, such as 'sizes' or 'crossorigin', etc.", false],
-            'quickview' => ["If true, activates the quickview mechanism (default: false). Quickview: click on the image to see in full size.", ''],
+            'attributes' => ["Supplied string is put into the &lt;img> tag as is. This way you can apply advanced ".
+                "attributes, such as 'sizes' or 'crossorigin', etc.", false],
+            'imgTagAttributes' => ["Supplied string is put into the &lt;img> tag as is. This way you can apply advanced ".
+                "attributes, such as 'sizes' or 'crossorigin', etc.", false],
+            'quickview' => ["If true, activates the quickview mechanism (default: false). Quickview: click on the ".
+                "image to see in full size.", ''],
             // 'lateImgLoading' => ["If true, activates the lazy-load mechanism: images get loaded after the page is ready otherwise.", false],
     
             'link' => ["Wraps a &lt;a href='link-argument'> tag round the image..", false],
@@ -75,6 +80,10 @@ class Img
     private $srcsetDefaultStepSize = 250;
     private $imageDefaultMaxWidth = 1920;
 
+    private $nominalWidth;
+    private $relativeWidth;
+    private $origWidth;
+    private $sizesFactor;
 
     /**
      * Macro rendering method
@@ -101,14 +110,19 @@ class Img
         } else {
             $attributes .= " id='pfy-img-$inx'";
         }
-        if ($args['class']) {
-            $this->class = $args['class'];
-        } else {
-            $this->class = "pfy-img pfy-img-$inx";
-        }
+
+        $this->class = '';
+        $class = $args['class'];
+
         if ($args['alt']) {
             $alt = str_replace("'", '&#39;', $args['alt']);
-            $attributes .= " alt='$alt'";
+        } else {
+            $alt = ' ';
+        }
+        $attributes .= " alt='$alt'";
+
+        if ($args['attributes']) {
+            $attributes .= " {$args['attributes']}";
         }
         if ($args['imgTagAttributes']) {
             $attributes .= " {$args['imgTagAttributes']}";
@@ -116,6 +130,7 @@ class Img
         if (($args['quickview'] === true) ||
             (($args['quickview'] === '') && (PageFactory::$config['imageAutoQuickview']??false))) {
             $attributes .= $this->renderQuickview();
+            $this->class .= ' pfy-quickview';
         }
 
         // determine srcset/sizes attributes:
@@ -125,11 +140,7 @@ class Img
         }
 
 
-        if (trim($this->class)) {
-            $attributes = "class='{$this->class}' $attributes";
-        } else {
-            $attributes = "class='pfy-img-$inx' $attributes";
-        }
+        $attributes = "class='pfy-img pfy-img-$inx $this->class' $attributes";
         if (!$src) {
             throw new \Exception("Error: image file '{$args['src']}' not found.");
         }
@@ -143,10 +154,18 @@ class Img
         if ($args['caption']) {
             $str = <<<EOT
 
-  <figure class="pfy-figure">
-    $str
-    <figcaption>{$args['caption']}</figcaption>
-  </figure>
+<figure class="pfy-img-wrapper pfy-figure $class">
+$str
+<figcaption>{$args['caption']}</figcaption>
+</figure>
+
+EOT;
+        } else {
+            $str = <<<EOT
+
+<div class="pfy-img-wrapper $class">
+$str
+</div>
 
 EOT;
         }
@@ -172,13 +191,13 @@ EOT;
             $maxHeight = null;
             if ($dim[0]??false) {
                 $maxWidth = intval($dim[0]);
-                if (strpos($dim[0], 'vw') !== false) {
+                if (str_contains($dim[0], 'vw') || str_contains($dim[0], '%')) {
                     $this->relativeWidth = true;
                 }
             }
             if ($dim[1]??false) {
                 $maxHeight = intval($dim[1]);
-                if (strpos($dim[1], 'vw') !== false) {
+                if (str_contains($dim[1], 'vw') || str_contains($dim[1], '%')) {
                     $this->relativeWidth = true;
                 }
             }
@@ -295,7 +314,7 @@ EOT;
         }
         $str = rtrim($str, ",\n");
         $str = "\n\tsrcset='\n$str'";
-        $str .= "\n\tsizes='{$this->nominalWidth}px'";
+//        $str .= "\n\tsizes='{$this->nominalWidth}px'";
         return $str;
     } // renderAbsSrcset
 
@@ -377,8 +396,6 @@ EOT;
             $src = $this->srcFilePath;
             if ($src && file_exists($src)) {
                 list($w0, $h0) = getimagesize($src);
-                $this->imgFullsizeWidth = $w0;
-                $this->imgFullsizeHeight = $h0;
                 $qvDataAttr = " data-qv-src='{$this->srcFileUrl}' data-qv-width='$w0' data-qv-height='$h0'";
                 PageFactory::$assets->addAssets('QUICKVIEW');
                 if (strpos($this->class, 'pfy-quickview') === false) {
