@@ -22,11 +22,13 @@ class Page
     public string $js = '';
     public string $jq = '';
     public array|null $assetFiles = [];
+    public array|null $asset = [];
     public bool $overrideContent = false;
     public static array|null $definitions;
     private object $pfy;
     private object $trans;
     private Scss $sc;
+    private $pageParams;
 
 
     /**
@@ -36,60 +38,9 @@ class Page
     {
         $this->pfy = $pfy;
         $this->sc = new Scss();
-        $this->assetFiles = &$pfy->assetFiles;
         self::$definitions['assets'] = ASSET_URL_DEFINITIONS;
     } // __construct
 
-
-    /**
-     * Loads extensions, i.e. plugins with names "pagefactory-*":
-     */
-    public function loadExtensions(): void {
-        // check for and load extensions:
-        if (PageFactory::$availableExtensions) {
-            foreach (PageFactory::$availableExtensions as $extPath) {
-                // look for 'src/index.php' within the extension:
-                $indexFile = "{$extPath}src/index.php";
-                if (!file_exists($indexFile)) {
-                    return;
-                }
-                // === load index.php now:
-                $extensionClassName = require_once $indexFile;
-                PageFactory::$loadedExtensions[$extensionClassName] = $extPath;
-
-                // instantiate extension object:
-                $extensionClass = "Usility\\PageFactoryElements\\$extensionClassName";
-                $obj = new $extensionClass($this->pfy);
-
-                // check for and load extension's asset-definitions:
-                if (method_exists($obj, 'getAssetDefs')) {
-                    $newAssets = $obj->getAssetDefs();
-                    self::$definitions = array_merge_recursive(self::$definitions, ['assets' => $newAssets]);
-                }
-
-                // check for and load extension's asset-definitions:
-                if (method_exists($obj, 'getAssetGroups')) {
-                    $newAssetGroupss = $obj->getAssetGroups();
-                    PageFactory::$assets->addAssetGroups($newAssetGroupss);
-                }
-            }
-        }
-    } // loadExtensions
-
-
-    /**
-     * Checks loaded extensions whether they contain a special file 'src/_finalCode.php' and executes it.
-     * @return void
-     */
-    public function extensionsFinalCode(): void
-    {
-        foreach (PageFactory::$loadedExtensions as $path) {
-            $file = $path.'src/_finalCode.php';
-            if (file_exists($file)) {
-                require_once $file;
-            }
-        }
-    } // extensionsFinalCode
 
 
 
@@ -186,7 +137,7 @@ class Page
      */
     public function setOverlay(string $str, bool $mdCompile = true): void
     {
-        if (isset(PageFactory::$availableExtensions['pageelements'])) {
+        if (isset(Extensions::$availableExtensions['pageelements'])) {
             $pe = new \Usility\PageFactoryElements\Overlay($this->pfy);
             $pe->set($str, $mdCompile);
 
@@ -221,7 +172,7 @@ EOT;
      */
     public function setMessage(string $str, bool $mdCompile = true): void
     {
-        if (isset(PageFactory::$availableExtensions['pageelements'])) {
+        if (isset(Extensions::$availableExtensions['pageelements'])) {
             $pe = new \Usility\PageFactoryElements\Message($this->pfy);
             $pe->set($str, $mdCompile);
 
@@ -243,7 +194,7 @@ EOT;
      */
     public function setPopup(string $str, $mdCompile = true): void
     {
-        if (isset(PageFactory::$availableExtensions['pageelements'])) {
+        if (isset(Extensions::$availableExtensions['pageelements'])) {
             $pe = new \Usility\PageFactoryElements\Popup($this->pfy);
             $pe->set($str, $mdCompile);
 
