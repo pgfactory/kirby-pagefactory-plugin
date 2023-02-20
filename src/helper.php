@@ -10,8 +10,10 @@ use Kirby\Data\Data;
 use Exception;
  use Usility\MarkdownPlus\MarkdownPlus;
 
- const FILE_BLOCKING_MAX_TIME = 500; //ms
+const FILE_BLOCKING_MAX_TIME = 500; //ms
 const FILE_BLOCKING_CYCLE_TIME = 50; //ms
+
+const UNAMBIGUOUS_CHARACTERS = '3479ACDEFHJKLMNPQRTUVWXY'; // -> excludes '0O2Z1I5S6G8B'
 
  /**
   * Checks whether agent is in the same subnet as IP 192.x.x.x
@@ -2251,18 +2253,19 @@ function translateToIdentifier(string $str, bool $toCamelCase = false, bool $rem
 } // translateToIdentifier
 
 
- /**
-  * Translates a given string to a legal class name or id
-  * @param string $str
-  * @return string
-  */
-function translateToClassName(string $str): string
+/**
+ * Translates a given string to a legal class name or id
+ * @param string $str
+ * @param bool $handleLeadingNonChar
+ * @return string
+ */
+function translateToClassName(string $str, bool $handleLeadingNonChar = true): string
 {
     $str = strip_tags($str);					// strip any html tags
     $str = strToASCII(mb_strtolower($str));		// replace special chars
     $str = preg_replace(['|[./]|', '/\s+/'], '-', $str);		// replace blanks, '.' and '/' with '-'
     $str = preg_replace("/[^[:alnum:]_-]/m", '', $str);	// remove any non-letters, except '_' and '-'
-    if (!preg_match('/[a-z]/', ($str[0]??''))) { // prepend '_' if first char non-alpha
+    if ($handleLeadingNonChar && !preg_match('/[a-z]/', ($str[0]??''))) { // prepend '_' if first char non-alpha
         $str = "_$str";
     }
     return $str;
@@ -2564,4 +2567,20 @@ function iconExists(string $iconName): bool
  } // array_splice_assoc
 
 
-
+function getStaticUrlArg(string $key, bool $asString = false): mixed
+{
+    $value = null;
+    if (isset($_GET[$key])) {
+        $value = $_GET[$key];
+        if (!$asString) {
+            $value = ($value !== 'false');
+        }
+        PageFactory::$session->set("pfy.$key", $value);
+    } else {
+        $value = PageFactory::$session->get("pfy.$key");
+        if ($value) {
+            return $value;
+        }
+    }
+    return $value;
+} // getStaticUrlArg
