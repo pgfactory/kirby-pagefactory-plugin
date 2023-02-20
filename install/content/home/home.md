@@ -24,7 +24,7 @@ To add additional pages and administer your new website in general,
 
 For more information,
 
--> visit the {{ link('url:https://pagefactory.info/, PageFactory Documentation Website, target:newwin') }}.
+-> visit the {{ link(url:'https://pagefactory.info/', PageFactory Documentation Website, target:newwin) }}.
 
 Have fun!
 

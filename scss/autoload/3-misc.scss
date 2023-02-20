@@ -3,6 +3,9 @@
  * Variables:
  *  --pfy-icon-size
  *  --pfy-icon-angle
+ *  --pfy-pre-background
+ *  --pfy-pre-outline-color
+ *  --pfy-pre-code-color
  */
 
 #pfy.pfy-default-styling .pfy-encapsulated,
@@ -20,13 +23,13 @@
     /* --- pre ------------------------ */
     pre {
         padding: 5px 10px;
-        background: #f3f5e3;
-        outline: 1px solid #aaa;
+        background: var(--pfy-pre-background, #f3f5e3);
+        outline: 1px solid var(--pfy-pre-outline-color, #aaa);
     }
     code {
         font-size: 90%;
         font-family: "Input", "Menlo", monospace;
-        color: black;
+        color: var(--pfy-pre-code-color, black);
     }
 
 

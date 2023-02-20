@@ -9,6 +9,7 @@ if (file_exists('site/plugins/pagefactory/src/TransVars.php')) {
 
 // Defaults recommended by PageFactory plugin:
 return [
+    'debug' => false,
     'smartypants' => true,
     'languages' => true, // enables language option in Panel
 

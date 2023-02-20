@@ -378,7 +378,7 @@ EOT;
      *          - $kirbyDebugState explicitly true
      *          - logged in as admin and $userDebugRequest true -> remember as long as logged in
      */
-    public static function determineDebugState():void
+    public static function determineDebugState(): bool
     {
         $debug = kirby()->option('debug');
         if (isAdminOrLocalhost()) {
@@ -396,6 +396,7 @@ EOT;
             }
         }
         PageFactory::$debug = $debug;
+        return $debug;
     } // determineDebugState
 
 

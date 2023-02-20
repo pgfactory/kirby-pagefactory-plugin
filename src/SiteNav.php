@@ -16,12 +16,14 @@ class SiteNav
 {
     public static $inx = 1;
     private bool $deep = true;
-//    private bool $deep = false;
     private $args;
+    private $page;
+    private $site;
+    private $arrow;
+    private $hidden;
 
     public function __construct()
     {
-//        $this->pfy = $pfy;
         $this->page = page();
         $this->site = site();
         $this->arrow = NAV_ARROW;
@@ -37,14 +39,13 @@ class SiteNav
      */
     public function render($args): string
     {
-        $inx = self::$inx++;
+        $inx = self::$inx++; // index of nav-element
         $this->args = &$args;
         $wrapperClass = &$args['wrapperClass'];
         $class = $args['class'];
 
        if ($args['type'] === 'top') {
            $args['wrapperClass'] .= ' pfy-nav-top-horizontal pfy-nav-indented pfy-nav-collapsed pfy-nav-animated pfy-nav-hoveropen pfy-encapsulated pfy-nav-small-tree';
-//           $this->deep = true;
        }
 //ToDo: when $this->deep = false; ??
         if (str_contains($wrapperClass, 'pfy-nav-collapsed')) {

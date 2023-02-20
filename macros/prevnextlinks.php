@@ -53,6 +53,9 @@ EOT,
 class PrevNextLinks
 {
     public static $inx = 1;
+    public $class;
+    public $page;
+    public $pages;
 
 
     /**
@@ -105,7 +108,6 @@ class PrevNextLinks
             $title = TransVars::getVariable('pfy-link-to-prev-page');
             $text = '<span class="pfy-page-switcher-link-text">'.$prev->title()->value().'</span>';
             $text = TransVars::getVariable('pfy-previous-page-text').$text;
-//            $text = TransVars::getVariable('pfy-previous-page-text').$prev->title()->value();
             $prevLink = "<a href='$url' title='$title'>\n\t\t$text\n\t\t</a>";
             $out = <<<EOT
       <div class="pfy-page-switcher-links pfy-previous-page-link $this->class">
@@ -131,7 +133,6 @@ EOT;
             $title = TransVars::getVariable('pfy-link-to-next-page');
             $text = '<span class="pfy-page-switcher-link-text">'.$next->title()->value().'</span>';
             $text = $text.TransVars::getVariable('pfy-next-page-text');
-//            $text = $next->title()->value().TransVars::getVariable('pfy-next-page-text');
             $nextLink = "<a href='$nextUrl' title='$title'>\n\t\t$text\n\t\t</a>";
             $out = <<<EOT
       <div class="pfy-page-switcher-links pfy-next-page-link $this->class">

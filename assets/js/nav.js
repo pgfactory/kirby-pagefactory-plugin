@@ -12,7 +12,7 @@ function PfyNav() {
 
 PfyNav.prototype.init = function() {
     // hide collapsed sub-trees:
-    $('li.pfy-has-children > div > ol').css('margin-top', '-10000px');
+    $('.pfy-nav-collapsed li.pfy-has-children > div > ol').css('margin-top', '-10000px');
 
     if (!$('#pfy').length) {
         alert("Warning: '#pfy'-Id missing within this page \n-> PageFactory's nav() objects not working.");

@@ -11,8 +11,24 @@ define('DOWNLOAD_TYPES',        ',txt,doc,docx,dotx,xls,xlsx,xltx,ppt,pptx,potx,
 class Link
 {
     public static $instanceCounter = 1;
-    public $args;
+    public $inx;
     public $url;
+    private $args;
+    private $text;
+    private $title;
+    private $id;
+    private $class;
+    private $alt;
+    private $proto;
+    private $target;
+    private $type;
+    private $linkCat;
+    private $icon;
+    private $iconBefore;
+    private $attributes;
+    private $hiddenText;
+    private $isExternalLink;
+    private $download;
     private $iconReplacements = [
         'gsm' => 'mobile',
         'mailto' => 'mail',

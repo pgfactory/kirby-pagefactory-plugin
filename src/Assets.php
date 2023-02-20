@@ -69,6 +69,7 @@ const SYSTEM_ASSETS = [
 class Assets
 {
     public  $assetQueue = [];
+    public  $systemAssets;
     public  $jsFrameworkRequired = false;
     private $scssModified = false;
     private $hostUrl;

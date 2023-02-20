@@ -13,6 +13,7 @@ class TransVars
     public static bool $noTranslate = false;
     private static string $lang;
     private static string $langCode;
+    public $value;
 
     /**
      * Initializes TransVar
@@ -76,6 +77,7 @@ class TransVars
         }
         self::$variables[$varName] = $value;
         PageFactory::$page->$varName()->value = $value;
+
         return $value;
     } // setVariable
 
@@ -132,7 +134,7 @@ class TransVars
     public static function prepareStandardVariables(): void
     {
         $kirbyPageTitle = self::setVariable('title', PageFactory::$page->title());
-        $kirbySiteTitle = self::setVariable('site', site()->title());
+        $kirbySiteTitle = self::setVariable('siteTitle', site()->title());
         self::setVariable('headTitle', "$kirbyPageTitle / $kirbySiteTitle");
 
         // 'generator': we cache the gitTag, so, if that changes you need to remember to clear site/cache/pagefactory
@@ -175,7 +177,7 @@ class TransVars
         // Copy page field values to transvars:
         $pageAttributes = page()->content()->data();
         foreach ($pageAttributes as $key => $value) {
-            if (str_contains(',title,text,', ",$key,") || str_ends_with($key, '_md')) {
+            if (str_contains(',title,text,uuid,', ",$key,") || str_ends_with($key, '_md')) {
                 continue;
             } elseif ($key === 'variables') {
                 $values = Yaml::decode($value);
@@ -570,21 +572,6 @@ EOT;
         }
         return $functions;
     } // findAllMacros
-//    private static function findAllMacros(): array
-//    {
-//        $functions = findTwigFunctions();
-//        $pfyPlugins = glob('site/plugins/pagefactory*');
-//        foreach ($pfyPlugins as $plugin) {
-//            $dir = glob("$plugin/macros/*.php");
-//            foreach ($dir as $file) {
-//                $actualName = basename($file, '.php');
-//                if ($actualName[0] !== '#') {
-//                    $functions[] = ltrim($actualName, '_');
-//                }
-//            }
-//        }
-//        return $functions;
-//    } // findAllMacros
 
 
     /**
