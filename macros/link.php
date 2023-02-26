@@ -26,6 +26,7 @@ function link($argStr = '')
             'target' => ['[newwin] Target attribute to be applied to the &lt;a> Tag. "newwin" means opening page in new window (or tab).', null],
             'subject' => ['In case of "mail" and "sms": subject to be preset.', false],
             'body' => ['In case of "mail": mail body to be preset.', false],
+            'href' => ['Synonyme for "url"', false],
         ],
         'summary' => <<<EOT
 # Link()
@@ -45,6 +46,9 @@ EOT,
         list($args, $sourceCode) = $str;
     }
 
+    if ($args['href']) {
+        $args['url'] = $args['href'];
+    }
     // assemble output:
     $lnk = new Link();
     $str = $lnk->render($args);
