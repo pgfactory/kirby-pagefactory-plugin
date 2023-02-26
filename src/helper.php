@@ -15,6 +15,9 @@ const FILE_BLOCKING_CYCLE_TIME = 50; //ms
 
 const UNAMBIGUOUS_CHARACTERS = '3479ACDEFHJKLMNPQRTUVWXY'; // -> excludes '0O2Z1I5S6G8B'
 
+
+
+
  /**
   * Checks whether agent is in the same subnet as IP 192.x.x.x
   * @return bool
@@ -1497,7 +1500,7 @@ function parseArgumentStr(string $str, string $delim = ',', mixed $superBrackets
         return [ $str ];
     }
 
-    // if string starts with { we assume it's json:
+    // if string starts with { we assume it's "non-relaxed" json:
     if (($str[0] === '{') && (strpos($str, '<raw>') !== 0) && (strpos($str, '{md{') !== 0)) {
         return Json::decode($str);
     }
@@ -1512,36 +1515,43 @@ function parseArgumentStr(string $str, string $delim = ',', mixed $superBrackets
         $rest = rtrim($mm[1], " \t\n");
     }
 
-    $yaml = '';
+    $json = '';
     $counter = 100;
+    $index = 0;
     while ($rest && ($counter-- > 0)) {
         $key = parseArgKey($rest, $delim);
         $ch = ltrim($rest);
         $ch = $ch[0]??'';
         if ($ch !== ':') {
-            $yaml .= "- $key\n";
+            $json .= "\"$index\": $key,";
             $rest = ltrim($rest, " $delim\n");
         } else {
             $rest = ltrim(substr($rest, 1));
             $value = parseArgValue($rest, $delim);
             if (trim($value) !== '') {
-                $yaml .= "$key: $value\n";
+                $json .= "$key: $value,";
             } else {
-                $yaml .= "$key:\n";
+                $json .= "$key: ";
             }
         }
+        $index++;
     }
 
-    $options = Yaml::decode($yaml);
+    $json = rtrim($json, ',');
+    $json = '{'.$json.'}';
+    $options = json_decode($json, true);
+    if ($options === null) {
+        $options = [];
+    }
 
     // case a value was written in '{...}' notation -> unpack:
-    if (str_contains($yaml, '<raw>')) {
-        foreach ($options as $key => $value) {
-            if (str_starts_with($value, '<raw>')) {
-                $options[$key] = unshieldStr($value, true);
-            }
-        }
-    }
+//    if (str_contains($json, '<raw>')) {
+//        foreach ($options as $key => $value) {
+//            if (str_starts_with($value, '<raw>')) {
+//                $options[$key] = unshieldStr($value, true);
+//            }
+//        }
+//    }
 
     if ($superBrackets) {
         $options = superBracketsDecode($options);
@@ -1633,7 +1643,8 @@ function parseArgKey(string &$rest, string $delim): string
             $rest = $m[2];
         }
     }
-    return "'$key'";
+    $key = preg_replace('/(?<!\\\)"/', '\\"', $key);
+    return "\"$key\"";
 } // parseArgKey
 
 
@@ -1654,16 +1665,16 @@ function parseArgValue(string &$rest, string $delim): string
         $pattern = "$ch1 (.*?) $ch1";
         // case 'value' without key:
         if (preg_match("/^ ($pattern) (.*)/xms", $rest, $m)) {
-            $value = $m[1];
+            $value = $m[2];
             $rest = ltrim($m[3], ', ');
         }
 
-    // case '{'-wrapped value -> shield value from Yaml-compiler (workaround for bug in Yaml-compiler):
+    // case string wrapped in {} -> assume it's propre Json:
     } elseif ($ch1 === '{') {
         $p = strPosMatching($rest, 0, '{', '}');
-        $value = substr($rest, $p[0]+1, $p[1]-$p[0]-1);
+        $value = substr($rest, $p[0], $p[1]-$p[0]+1);
         $rest = substr($rest, $p[1]+1);
-        return shieldStr($value);
+        return $value;
 
     } else {
         // case value without key:
@@ -1673,6 +1684,8 @@ function parseArgValue(string &$rest, string $delim): string
             $rest = ltrim($m[2], ', ');
         }
     }
+    $value = preg_replace('/(?!\\\\)"/', '\\"', $value);
+    $value = '"'.$value.'"';
     $pattern = "^[$delim\n]+";
     $rest = preg_replace("/$pattern/", '', $rest);
     return $value;
