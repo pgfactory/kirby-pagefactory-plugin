@@ -160,7 +160,7 @@ class PageFactory
         if ($user = self::$kirby->user()) {
             self::$user = (string)$user->name();
         }
-        $this->autoSplitSections = self::$config['autoSplitSectionsOnH1'];
+        $this->autoSplitSections = self::$config['autoSplitSectionsOnH1']??false;
 
         Utils::handleUrlToken();
 
@@ -274,7 +274,7 @@ class PageFactory
                 }
 
             } else {
-                if (preg_match("/^\s* \# \s ( .+? ) [\n{] /xms", $md, $m)) {
+                if (preg_match("/^\s* \# \s ( .+? ) [\n{] /xms", $mdStr, $m)) {
                     $wrapperClass2 = " $this->wrapperTag-".translateToClassName(trim($m[1]), false);
                 }
                 $html = $this->compile($mdStr, $inx, removeComments: false);
