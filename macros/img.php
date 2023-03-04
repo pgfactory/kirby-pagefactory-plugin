@@ -314,7 +314,7 @@ EOT;
     {
         $str = '';
         $l = strlen(PageFactory::$hostUrl);
-        $w = $this->nominalWidth;
+        $w = convertToPx($this->nominalWidth);
         for ($i=1; $i<=4; $i++) {
             $w1 = $w * $i;
             if ($w1 > $this->origWidth) {
