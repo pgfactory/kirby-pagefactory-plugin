@@ -497,14 +497,16 @@ class TransVars
         foreach ($config['options'] as $key => $elem) {
             $text = $elem[0];
             $text = markdown($text, true);
+            $text = trim($text);
             $default = $elem[1]??'false';
             if (is_bool($default)) {
                 $default = $default? 'true': 'false';
             }
             $str .= "<dl class='pfy-help-argument-list'>\n";
             $str .= <<<EOT
-    <dt>$key</dt>
-        <dd>$text (default: $default)</dd>
+<dt>$key</dt>
+<dd>$text (default: $default)</dd>
+
 EOT;
         }
         $str .= "\n</dl>\n";
@@ -529,14 +531,17 @@ EOT;
             $options = parseArgumentStr($args);
         }
         foreach ($config['options'] as $key => $value) {
-            if (!isset($options[$key])) {
-                $options[$key] = $value[1];
+            $optVal = &$options[$key];
+            if (!isset($optVal)) {
+                $optVal = $value[1];
+            } else {
+                $optVal = fixDataType($optVal);
             }
         }
         foreach ($options as $key => $value) {
             if (is_int($key)) {
                 $key = array_keys($config['options'])[$key];
-                $options[$key] = $value;
+                $options[$key] = fixDataType($value);
             }
         }
         return $options;
