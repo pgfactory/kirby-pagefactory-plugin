@@ -70,7 +70,7 @@ EOT,
                 $url = $page->url();
                 $elem = "<a href='$url'>$elem</a>";
             }
-            $str .= "\t<li>$elem</li>\n";
+            $str .= "<li>$elem</li>\n";
         }
         $str .= "</ul>\n";
         $class = 'pfy-subpages';
