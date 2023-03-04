@@ -540,8 +540,12 @@ function fixPath(string $path): string
 } // fixPath
 
 
-
-function removeComments(string $str, mixed $removeComments = true): string
+ /**
+  * @param string $str
+  * @param mixed $removeComments
+  * @return string
+  */
+ function removeComments(string $str, mixed $removeComments = true): string
 {
     // special option 'zapped' -> return what would be zapped:
     if (str_contains((string)$removeComments, 'zapped')) {
@@ -1528,11 +1532,13 @@ function parseArgumentStr(string $str, string $delim = ',', mixed $superBrackets
         } else {
             $rest = ltrim(substr($rest, 1));
             $value = parseArgValue($rest, $delim);
-            if (trim($value) !== '') {
-                $json .= "$key: $value,";
-            } else {
-                $json .= "$key: ";
-            }
+            $json .= "$key: $value,";
+//            if (!is_string($value)) {
+//            if (is_bool($value) || (trim($value) !== '')) {
+//                $json .= "$key: $value,";
+//            } else {
+//                $json .= "$key: "; //??
+//            }
         }
         $index++;
     }
@@ -1654,7 +1660,7 @@ function parseArgKey(string &$rest, string $delim): string
   * @param string $delim
   * @return string
   */
-function parseArgValue(string &$rest, string $delim): string
+function parseArgValue(string &$rest, string $delim): mixed
 {
     // case quoted key or value:
     $value = '';
@@ -1684,8 +1690,16 @@ function parseArgValue(string &$rest, string $delim): string
             $rest = ltrim($m[2], ', ');
         }
     }
-    $value = preg_replace('/(?!\\\\)"/', '\\"', $value);
-    $value = '"'.$value.'"';
+    $value = fixDataType($value);
+    if (is_string($value)) {
+        $value = '"' . trim($value) . '"';
+    } elseif (is_bool($value)) {
+        $value = $value? 'true': 'false';
+    }
+//    if (($value !== 'true') && ($value !== 'false')) {
+//        $value = preg_replace('/(?!\\\\)"/', '\\"', $value);
+//        $value = '"' . $value . '"';
+//    }
     $pattern = "^[$delim\n]+";
     $rest = preg_replace("/$pattern/", '', $rest);
     return $value;
@@ -2078,7 +2092,13 @@ function compileMarkdown(string $mdStr, bool $omitPWrapperTag = false): string
 } // compileMarkdown
 
 
-function markdown(string $mdStr, bool $omitPWrapperTag = false): string
+ /**
+  * @param string $mdStr
+  * @param bool $omitPWrapperTag
+  * @return string
+  * @throws Exception
+  */
+ function markdown(string $mdStr, bool $omitPWrapperTag = false): string
 {
     if ($mdStr) {
         $md = new MarkdownPlus();
@@ -2089,7 +2109,13 @@ function markdown(string $mdStr, bool $omitPWrapperTag = false): string
 } // compileMarkdown
 
 
-function markdownParagrah(string $mdStr, bool $omitPWrapperTag = false): string
+ /**
+  * @param string $mdStr
+  * @param bool $omitPWrapperTag
+  * @return string
+  * @throws Exception
+  */
+ function markdownParagrah(string $mdStr, bool $omitPWrapperTag = false): string
 {
     if ($mdStr) {
         $md = new MarkdownPlus();
@@ -2285,8 +2311,11 @@ function translateToClassName(string $str, bool $handleLeadingNonChar = true): s
 } // translateToClassName
 
 
-
-function camelCase($str)
+ /**
+  * @param string $str
+  * @return string
+  */
+ function camelCase(string $str): string
 {
     $str = str_replace(['-','_'], '', ucwords(str_replace(' ','-', $str), '-'));
     return lcfirst($str);
@@ -2580,7 +2609,12 @@ function iconExists(string $iconName): bool
  } // array_splice_assoc
 
 
-function getStaticUrlArg(string $key, bool $asString = false): mixed
+ /**
+  * @param string $key
+  * @param bool $asString
+  * @return mixed
+  */
+ function getStaticUrlArg(string $key, bool $asString = false): mixed
 {
     $value = null;
     if (isset($_GET[$key])) {
@@ -2597,3 +2631,56 @@ function getStaticUrlArg(string $key, bool $asString = false): mixed
     }
     return $value;
 } // getStaticUrlArg
+
+
+ /**
+  * @param string $value
+  * @return mixed
+  */
+ function fixDataType(string $value): mixed
+{
+    if (gettype($value) === 'array') {
+        return (array)$value;
+    }
+
+    $value = trim($value);
+
+    if ($value === '0') { // we must check this before empty because zero is empty
+        return 0;
+    }
+
+    if (empty($value)) {
+        return '';
+    }
+
+    if ($value === 'null') {
+        return null;
+    }
+
+    if ($value === 'undefined') {
+        return null;
+    }
+
+    if ($value === '1') {
+        return 1;
+    }
+
+    if (!preg_match('/[^0-9.]+/', $value)) {
+        if(preg_match('/[.]+/', $value)) {
+            return (double)$value;
+        }else{
+            return (int)$value;
+        }
+    }
+
+    if ($value == 'true') {
+        return true;
+    }
+
+    if ($value == 'false') {
+        return false;
+    }
+
+    return (string)$value;
+} // fixDataType
+
