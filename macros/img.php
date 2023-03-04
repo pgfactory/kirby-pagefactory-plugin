@@ -16,6 +16,8 @@ function img($argStr = '')
             'alt' => ['Alt-text for image, i.e. a short text that describes the image.', false],
             'id' => ['Id that will be applied to the image.', false],
             'class' => ['Class-name that will be applied to the image.', ''],
+            'wrapperTag' => ['If false, image is rendered without a wrapper. Otherwise, defines the tag of the wrapping element', null],
+            'wrapperClass' => ['Class to be applied to the wrapper tag.', ''],
             'caption' => ['Optional caption. If set, Lizzy will wrap the image into a &lt;figure> tag and wrap the ".
                 "caption itself in &lt;figcaption> tag.', false],
             'srcset' => ["Let's you override the automatic srcset mechanism.", ''],
@@ -111,8 +113,8 @@ class Img
             $attributes .= " id='pfy-img-$inx'";
         }
 
-        $this->class = '';
-        $class = $args['class'];
+        $wrapperClass = $args['wrapperClass'];
+        $this->class = $args['class'];
 
         if ($args['alt']) {
             $alt = str_replace("'", '&#39;', $args['alt']);
@@ -151,10 +153,17 @@ class Img
         if ($args['link']) {
             $str = $this->applyLinkWrapper($str);
         }
+
+        $wrapperTag = 'div';
+        if ($args['wrapperTag'] === false) {
+            return $str;
+        } elseif ($args['wrapperTag'] !== null) {
+            $wrapperTag = $args['wrapperTag'];
+        }
         if ($args['caption']) {
             $str = <<<EOT
 
-<figure class="pfy-img-wrapper pfy-figure $class">
+<figure class="pfy-img-wrapper pfy-figure $wrapperClass">
 $str
 <figcaption>{$args['caption']}</figcaption>
 </figure>
@@ -163,9 +172,9 @@ EOT;
         } else {
             $str = <<<EOT
 
-<div class="pfy-img-wrapper $class">
+<$wrapperTag class="pfy-img-wrapper $wrapperClass">
 $str
-</div>
+</$wrapperTag>
 
 EOT;
         }
@@ -190,14 +199,16 @@ EOT;
             $maxWidth = null;
             $maxHeight = null;
             if ($dim[0]??false) {
-                $maxWidth = intval($dim[0]);
-                if (str_contains($dim[0], 'vw') || str_contains($dim[0], '%')) {
+                $maxWidth = $dim[0];
+                if (str_contains($maxWidth, 'vw') || str_contains($maxWidth, '%') || str_contains($maxWidth, 'em')) {
                     $this->relativeWidth = true;
+                } else {
+                $maxWidth = intval($dim[0]).'px';
                 }
             }
             if ($dim[1]??false) {
                 $maxHeight = intval($dim[1]);
-                if (str_contains($dim[1], 'vw') || str_contains($dim[1], '%')) {
+                if (str_contains($dim[1], 'vw') || str_contains($dim[1], '%') || str_contains($dim[1], 'em')) {
                     $this->relativeWidth = true;
                 }
             }
@@ -222,14 +233,14 @@ EOT;
             $this->srcFilePath = $src;
             if (strpos($src, 'content/') === 0) {
                 $src = substr($src, 8);
-                $files = $this->site->index()->files();
+                $files = site()->index()->files();
                 $file = $files->find($src);
                 if ($file) {
                     $this->srcFileObj = $file;
                     $this->srcFileUrl = (string)$file->url();
                 }
             } else {
-                $file = $this->appRoot.$src;
+                $file = PageFactory::$appRoot.$src;
                 $this->srcFileUrl = $file;
                 return $file;
             }
@@ -241,7 +252,8 @@ EOT;
         $dim = $file->dimensions();
         $this->origWidth = $dim->width;
         if ($size) {
-            $file = $file->resize($maxWidth, $maxHeight);
+            $w = convertToPx($maxWidth);
+            $file = $file->resize($w, $maxHeight);
             $this->nominalWidth = $maxWidth;
         } else {
             $this->nominalWidth = $dim->width;
@@ -341,10 +353,10 @@ EOT;
 
         // Add 'sizes' attribute
         $screenSizeBreakpoint = PageFactory::$config['screenSizeBreakpoint'];
-        $str .= "\n\tsizes='(max-width: {$screenSizeBreakpoint}px) 100vw, {$this->nominalWidth}vw'";
+        $str .= "\n\tsizes='(max-width: {$screenSizeBreakpoint}px) 100vw, {$this->nominalWidth}'";
 
         $str = rtrim($str, ",\n");
-        $str .= " style='width: {$this->nominalWidth}vw; height: auto;'";
+        $str .= " style='width: {$this->nominalWidth}; height: auto;'";
         return $str;
     } // renderSrcset
 
