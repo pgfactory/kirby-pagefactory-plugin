@@ -92,12 +92,20 @@ class TransVars
     {
         $varName = camelCase($varName0);
         $out = null;
-        if (!isset(self::$variables[$varName])) {
-            if (PageFactory::$page->$varName()) {
-                $out = PageFactory::$page->$varName()->value;
-            }
+
+        // check for lang-selector, e.g. 'varname.de':
+        if (preg_match('/(.*)\.(\w+)$/', $varName, $m)) {
+            $varName = $m[1];
+            $lang = $m[2];
+            $out = self::translateVariable($varName, $lang);
         } else {
-            $out = self::$variables[$varName];
+            if (!isset(self::$variables[$varName])) {
+                if (PageFactory::$page->$varName()) {
+                    $out = PageFactory::$page->$varName()->value;
+                }
+            } else {
+                $out = self::$variables[$varName];
+            }
         }
         if ($out === null) {
             $out = $varNameIfNotFound ? $varName0: '';
@@ -134,8 +142,16 @@ class TransVars
     public static function prepareStandardVariables(): void
     {
         $kirbyPageTitle = self::setVariable('title', PageFactory::$page->title());
+        self::setVariable('kirbyPageTitle', $kirbyPageTitle);
         $kirbySiteTitle = self::setVariable('siteTitle', site()->title());
-        self::setVariable('headTitle', "$kirbyPageTitle / $kirbySiteTitle");
+        self::setVariable('kirbySiteTitle', $kirbySiteTitle);
+        $headTitle = self::getVariable('headTitle');
+        if (!$headTitle) {
+            $headTitle = "$kirbyPageTitle / $kirbySiteTitle";
+        } else {
+            $headTitle = self::translate($headTitle);
+        }
+        self::setVariable('headTitle', $headTitle);
 
         // 'generator': we cache the gitTag, so, if that changes you need to remember to clear site/cache/pagefactory
         $gitTag = fileGetContents(PFY_CACHE_PATH.'gitTag.txt');
@@ -262,10 +278,14 @@ class TransVars
 
     /**
      * @param string $varName
+     * @param string $lang
      * @return string|bool
      */
-    private static function translateVariable(string $varName): mixed
+    private static function translateVariable(string $varName, string $lang = ''): mixed
     {
+        if (!$lang) {
+            $lang = self::$lang;
+        }
         $varName = trim($varName);
         $out = false;
         // find variable definition:
@@ -273,8 +293,8 @@ class TransVars
             $out = self::$transVars[ $varName ];
             // if value is array -> determine which to use depending on current language/variant:
             if (is_array($out)) {
-                if (isset($out[self::$lang])) {             // check language-variant (e.g. de2)
-                    $out = $out[self::$lang];
+                if (isset($out[$lang])) {             // check language-variant (e.g. de2)
+                    $out = $out[$lang];
                 } elseif (isset($out[self::$langCode])) {   // check base language (e.g. de)
                     $out = $out[self::$langCode];
                 } elseif (isset($out['_'])) {               // check default language
@@ -339,6 +359,15 @@ class TransVars
     public static function resolveVariables(string $str): string
     {
         while (preg_match('/(?<!\\\)\{\{ \s* ([-\w]*?) \s* }}/x', $str, $m)) {
+            $key = $m[1];
+            if (self::$noTranslate) {
+                $value = "<span class='pfy-untranslated'>&#123;&#123; $key &#125;&#125;</span>";;
+            } else {
+                $value = self::getVariable($key);
+            }
+            $str = str_replace($m[0], $value, $str);
+        }
+        while (preg_match('/(?<!\\\)\{\{ \s* ([-\w.]*?) \s* }}/x', $str, $m)) {
             $key = $m[1];
             if (self::$noTranslate) {
                 $value = "<span class='pfy-untranslated'>&#123;&#123; $key &#125;&#125;</span>";;
