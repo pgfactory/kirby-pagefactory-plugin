@@ -105,6 +105,8 @@ class PageFactory
     private string $wrapperTag;
     private string $wrapperClass;
     private string $wrapperClass2;
+    private string $sectionsCss;
+    private string $sectionsScss;
 
     private bool $autoSplitSections;
 
@@ -232,7 +234,11 @@ class PageFactory
     } // renderPageContent
 
 
-    private function loadMdFiles()
+    /**
+     * @return string
+     * @throws \Exception
+     */
+    private function loadMdFiles(): string
     {
         $this->wrapperTag = PageFactory::$config['sourceWrapperTag'];
         $this->wrapperClass = PageFactory::$config['sourceWrapperClass'];
@@ -248,8 +254,10 @@ class PageFactory
                 continue;
             }
             $mdStr = getFile($file);
+            $this->sectionsCss = '';
+            $this->sectionsScss = '';
             $this->extractFrontmatter($mdStr);
-            $wrapperClass2 = '';
+            $sectId = '';
 
             if ($this->autoSplitSections) {
                 $sections = preg_split("/(\n|)#(?!#)/ms", $mdStr, 0, PREG_SPLIT_NO_EMPTY);
@@ -257,14 +265,17 @@ class PageFactory
                 foreach ($sections as $i => $md) {
                     $sectId = '';
                     if (preg_match("/^\s+ ( .+? ) [\n{] /xms", $md, $m)) {
-                        $sectId = " $this->wrapperTag-".translateToClassName(rtrim($m[1]), false);
+                        $sectId = "$this->wrapperTag-".translateToClassName(rtrim($m[1]), false);
+
+                        $this->sectionsCss = str_replace(['#this','.this'], ["#$sectId", ".$sectId"], $this->sectionsCss);
+                        $this->sectionsScss = str_replace(['#this','.this'], ["#$sectId", ".$sectId"], $this->sectionsScss);
+                        $sectId = " $sectId";
                     }
                     $md = "#$md";
                     $html1 = $this->compile($md, $inx, removeComments: false);
 
                     if ($i === 0) {
                         $html = $html1;
-                        $wrapperClass2 = $sectId;
                     } else {
                         $section = "\n</$this->wrapperTag>\n\n\n<$this->wrapperTag id='pfy-$this->wrapperTag-$inx' class='pfy-$this->wrapperTag-wrapper pfy-$this->wrapperTag-$inx $sectId $this->wrapperClass'>\n";
                         $html .= $section.$html1;
@@ -275,15 +286,28 @@ class PageFactory
 
             } else {
                 if (preg_match("/^\s* \# \s ( .+? ) [\n{] /xms", $mdStr, $m)) {
-                    $wrapperClass2 = " $this->wrapperTag-".translateToClassName(trim($m[1]), false);
+                    $sectId = "$this->wrapperTag-".translateToClassName(trim($m[1]), false);
+
+                    $this->sectionsCss = str_replace(['#this','.this'], ["#$sectId", ".$sectId"], $this->sectionsCss);
+                    $this->sectionsScss = str_replace(['#this','.this'], ["#$sectId", ".$sectId"], $this->sectionsScss);
+                    $sectId = " $sectId";
                 }
+
                 $html = $this->compile($mdStr, $inx, removeComments: false);
             }
             $html = Utils::resolveUrls($html);
 
+            // if some CSS/SCSS found in frontmatter, request rendering it now:
+            if ($this->sectionsCss) {
+                self::$pg->addCss($this->sectionsCss);
+            }
+            if ($this->sectionsScss) {
+                self::$pg->addScss($this->sectionsScss);
+            }
+
             $finalHtml .= <<<EOT
 
-<$this->wrapperTag id='pfy-$this->wrapperTag-$inx0' class='pfy-$this->wrapperTag-wrapper pfy-$this->wrapperTag-$inx0 $this->wrapperClass$wrapperClass2'>
+<$this->wrapperTag id='pfy-$this->wrapperTag-$inx0' class='pfy-$this->wrapperTag-wrapper pfy-$this->wrapperTag-$inx0 $this->wrapperClass$sectId'>
 $html
 </$this->wrapperTag>
 
@@ -295,6 +319,13 @@ EOT;
     } // loadMdFiles
 
 
+    /**
+     * @param string $mdStr
+     * @param $inx
+     * @param $removeComments
+     * @return string
+     * @throws \Exception
+     */
     private function compile(string $mdStr, $inx = 0, $removeComments = true): string
     {
         if ($removeComments) {
@@ -332,6 +363,11 @@ EOT;
     } // compile
 
 
+    /**
+     * @param $mdStr
+     * @return void
+     * @throws Kirby\Exception\InvalidArgumentException
+     */
     private function extractFrontmatter(&$mdStr)
     {
         $fields = preg_split('!\n----\s*\n*!', $mdStr);
@@ -370,10 +406,12 @@ EOT;
                 $this->wrapperClass = $value;
 
             } elseif ($key === 'css') {
-                self::$pg->addCss($value);
+                // hold back till ".this"/"#this" can be resolved:
+                $this->sectionsCss = $value;
 
             } elseif ($key === 'scss') {
-                self::$pg->addScss($value);
+                // hold back till ".this"/"#this" can be resolved:
+                $this->sectionsScss = $value;
 
             } elseif ($key === 'js') {
                 self::$pg->addJs($value);
