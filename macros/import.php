@@ -48,6 +48,7 @@ EOT,
 class Import
 {
     public static $inx = 1;
+    private $mdCompile;
 
 
     /**
@@ -77,6 +78,9 @@ class Import
 //            $str .= $this->importSnippet($snippet);
 //        }
 
+        if ($literal) {
+            $str = str_replace(['{{','<'], ['&#123;{', '&lt;'], $str);
+        }
         if ($literal && !$wrapperTag) {
             $wrapperTag = 'pre';
         }
