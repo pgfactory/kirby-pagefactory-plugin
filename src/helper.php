@@ -679,8 +679,7 @@ function removeCStyleComments(string $str): string
         }
 
         if ($p && ($str[$p - 1] === '\\')) {                    // avoid shielded //
-            $str = substr($str, 0, $p - 1) . substr($str, $p);
-            $p += 2;
+            $p += 3;
             continue;
         }
         $p2 = strpos($str, "\n", $p);
