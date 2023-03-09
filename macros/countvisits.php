@@ -1,10 +1,7 @@
 <?php
 namespace Usility\PageFactory;
 
-/*
- * Twig function
- */
-const MY_IPS            = '083.150.045.221';
+
 const VISITS_FILE       = 'site/logs/visits.yaml';
 const VISITS_SINCE_FILE = 'site/logs/visits-since.txt';
 const VISITS_BOTS_FILE  = 'site/logs/visits_bots.txt';
@@ -21,7 +18,14 @@ function countvisits($argStr = '')
         'summary' => <<<EOT
 # countvisits()
 
-Counts visits from non-bots, also excludes visits from my home.
+Counts visits per page and returns the count.
+
+Excludes visits from bots and IP-addresses defined in `site/config/config.php:
+
+    'usility.pagefactory.options' \=> [
+        'visitCounterIgnoreIPs' \=> '001.002.003.005,::1', \// define list of IP addresses to exclude from visit counts
+    ],
+
 EOT,
     ];
 
@@ -36,9 +40,6 @@ EOT,
     // assemble output:
     $obj = new CountVisits();
     $str .= $obj->render($options);
-
-    //$str = markdown($str); // markdown-compile
-    //$str = shieldStr($str); // shield from further processing if necessary
 
     return $str;
 }
@@ -66,38 +67,47 @@ class CountVisits
         if ($show) {
             return "$prefix$visits$postfix";
         }
-        // mylog("IP: $clientIp");
         return '';
     } // render
 
 
+    /**
+     * @return int|mixed|string
+     * @throws \Kirby\Exception\InvalidArgumentException
+     */
     private function countVisits()
     {
+        $ipsToIgnore = PageFactory::$config['visitCounterIgnoreIPs']??'';
         $file = VISITS_FILE;
         if (isBot()) {
             $file = VISITS_BOTS_FILE;
         }
         $pgId = page()->id();
+        $clientIp = $this->getClientIP(true);
         if (!file_exists($file)) {
             file_put_contents($file, "$pgId: 0");
             file_put_contents(VISITS_SINCE_FILE, date('Y-m-d H:i:s'));
             $count = 0;
         } else {
-            $clientIp = $this->getClientIP(true);
             $counters = loadFile($file);
             if (isset($counters[$pgId])) {
                 $count = $counters[$pgId]++;
             } else {
                 $count = $counters[$pgId] = 1;
             }
-            if (!str_contains(MY_IPS, $clientIp)) { // home
+            if (!str_contains($ipsToIgnore, $clientIp)) { // home
                 writeFileLocking($file, $counters);
             }
         }
+        //mylog("IP: $clientIp");
         return $count;
     } // countVisits
 
 
+    /**
+     * @param $normalize
+     * @return array|false|string
+     */
     private function getClientIP($normalize = false)
     {
         $ip = getenv('HTTP_CLIENT_IP')?:
