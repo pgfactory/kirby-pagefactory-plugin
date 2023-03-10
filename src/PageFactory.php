@@ -16,6 +16,7 @@ const PFY_SVG_ICONS_PATH =         'site/plugins/markdownplus/assets/svg-icons/'
 const PFY_CONFIG_FILE =            'site/config/config.php';
 const PFY_CUSTOM_PATH =            'site/custom/';
 const PFY_USER_CODE_PATH =         PFY_CUSTOM_PATH.'macros/';
+const PFY_CUSTOM_CODE_PATH =       PFY_CUSTOM_PATH.'autoexecute/';
 const PFY_MACROS_PATH =            PFY_BASE_PATH.'macros/';
 define('PFY_LOGS_PATH',            'site/logs/');
 define('PFY_CACHE_PATH',           'site/cache/pagefactory/'); // available in extensions
@@ -109,6 +110,7 @@ class PageFactory
     private string $sectionsScss;
 
     private bool $autoSplitSections;
+    public static bool $renderingClosed = false;
 
     public function __construct($data)
     {
@@ -202,6 +204,7 @@ class PageFactory
         TransVars::prepareStandardVariables();
 
         Utils::handleAgentRequestsOnRenderedPage();
+        Utils::executeCustomCode();
 
         $html = '';
         $inx = 0;
@@ -229,7 +232,7 @@ class PageFactory
         }
 
         TransVars::prepareTemplateVariables();
-
+        self::$renderingClosed = true;
         return $html;
     } // renderPageContent
 

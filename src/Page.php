@@ -357,6 +357,9 @@ EOT;
      */
     public function addAssets(mixed $assets, bool $treatAsJq = false): void
     {
+        if (PageFactory::$renderingClosed) {
+            throw new \Exception("Error: a Macro is trying to queue a resource after page rendering has finished.");
+        }
         PageFactory::$assets->addAssets($assets, $treatAsJq);
     } // addAssets
 
