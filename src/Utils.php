@@ -44,6 +44,19 @@ class Utils
     } // handleAgentRequests
 
 
+    public static function executeCustomCode()
+    {
+        $files = getDir(PFY_CUSTOM_CODE_PATH.'*.php');
+        if (!$files) {
+            return;
+        }
+        foreach ($files as $file)
+        {
+            require $file;
+        }
+    } // executeCustomCode
+
+    
     /**
      * Execute those URL-commands that require no privileges: e.g. ?login, ?printpreview etc.
      * @param $cmds
@@ -193,7 +206,7 @@ EOT;
 
 [?help](./?help)       12em>> this information 
 [?variables](./?variables)      >> show currently defined variables
-[?functions](./?functions)      >> show currently defined functions()
+[?macros](./?macros)      >> show currently defined macros()
 [?lang=](./?lang)      >> activate given language
 [?debug](./?debug)      >> activate debug mode
 [?localhost=false](./?localhost=false)      >> mimicks running on a remote host (for testing)
@@ -240,19 +253,16 @@ EOT;
             PageFactory::$pg->setOverlay($str, false);
 
         // show macros:
-        } elseif (isset($_GET['functions']) && isAdminOrLocalhost()) {
+        } elseif ((isset($_GET['functions']) || isset($_GET['macros'])) && isAdminOrLocalhost()) {
             $html = "<ul class='pfy-list-functions'>\n";
-            $dir = glob('site/plugins/pagefactory/twig-functions/*.php');
-            foreach ($dir as $file) {
-                $name = basename($file, '.php');
-                if ($name[0] !== '#') {
-                    $html .= "\t<li>$name()</li>\n";
-                }
+            $macros = TransVars::findAllMacros(buildInOnly: true);
+            foreach ($macros as $macro) {
+                $html .= "\t<li>$macro()</li>\n";
             }
             $html .= "</ul>\n";
 
             $str = <<<EOT
-<h1>Functions</h1>
+<h1>Macros</h1>
 $html
 EOT;
             PageFactory::$pg->setOverlay($str, false);
