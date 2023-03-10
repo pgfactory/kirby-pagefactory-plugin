@@ -523,6 +523,7 @@ class TransVars
         $summary = $mdCompile? markdown($config['summary'] ?? '') : '';
         $str .= "<div class='pfy-help-summary'>$summary</div>\n";
         $str .= "<h2>Arguments</h2>\n";
+        $str .= "<dl class='pfy-help-argument-list'>\n";
         foreach ($config['options'] as $key => $elem) {
             $text = $elem[0];
             $text = markdown($text, true);
@@ -531,7 +532,6 @@ class TransVars
             if (is_bool($default)) {
                 $default = $default? 'true': 'false';
             }
-            $str .= "<dl class='pfy-help-argument-list'>\n";
             $str .= <<<EOT
 <dt>$key</dt>
 <dd>$text (default: $default)</dd>
@@ -581,10 +581,14 @@ EOT;
      * Helper for renderMacros()
      * @return array
      */
-    public static function findAllMacros(bool $forRegistering = false, bool $includePaths = false): array
+    public static function findAllMacros(bool $forRegistering = false, bool $includePaths = false, bool $buildInOnly = false): array
     {
         $functions = [];
-        $pfyPlugins = glob('site/plugins/pagefactory*'); // check pagefactory and its extensions
+        if ($buildInOnly) {
+            $pfyPlugins = ['site/plugins/pagefactory']; // check pagefactory and its extensions
+        } else {
+            $pfyPlugins = glob('site/plugins/pagefactory*'); // check pagefactory and its extensions
+        }
         $pfyPlugins[] = 'site/custom';                           // check place for custom macros
         foreach ($pfyPlugins as $plugin) {
             $dir = glob("$plugin/macros/*.php");
