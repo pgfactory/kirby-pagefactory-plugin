@@ -1,10 +1,6 @@
 <?php
 namespace Usility\PageFactory;
 
-/*
- * Twig function
- */
-
 function dir($argStr = '')
 {
     // Definition of arguments and help-text:
@@ -52,6 +48,29 @@ EOT,
 class Dir
 {
     public static $inx = 1;
+    private $path;
+    private $id;
+    private $class;
+    private $target;
+    private $includeFiles;
+    private $includeFolders;
+    private $exclude;
+    private $flags;
+    private $maxAge;
+    private $prefix;
+    private $postfix;
+    private $linkPath;
+    private $replaceOnElem;
+    private $order;
+    private $deep;
+    private $flat;
+    private $showPath;
+    private $excludeExt;
+    private $tag;
+    private $download;
+    private $asLink;
+    private $targetAttr;
+    private $linkClass;
 
     public function render($args)
     {
@@ -130,16 +149,10 @@ class Dir
             $dir = getDirDeep($path . $pattern);
             sort($dir);
             if ($this->flat) {
-//            if (($this->deep === true) || ($this->deep === 'flat')) {
                 $str = $this->straightList($dir);
             } else {
                 $str = $this->hierarchicalList($path, $dir);
             }
-//            if ($this->deep === 'flat') {
-//                $str = $this->straightList($dir);
-//            } else {
-//                $str = $this->hierarchicalList($path, $dir);
-//            }
 
         } else {
             $dir = getDir($path . $pattern);
@@ -205,17 +218,17 @@ class Dir
                 }
                 $url = $this->parseUrlFile($file); // check whether it's a link file (.url or .webloc)
                 if ($url) {
-                    $str .= "\t\t<li class='pfy-dir-file'><a href='$url'{$this->targetAttr}{$this->linkClass}{$this->download}>$url</a></li>\n";
+                    $str .= "<li class='pfy-dir-file'><a href='$url'{$this->targetAttr}{$this->linkClass}{$this->download}>$url</a></li>\n";
                 } else {    // it's regular local file:
                     if (str_starts_with($file, '~')) {
                         $url = $file;
                     } else {
                         $url = '~/' . $file;
                     }
-                    $str .= "\t\t<li class='pfy-dir-file'><a href='$url'{$this->targetAttr}{$this->linkClass}{$this->download}>$name</a></li>\n";
+                    $str .= "<li class='pfy-dir-file'><a href='$url'{$this->targetAttr}{$this->linkClass}{$this->download}>$name</a></li>\n";
                 }
             } else {
-                $str .= "\t\t<li class='pfy-dir-file'>$name</li>\n";
+                $str .= "<li class='pfy-dir-file'>$name</li>\n";
             }
         }
         $str = <<<EOT
@@ -244,20 +257,17 @@ EOT;
 
     private function _hierarchicalList($hierarchy, $level)
     {
-        $indent = '';
-//        $indent = str_pad('', $level, "\t");
-        $out = "$indent<{$this->tag}>\n";
+        $out = "<{$this->tag}>\n";
         $sub = '';
         foreach ($hierarchy as $name => $rec) {
             if (is_array($rec)) {
                 $sub .= $this->_hierarchicalList($rec, $level+1);
             } else {
-                $out .= "$indent<li>$rec</li>\n";
-//                $out .= "$indent  <li>$rec</li>\n";
+                $out .= "<li>$rec</li>\n";
             }
         }
         $out .= $sub;
-        $out .= "$indent</{$this->tag}>\n";
+        $out .= "</{$this->tag}>\n";
         return $out;
     } // _hierarchicalList
 
