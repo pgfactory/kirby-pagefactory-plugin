@@ -15,7 +15,8 @@ const FILE_BLOCKING_CYCLE_TIME = 50; //ms
 
 const UNAMBIGUOUS_CHARACTERS = '3479ACDEFHJKLMNPQRTUVWXY'; // -> excludes '0O2Z1I5S6G8B'
 
-
+define('KIRBY_ROOTS',           kirby()->roots()->toArray());
+define('KIRBY_ROOT_PATTERNS',   ','.implode(',', array_keys(KIRBY_ROOTS)).',');
 
 
  /**
@@ -902,12 +903,10 @@ function resolvePath(string $path, bool $returnAbsPath = false, bool $relativeTo
     // first check for root-paths defined by kirby:
     if (($path[1]??'') !== '/') {
         $path1 = preg_replace('|/.*|', '', substr($path, 1));
-        $kirbyRoots = kirby()->roots()->toArray();
-        $kirbyRootsPattern = ','.implode(',', array_keys($kirbyRoots)).',';
 
         // '~assets/' is an exception: it shall point to 'content/assets/' rather than 'assets/':
-        if (($path1 !== 'assets') && (strpos($kirbyRootsPattern, ",$path1,") !== false)) {
-            $path = $kirbyRoots[$path1].substr($path, strlen($path1)+1);
+        if (($path1 !== 'assets') && (strpos(KIRBY_ROOT_PATTERNS, ",$path1,") !== false)) {
+            $path = KIRBY_ROOTS[$path1].substr($path, strlen($path1)+1);
             return $path;
         }
     }
@@ -918,17 +917,28 @@ function resolvePath(string $path, bool $returnAbsPath = false, bool $relativeTo
     } else {
         $appRoot = '';
     }
-    $pageRoot = PageFactory::$pageRoot;
-    $pathPatterns = [
-        '~/'            => $appRoot,
-        '~media/'       => $appRoot.'media/',
-        '~assets/'      => $appRoot.'content/assets/',
-        '~data/'        => $appRoot.'site/custom/data/',
-        '~page/'        => $pageRoot,
-        '~pagefactory/' => $appRoot.'site/plugins/pagefactory/assets/',
-    ];
-    $path = str_replace(array_keys($pathPatterns), array_values($pathPatterns), $path);
+    // ~pages/ is special case -> use Kirby to determine actual path:
+    if (str_starts_with($path, '~pages/')) {
+        $filename = basename($path);
+        $path = dirname(substr($path, 7));
+        $pg = page($path);
+        if ($pg) {
+            $path = $pg->root().'/'.$filename;
+        }
 
+    // other patterns:
+    } else {
+        $pageRoot = PageFactory::$pageRoot;
+        $pathPatterns = [
+            '~/' => $appRoot,
+            '~media/' => $appRoot . 'media/',
+            '~assets/' => $appRoot . 'content/assets/',
+            '~data/' => $appRoot . 'site/custom/data/',
+            '~page/' => $pageRoot,
+            '~pagefactory/' => $appRoot . 'site/plugins/pagefactory/assets/',
+        ];
+        $path = str_replace(array_keys($pathPatterns), array_values($pathPatterns), $path);
+    }
     return $path;
 } // resolvePath
 
@@ -1720,6 +1730,15 @@ function parseArgValue(string &$rest, string $delim): mixed
      if (!$str) {
          return [false, false];
      }
+
+     // simple case: both patterns are equal -> no need to check for nested patterns:
+     if ($pat1 === $pat2) {
+         $p1 = strpos($str, $pat1);
+         $p2 = strpos($str, $pat1, $p1+1);
+         return [$p1, $p2];
+     }
+
+     // opening and closing patterns -> need to check for nested patterns:
      checkBracesBalance($str, $p0, $pat1, $pat2);
 
      $d = strlen($pat2);
@@ -1742,7 +1761,7 @@ function parseArgValue(string &$rest, string $delim): mixed
          if ($p2 === false) { // no more closing pat
              return [false, false];
          }
-         if ($cnt === 0) {	// not in nexted structure
+         if ($cnt === 0) {	// not in next structure
              if ($p3 === false) {	// no more opening pat
                  return [$p0, $p2];
              }
@@ -2636,13 +2655,11 @@ function iconExists(string $iconName): bool
   * @param string $value
   * @return mixed
   */
- function fixDataType(string $value): mixed
+ function fixDataType(mixed $value): mixed
 {
-    if (gettype($value) === 'array') {
-        return (array)$value;
+    if (!is_string($value)) {
+        return $value;
     }
-
-    $value = trim($value);
 
     if ($value === '0') { // we must check this before empty because zero is empty
         return 0;
