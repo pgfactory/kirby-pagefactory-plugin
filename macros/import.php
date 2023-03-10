@@ -1,9 +1,6 @@
 <?php
 namespace Usility\PageFactory;
 
-/*
- * Twig function
- */
 
 function import($argStr = '')
 {
@@ -13,9 +10,9 @@ function import($argStr = '')
             'file' => ['[filename] Loads given file and injects its content into the page. '.
             'If "file" contains glob-style wildcards, then all matching files will be loaded. '.
             'If file-extension is ".md", loaded content will be markdown-compiled automatically.', false],
-//        'snippet' => ['[filename] Loads given Kirby snippet, compiles it and '.
-//            'injects the resulting string into the HTML output.', false],
             'literal' => ['If true, file content will be rendered as is - i.e. in \<pre> tags.', false],
+            'highlight' => ['(true|list-of-markers) If true, patters ``&#96;``, ``&#96;&#96;`` and ``&#96;&#96;&#96;` are used. '.
+                'These patterns will be detected and wrapped in "&lt;span class=\'hl{n}\'> elements".', false],
             'mdCompile' => ['If true, file content will be markdown-compiled before rendering.', false],
             'wrapperTag' => ['If defined, output will be wrapped in given tag.', false],
             'wrapperClass' => ['If defined, given class will be applied to the wrapper tag.', ''],
@@ -61,8 +58,8 @@ class Import
         $inx = self::$inx++;
 
         $file = $args['file'];
-//        $snippet = $args['snippet'];
         $literal = $args['literal'];
+        $highlight = $args['highlight'];
         $wrapperTag = $args['wrapperTag'];
         $wrapperClass = $args['wrapperClass'];
         $this->mdCompile = $args['mdCompile'];
@@ -73,13 +70,17 @@ class Import
             $str = $this->importFile($file);
         }
 
-        // handle 'snippet':
-//        if ($snippet) {
-//            $str .= $this->importSnippet($snippet);
-//        }
-
         if ($literal) {
             $str = str_replace(['{{','<'], ['&#123;{', '&lt;'], $str);
+            if ($highlight) {
+                if ($highlight === true) {
+                    $str = $this->doHighlight($str, '```', postfix: '3');
+                    $str = $this->doHighlight($str, '``', postfix: '2');
+                    $str = $this->doHighlight($str, '`', postfix: '1');
+                } else {
+//ToDo: explicit patterns
+                }
+            }
         }
         if ($literal && !$wrapperTag) {
             $wrapperTag = 'pre';
@@ -96,6 +97,21 @@ EOT;
 
         return $str;
     } // render
+
+
+    private function doHighlight($str, $pattern, $position = 0, $postfix = '')
+    {
+        list($p1, $p2) = strPosMatching($str, $position, $pattern, $pattern);
+        $l = strlen($pattern);
+        while ($p1 !== false) {
+            $s1 = substr($str, 0, $p1);
+            $s2 = substr($str, $p1+$l, $p2-$p1-$l);
+            $s3 = substr($str, $p2+$l);
+            $str = $s1."<span class='hl$postfix'>$s2</span>".$s3;
+            list($p1, $p2) = strPosMatching($str, $p2+$l, $pattern);
+        }
+        return $str;
+    } // doHighlight
 
 
     /**
@@ -131,51 +147,4 @@ EOT;
         }
         return $str;
     } // importFIle
-
-
-    /**
-     * Imports a Kirby Snippet
-     * @param string $snippet
-     * @return string
-     */
-    private function importSnippet(string $snippet): string
-    {
-        $file = resolvePath($snippet);
-        if (!file_exists($file)) {
-            $file = "site/snippets/$file";
-        }
-        $str = '';
-        $snippetStr = @file_get_contents($file);
-        if ($snippetStr) {
-$class = '';
-$image = '';
-$src = 'https://www.youtube.com/watch?v=9ocG1FWjTbk';
-$id = '9ocG1FWjTbk';
-            $this->handlePrematureOutput();
-            eval(" ?>$snippetStr<?php");
-            $str = ob_get_contents();
-            ob_clean();
-        }
-        return $str;
-    } // importSnippet
-
-
-    /**
-     * While PageFactory is in process, output to stdout consists of error messages.
-     * If there is such output, it is caught in PHP's output_buffer.
-     * In contrast, Kirby snippets send their output directly to stdout. Thus, we need to make sure that the
-     * output_buffer is not polluted at this point.
-     * @return void
-     */
-    private function handlePrematureOutput(): void
-    {
-        if (ob_get_length()) {
-            if (!file_exists(PFY_LOGS_PATH)) {
-                mkdir(PFY_LOGS_PATH);
-            }
-            file_put_contents('site/log/prematureOutput.txt', ob_get_contents());
-            ob_clean();
-        }
-    } // handlePrematureOutput
-
 } // Import
