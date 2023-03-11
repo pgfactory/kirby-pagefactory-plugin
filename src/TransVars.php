@@ -98,6 +98,10 @@ class TransVars
             $varName = $m[1];
             $lang = $m[2];
             $out = self::translateVariable($varName, $lang);
+            if ($out === false) {
+                $varName1 = preg_replace('/\.\w+$/', '', $varName0);
+                $out = self::translateVariable($varName1, $lang);
+            }
         } else {
             if (!isset(self::$variables[$varName])) {
                 if (PageFactory::$page->$varName()) {
@@ -358,23 +362,52 @@ class TransVars
      */
     public static function resolveVariables(string $str): string
     {
-        while (preg_match('/(?<!\\\)\{\{ \s* ([-\w]*?) \s* }}/x', $str, $m)) {
-            $key = $m[1];
-            if (self::$noTranslate) {
-                $value = "<span class='pfy-untranslated'>&#123;&#123; $key &#125;&#125;</span>";;
-            } else {
-                $value = self::getVariable($key);
+        // calls containing increment/decrement, e.g. {{ n++ }}
+        list($p1, $p2) = strPosMatching($str);
+        while ($p1 !== false && $p2 !== false) {
+            $key = trim(substr($str, $p1+2, $p2-$p1-2));
+            // skip macro() calls:
+            if (strpbrk($key, '()')) {
+                list($p1, $p2) = strPosMatching($str, $p2);
+                continue;
             }
-            $str = str_replace($m[0], $value, $str);
-        }
-        while (preg_match('/(?<!\\\)\{\{ \s* ([-\w.]*?) \s* }}/x', $str, $m)) {
-            $key = $m[1];
-            if (self::$noTranslate) {
-                $value = "<span class='pfy-untranslated'>&#123;&#123; $key &#125;&#125;</span>";;
+
+            // catch in-text assignments, e.g. {{ n=3 }}:
+            if (preg_match('/^(.*?) = (.*)/', $key, $m)) {
+                $key1 = trim($m[1]);
+                $value = trim($m[2]);
+                self::setVariable($key1, $value);
+                $value = "<span class='pfy-transvar-assigned'>$value</span>";
             } else {
-                $value = self::getVariable($key);
+
+                $key1 = str_replace(['++', '--'], '', $key);
+                $value = self::getVariable($key1);
+                if ($key !== $key1) {
+                    $s1 = $s2 = '';
+                    if (preg_match('/^(.*?)(\d+)(.*)$/', $value, $m)) {
+                        $s1 = $m[1];
+                        $s2 = $m[3];
+                        $n = $m[2];
+                    }
+                    if (str_starts_with($key, '++')) { // pre-increase
+                        $n++;
+                        $value = "$s1$n$s2";
+                        self::setVariable($key1, $value);
+                    } elseif (str_starts_with($key, '--')) { // pre-decrease
+                        $n--;
+                        $value = "$s1$n$s2";
+                        self::setVariable($key1, $value);
+                    } elseif (str_ends_with($key, '++')) { // post-increase
+                        $n++;
+                        self::setVariable($key1, "$s1$n$s2");
+                    } elseif (str_ends_with($key, '--')) { // post-decrease
+                        $n--;
+                        self::setVariable($key1, "$s1$n$s2");
+                    }
+                }
             }
-            $str = str_replace($m[0], $value, $str);
+            $str = substr($str, 0, $p1).$value.substr($str, $p2+2);
+            list($p1, $p2) = strPosMatching($str, $p1);
         }
         return $str;
     } // resolveVariables
@@ -499,8 +532,8 @@ class TransVars
                 $src = shieldStr($src) . "\n\n";
             }
 
-        } else {
-//ToDo: not implemented yet
+        } elseif (!is_array($args)) {
+            throw new \Exception("Macros: unexpected case -> macro arguments neither string nor array.");
         }
 
         // get arguments:

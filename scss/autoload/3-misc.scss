@@ -86,9 +86,14 @@
   }
 
 
+  /* -- variable assignment -------- */
+  .pfy-transvar-assigned {
+    display: none;
+  }
 
 
-    /* --- Laguage Selection -------- */
+
+  /* --- Laguage Selection -------- */
     .pfy-lang-elem {
         position: relative;
         display: inline-block;
