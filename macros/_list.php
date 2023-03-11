@@ -50,45 +50,11 @@ EOT,
         $class = 'pfy-macros';
 
     } elseif ($type[0] === 'u') {   // users
-        $users = kirby()->users();
-        $str = '';
-        foreach ($users->data() as $user) {
-            $username = (string)$user->name();
-            $email = (string)$user->email();
-            $str .= "<li>$username &lt;$email&gt;</li>\n";
-        }
-        if ($str) {
-            $str = "<ul>\n$str</ul>\n";
-        } else {
-            $text = TransVars::getVariable('pfy-list-empty', true);
-            $str = "<div class='pfy-list-empty'>$text</div>";
-        }
+        $str = renderUserList();
         $class = 'pfy-users';
 
     } elseif ($type[0] === 's') {   // sub-pages
-        $page = $args['page'];
-        if ($page === '~page/' || $page === '\\~page/') {
-            $pages = page()->children()->listed();
-        } elseif ($page === '/' || $page === '~/') {
-            $pages = site()->children()->listed();
-        } else {
-            $pages = page($page)->children()->listed();
-        }
-        $str = '';
-        foreach ($pages as $page) {
-            $elem = $page->title()->value();
-            if ($asLinks) {
-                $url = $page->url();
-                $elem = "<a href='$url'>$elem</a>";
-            }
-            $str .= "<li>$elem</li>\n";
-        }
-        if ($str) {
-            $str = "<ul>\n$str</ul>\n";
-        } else {
-            $text = TransVars::getVariable('pfy-list-empty', true);
-            $str = "<div class='pfy-list-empty'>$text</div>";
-        }
+        $str = renderSubpages($args['page'], $asLinks);
         $class = 'pfy-subpages';
     }
     $str = <<<EOT
@@ -100,4 +66,52 @@ EOT;
 
     return $str;
 }
+
+
+function renderSubpages($page1, bool $asLinks): string
+{
+    $page = $page1;
+    if ($page === '~page/' || $page === '\\~page/') {
+        $pages = page()->children()->listed();
+    } elseif ($page === '/' || $page === '~/') {
+        $pages = site()->children()->listed();
+    } else {
+        $pages = page($page)->children()->listed();
+    }
+    $str = '';
+    foreach ($pages as $page) {
+        $elem = $page->title()->value();
+        if ($asLinks) {
+            $url = $page->url();
+            $elem = "<a href='$url'>$elem</a>";
+        }
+        $str .= "<li>$elem</li>\n";
+    }
+    if ($str) {
+        $str = "<ul>\n$str</ul>\n";
+    } else {
+        $text = TransVars::getVariable('pfy-list-empty', true);
+        $str = "<div class='pfy-list-empty'>$text</div>";
+    }
+    return $str;
+} // renderSubpages
+
+
+function renderUserList(): string
+{
+    $users = kirby()->users();
+    $str = '';
+    foreach ($users->data() as $user) {
+        $username = (string)$user->name();
+        $email = (string)$user->email();
+        $str .= "<li>$username &lt;$email&gt;</li>\n";
+    }
+    if ($str) {
+        $str = "<ul>\n$str</ul>\n";
+    } else {
+        $text = TransVars::getVariable('pfy-list-empty', true);
+        $str = "<div class='pfy-list-empty'>$text</div>";
+    }
+    return $str;
+} // renderUserList
 
