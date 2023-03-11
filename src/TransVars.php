@@ -384,7 +384,7 @@ class TransVars
                 $value = self::getVariable($key1);
                 if ($key !== $key1) {
                     $s1 = $s2 = '';
-                    if (preg_match('/^(.*?)(\d+)(.*)$/', $value, $m)) {
+                    if (preg_match('/^(.*?)([-\d.]+)(.*)$/', $value, $m)) {
                         $s1 = $m[1];
                         $s2 = $m[3];
                         $n = $m[2];
