@@ -104,9 +104,7 @@ class TransVars
             }
         } else {
             if (!isset(self::$variables[$varName])) {
-                if (PageFactory::$page->$varName()) {
-                    $out = PageFactory::$page->$varName()->value;
-                }
+                $out = PageFactory::$page->$varName()->value; // try to get Kirby field
             } else {
                 $out = self::$variables[$varName];
             }
@@ -378,10 +376,15 @@ class TransVars
                 $value = trim($m[2]);
                 self::setVariable($key1, $value);
                 $value = "<span class='pfy-transvar-assigned'>$value</span>";
-            } else {
 
+            } else {
+                $varNameIfNotFound = true;
+                if ($key[0] === '^') {
+                    $varNameIfNotFound = false;
+                    $key = ltrim($key,'^ ');
+                }
                 $key1 = str_replace(['++', '--'], '', $key);
-                $value = self::getVariable($key1);
+                $value = self::getVariable($key1, $varNameIfNotFound);
                 if ($key !== $key1) {
                     $s1 = $s2 = '';
                     if (preg_match('/^(.*?)([-\d.]+)(.*)$/', $value, $m)) {
@@ -423,6 +426,12 @@ class TransVars
         list($p1, $p2) = strPosMatching($str);
         while ($p1 !== false) {
             $cand = trim(substr($str, ($p1+2), ($p2-$p1-2)));
+            $hideIfUnknown = false;
+            if ($cand[0] === '^') {
+                $hideIfUnknown = true;
+                $cand = ltrim($cand,'^ ');
+            }
+
             if (preg_match('/(\w+) \( (.*) \)/xms', $cand, $m)) {
                 $macroName = $m[1];
                 $argStr = $m[2];
@@ -431,6 +440,8 @@ class TransVars
                 }
                 if (function_exists("Usility\\PageFactory\\$macroName")) {
                     $value = "Usility\\PageFactory\\$macroName"($argStr);
+                } elseif ($hideIfUnknown) {
+                    $value = '';
                 } else {
                     $value = "\\{{ $cand }}";
                 }
