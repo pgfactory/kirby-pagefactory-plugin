@@ -2,8 +2,6 @@
 namespace Usility\PageFactory;
 
 
-//require_once __DIR__.'/../src/helper.php';
-//require_once __DIR__.'/../src/twighelper.php';
 require_once __DIR__.'/../src/SiteNav.php';
 
 function nav($args = null)

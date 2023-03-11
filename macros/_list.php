@@ -5,6 +5,11 @@ namespace Usility\PageFactory;
  * Twig function
  */
 
+/**
+ * @param $argStr
+ * @return array|string
+ * @throws \Kirby\Exception\InvalidArgumentException
+ */
 function _list($argStr = '')
 {
     // Definition of arguments and help-text:
@@ -68,6 +73,11 @@ EOT;
 }
 
 
+/**
+ * @param $page1
+ * @param bool $asLinks
+ * @return string
+ */
 function renderSubpages($page1, bool $asLinks): string
 {
     $page = $page1;
@@ -97,6 +107,9 @@ function renderSubpages($page1, bool $asLinks): string
 } // renderSubpages
 
 
+/**
+ * @return string
+ */
 function renderUserList(): string
 {
     $users = kirby()->users();

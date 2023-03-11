@@ -72,6 +72,11 @@ class Dir
     private $targetAttr;
     private $linkClass;
 
+    /**
+     * @param $args
+     * @return mixed|string
+     * @throws \Exception
+     */
     public function render($args)
     {
         $inx = self::$inx++;
@@ -165,6 +170,10 @@ class Dir
     } // render
 
 
+    /**
+     * @param $dir
+     * @return mixed|string
+     */
     private function straightList($dir)
     {
         if (!$dir) {
@@ -241,6 +250,11 @@ EOT;
     } // straightList
 
 
+    /**
+     * @param $path
+     * @param $dir
+     * @return string
+     */
     private function hierarchicalList($path, $dir)
     {
         $skipLen = strlen($path);
@@ -255,6 +269,11 @@ EOT;
         return $out;
     } // hierarchicalList
 
+    /**
+     * @param $hierarchy
+     * @param $level
+     * @return string
+     */
     private function _hierarchicalList($hierarchy, $level)
     {
         $out = "<{$this->tag}>\n";
@@ -272,7 +291,10 @@ EOT;
     } // _hierarchicalList
 
 
-
+    /**
+     * @param $file
+     * @return false|string
+     */
     private function parseUrlFile($file)
     {
         $ext = fileExt($file);
