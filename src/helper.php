@@ -668,6 +668,10 @@ function removeCStyleComments(string $str): string
             continue;
         }
         $p2 = strpos($str, "*/", $p);
+        if ($p2 === false) {
+            $str = substr($str, 0, $p); // case: end */ missing -> cut off all
+            break;
+        }
         $str = substr($str, 0, $p) . substr($str, $p2 + 2);
     }
 
