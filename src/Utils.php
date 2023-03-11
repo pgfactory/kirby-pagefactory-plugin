@@ -56,7 +56,7 @@ class Utils
         }
     } // executeCustomCode
 
-    
+
     /**
      * Execute those URL-commands that require no privileges: e.g. ?login, ?printpreview etc.
      * @param $cmds

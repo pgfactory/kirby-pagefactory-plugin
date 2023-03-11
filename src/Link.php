@@ -305,7 +305,8 @@ class Link
     private function getText()
     {
         if ($this->args['text']??false) {
-            $this->text = $this->args['text'];
+            $this->text = compileMarkdown($this->args['text'], true);
+
         } elseif (!$this->text) {
             $url = $this->url;
 
@@ -339,7 +340,6 @@ class Link
     {
         if ($this->isExternalLink) {
             $this->addClass('pfy-link-https pfy-external-link pfy-print-url');
-//            $this->target = '';
             $this->target = PageFactory::$config['defaultTargetForExternalLinks']??'';
         }
     } // processRegularLink
@@ -387,11 +387,13 @@ class Link
     private function addIcon()
     {
         $icon = '';
+        if (isset($this->args['icon']) && ($this->args['icon'] === false)) {
+            return;
+        }
         if ($this->args['icon']??false) {
             $icon = $this->args['icon'];
         } elseif ($this->icon) {
             $icon = $this->icon;
-//        } elseif ($this->isExternalLink) {
         } elseif ($this->isExternalLink && (PageFactory::$config['externalLinksToNewWindow']??false)) {
             $icon = 'external';
         }
