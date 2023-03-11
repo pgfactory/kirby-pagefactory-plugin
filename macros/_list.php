@@ -10,10 +10,9 @@ function _list($argStr = '')
     // Definition of arguments and help-text:
     $config =  [
         'options' => [
-            'type' => ['[users,variables,functions] Selects the objects to be listed.', false],
+            'type' => ['[users,variables,functions,subpages] Selects the objects to be listed.', false],
+            'page' => ['Defines the page of which to list subpages.', '\~page/'],
             'options' => ['[AS_LINKS] Specifies how to render the list.', false],
-            //'options' => ['[short] Specifies how to render the list.', false],
-            //'option' => ['Synonym for "options".', false],
         ],
         'summary' => <<<EOT
 # list()
@@ -39,7 +38,7 @@ EOT,
 
     // assemble output:
     $type = $args['type'].' ';
-    $asLinks = str_contains(strtoupper($args['options']), 'AS-LINKS');
+    $asLinks = str_contains(strtoupper($args['options']), 'AS_LINKS');
     $class = '';
 
     if ($type[0] === 'v') {     // variables
@@ -52,18 +51,30 @@ EOT,
 
     } elseif ($type[0] === 'u') {   // users
         $users = kirby()->users();
-        $str = "<ul>\n";
+        $str = '';
         foreach ($users->data() as $user) {
             $username = (string)$user->name();
             $email = (string)$user->email();
-            $str .= "\t<li>$username &lt;$email&gt;</li>\n";
+            $str .= "<li>$username &lt;$email&gt;</li>\n";
         }
-        $str .= "</ul>\n";
+        if ($str) {
+            $str = "<ul>\n$str</ul>\n";
+        } else {
+            $text = TransVars::getVariable('pfy-list-empty', true);
+            $str = "<div class='pfy-list-empty'>$text</div>";
+        }
         $class = 'pfy-users';
 
     } elseif ($type[0] === 's') {   // sub-pages
-        $pages = page()->children()->listed();
-        $str = "<ul>\n";
+        $page = $args['page'];
+        if ($page === '~page/' || $page === '\\~page/') {
+            $pages = page()->children()->listed();
+        } elseif ($page === '/' || $page === '~/') {
+            $pages = site()->children()->listed();
+        } else {
+            $pages = page($page)->children()->listed();
+        }
+        $str = '';
         foreach ($pages as $page) {
             $elem = $page->title()->value();
             if ($asLinks) {
@@ -72,7 +83,12 @@ EOT,
             }
             $str .= "<li>$elem</li>\n";
         }
-        $str .= "</ul>\n";
+        if ($str) {
+            $str = "<ul>\n$str</ul>\n";
+        } else {
+            $text = TransVars::getVariable('pfy-list-empty', true);
+            $str = "<div class='pfy-list-empty'>$text</div>";
+        }
         $class = 'pfy-subpages';
     }
     $str = <<<EOT

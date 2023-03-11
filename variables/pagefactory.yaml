@@ -343,6 +343,10 @@ pfy-close:
     de: Schliessen
     _:  Close
 
+pfy-list-empty:
+    de: Nichts gefunden
+    _:  Nothing found
+
 
 #--- User Admin -------------------------
 
