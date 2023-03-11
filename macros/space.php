@@ -14,7 +14,7 @@ function space($argStr = '')
             'class' => ['Class applied to SPAN', ''],
         ],
         'summary' => <<<EOT
-# Space()
+# space()
 
 Inserts horizontal space of given width.
 EOT,

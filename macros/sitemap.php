@@ -7,6 +7,7 @@ namespace Usility\PageFactory;
 
 function sitemap($argStr = '')
 {
+    $funcName = basename(__FILE__, '.php');
     // Definition of arguments and help-text:
     $config =  [
         'options' => [
@@ -16,7 +17,7 @@ function sitemap($argStr = '')
             'options' => ['[collapsible,collapsed] Adds corresponding classes to the wrapper (for convenience).', ''],
             ],
         'summary' => <<<EOT
-# Sitemap()
+# $funcName()
 
 Renders a sitemap.
 

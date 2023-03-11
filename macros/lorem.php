@@ -12,7 +12,7 @@ function lorem($argStr = '')
             'wrapperTag' => ['Allows to define the tag of the wrapper element', 'div'],
         ],
         'summary' => <<<EOT
-## Lorem()
+# lorem()
 
 Renders filler text "Lorem ipsum...". 
 

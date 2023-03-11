@@ -7,6 +7,7 @@ namespace Usility\PageFactory;
 
 function prevnextlinks($argStr = '')
 {
+    $funcName = basename(__FILE__, '.php');
     // Definition of arguments and help-text:
     $config =  [
         'options' => [
@@ -15,7 +16,7 @@ function prevnextlinks($argStr = '')
             'type' => ['[top,bottom] Defines where the page switcher links will be displayed', 'bottom'],
         ],
         'summary' => <<<EOT
-# PrevNextLinks()
+# $funcName()
 
 Renders two links, one to the next page, one to the previous page. Activates scripts to trigger on cursor 
 keys <- (left) and  -> (right).

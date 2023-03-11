@@ -16,7 +16,7 @@ function nav($args = null)
             'type' => ['[top,branch].', ''],
         ],
         'summary' => <<<EOT
-## $funcName()
+# $funcName()
 
 Renders a navigation menu that reflects the currently published pages.
 

@@ -19,7 +19,7 @@ function style($argStr = ''): array|string
             'style' => ['Styling instructions, e.g. "border: 1px solid red;".', '&nbsp;'],
         ],
         'summary' => <<<EOT
-# Style()
+# style()
 
 Renders text with given inline styles.
 EOT,

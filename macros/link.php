@@ -29,7 +29,7 @@ function link($argStr = '')
             'href' => ['Synonyme for "url"', false],
         ],
         'summary' => <<<EOT
-# Link()
+# link()
 
 Renders an HTML-link (\<a> tag).
 
