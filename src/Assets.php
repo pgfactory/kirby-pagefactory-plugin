@@ -486,11 +486,15 @@ class Assets
      */
     private function getAssetsFromPageFolder(string $jsOrCss): array
     {
+        $modified = false;
         if (($jsOrCss === 'css') && ($scssFiles = getDir($this->pageFolderPath.'*.scss'))) {
             // compile any scss files in page folder:
             foreach ($scssFiles as $file) {
-                Scss::updateFile($file, $file);
+                $modified |= (bool)Scss::updateFile($file, $file);
             }
+        }
+        if ($modified) {
+            reloadAgent();
         }
 
         $assets = [];
@@ -519,10 +523,10 @@ class Assets
      */
     private function renderAssetLoadingCode(string $fileUrl, string $jsOrCss): string
     {
-        if ($jsOrCss === 'js') {
+        if ($jsOrCss === 'js') { // js
             $html = "\t<script src='$fileUrl'></script>\n";
 
-        } else {
+        } else { // css
             if (strpos($fileUrl, '-async') !== false) {
                 $html = "\t<link href='$fileUrl' rel='stylesheet' media='print' class='pfy-onload-css'>\n";
                 $html .= "\t<noscript><link href='$fileUrl' rel='stylesheet'></noscript>\n";
