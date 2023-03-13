@@ -37,7 +37,7 @@ fi
 ## Check/clone Kirby plainkit:
 if [[ ! -e kirby/ ]]; then
 	echo "Now installing Kirby to folder -> `pwd`"
-	/usr/bin/env git clone https://github.com/getkirby/plainkit.git .
+	/usr/local/bin/git clone https://github.com/getkirby/plainkit.git .
 	echo Kirby installed
 else
 	echo Kirby already installed
@@ -58,11 +58,24 @@ if [[ -e site/plugins/pagefactory/ ]]; then
 	exit
 fi
 
-
+echo
 echo Now installing Pagefactory
 
 ## Clone PageFactory:
-/usr/bin/env git clone $branch https://github.com/pgfactory/kirby-pagefactory-plugin.git site/plugins/pagefactory
+
+echo
+echo Kirby-Twig:
+/usr/local/bin/git submodule add https://github.com/amteich/kirby-twig.git site/plugins/kirby-twig
+
+echo
+echo MarkdownPlus:
+/usr/local/bin/git submodule add https://github.com/pgfactory/markdownplus.git site/plugins/markdownplus
+
+echo
+echo PageFactory:
+/usr/local/bin/git submodule add $branch https://github.com/pgfactory/kirby-pagefactory-plugin.git site/plugins/pagefactory
+
+echo
 echo PageFactory installed
 
 
@@ -70,11 +83,11 @@ echo PageFactory installed
 if [ ! -e site/templates/page_template.html ]; then
 	cp -R site/plugins/pagefactory/install/content/  content
 	cp -R site/plugins/pagefactory/install/site/     site
-	mv content/home/home.txt content/home/z_pfy.txt
+	mv content/home/home.txt content/home/z.txt
 	mv content/home content/1_home
 	echo Essential files copied to final location
 fi
 
 echo
-echo Now open this website in your browser.
+echo ==> Now open this website in your browser.
 echo 

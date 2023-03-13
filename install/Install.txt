@@ -55,9 +55,9 @@ Manual Installation
     cp -R site/plugins/pagefactory/install/content/  content
     cp -R site/plugins/pagefactory/install/site/     site
 
-5) Rename text files in page folders (aka meta-files) to 'z_pfy.txt' (resp. 'z_pfy.en.txt' etc.)
+5) Rename text files in page folders (aka meta-files) to 'z.txt' (resp. 'z.en.txt' etc.)
 
-	mv content/home/home.txt content/home/z_pfy.txt
+	mv content/home/home.txt content/home/z.txt
 
 
 
@@ -66,10 +66,10 @@ Manual Installation
 
 Note: How PageFactory becomes active
 ------------------------------------
-For PageFactory to become active and render pages, meta-files MUST be called  'z_pfy.txt' (resp. 'z_pfy.en.txt' etc.).
+For PageFactory to become active and render pages, meta-files MUST be called  'z.txt' (resp. 'z.en.txt' etc.).
 For example:
-    'site/home/z_pfy.txt' or
-    'site/2_my-page/z_pfy.en.txt'   (-> published page and multiple languages active)
+    'site/home/z.txt' or
+    'site/2_my-page/z.en.txt'   (-> published page and multiple languages active)
 
-This instructs Kirby to trigger PageFactory's template 'site/templates/z_pfy.php'.
+This instructs Kirby to trigger PageFactory's template 'site/templates/z.php'.
 Any other meta-file names will let Kirby run its normal page rendering mechanism.

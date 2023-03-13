@@ -3,7 +3,7 @@
 
 
 vgap: "<div class='pfy-vgap' style='margin:0.7em 0;'>&nbsp;</div>"
-space: "<span class='pfy-h-space'' style='width:4ch'></span>"
+space: "<span class='pfy-h-space' style='width:4ch'></span>"
 clear: '<div style="clear:both;"></div>'
 
 #--- Login Link ----------------------------------
@@ -14,27 +14,48 @@ pfy-login-icon: "<span class='pfy-icon -user_male_circle'></span>"
 pfy-login-button-label: Login
 
 pfy-admin-panel-link-text:
-    _: 'Admin-Panel'
+    _: 'Admin'
+#    _: 'Admin-Panel'
 
 
 
 #--- Page Switcher Links ------------------------
+pfyPrevPageTitle: '〈'
+pfyNextPageTitle: '〉'
 pfy-previous-page-text:
     de: |
         <span class='pfy-page-switcher-arrow'>⟨<span class='pfy-invisible'> zur vorherigen Seite</span></span>
-                  <span class='pfy-prev-page-title'>{{^ pfy-prev-page-title }}</span>
+                  <span class='pfy-prev-page-title'></span>
     _:  |
         <span class='pfy-page-switcher-arrow'>⟨<span class='pfy-invisible'> to the previous page</span></span>
-                  <span class='pfy-prev-page-title'>{{^ pfy-prev-page-title }}</span>
+                  <span class='pfy-prev-page-title'></span>
 
 
 pfy-next-page-text:
     de: |
-        <span class='pfy-next-page-title'>{{^ pfy-next-page-title }}</span>
+        <span class='pfy-next-page-title'></span>
                   <span class='pfy-page-switcher-arrow'><span class='pfy-invisible'>zur nächsten Seite </span>⟩</span>
     _:  |
-        <span class='pfy-next-page-title'>{{^ pfy-next-page-title }}</span>
+        <span class='pfy-next-page-title'></span>
                   <span class='pfy-page-switcher-arrow'><span class='pfy-invisible'>to the next page </span>⟩</span>
+#pfy-prev-page-title: ''
+#pfy-next-page-title: ''
+#pfy-previous-page-text:
+#    de: |
+#        <span class='pfy-page-switcher-arrow'>⟨<span class='pfy-invisible'> zur vorherigen Seite</span></span>
+#                  <span class='pfy-prev-page-title'>{{ pfy-prev-page-title }}</span>
+#    _:  |
+#        <span class='pfy-page-switcher-arrow'>⟨<span class='pfy-invisible'> to the previous page</span></span>
+#                  <span class='pfy-prev-page-title'>{{ pfy-prev-page-title }}</span>
+#
+#
+#pfy-next-page-text:
+#    de: |
+#        <span class='pfy-next-page-title'>{{ pfy-next-page-title }}</span>
+#                  <span class='pfy-page-switcher-arrow'><span class='pfy-invisible'>zur nächsten Seite </span>⟩</span>
+#    _:  |
+#        <span class='pfy-next-page-title'>{{ pfy-next-page-title }}</span>
+#                  <span class='pfy-page-switcher-arrow'><span class='pfy-invisible'>to the next page </span>⟩</span>
 
 
 pfy-link-to-next-page:
@@ -321,6 +342,10 @@ pfy-data-converted to:
 pfy-close:
     de: Schliessen
     _:  Close
+
+pfy-list-empty:
+    de: Nichts gefunden
+    _:  Nothing found
 
 
 #--- User Admin -------------------------

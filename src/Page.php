@@ -7,24 +7,28 @@
 
 namespace Usility\PageFactory;
 
-use Exception;
 
+use ScssPhp\ScssPhp\Exception\SassException;
 
 class Page
 {
-    public static $content;
-    public $headInjections = '';
-    public $bodyEndInjections;
-    public $bodyTagClasses;
-    public static $bodyTagAttributes;
-    public $css;
-    public $scss;
-    public $js;
-    public $jq;
-    public static $frontmatter = [];
-    public $assetFiles = [];
-    public $overrideContent = false;
-    public static $definitions;
+    public static string $content = '';
+    public string $headInjections = '';
+    public string $bodyEndInjections = '';
+    public string $bodyTagClasses = '';
+    public string $bodyTagAttributes = '';
+    public string $css = '';
+    public string $scss = '';
+    public string $js = '';
+    public string $jq = '';
+    public array|null $assetFiles = [];
+    public array|null $asset = [];
+    public bool $overrideContent = false;
+    public static array|null $definitions;
+    private object $pfy;
+    private object $trans;
+    private Scss $sc;
+    private $pageParams;
 
 
     /**
@@ -33,89 +37,10 @@ class Page
     public function __construct($pfy)
     {
         $this->pfy = $pfy;
-        $this->trans = $pfy::$trans;
-        $this->sc = new Scss($this->pfy);
-        $this->assetFiles = &$pfy->assetFiles;
+        $this->sc = new Scss();
         self::$definitions['assets'] = ASSET_URL_DEFINITIONS;
-        self::$content = (string)page()->text()->kt();
     } // __construct
 
-
-    /**
-     * Loads extensions, i.e. plugins with names "pagefactory-*":
-     */
-    public function loadExtensions(): void {
-        // check for and load extensions:
-        if (PageFactory::$availableExtensions) {
-            foreach (PageFactory::$availableExtensions as $extPath) {
-                // look for 'src/index.php' within the extension:
-                $indexFile = "{$extPath}src/index.php";
-                if (file_exists($indexFile)) {
-                    // === load index.php now:
-                    $extensionClassName = require_once $indexFile;
-                    PageFactory::$loadedExtensions[$extensionClassName] = $extPath;
-                }
-
-                // instantiate extension object:
-                $extensionClass = "Usility\\PageFactoryElements\\$extensionClassName";
-                $obj = new $extensionClass($this->pfy);
-
-                // check for and load extension's asset-definitions:
-                if (method_exists($obj, 'getAssetDefs')) {
-                    $newAssets = $obj->getAssetDefs();
-                    self::$definitions = array_merge_recursive(self::$definitions, ['assets' => $newAssets]);
-                }
-
-                // check for and load extension's asset-definitions:
-                if (method_exists($obj, 'getAssetGroups')) {
-                    $newAssetGroupss = $obj->getAssetGroups();
-                    PageFactory::$assets->addAssetGroups($newAssetGroupss);
-                }
-            }
-        }
-    } // loadExtensions
-
-
-    /**
-     * Checks loaded extensions whether tey contain a special file 'src/_finalCode.php' and executes it.
-     * @return void
-     */
-    public function extensionsFinalCode(): void
-    {
-        foreach (PageFactory::$loadedExtensions as $path) {
-            $file = $path.'src/_finalCode.php';
-            if (file_exists($file)) {
-                require_once $file;
-            }
-        }
-    } // extensionsFinalCode
-
-
-
-    /**
-     * Main method: populates injection variables that go into the page-template.
-     */
-    public function preparePageVariables(): void
-    {
-        $out = $this->renderHeadInjections();
-        $this->trans->setVariable('pfy-head-injections', $out);
-
-        $bodyClasses = $this->bodyTagClasses? $this->bodyTagClasses: 'pfy-large-screen';
-        if (isAdmin()) {
-            $bodyClasses .= ' pfy-admin';
-        } elseif (kirby()->user()) {
-            $bodyClasses .= ' pfy-loggedin';
-        }
-        if (PageFactory::$debug) {
-            $bodyClasses = trim("debug $bodyClasses");
-        }
-        $this->trans->setVariable('pfy-body-classes', $bodyClasses);
-
-        $this->trans->setVariable('pfy-body-tag-attributes', Page::$bodyTagAttributes);
-
-        $bodyEndInjections = $this->renderBodyEndInjections();
-        $this->trans->setVariable('pfy-body-end-injections', $bodyEndInjections);
-    } // preparePageVariables
 
 
 
@@ -134,7 +59,7 @@ class Page
     /**
      * Generic getter
      * @param string $key
-     * @param $value
+     * @return mixed
      */
     public function get(string $key): mixed
     {
@@ -208,17 +133,18 @@ class Page
     /**
      * Proxy for extension PageElements -> Overlay -> overrides page if Overlay not available.
      * @param string $str
+     * @param bool $mdCompile
      */
-    public function setOverlay(string $str, $mdCompile = true): void
+    public function setOverlay(string $str, bool $mdCompile = true): void
     {
-        if (isset(PageFactory::$availableExtensions['pageelements'])) {
+        if (isset(Extensions::$availableExtensions['pageelements'])) {
             $pe = new \Usility\PageFactoryElements\Overlay($this->pfy);
             $pe->set($str, $mdCompile);
 
         // if PageElements are not loaded, we need to create bare page and exit immediately:
         } else {
             if ($mdCompile) {
-                $str = compileMarkdown($str);
+                $str = markdown($str);
             }
             $html = <<<EOT
 <!DOCTYPE html>
@@ -241,12 +167,12 @@ EOT;
     /**
      * Proxy for extension PageElements -> Message -> displays message in upper right corner.
      * @param string $str
-     * @param $mdCompile
+     * @param bool $mdCompile
      * @return void
      */
-    public function setMessage(string $str, $mdCompile = true): void
+    public function setMessage(string $str, bool $mdCompile = true): void
     {
-        if (isset(PageFactory::$availableExtensions['pageelements'])) {
+        if (isset(Extensions::$availableExtensions['pageelements'])) {
             $pe = new \Usility\PageFactoryElements\Message($this->pfy);
             $pe->set($str, $mdCompile);
 
@@ -268,7 +194,7 @@ EOT;
      */
     public function setPopup(string $str, $mdCompile = true): void
     {
-        if (isset(PageFactory::$availableExtensions['pageelements'])) {
+        if (isset(Extensions::$availableExtensions['pageelements'])) {
             $pe = new \Usility\PageFactoryElements\Popup($this->pfy);
             $pe->set($str, $mdCompile);
 
@@ -308,7 +234,7 @@ EOT;
      */
     public function setBodyTagAttributes($str): void
     {
-        Page::$bodyTagAttributes = "$str ";
+        $this->bodyTagAttributes = "$str ";
     }
 
 
@@ -318,7 +244,7 @@ EOT;
      */
     public function addBodyTagAttributes($str): void
     {
-        Page::$bodyTagAttributes .= "$str ";
+        $this->bodyTagAttributes .= "$str ";
     }
 
 
@@ -431,6 +357,9 @@ EOT;
      */
     public function addAssets(mixed $assets, bool $treatAsJq = false): void
     {
+        if (PageFactory::$renderingClosed) {
+            throw new \Exception("Error: a Macro is trying to queue a resource after page rendering has finished.");
+        }
         PageFactory::$assets->addAssets($assets, $treatAsJq);
     } // addAssets
 
@@ -440,6 +369,7 @@ EOT;
      * Assembles and renders the code that will be injected into the <head> element.
      * (Note: css-files containing '-async' will automatically be rendered for async loading)
      * @return string
+     * @throws SassException
      */
     public function renderHeadInjections(): string
     {
@@ -457,14 +387,14 @@ EOT;
         $html .= PageFactory::$assets->renderQueuedAssets('css');
 
         // add CSS-Code (compile if it's SCSS):
-        $css = ($this->pageParams['css']??'') . (self::$frontmatter['css']??'') . $this->css;
-        $this->pageParams['css'] = self::$frontmatter['css'] = $this->css = false;
+        $css = $this->css ? "$this->css\n": '';
+        $css .= PageFactory::$page->css()->value() ?? '';
 
-        $scss = ($this->pageParams['scss']??'') . (self::$frontmatter['scss']??''). $this->scss;
-        $this->pageParams['scss'] = self::$frontmatter['scss'] = $this->scss = false;
+        $scss = $this->scss ? "$this->scss\n": '';
+        $scss .= PageFactory::$page->scss()->value() ?? '';
 
         if ($scss) {
-            $css .= $this->sc->compileStr($scss);
+            $css .= "\n".$this->sc->compileStr($scss);
         }
         if ($css) {
             $css = indentLines($css, 8);
@@ -482,7 +412,7 @@ EOT;
      * Assembles and renders the body-end-injections, i.e. js-code and js-files loading instructions
      * @return string
      */
-    private function renderBodyEndInjections(): string
+    public function renderBodyEndInjections(): string
     {
         $jsInjection = '';
         $jqInjection = '';
@@ -497,7 +427,9 @@ EOT;
         $js .= "const pageUrl = '" .        PageFactory::$pageUrl . "';\n";
         $js .= "const loggedinUser = '" .   PageFactory::$user . "';\n";
         $js .= "const currLang = '" .       PageFactory::$langCode . "';\n";
-        $js .= $this->js . (self::$frontmatter['js']??'');
+        $js .= $this->js ? "$this->js\n": '';
+        $js .= PageFactory::$page->js()->value() ?? '';
+
         if ($js) {
             $js = "\t\t".str_replace("\n", "\n\t\t", rtrim($js, "\n"));
             $jsInjection .= <<<EOT
@@ -509,7 +441,8 @@ $js
 EOT;
         }
 
-        $jq = $this->jq . (self::$frontmatter['jq']??'');
+        $jq = $this->jq ? "$this->jq\n": '';
+        $jq .= PageFactory::$page->jq()->value() ?? '';
         if ($jq) {
             $this->requireFramework();
             $jq = "\t\t\t".str_replace("\n", "\n\t\t\t", rtrim($jq, "\n"));
@@ -522,6 +455,12 @@ $jq
     </script>
 
 EOT;
+        }
+
+        // check config settings, whether default-nav should be activated:
+        if (PageFactory::$config['default-nav']??false) {
+            $this->requireFramework();
+            $this->addAssets('site/plugins/pagefactory/assets/js/nav.jq');
         }
 
         $jsFilesInjection = PageFactory::$assets->renderQueuedAssets('js');
@@ -541,22 +480,22 @@ EOT;
     // === Helper methods ============================================
     /**
      * Retrieves data regarding one of head, description, keywords, author, robots
-     * @param $name
+     * @param string $name
      * @return string
      */
     private function getHeaderElem(string $name): string
     {
         // checks page-attrib, then site-attrib for requested keyword and returns it
-        $out = self::$frontmatter[$name]??'';
-        if (($name === 'robots') && is_bool($out)) {
+        $out = PageFactory::$page->$name()->value() ?? '';
+        if (!$out) {
+            $out = site()->$name()->value();
+        }
+
+        if (($name === 'robots') && ($out === 'true' || $out === 'false')) {
             // => any string value is rendered as is in robots meta tag
             $out = 'noindex,nofollow,noarchive';
         }
-        if (!$out) {
-            if (!$out = page()->$name()->value()) {
-                $out = site()->$name()->value();
-            }
-        }
+
         if ($out) {
             if (stripos($out, '<meta') === false) {
                 $out = "\t<meta name='$name' content='$out'>\n";

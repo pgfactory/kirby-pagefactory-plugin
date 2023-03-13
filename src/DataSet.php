@@ -4,13 +4,12 @@ namespace Usility\PageFactory;
 
 use Kirby\Filesystem\F;
 use Kirby\Data\Yaml as Yaml;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
  // meta keys:
 const DATAREC_KEY = '_origRecKey';
 const DATAREC_UID = '_uid';
 const DATAREC_TIMESTAMP = '_timestamp';
+const SUPPORTED_FILE_TYPES = 'yaml,json,csv';
 
  // timings:
 const DEFAULT_MAX_DB_LOCK_TIME      = 600; // sec
@@ -31,7 +30,7 @@ class DataSet
     protected $lockFile;
     protected $blocking = 0;
     protected $readWriteMode;
-    protected $elementLabels = [];
+    public $elementKeys;
     protected $options;
     protected $includeMeta;
     protected $data;
@@ -88,11 +87,14 @@ class DataSet
             $file = resolvePath($file);
             $this->name = base_name($file, false);
             $this->type = fileExt($file);
+            if (!str_contains(SUPPORTED_FILE_TYPES, $this->type)) {
+                throw new \Exception("Error: DataSet invoked with unsupported file-type: '$this->type'");
+            }
             $this->file = $file;
             $dataFile = str_replace('/', '_', dirname($file)) . '_' . base_name($file, false);
             $this->cacheFile = PFY_CACHE_PATH . "data/$dataFile.cache.dat";
             $this->lockFile = PFY_CACHE_PATH . "data/$dataFile.lock";
-            if (!file_exists($file)) {
+            if (!is_file($file)) {
                 touch($file);
                 if (file_exists($this->cacheFile)) {
                     unlink($this->cacheFile);
@@ -216,7 +218,6 @@ class DataSet
         } else {
             throw new \Exception("Supplied data is of unsupported type.");
         }
-        $this->elementLabels = false;
         if ($flush) {
             $this->flush();
         }
@@ -242,7 +243,6 @@ class DataSet
         if (!$this->readWriteMode) {
             throw new \Exception("Datasource '$this->name' is in read-only mode, unable to add data");
         }
-
         if ($recKeyToUse) {
             $dr = new DataRec($key, $rec, $this);
             $dr->set('_uid', $recKeyToUse);
@@ -268,7 +268,6 @@ class DataSet
                 $this->data[$uid] = $dr;
             }
         }
-        $this->elementLabels = false;
         if ($flush) {
             $this->flush();
         }
@@ -314,7 +313,6 @@ class DataSet
                 $this->data[$inx]->update($rec);
             }
         }
-        $this->elementLabels = false;
         if ($flush) {
             $this->flush();
         }
@@ -496,8 +494,8 @@ class DataSet
         }
         foreach ($data as $key => $rec) {
             $newRec = [];
-            foreach (array_keys($headers) as $k) {
-                $newRec[$k] = $rec[$k] ?? '';
+            foreach ($this->elementKeys as $elemKey => $elemLabel) {
+                $newRec[$elemKey] = $rec[$elemKey] ?? '';
             }
             $data2D[$key] = $newRec;
         }
@@ -515,25 +513,15 @@ class DataSet
      */
     public function getElementLabels(bool $includeMeta = false): array
     {
-        if ($this->elementLabels) {
-            return $this->elementLabels;
+        if (!$this->elementKeys) {
+            return [];
         }
-        $elmentLabels = [];
-        if ($this->data) {
-            foreach ($this->data as $rec) {
-                foreach ($rec->recData as $k => $v) {
-                    if (($k[0] !== '_') && !in_array($k, $elmentLabels)) {
-                        $elmentLabels[$k] = $k;
-                    }
-                }
-            }
-        }
+        $elmentLabels = array_values($this->elementKeys);
         if ($includeMeta || $this->includeMeta) {
             $elmentLabels[DATAREC_KEY] = DATAREC_KEY;
             $elmentLabels[DATAREC_UID] = DATAREC_UID;
             $elmentLabels[DATAREC_TIMESTAMP] = DATAREC_TIMESTAMP;
         }
-        $this->elementLabels = $elmentLabels;
         return $elmentLabels;
     } // getElementLabels
 
@@ -1075,7 +1063,7 @@ class DataSet
                 $this->importFromMasterFile();
                 $this->updateCacheFile();
             } else {
-                $this->data = $this->readCacheFile();
+                $this->readCacheFile();
                 if (!$this->data) { // just in case cacheFile was empty, e.g. due to a previously aborted run
                     $this->importFromMasterFile();
                 }
@@ -1098,12 +1086,17 @@ class DataSet
             $textEncoding = $this->options['textEncoding'] ?? false;
             try {
                 $data = readFileLocking($this->file, $this->type, textEncoding: $textEncoding);
+                if (!$data) {
+                    return;
+                }
+
                 $rec0 = reset($data);
                 if (isset($rec0['_uid'])) {
                     $oldData = false;
                 } else {
                     if (file_exists($this->cacheFile)) {
-                        $oldData = unserialize(readFileLocking($this->cacheFile));
+                        $obj = unserialize(readFileLocking($this->cacheFile));
+                        $oldData = $obj->data;
                     } else {
                         $oldData = [];
                     }
@@ -1231,12 +1224,12 @@ class DataSet
     {
         try {
             $ds = $this->clone();
-            $data = $ds->data;
+            $data = &$ds->data;
             if (is_array($data)) {
                 foreach ($data as $key => $rec) {
                     $data[$key]->parent = null;
                 }
-                writeFileLocking($this->cacheFile, serialize($data));
+                writeFileLocking($this->cacheFile, serialize($ds));
             }
 
             // export debug copy if debug enabled:
@@ -1251,19 +1244,15 @@ class DataSet
 
     /**
      * Reads cache file and returns restored data-set.
-     * @return array
+     * @return void
      * @throws \Exception
      */
-    protected function readCacheFile(): array
+    protected function readCacheFile(): void
     {
-        $data = unserialize(readFileLocking($this->cacheFile));
-        // restore parent references:
-        if ($data && is_array($data)) {
-            foreach ($data as $key => $rec) {
-                $data[$key]->parent = $this;
-            }
+        $obj = unserialize(readFileLocking($this->cacheFile));
+        foreach ($obj as $key => $value) {
+            $this->$key = $value;
         }
-        return $data;
     } // readCacheFile
 
 
@@ -1363,6 +1352,7 @@ class DataSet
         $str .= "name: $this->name\n";
         $str .= "file: $this->file\n";
         $str .= "type: $this->type\n";
+        $str .= "elementKeys: ".var_r($this->elementKeys, '', true)."\n";
         $str .= "cacheFile: $this->cacheFile\n";
         $str .= "lockFile: $this->lockFile\n";
         $str .= "readWriteMode: " . ($this->readWriteMode ? 'true' : 'false') . "\n";

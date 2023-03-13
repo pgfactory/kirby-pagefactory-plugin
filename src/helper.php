@@ -1,16 +1,23 @@
 <?php
-
 namespace Usility\PageFactory;
 
  // Use helper functions with prefix '\Usility\PageFactory\'
-use \Kirby\Data\Yaml as Yaml;
-use \Kirby\Data\Json as Json;
+use Kirby\Data\Yaml as Yaml;
+use Kirby\Data\Json as Json;
 use Kirby\Data\Data;
-use \Kirby\Filesystem\F;
+ use Kirby\Exception\InvalidArgumentException;
+ use Kirby\Filesystem\F;
 use Exception;
+ use Usility\MarkdownPlus\MarkdownPlus;
 
 const FILE_BLOCKING_MAX_TIME = 500; //ms
 const FILE_BLOCKING_CYCLE_TIME = 50; //ms
+
+const UNAMBIGUOUS_CHARACTERS = '3479ACDEFHJKLMNPQRTUVWXY'; // -> excludes '0O2Z1I5S6G8B'
+
+define('KIRBY_ROOTS',           kirby()->roots()->toArray());
+define('KIRBY_ROOT_PATTERNS',   ','.implode(',', array_keys(KIRBY_ROOTS)).',');
+
 
  /**
   * Checks whether agent is in the same subnet as IP 192.x.x.x
@@ -22,8 +29,8 @@ function isLocalhost(): bool
     if (($_GET['localhost']??'') === 'false') {
         return false;
     }
-    $remoteAddress = isset($_SERVER["REMOTE_ADDR"]) ? $_SERVER["REMOTE_ADDR"] : 'REMOTE_ADDR';
-    return (($remoteAddress == 'localhost') || (strpos($remoteAddress, '192.') === 0) || ($remoteAddress == '::1'));
+    $remoteAddress = $_SERVER["REMOTE_ADDR"] ?? 'REMOTE_ADDR';
+    return (($remoteAddress == 'localhost') || (str_starts_with($remoteAddress, '192.')) || ($remoteAddress == '::1'));
 } // isLocalhost
 
 
@@ -75,32 +82,39 @@ function isLoggedinOrLocalhost(): bool
 
 
  /**
-  * Appends string to a file.
-  * @param string $file
-  * @param string $str
-  * @param string $headerIfEmpty    If the file is empty, $headerIfEmpty will be written at the top.
-  * @throws Exception
+  * Returns true, if request (probably) came from a bot
+  * @return bool
   */
-function appendFile(string $file, string $str, string $headerIfEmpty = ''): void
-{
-    if (!$file || !is_string($file)) {
-        return;
-    }
-
-    $file = resolvePath($file);
-    preparePath($file);
-    $data = fileGetContents($file);
-    if (!$data) {
-        file_put_contents($file, $headerIfEmpty . $str);
-
-    } elseif (($p = strpos($data, '__END__')) === false) {
-        file_put_contents($file, $str, FILE_APPEND);
-
-    } else {
-        $str = substr($data, 0, $p) . $str . substr($data, $p);
-        file_put_contents($file, $str);
-    }
-} // appendFile
+ function isBot(): bool {
+     if ( preg_match('/abacho|accona|AddThis|AdsBot|ahoy|AhrefsBot|AISearchBot|alexa|altavista|anthill|'.
+         'appie|applebot|arale|araneo|AraybOt|ariadne|arks|aspseek|ATN_Worldwide|Atomz|baiduspider|baidu|bbot|bingbot'.
+         '|bing|Bjaaland|BlackWidow|BotLink|bot|boxseabot|bspider|calif|CCBot|ChinaClaw|christcrawler|CMC\/0\.01|'.
+         'combine|confuzzledbot|contaxe|CoolBot|cosmos|crawler|crawlpaper|crawl|curl|cusco|cyberspyder|cydralspider|'.
+         'dataprovider|digger|DIIbot|DotBot|downloadexpress|DragonBot|DuckDuckBot|dwcp|EasouSpider|ebiness|'.
+         'ecollector|elfinbot|esculapio|ESI|esther|eStyle|Ezooms|facebookexternalhit|facebook|facebot|fastcrawler|'.
+         'FatBot|FDSE|FELIX IDE|fetch|fido|find|Firefly|fouineur|Freecrawl|froogle|gammaSpider|gazz|gcreep|geona|'.
+         'Getterrobo-Plus|get|girafabot|golem|googlebot|-google|grabber|GrabNet|griffon|Gromit|gulliver|gulper|'.
+         'hambot|havIndex|hotwired|htdig|HTTrack|ia_archiver|iajabot|IDBot|Informant|InfoSeek|InfoSpiders|'.
+         'INGRID\/0\.1|inktomi|inspectorwww|Internet Cruiser Robot|irobot|Iron33|JBot|jcrawler|Jeeves|jobo|'.
+         'KDD-Explorer|KIT-Fireball|ko_yappo_robot|label-grabber|larbin|legs|libwww-perl|linkedin|Linkidator|'.
+         'linkwalker|Lockon|logo_gif_crawler|Lycos|m2e|majesticsEO|marvin|mattie|mediafox|mediapartners|MerzScope|'.
+         'MindCrawler|MJ12bot|mod_pagespeed|moget|Motor|msnbot|muncher|muninn|MuscatFerret|MwdSearch|'.
+         'NationalDirectory|naverbot|NEC-MeshExplorer|NetcraftSurveyAgent|NetScoop|NetSeer|newscan-online|'.
+         'nil|none|Nutch|ObjectsSearch|Occam|openstat.ru\/Bot|packrat|pageboy|ParaSite|patric|pegasus|'.
+         'perlcrawler|phpdig|piltdownman|Pimptrain|pingdom|pinterest|pjspider|PlumtreeWebAccessor|'.
+         'PortalBSpider|psbot|rambler|Raven|RHCS|RixBot|roadrunner|Robbie|robi|RoboCrawl|robofox|Scooter|'.
+         'Scrubby|Search-AU|searchprocess|search|SemrushBot|Senrigan|seznambot|Shagseeker|sharp-info-agent|'.
+         'sift|SimBot|Site Valet|SiteSucker|skymob|SLCrawler\/2\.0|slurp|snooper|solbot|speedy|spider_monkey|'.
+         'SpiderBot\/1\.0|spiderline|spider|suke|tach_bw|TechBOT|TechnoratiSnoop|templeton|teoma|titin|topiclink|'.
+         'twitterbot|twitter|UdmSearch|Ukonline|UnwindFetchor|URL_Spider_SQL|urlck|urlresolver|'.
+         'Valkyrie libwww-perl|verticrawl|Victoria|void-bot|Voyager|VWbot_K|wapspider|WebBandit\/1\.0|'.
+         'webcatcher|WebCopier|WebFindBot|WebLeacher|WebMechanic|WebMoose|webquest|webreaper|webspider|webs|'.
+         'WebWalker|WebZip|wget|whowhere|winona|wlm|WOLP|woriobot|WWWC|XGET|xing|yahoo|YandexBot|YandexMobileBot|'.
+         'yandex|yeti|Zeus/i', $_SERVER['HTTP_USER_AGENT'])) {
+         return true; // 'Above given bots detected'
+     }
+     return false;
+ } // isBot
 
 
  /**
@@ -112,11 +126,11 @@ function appendFile(string $file, string $str, string $headerIfEmpty = ''): void
   *         'hash'  -> #...
   *         'empty' -> remove empty lines
   *         'cStyle' -> // or /*
-  * @param bool $useCaching     In case of yaml files caching can be activated
-  * @return array|mixed|string|string[]
-  * @throws \Kirby\Exception\InvalidArgumentException
+  * @param bool $useCaching In case of yaml files caching can be activated
+  * @return string
+  * @throws InvalidArgumentException
   */
-function loadFile(string $file, mixed $removeComments = true, bool $useCaching = false)
+function loadFile(string $file, mixed $removeComments = true, bool $useCaching = false): mixed
 {
     if (!$file || !is_string($file)) {
         return '';
@@ -131,7 +145,7 @@ function loadFile(string $file, mixed $removeComments = true, bool $useCaching =
 
     // if it's data of a known format (i.e. yaml,json etc), decode it:
     $ext = fileExt($file);
-    if (strpos(',yaml,yml,json,csv', $ext) !== false) {
+    if (str_contains(',yaml,yml,json,csv', $ext)) {
         $data = Yaml::decode($data, $ext);
         if ($useCaching) {
             updateDataCache($file, $data);
@@ -148,7 +162,7 @@ function loadFile(string $file, mixed $removeComments = true, bool $useCaching =
   * @param mixed $removeComments
   * @param bool $useCaching
   * @return array|mixed|string|null
-  * @throws \Kirby\Exception\InvalidArgumentException
+  * @throws InvalidArgumentException
   */
 function loadFiles(mixed $files, mixed $removeComments = true, bool $useCaching = false): mixed
 {
@@ -207,37 +221,8 @@ function getFile(string $file, mixed $removeComments = true)
      // remove BOM
      $data = str_replace("\xEF\xBB\xBF", '', $data);
 
-     // special option 'zapped' -> return what would be zapped:
-     if (str_contains((string)$removeComments, 'zapped')) {
-         return zapFileEND($data, true);
-     }
+     $data = removeComments($data, $removeComments);
 
-     // always zap, unless $removeComments === false:
-     if ($removeComments) {
-         $data = zapFileEND($data);
-     }
-     // default (== true):
-     if ($removeComments === true) {
-         $data = removeCStyleComments($data);
-         $data = removeEmptyLines($data);
-
-     // specific instructions:
-     } elseif (is_string($removeComments)) {
-         // extract first characters from comma-separated-list:
-         $removeComments = implode('', array_map(function ($elem){
-             return strtolower($elem[0]);
-         }, explodeTrim(',',$removeComments)));
-
-         if (str_contains($removeComments, 'c')) {    // c style
-             $data = removeCStyleComments($data);
-         }
-         if (str_contains($removeComments, 'h')) {    // hash style
-             $data = removeHashTypeComments($data);
-         }
-         if (str_contains($removeComments, 'e')) {    // empty lines
-             $data = removeEmptyLines($data);
-         }
-     }
      return $data;
  } // getFile
 
@@ -393,7 +378,7 @@ function cacheFileName(string $file, string $tag = ''): string
   * Decodes Yaml to an array
   * @param string $str
   * @return array
-  * @throws \Kirby\Exception\InvalidArgumentException
+  * @throws InvalidArgumentException
   */
 function decodeYaml(string $str): array
  {
@@ -430,7 +415,7 @@ function extractKirbyFrontmatter(string $frontmatter): array
      // loop through all fields and add them to the content
      foreach ($fields as $field) {
          $pos = strpos($field, ':');
-         $key = str_replace(['-', ' '], '_', strtolower(trim(substr($field, 0, $pos))));
+         $key = camelCase(trim(substr($field, 0, $pos)));
 
          // Don't add fields with empty keys
          if (empty($key) === true) {
@@ -529,16 +514,11 @@ function localPath(string $absPath): string
   */
 function dir_name(string $path): string
 {
-    // last element considered a filename, if doesn't end in '/' and contains a dot
-    if (!$path) {
-        return '';
-    }
-
-    if ($path[strlen($path) - 1] === '/') {  // ends in '/'
+    if (!$path || str_starts_with($path, '/')) {
         return $path;
     }
-    $path = preg_replace('/[#?*].*/', '', $path);
-    if (strpos(basename($path), '.') !== false) {  // if it contains a '.' we assume it's a file
+    $path = preg_replace('/[#?*].*/', '', $path); //
+    if (str_contains(basename($path), '.')) {  // if it contains a '.' we assume it's a file
         return dirname($path) . '/';
     } else {
         return rtrim($path, '/') . '/';
@@ -562,13 +542,58 @@ function fixPath(string $path): string
 
 
  /**
+  * @param string $str
+  * @param mixed $removeComments
+  * @return string
+  */
+ function removeComments(string $str, mixed $removeComments = true): string
+{
+    // special option 'zapped' -> return what would be zapped:
+    if (str_contains((string)$removeComments, 'zapped')) {
+        return zapFileEND($str, true);
+    }
+
+    // always zap, unless $removeComments === false:
+    if ($removeComments) {
+        $str = zapFileEND($str);
+    }
+    // default (== true):
+    if ($removeComments === true) {
+        $str = removeCStyleComments($str);
+        $str = removeEmptyLines($str);
+
+        // specific instructions:
+    } elseif (is_string($removeComments)) {
+        // extract first characters from comma-separated-list:
+        $removeComments = implode('', array_map(function ($elem){
+            return strtolower($elem[0]);
+        }, explodeTrim(',',$removeComments)));
+
+        if (str_contains($removeComments, 'c')) {    // c style
+            $str = removeCStyleComments($str);
+        }
+        if (str_contains($removeComments, 'h')) {    // hash style
+            $str = removeHashTypeComments($str);
+        }
+        if (str_contains($removeComments, 'e')) {    // empty lines
+            $str = removeEmptyLines($str);
+        }
+    }
+    return $str;
+} // removeComments
+
+
+ /**
   * Zaps rest of file following pattern \n__END__
   * @param string $str
   * @return string
   */
 function zapFileEND(string $str, bool $reverse = false): string
 {
-    $p = strpos($str, "__END__\n");
+    if (($p = str_starts_with($str, '__END__')? 0 : false) === false) {
+        $p = strpos($str, "\n__END__");
+    }
+    // __END__ not found:
     if ($p === false) {
         if ($reverse) {
             return '';
@@ -576,6 +601,8 @@ function zapFileEND(string $str, bool $reverse = false): string
             return $str;
         }
     }
+
+    // __END__ found:
     if ($reverse) {
         $str = substr($str, $p);
     } else {
@@ -641,6 +668,10 @@ function removeCStyleComments(string $str): string
             continue;
         }
         $p2 = strpos($str, "*/", $p);
+        if ($p2 === false) {
+            $str = substr($str, 0, $p); // case: end */ missing -> cut off all
+            break;
+        }
         $str = substr($str, 0, $p) . substr($str, $p2 + 2);
     }
 
@@ -653,8 +684,7 @@ function removeCStyleComments(string $str): string
         }
 
         if ($p && ($str[$p - 1] === '\\')) {                    // avoid shielded //
-            $str = substr($str, 0, $p - 1) . substr($str, $p);
-            $p += 2;
+            $p += 3;
             continue;
         }
         $p2 = strpos($str, "\n", $p);
@@ -744,6 +774,10 @@ function getDirDeep(string $path, bool $onlyDir = false, bool $assoc = false, bo
     } else {
         $path = rtrim($path, ' *');
         $inclPat = false;
+    }
+
+    if (!is_dir($path)) {
+        throw new Exception("Folder doesn't exist: '$path'");
     }
 
     $it = new \RecursiveDirectoryIterator($path);
@@ -873,12 +907,10 @@ function resolvePath(string $path, bool $returnAbsPath = false, bool $relativeTo
     // first check for root-paths defined by kirby:
     if (($path[1]??'') !== '/') {
         $path1 = preg_replace('|/.*|', '', substr($path, 1));
-        $kirbyRoots = kirby()->roots()->toArray();
-        $kirbyRootsPattern = ','.implode(',', array_keys($kirbyRoots)).',';
 
         // '~assets/' is an exception: it shall point to 'content/assets/' rather than 'assets/':
-        if (($path1 !== 'assets') && (strpos($kirbyRootsPattern, ",$path1,") !== false)) {
-            $path = $kirbyRoots[$path1].substr($path, strlen($path1)+1);
+        if (($path1 !== 'assets') && (strpos(KIRBY_ROOT_PATTERNS, ",$path1,") !== false)) {
+            $path = KIRBY_ROOTS[$path1].substr($path, strlen($path1)+1);
             return $path;
         }
     }
@@ -889,17 +921,28 @@ function resolvePath(string $path, bool $returnAbsPath = false, bool $relativeTo
     } else {
         $appRoot = '';
     }
-    $pageRoot = PageFactory::$pageRoot;
-    $pathPatterns = [
-        '~/'            => $appRoot,
-        '~media/'       => $appRoot.'media/',
-        '~assets/'      => $appRoot.'content/assets/',
-        '~data/'        => $appRoot.'site/custom/data/',
-        '~page/'        => $pageRoot,
-        '~pagefactory/' => $appRoot.'site/plugins/pagefactory/assets/',
-    ];
-    $path = str_replace(array_keys($pathPatterns), array_values($pathPatterns), $path);
+    // ~pages/ is special case -> use Kirby to determine actual path:
+    if (str_starts_with($path, '~pages/')) {
+        $filename = basename($path);
+        $path = dirname(substr($path, 7));
+        $pg = page($path);
+        if ($pg) {
+            $path = $pg->root().'/'.$filename;
+        }
 
+    // other patterns:
+    } else {
+        $pageRoot = PageFactory::$pageRoot;
+        $pathPatterns = [
+            '~/' => $appRoot,
+            '~media/' => $appRoot . 'media/',
+            '~assets/' => $appRoot . 'content/assets/',
+            '~data/' => $appRoot . 'site/custom/data/',
+            '~page/' => $pageRoot,
+            '~pagefactory/' => $appRoot . 'site/plugins/pagefactory/assets/',
+        ];
+        $path = str_replace(array_keys($pathPatterns), array_values($pathPatterns), $path);
+    }
     return $path;
 } // resolvePath
 
@@ -1124,8 +1167,11 @@ function writeFile(string $file, string $content, int $flags = 0): void
              $array = parseCsv($str);
              $array2 = [];
              $headers = array_shift($array);
+             $nElems = sizeof($headers);
              foreach ($array as $rec) {
-                 $array2[] = array_combine($headers, $rec);
+                 if (sizeof($rec) === $nElems) {
+                     $array2[] = array_combine($headers, $rec);
+                 }
              }
              return $array2;
      }
@@ -1263,42 +1309,59 @@ function writeFile(string $file, string $content, int $flags = 0): void
 
 
  /**
-  * Parses a CSV string, converts it to an array
-  *  -> tries to guess delimiter and enclosing quotes, if not specified
-  * @param string $str
-  * @param bool $delim
-  * @param bool $enclos
+  * Converts a CSV-string into an array
+  * @param string $csv_string
+  * @param string $delimiter
   * @return array
   */
- function parseCsv(string $str, bool $delim = false, bool $enclos = false): array
- {
+function parseCsv (string $csv_string, mixed $delimiter = false): array
+{
+    if (!$delimiter) {
+        $delimiter = (substr_count($csv_string, ',') > substr_count($csv_string, ';')) ? ',' : ';';
+        $delimiter = (substr_count($csv_string, $delimiter) > substr_count($csv_string, "\t")) ? $delimiter : "\t";
+    }
+    $enc = decodeCharset($csv_string);
+    $lines = preg_split('/( *\R)+/s', $enc);
+    $lines = array_filter($lines);
+    return array_map(
+        function ($line) use ($delimiter) {
+            $fields = array_map('trim', explode($delimiter, $line));
+            return array_map(
+                function ($field) {
+                    if (preg_match('/^ (["\']) (.*) \1 $/x', $field, $m)) {
+                        $field = $m[2];
+                    }
+                    $field = preg_replace('/(?<!")""/', '"', $field);
+                    return $field;
+                },
+                $fields
+            );
+        },
+        $lines
+    );
+} // parseCsv
 
-     if (!$delim) {
-         $delim = (substr_count($str, ',') > substr_count($str, ';')) ? ',' : ';';
-         $delim = (substr_count($str, $delim) > substr_count($str, "\t")) ? $delim : "\t";
-     }
-     if (!$enclos) {
-         if (strpbrk($str[0], '"\'')) {
-             $enclos = $str[0];
-         } else {
-             $enclos = (substr_count($str, '"') > substr_count($str, "'")) ? '"' : "'";
-         }
-     }
-     if (strpos($str,"\r") !== false) {
-         $str = str_replace(["\n\r","\r\n","\r"], "\n", $str);
-     }
-     $lines = explode(PHP_EOL, $str);
-     $array = array();
-     foreach ($lines as $line) {
-         if (!$line) { continue; }
-         $line = str_replace("\\n", "\n", $line);
-         $array[] = str_getcsv($line, $delim, $enclos);
-     }
-     return $array;
- } // parseCsv
 
-
-
+ /**
+  * Re-codes given string to UTF-8. If $textEncoding is not defined, tries to guess the correct charset.
+  * @param string $str
+  * @param mixed $textEncoding
+  * @return string
+  */
+ function decodeCharset(string $str, mixed $textEncoding = true): string
+{
+    if ($textEncoding) {
+        if ($textEncoding !== true) {
+            $str = iconv($textEncoding, 'UTF-8', $str);
+        } else { // try to auto-detect:
+            $encoding = mb_detect_encoding($str) ?: 'macintosh';
+            if ($encoding !== 'UTF-8') {
+                $str = iconv($encoding, 'UTF-8', $str);
+            }
+        }
+    }
+    return $str;
+} // decodeCharset
 
 
  /**
@@ -1440,7 +1503,7 @@ function indentLines(string $str, int $width = 4): string
   * @param string $delim
   * @param mixed $superBrackets
   * @return array
-  * @throws \Kirby\Exception\InvalidArgumentException
+  * @throws InvalidArgumentException
   */
 function parseArgumentStr(string $str, string $delim = ',', mixed $superBrackets = false): array
 {
@@ -1454,7 +1517,7 @@ function parseArgumentStr(string $str, string $delim = ',', mixed $superBrackets
         return [ $str ];
     }
 
-    // if string starts with { we assume it's json:
+    // if string starts with { we assume it's "non-relaxed" json:
     if (($str[0] === '{') && (strpos($str, '<raw>') !== 0) && (strpos($str, '{md{') !== 0)) {
         return Json::decode($str);
     }
@@ -1469,36 +1532,45 @@ function parseArgumentStr(string $str, string $delim = ',', mixed $superBrackets
         $rest = rtrim($mm[1], " \t\n");
     }
 
-    $yaml = '';
+    $json = '';
     $counter = 100;
+    $index = 0;
     while ($rest && ($counter-- > 0)) {
         $key = parseArgKey($rest, $delim);
         $ch = ltrim($rest);
         $ch = $ch[0]??'';
         if ($ch !== ':') {
-            $yaml .= "- $key\n";
+            $json .= "\"$index\": $key,";
             $rest = ltrim($rest, " $delim\n");
         } else {
             $rest = ltrim(substr($rest, 1));
             $value = parseArgValue($rest, $delim);
-            if (trim($value) !== '') {
-                $yaml .= "$key: $value\n";
-            } else {
-                $yaml .= "$key:\n";
-            }
+            $json .= "$key: $value,";
+//            if (!is_string($value)) {
+//            if (is_bool($value) || (trim($value) !== '')) {
+//                $json .= "$key: $value,";
+//            } else {
+//                $json .= "$key: "; //??
+//            }
         }
+        $index++;
     }
 
-    $options = Yaml::decode($yaml);
+    $json = rtrim($json, ',');
+    $json = '{'.$json.'}';
+    $options = json_decode($json, true);
+    if ($options === null) {
+        $options = [];
+    }
 
     // case a value was written in '{...}' notation -> unpack:
-    if (str_contains($yaml, '<raw>')) {
-        foreach ($options as $key => $value) {
-            if (str_starts_with($value, '<raw>')) {
-                $options[$key] = unshieldStr($value, true);
-            }
-        }
-    }
+//    if (str_contains($json, '<raw>')) {
+//        foreach ($options as $key => $value) {
+//            if (str_starts_with($value, '<raw>')) {
+//                $options[$key] = unshieldStr($value, true);
+//            }
+//        }
+//    }
 
     if ($superBrackets) {
         $options = superBracketsDecode($options);
@@ -1570,7 +1642,6 @@ function superBracketsDecode(mixed $item): mixed
   */
 function parseArgKey(string &$rest, string $delim): string
 {
-    $lead = '';
     $key = '';
     $rest = ltrim($rest);
     // case quoted key or value:
@@ -1591,7 +1662,8 @@ function parseArgKey(string &$rest, string $delim): string
             $rest = $m[2];
         }
     }
-    return "'$key'";
+    $key = preg_replace('/(?<!\\\)"/', '\\"', $key);
+    return "\"$key\"";
 } // parseArgKey
 
 
@@ -1601,7 +1673,7 @@ function parseArgKey(string &$rest, string $delim): string
   * @param string $delim
   * @return string
   */
-function parseArgValue(string &$rest, string $delim): string
+function parseArgValue(string &$rest, string $delim): mixed
 {
     // case quoted key or value:
     $value = '';
@@ -1612,16 +1684,16 @@ function parseArgValue(string &$rest, string $delim): string
         $pattern = "$ch1 (.*?) $ch1";
         // case 'value' without key:
         if (preg_match("/^ ($pattern) (.*)/xms", $rest, $m)) {
-            $value = $m[1];
+            $value = $m[2];
             $rest = ltrim($m[3], ', ');
         }
 
-    // case '{'-wrapped value -> shield value from Yaml-compiler (workaround for bug in Yaml-compiler):
+    // case string wrapped in {} -> assume it's propre Json:
     } elseif ($ch1 === '{') {
         $p = strPosMatching($rest, 0, '{', '}');
-        $value = substr($rest, $p[0]+1, $p[1]-$p[0]-1);
+        $value = substr($rest, $p[0], $p[1]-$p[0]+1);
         $rest = substr($rest, $p[1]+1);
-        return shieldStr($value);
+        return $value;
 
     } else {
         // case value without key:
@@ -1631,6 +1703,16 @@ function parseArgValue(string &$rest, string $delim): string
             $rest = ltrim($m[2], ', ');
         }
     }
+    $value = fixDataType($value);
+    if (is_string($value)) {
+        $value = '"' . trim($value) . '"';
+    } elseif (is_bool($value)) {
+        $value = $value? 'true': 'false';
+    }
+//    if (($value !== 'true') && ($value !== 'false')) {
+//        $value = preg_replace('/(?!\\\\)"/', '\\"', $value);
+//        $value = '"' . $value . '"';
+//    }
     $pattern = "^[$delim\n]+";
     $rest = preg_replace("/$pattern/", '', $rest);
     return $value;
@@ -1652,6 +1734,15 @@ function parseArgValue(string &$rest, string $delim): string
      if (!$str) {
          return [false, false];
      }
+
+     // simple case: both patterns are equal -> no need to check for nested patterns:
+     if ($pat1 === $pat2) {
+         $p1 = strpos($str, $pat1);
+         $p2 = strpos($str, $pat1, $p1+1);
+         return [$p1, $p2];
+     }
+
+     // opening and closing patterns -> need to check for nested patterns:
      checkBracesBalance($str, $p0, $pat1, $pat2);
 
      $d = strlen($pat2);
@@ -1674,7 +1765,7 @@ function parseArgValue(string &$rest, string $delim): string
          if ($p2 === false) { // no more closing pat
              return [false, false];
          }
-         if ($cnt === 0) {	// not in nexted structure
+         if ($cnt === 0) {	// not in next structure
              if ($p3 === false) {	// no more opening pat
                  return [$p0, $p2];
              }
@@ -2017,9 +2108,43 @@ function explodeTrim(string $sep, string $str, bool $excludeEmptyElems = false):
 * @param string $mdStr
 * @return string
 */
-function compileMarkdown(string $mdStr): string
+function compileMarkdown(string $mdStr, bool $omitPWrapperTag = false): string
 {
-    return PageFactory::$md->compile($mdStr);
+    return markdown($mdStr, $omitPWrapperTag);
+} // compileMarkdown
+
+
+ /**
+  * @param string $mdStr
+  * @param bool $omitPWrapperTag
+  * @return string
+  * @throws Exception
+  */
+ function markdown(string $mdStr, bool $omitPWrapperTag = false): string
+{
+    if ($mdStr) {
+        $md = new MarkdownPlus();
+        return $md->compile($mdStr, $omitPWrapperTag);
+    } else {
+        return '';
+    }
+} // compileMarkdown
+
+
+ /**
+  * @param string $mdStr
+  * @param bool $omitPWrapperTag
+  * @return string
+  * @throws Exception
+  */
+ function markdownParagrah(string $mdStr, bool $omitPWrapperTag = false): string
+{
+    if ($mdStr) {
+        $md = new MarkdownPlus();
+        return $md->compileParagraph($mdStr, $omitPWrapperTag);
+    } else {
+        return '';
+    }
 } // compileMarkdown
 
 
@@ -2046,12 +2171,15 @@ function shieldStr(string $str, bool $mdCompile = false): string
 * @param string $str
 * @return string
 */
-function unshieldStr(string $str, bool $unshieldLiteral = false): string
+function unshieldStr(string $str, bool $unshieldLiteral = null): string
 {
-    if ($unshieldLiteral && preg_match_all('|<raw>(.*?)</raw>|m', $str, $m)) {
-        foreach ($m[1] as $i => $item) {
-            $literal = base64_decode($m[1][$i]);
-            $str = str_replace($m[0][$i], $literal, $str);
+    if ($unshieldLiteral !== false) {
+        $str = str_replace(['&lt;raw&gt;','&lt;/raw&gt;'], ['<raw>','</raw>'], $str);
+        if (preg_match_all('|<raw>(.*?)</raw>|m', $str, $m)) {
+            foreach ($m[1] as $i => $item) {
+                $literal = base64_decode($m[1][$i]);
+                $str = str_replace($m[0][$i], $literal, $str);
+            }
         }
     }
     if (preg_match_all('|<md>(.*?)</md>|m', $str, $m)) {
@@ -2186,22 +2314,35 @@ function translateToIdentifier(string $str, bool $toCamelCase = false, bool $rem
 } // translateToIdentifier
 
 
- /**
-  * Translates a given string to a legal class name or id
-  * @param string $str
-  * @return string
-  */
-function translateToClassName(string $str): string
+/**
+ * Translates a given string to a legal class name or id
+ * @param string $str
+ * @param bool $handleLeadingNonChar
+ * @return string
+ */
+function translateToClassName(string $str, bool $handleLeadingNonChar = true): string
 {
     $str = strip_tags($str);					// strip any html tags
     $str = strToASCII(mb_strtolower($str));		// replace special chars
     $str = preg_replace(['|[./]|', '/\s+/'], '-', $str);		// replace blanks, '.' and '/' with '-'
     $str = preg_replace("/[^[:alnum:]_-]/m", '', $str);	// remove any non-letters, except '_' and '-'
-    if (!preg_match('/[a-z]/', ($str[0]??''))) { // prepend '_' if first char non-alpha
+    if ($handleLeadingNonChar && !preg_match('/[a-z]/', ($str[0]??''))) { // prepend '_' if first char non-alpha
         $str = "_$str";
     }
     return $str;
 } // translateToClassName
+
+
+ /**
+  * @param string $str
+  * @return string
+  */
+ function camelCase(string $str): string
+{
+    $str = str_replace(['-','_'], '', ucwords(str_replace(' ','-', $str), '-'));
+    return lcfirst($str);
+}    // camelCase
+
 
 
  /**
@@ -2219,7 +2360,7 @@ function var_r($var, string $varName = '', bool $flat = false, bool $toHtml = fa
     if ($varName) {
         $varName .= ': ';
     }
-    $str = '';
+
     if (is_scalar($var)) {
         $out = "$varName$var";
 
@@ -2488,4 +2629,78 @@ function iconExists(string $iconName): bool
          + $replacement
          + array_slice($input, $offset + $length, NULL, TRUE);
  } // array_splice_assoc
+
+
+ /**
+  * @param string $key
+  * @param bool $asString
+  * @return mixed
+  */
+ function getStaticUrlArg(string $key, bool $asString = false): mixed
+{
+    $value = null;
+    if (isset($_GET[$key])) {
+        $value = $_GET[$key];
+        if (!$asString) {
+            $value = ($value !== 'false');
+        }
+        PageFactory::$session->set("pfy.$key", $value);
+    } else {
+        $value = PageFactory::$session->get("pfy.$key");
+        if ($value) {
+            return $value;
+        }
+    }
+    return $value;
+} // getStaticUrlArg
+
+
+ /**
+  * @param string $value
+  * @return mixed
+  */
+ function fixDataType(mixed $value): mixed
+{
+    if (!is_string($value)) {
+        return $value;
+    }
+
+    if ($value === '0') { // we must check this before empty because zero is empty
+        return 0;
+    }
+
+    if (empty($value)) {
+        return '';
+    }
+
+    if ($value === 'null') {
+        return null;
+    }
+
+    if ($value === 'undefined') {
+        return null;
+    }
+
+    if ($value === '1') {
+        return 1;
+    }
+
+    if (!preg_match('/[^0-9.]+/', $value)) {
+        if(preg_match('/[.]+/', $value)) {
+            return (double)$value;
+        }else{
+            return (int)$value;
+        }
+    }
+
+    if ($value == 'true') {
+        return true;
+    }
+
+    if ($value == 'false') {
+        return false;
+    }
+
+    return (string)$value;
+} // fixDataType
 

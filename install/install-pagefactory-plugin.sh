@@ -30,6 +30,8 @@ fi
 echo Now installing Pagefactory
 
 ## Clone PageFactory:
+/usr/local/bin/git clone https://github.com/amteich/kirby-twig.git site/plugins/kirby-twig
+/usr/local/bin/git clone https://github.com/pgfactory/markdownplus.git site/plugins/markdownplus
 /usr/local/bin/git clone $branch https://github.com/pgfactory/kirby-pagefactory-plugin.git site/plugins/pagefactory
 echo PageFactory installed
 
@@ -41,12 +43,12 @@ if [ ! -e site/templates/page_template.html ]; then
 	echo Essential files copied to final location
 fi
 
-## text files in page folders (aka meta-files) need to be called 'z_pfy.txt' for PageFactory to become active:
+## text files in page folders (aka meta-files) need to be called 'z.txt' for PageFactory to become active:
 if [ -e content/home/home.txt ]; then
-	mv content/home/home.txt content/home/z_pfy.txt
+	mv content/home/home.txt content/home/z.txt
 fi
 if [ -e content/1_home/home.txt ]; then
-	mv content/1_home/home.txt content/1_home/z_pfy.txt
+	mv content/1_home/home.txt content/1_home/z.txt
 fi
 
 echo

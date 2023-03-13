@@ -12,6 +12,7 @@ const DEFAULT_ASSET_GROUPS = [
     // Note: plugin assets are made available via URL 'media/plugins/usility/pagefactory/...':
     'site/plugins/pagefactory/assets/css/-pagefactory.css' => [   // $dest
         'site/plugins/pagefactory/scss/autoload/*',               // $sources
+        'site/plugins/markdownplus/assets/css/*',
     ],
     // scss-compile to site/plugins/pagefactory/css/xy.css, where xy is filename of source
     'site/plugins/pagefactory/assets/css/' => [
@@ -45,10 +46,6 @@ const ASSET_URL_DEFINITIONS = [
         'site/plugins/pagefactory/assets/js/quickview.js',
         'site/plugins/pagefactory/assets/css/-quickview.css',
     ],
-//    'REVEAL' => [
-//        'site/plugins/pagefactory/assets/js/reveal.js',
-//        'site/plugins/pagefactory/assets/css/-reveal.css',
-//    ],
     'PAGE_SWITCHER' => [
         'site/plugins/pagefactory/assets/css/-page-switcher.css',
         'site/plugins/pagefactory/assets/js/page-switcher.js',
@@ -71,8 +68,8 @@ const SYSTEM_ASSETS = [
 
 class Assets
 {
-    private $pfy;
     public  $assetQueue = [];
+    public  $systemAssets;
     public  $jsFrameworkRequired = false;
     private $scssModified = false;
     private $hostUrl;
@@ -90,8 +87,7 @@ class Assets
      */
     public function __construct($pfy = null)
     {
-        $this->pfy = $pfy;
-        $this->sc = new Scss($this->pfy);
+        new Scss();
 
         $this->hostUrl = PageFactory::$hostUrl;
         $this->hostUrlLen = strlen($this->hostUrl)-1;
@@ -102,6 +98,7 @@ class Assets
         if (!($this->assetGroups = PageFactory::$config['assetGroups']??false)) {
             $this->assetGroups = DEFAULT_ASSET_GROUPS;
         }
+        $this->prepareAssets();
     } // __construct
 
 
@@ -192,7 +189,7 @@ class Assets
 
 
     /**
-     * Removes stylem styles from asset queue -> called if template doesn't contain 'pfy-default-styling'
+     * Removes system styles from asset queue -> called if template doesn't contain 'pfy-default-styling'
      * @return void
      */
     public function excludeSystemAssets(): void
@@ -492,7 +489,7 @@ class Assets
         if (($jsOrCss === 'css') && ($scssFiles = getDir($this->pageFolderPath.'*.scss'))) {
             // compile any scss files in page folder:
             foreach ($scssFiles as $file) {
-                $this->compileScss($file, $file);
+                Scss::updateFile($file, $file);
             }
         }
 
@@ -629,7 +626,7 @@ class Assets
         $tTarget = lastModified($targetFile, false);
         $tSrc = lastModified($srcFile, false);
         if ($tTarget < $tSrc) {
-            $this->sc->compileFile($srcFile, $targetFile);
+            Scss::compileFile($srcFile, $targetFile);
             $this->scssModified = true;
         }
         return $targetFile;

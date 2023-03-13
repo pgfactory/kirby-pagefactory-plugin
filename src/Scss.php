@@ -1,20 +1,19 @@
 <?php
 
 namespace Usility\PageFactory;
+use Kirby\Exception\InvalidArgumentException;
 use ScssPhp\ScssPhp\Compiler;
-use Exception;
 
 class Scss
 {
+    private static object $scssphp;
+
     /**
      * @param $pfy
      */
-    public function __construct($pfy)
+    public function __construct()
     {
-        $this->pfy = $pfy;
-        $this->pages = PageFactory::$pages;
-        $this->individualFiles = [];
-        $this->scssphp = new Compiler;
+        self::$scssphp = new Compiler;
     }
 
 
@@ -24,14 +23,34 @@ class Scss
      * @return string
      * @throws \ScssPhp\ScssPhp\Exception\SassException
      */
-    public function compileStr(string $scssStr): string
+    public static function compileStr(string $scssStr): string
     {
-        if (!$this->scssphp) {
-            $this->scssphp = new Compiler;
+        if (!self::$scssphp) {
+            self::$scssphp = new Compiler;
         }
-        $scssStr = $this->resolvePaths($scssStr);
-        return $this->scssphp->compileString($scssStr)->getCss();
+        $scssStr = self::resolvePaths($scssStr);
+        return self::$scssphp->compileString($scssStr)->getCss();
     } // compileStr
+
+
+    /**
+     * @param string $srcFile
+     * @param string $targetPath
+     * @return string|false
+     * @throws \ScssPhp\ScssPhp\Exception\SassException
+     */
+    public static function updateFile(string $srcFile, string $targetPath): string|false
+    {
+        $targetPath = self::dir_name($targetPath);
+        $targetFile = $targetPath.'-'.basename($srcFile, 'scss').'css'; // mark compiled assets with '-'
+        $tTarget = fileTime($targetFile);
+        $tSrc = fileTime($srcFile);
+        if ($tTarget < $tSrc) {
+            self::compileFile($srcFile, $targetFile);
+            return $targetFile;
+        }
+        return false;
+    } // updateFile
 
 
     /**
@@ -40,14 +59,14 @@ class Scss
      * @param string $targetFile
      * @throws \ScssPhp\ScssPhp\Exception\SassException
      */
-    public function compileFile(string $srcFile, string $targetFile): void
+    public static function compileFile(string $srcFile, string $targetFile): void
     {
         if (fileExt($srcFile) !== 'scss') { // skip any non-scss files
             return;
         }
-        $srcStr = $this->getFile($srcFile);
-        $this->scssphp->setImportPaths(dir_name($srcFile));
-        $css = $this->compileStr($srcStr);
+        $srcStr = self::getFile($srcFile);
+        self::$scssphp->setImportPaths(dir_name($srcFile));
+        $css = self::compileStr($srcStr);
         $css = "/* === Automatically created from ".basename($srcFile)." - do not modify! === */\n\n$css";
         file_put_contents($targetFile, $css);
     } // compileFile
@@ -58,7 +77,7 @@ class Scss
      * @param $srcStr
      * @return array|string|string[]
      */
-    private function resolvePaths($srcStr)
+    private static function resolvePaths($srcStr)
     {
         $appRoot = PageFactory::$appUrl;
         $pathPatterns = [
@@ -68,15 +87,33 @@ class Scss
         $srcStr = str_replace(array_keys($pathPatterns), array_values($pathPatterns), $srcStr);
 
         return $srcStr;
-    } // $this->resolvePaths
+    } // resolvePaths
+
+
+    /**
+     * @param string $path
+     * @return string
+     */
+    private static function dir_name(string $path): string
+    {
+        if (!$path || str_starts_with($path, '/')) {
+            return $path;
+        }
+        if (str_contains(basename($path), '.')) {  // if it contains a '.' we assume it's a file
+            return dirname($path) . '/';
+        } else {
+            return rtrim($path, '/') . '/';
+        }
+    } // dir_name
 
 
     /**
      * Reads a file and injects comments cotaining line numbers, if requested by settings
      * @param string $file
      * @return string
+     * @throws InvalidArgumentException
      */
-    private function getFile(string $file): string
+    private static function getFile(string $file): string
     {
         $compileScssWithLineNumbers = PageFactory::$config['debug_compileScssWithLineNumbers'];
         if ($compileScssWithLineNumbers) {
@@ -88,7 +125,7 @@ class Scss
             $out = '';
             $inComment = false;
             foreach ($lines as $i => $l) {
-                $cont = $this->skipComments($l, $inComment);
+                $cont = self::skipComments($l, $inComment);
                 if ($cont === 'break') {
                     break;
                 } elseif ($cont === 'continue') {
@@ -101,7 +138,7 @@ class Scss
                     $out .= $l . "\n";
                 }
             }
-            $out = $this->removeEmptyRules($out);
+            $out = self::removeEmptyRules($out);
         } else {
             $out = loadFile($file);
         }
@@ -115,7 +152,7 @@ class Scss
      * @param $inComment
      * @return false|string
      */
-    private function skipComments(&$l, &$inComment)
+    private static function skipComments(&$l, &$inComment)
     {
         $result = false;
         if ($l === '__END__') {
@@ -149,7 +186,7 @@ class Scss
      * @param string $css
      * @return string
      */
-    private function removeEmptyRules(string $css): string
+    private static function removeEmptyRules(string $css): string
     {
         $p1 = strpos($css, '}');
         while ($p1 !== false) {

@@ -3,22 +3,24 @@
 namespace Usility\PageFactory;
 
 use Kirby;
+use Kirby\Data\Yaml;
+use Matrix\Exception;
+use ScssPhp\ScssPhp\Exception\SassException;
 
- // filesystem paths:
+// filesystem paths:
 const PFY_BASE_PATH =              'site/plugins/pagefactory/';
-const PFY_DEFAULT_TEMPLATE_FILE =  'site/templates/page_template.html';
 const PFY_CONTENT_ASSETS_PATH =    'content/assets/';
 const PFY_ASSETS_PATH =            'site/plugins/pagefactory/assets/';
 const PFY_ICONS_PATH =             'site/plugins/pagefactory/assets/icons/';
-const PFY_SVG_ICONS_PATH =         'site/plugins/pagefactory/assets/svg-icons/';
+const PFY_SVG_ICONS_PATH =         'site/plugins/markdownplus/assets/svg-icons/';
 const PFY_CONFIG_FILE =            'site/config/config.php';
 const PFY_CUSTOM_PATH =            'site/custom/';
 const PFY_USER_CODE_PATH =         PFY_CUSTOM_PATH.'macros/';
+const PFY_CUSTOM_CODE_PATH =       PFY_CUSTOM_PATH.'autoexecute/';
 const PFY_MACROS_PATH =            PFY_BASE_PATH.'macros/';
-define('PFY_LOGS_PATH',           'site/logs/');
-define('PFY_CACHE_PATH',           PFY_CUSTOM_PATH.'.#cache/'); // available in extensions
+define('PFY_LOGS_PATH',            'site/logs/');
+define('PFY_CACHE_PATH',           'site/cache/pagefactory/'); // available in extensions
 const PFY_MKDIR_MASK =             0700; // permissions for file accesses by PageFactory
-const PFY_DEFAULT_TRANSVARS =      PFY_BASE_PATH.'variables/pagefactory.yaml';
 
  // URLs:
 const PFY_BASE_ASSETS_URL =        'media/plugins/usility/';
@@ -28,30 +30,22 @@ const PAGED_POLYFILL_SCRIPT_URL =  PFY_ASSETS_URL.'js/paged.polyfill.min.js';
 const DEFAULT_FRONTEND_FRAMEWORK_URLS = ['js' => PFY_ASSETS_URL.'js/jquery-3.6.1.min.js'];
 
  // use this name for meta-files (aka text-files) in page folders:
-define('PFY_PAGE_DEF_BASENAME',     'z_pfy'); // 'define' required by site/plugins/pagefactory/index.php
+define('PFY_PAGE_META_FILE_BASENAME','z'); // 'define' required by site/plugins/pagefactory/index.php
 
 define('OPTIONS_DEFAULTS', [
-    'handleKirbyFrontmatter'        => false,
     'screenSizeBreakpoint'          => 480,
     'defaultLanguage'               => 'en',
-    'allowNonPfyPages'              => false,  // -> if true, Pagefactory will skip checks for presence of metafiles
-    'externalLinksToNewWindow'      => true,   // -> used by Link() -> whether to open external links in new window
+    'allowNonPfyPages'              => false, // -> if true, Pagefactory will skip checks for presence of metafiles
+    'externalLinksToNewWindow'      => true,  // -> used by Link() -> whether to open external links in new window
     'imageAutoQuickview'            => true,  // -> used by Img() macro
     'imageAutoSrcset'               => true,  // -> used by Img() macro
     'divblock-chars'                => '@%',  // possible alternative: ':$@%'
+    'includeMetaFileContent'        => true,  // -> option for website using '(include: *.md)' in metafile
+                                              // e.g. when converting from MdP site to Pfy
+    'activateH1Sections'            => false, //
+    'sourceWrapperTag'              => 'section', //
+    'sourceWrapperClass'            => '', //
     // 'timezone' => 'Europe/Zurich', // PageFactory tries to guess the timezone - you can override this manually
-
-    'variables' => [
-        'pfy-page-title' => '{{ kirby-page-title }} / {{ kirby-site-title }}',
-        'webmaster-email' => 'webmaster@'.preg_replace('|^https?://([\w.-]+)(.*)|', "$1", site()->url()),
-        'pfy-menu-icon' => svg('site/plugins/pagefactory/assets/icons/menu.svg'),
-        'pfy-small-screen-header' => <<<EOT
-        <h1>{{ kirby-site-title }}</h1>
-        <button id="pfy-nav-menu-icon">{{ pfy-menu-icon }}</button>
-EOT,
-
-        'pfy-footer' => ' Footer...',
-    ],
 
     // optionally define files to be used as css/js framework (e.g. jQuery or bootstrap etc):
     //    'frontendFrameworkUrls' => [
@@ -71,7 +65,10 @@ require_once __DIR__ . '/helper.php';
 
 class PageFactory
 {
+    public static $kirby;
+    public static $page;
     public static $pages;
+    public static $site;
     public static $siteFiles;
     public static $appRoot;
     public static $appRootUrl;
@@ -87,90 +84,93 @@ class PageFactory
     public static $lang;
     public static $langCode;
     public static $defaultLanguage;
+    public static $supportedLanguages;
     public static $trans;
     public static $pg;
     public static $md;
-    public static $availableExtensions = [];
-    public static $loadedExtensions = [];
     public static $debug;
     public static $isLocalhost;
     public static $timer;
     public static $user;
     public static $slug;
+    public static $pageId;
     public static $urlToken; // the hash code extracted from HTTP request (e.g. home/ABCDEF)
     public static $availableIcons;
     public static $phpSessionId;
     public static $assets;
     public static $config;
+    public static $session;
+    public $pageOptions;
+    public $utils;
+    public $value; //???
+    private string $wrapperTag;
+    private string $wrapperClass;
+    private string $wrapperClass2;
+    private string $sectionsCss;
+    private string $sectionsScss;
 
-    public $templateFile = '';
-    public $session;
+    private bool $autoSplitSections;
+    public static bool $renderingClosed = false;
 
-    /**
-     * @param $pages
-     * @throws Kirby\Exception\InvalidArgumentException
-     */
-    public function __construct($pages)
+    public function __construct($data)
     {
         self::$timer = microtime(true);
         self::$isLocalhost = isLocalhost();
-        self::$pages = $pages;
-        self::$siteFiles = $pages->files();
-        $this->kirby = kirby();
-        $this->session = $this->kirby->session();
+
+        self::$kirby = $data['kirby'];
+        self::$pages = $data['pages'];
+        self::$page = $data['page'];
+        self::$site = $data['site'];
+        self::$siteFiles = self::$pages->files();
+        self::$session = self::$kirby->session();
         self::$phpSessionId = getSessionId();
 
-        $this->page = page();
-        $this->site = site();
-        $this->pageOptions = $this->page->content()->data();
+        $this->pageOptions = self::$page->content()->data();
 
         // find available icons:
         self::$availableIcons = findAvailableIcons();
 
-        $extensions = getDir(rtrim(PFY_BASE_PATH, '/').'-*');
-        foreach ($extensions as $extension) {
-            $extensionName = rtrim(substr($extension, 25), '/');
-            self::$availableExtensions[$extensionName] = $extension;
-        }
+        Extensions::findExtensions();
 
         self::$hostUrl = $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].'/';
 
-        $this->utils = new Utils($this);
-        $this->utils->loadPfyConfig();
-        self::$trans = new TransVars($this);
+        $this->utils = new Utils();
+        Utils::loadPfyConfig();
+        Utils::determineLanguage();
+        TransVars::init();
 
         self::$assets = new Assets($this);
-        self::$md = new MarkdownPlus($this);
         self::$pg = new Page($this);
-        self::$pg->set('pageParams', $this->page->content()->data());
+        self::$pg->set('pageParams', self::$page->content()->data());
 
-        $this->utils->init();
-        self::$trans->loadCustomVariables(); // overrides other sources of variable definitions
-        $this->utils->determineDebugState();
+        Extensions::loadExtensions();
 
-        $this->utils->setTimezone();
+        Utils::determineDebugState();
 
-        $this->utils->determineLanguage();
+        Utils::setTimezone();
 
-        self::$pagePath = substr($this->page->root(), strlen(site()->root())+1) . '/';
+        self::$pagePath = substr(self::$page->root(), strlen(site()->root())+1) . '/';
         self::$absAppRoot = kirby()->root().'/';
         self::$absPfyRoot = __DIR__.'/';
         self::$appRoot = dirname(substr($_SERVER['SCRIPT_FILENAME'], -strlen($_SERVER['SCRIPT_NAME']))).'/';
         self::$appUrl = dirname(substr($_SERVER['SCRIPT_FILENAME'], -strlen($_SERVER['SCRIPT_NAME']))).'/';
         self::$appRootUrl = kirby()->url().'/';
+        self::$slug = page()->slug();
+        self::$pageId = page()->id();
         self::$pageRoot = 'content/' . self::$pagePath;
-        self::$absPageRoot = $this->page->root() . '/';
-        self::$absPageUrl = (string)$this->page->url() . '/';
+        self::$absPageRoot = self::$page->root() . '/';
+        self::$absPageUrl = (string)self::$page->url() . '/';
         self::$pageUrl = substr(self::$absPageUrl, strlen(self::$hostUrl)-1);
-        if ($user = $this->kirby->user()) {
+        if ($user = self::$kirby->user()) {
             self::$user = (string)$user->name();
         }
+        $this->autoSplitSections = self::$config['autoSplitSectionsOnH1']??false;
 
-        $this->utils->handleUrlToken();
-
-        $this->siteTitle = (string)site()->title()->value();
+        Utils::handleUrlToken();
 
         preparePath(PFY_LOGS_PATH);
+        Utils::showPendingMessage();
+        Utils::handleAgentRequests();
     } // __construct
 
 
@@ -192,204 +192,247 @@ class PageFactory
 
 
     /**
-     * renders the final HTML
-     * @param false $options
+     * Renders the actual content of the current page,
+     *   i.e. what is invoked in template as {{ page.text.kirbytext | raw }}
      * @return string
+     * @throws Kirby\Exception\LogicException
+     * @throws SassException
      */
-    public function render($options = false): string
+    public function renderPageContent(): string
     {
-        // check for presence of site/plugins/pagefactory-*':
-        self::$pg->loadExtensions();
+        Extensions::extensionsFinalCode(); //??? best position?
+        TransVars::prepareStandardVariables();
 
-        if (self::$assets->prepareAssets()) {
-            reloadAgent();
+        Utils::handleAgentRequestsOnRenderedPage();
+        Utils::executeCustomCode();
+
+        $html = '';
+        $inx = 0;
+
+        if (PageFactory::$config['includeMetaFileContent']) {
+            // get and compile meta-file's text field:
+            $mdStr = self::$page->text()->value() . "\n\n";
+            $html = $this->compile($mdStr, $inx);
         }
 
-        // show message, if one is pending:
-        $this->showPendingMessage();
+        // load content from .md files:
+        $html .= $this->loadMdFiles();
 
-        if ($options['mdVariant']??false) {
-            MarkdownPlus::$mdVariant = $options['mdVariant'];
-        }
-        $this->utils->handleAgentRequests(); // login,logout,printpreview,print' and 'help,localhost,timer,reset,notranslate'
+        // finalize:
+        if ($html) {
+            TransVars::lastPreparations();
 
-        $this->utils->determineTemplateFile($options['templateFile']??'');
-
-        $this->utils->loadMdFiles();
-        $this->setStandardVariables();
-
-        $html = $this->assembleHtml();
-
-        // report execution time (see result in browser/dev-tools/network -> main file):
-        header("Server-Timing: total;dur=" . readTimer());
-        return $html;
-    } // render
-
-
-    /**
-     * Loads the template, obtains the page content und keeps translating variables till none are left.
-     * Then in the last step 'late-translation-variables' are translated. They are the ones that define injections
-     * into the <head> and the bottom of <body>. They include CSS and load CSS- and JS files. 
-     * @return string
-     */
-    private function assembleHtml(): string
-    {
-        $html = loadFile($this->templateFile, false);
-        $this->checkDefaultStylingActive($html);
-
-        $html = $this->utils->shieldLateTranslatationVariables($html); // {{@ ...}}
-
-        // 'content' (everything that's defined by the page):
-        $content = $this->utils->getContent(); // content of all .md files in page folder
-        self::$trans->setVariable('content', $content);
-
-        // repeat until no more variables appear in html:
-        $depth = 1;
-        while (preg_match('/(?<!\\\){{/', $html)) {
-            $html = self::$trans->translate($html, $depth++);
+            // resolve (nested) variables:
+            $cnt = 3;
+            while ($cnt-- && str_contains($html, '{{')) {
+                $html = TransVars::resolveVariables($html);
+            }
             $html = unshieldStr($html);
+            $html = str_replace(['{!!{', '}!!}', '⟮'], ['{{', '}}', '('], $html);
         }
 
-        $this->utils->handleAgentRequestsOnRenderedPage(); // list variables, macros
-
-        // last pass: now replace injection variables:
-        $html = $this->utils->unshieldLateTranslatationVariables($html);
-
-        self::$pg->preparePageVariables();
-
-        $html = self::$trans->translate($html);
-
-        self::$pg->extensionsFinalCode(); // -> invokes plugin/xy/src/_finalCode.php
-
-        $html = $this->utils->resolveUrls($html);
-        $html = unshieldStr($html, true);
-
+        TransVars::prepareTemplateVariables();
+        self::$renderingClosed = true;
         return $html;
-    } // assembleHtml
+    } // renderPageContent
 
 
     /**
-     * Defines standard variables used in most webpages, e.g. 'lang' and 'page-title' etc.
+     * @return string
+     * @throws \Exception
+     */
+    private function loadMdFiles(): string
+    {
+        $this->wrapperTag = PageFactory::$config['sourceWrapperTag'];
+        $this->wrapperClass = PageFactory::$config['sourceWrapperClass'];
+        $path = self::$page->root();
+        $dir = getDir("$path/*.md");
+        $inx = 0;
+        $finalHtml = '';
+        foreach ($dir as $file) {
+            $inx++;
+            $inx0 = $inx;
+            $this->wrapperClass2 = '';
+            if (str_contains('#-_', basename($file)[0])) {
+                continue;
+            }
+            $mdStr = getFile($file);
+            $this->sectionsCss = '';
+            $this->sectionsScss = '';
+            $this->extractFrontmatter($mdStr);
+            $sectId = '';
+
+            if ($this->autoSplitSections) {
+                $sections = preg_split("/(\n|)#(?!#)/ms", $mdStr, 0, PREG_SPLIT_NO_EMPTY);
+                $html = '';
+                foreach ($sections as $i => $md) {
+                    $sectId = '';
+                    if (preg_match("/^\s+ ( .+? ) [\n{] /xms", $md, $m)) {
+                        $sectId = "$this->wrapperTag-".translateToClassName(rtrim($m[1]), false);
+
+                        $this->sectionsCss = str_replace(['#this','.this'], ["#$sectId", ".$sectId"], $this->sectionsCss);
+                        $this->sectionsScss = str_replace(['#this','.this'], ["#$sectId", ".$sectId"], $this->sectionsScss);
+                        $sectId = " $sectId";
+                    }
+                    $md = "#$md";
+                    $html1 = $this->compile($md, $inx, removeComments: false);
+
+                    if ($i === 0) {
+                        $html = $html1;
+                    } else {
+                        $section = "\n</$this->wrapperTag>\n\n\n<$this->wrapperTag id='pfy-$this->wrapperTag-$inx' class='pfy-$this->wrapperTag-wrapper pfy-$this->wrapperTag-$inx $sectId $this->wrapperClass'>\n";
+                        $html .= $section.$html1;
+                    }
+
+                    $inx++;
+                }
+
+            } else {
+                if (preg_match("/^\s* \# \s ( .+? ) [\n{] /xms", $mdStr, $m)) {
+                    $sectId = "$this->wrapperTag-".translateToClassName(trim($m[1]), false);
+
+                    $this->sectionsCss = str_replace(['#this','.this'], ["#$sectId", ".$sectId"], $this->sectionsCss);
+                    $this->sectionsScss = str_replace(['#this','.this'], ["#$sectId", ".$sectId"], $this->sectionsScss);
+                    $sectId = " $sectId";
+                }
+
+                $html = $this->compile($mdStr, $inx, removeComments: false);
+            }
+            $html = Utils::resolveUrls($html);
+
+            // if some CSS/SCSS found in frontmatter, request rendering it now:
+            if ($this->sectionsCss) {
+                self::$pg->addCss($this->sectionsCss);
+            }
+            if ($this->sectionsScss) {
+                self::$pg->addScss($this->sectionsScss);
+            }
+
+            $finalHtml .= <<<EOT
+
+<$this->wrapperTag id='pfy-$this->wrapperTag-$inx0' class='pfy-$this->wrapperTag-wrapper pfy-$this->wrapperTag-$inx0 $this->wrapperClass$sectId'>
+$html
+</$this->wrapperTag>
+
+
+EOT;
+        }
+
+        return $finalHtml;
+    } // loadMdFiles
+
+
+    /**
+     * @param string $mdStr
+     * @param $inx
+     * @param $removeComments
+     * @return string
+     * @throws \Exception
+     */
+    private function compile(string $mdStr, $inx = 0, $removeComments = true): string
+    {
+        if ($removeComments) {
+            $mdStr = removeComments($mdStr);
+        }
+        if (!$mdStr) {
+            return '';
+        }
+
+        $mdStr = str_replace(['\\{{', '\\}}', '\\('], ['{!!{', '}!!}', '⟮'], $mdStr);
+        $mdStr = TransVars::resolveVariables($mdStr);
+        $mdStr = TransVars::executeMacros($mdStr);
+
+        $mdp = new \Usility\MarkdownPlus\MarkdownPlus();
+        $html =  $mdp->compile($mdStr, sectionIdentifier: "pfy-section-$inx", removeComments: false);
+
+        // shield argument lists enclosed in '({' and '})'
+        if (preg_match_all('/\(\{ (.*?) }\)/x', $html, $m)) {
+            foreach ($m[1] as $i => $pattern) {
+                $str = shieldStr($pattern);
+                $html = str_replace($m[0][$i], "('$str')", $html);
+            }
+        }
+
+        $html = str_replace(['\\{{', '\\}}', '\\('], ['{!!{', '}!!}', '⟮'], $html);
+
+        // add '|raw' to simple variables:
+        if (preg_match_all('/\{\{ ( [^}|(]+ ) }}/msx', $html, $m)) {
+            foreach ($m[1] as $i => $pattern) {
+                $str = "$pattern|raw";
+                $html = str_replace($m[0][$i], "{{ $str }}", $html);
+            }
+        }
+        return $html;
+    } // compile
+
+
+    /**
+     * @param $mdStr
+     * @return void
      * @throws Kirby\Exception\InvalidArgumentException
      */
-    private function setStandardVariables(): void
+    private function extractFrontmatter(&$mdStr)
     {
-        self::$trans->setVariable('page-url', self::$pageUrl);
-        self::$trans->setVariable('lang', self::$langCode);
-        self::$trans->setVariable('lang-active', self::$lang); // can be lang-variant, e.g. de2
-        self::$trans->setVariable('pfy-body-tag-attributes', Page::$bodyTagAttributes);
-        self::$trans->setVariable('php-version', phpversion());
+        $fields = preg_split('!\n----\s*\n*!', $mdStr);
+        $n = sizeof($fields)-1;
+        $mdStr = $fields[$n];
 
-        $this->utils->setLanguageSelector();
+        // loop through all fields and add them to the content
+        for ($i=0; $i<$n; $i++) {
+            $field = trim($fields[$i]);
+            $pos = strpos($field, ':');
+            $key = camelCase(trim(substr($field, 0, $pos)));
 
-        // Copy site field values to transvars:
-        $siteAttributes = site()->content()->data();
-        foreach ($siteAttributes as $key => $value) {
-            if ($key === 'title') {
-                $key = 'kirby-site-title';
+            // Don't add fields with empty keys
+            if (empty($key) === true) {
+                continue;
             }
-            $key = str_replace('_', '-', $key);
-            self::$trans->setVariable($key , (string)$value);
-        }
 
-        // Copy page field values to transvars:
-        $pageAttributes = page()->content()->data();
-        foreach ($pageAttributes as $key => $value) {
-            if ($key === 'title') {
-                $key = 'kirby-page-title';
+            $value = trim(substr($field, $pos + 1));
+
+            if ($key === 'variables') {
+                $values = Yaml::decode($value);
+                foreach ($values as $k => $v) {
+                    TransVars::setVariable($k, $v);
+                }
+
+            } elseif (str_contains('description,keywords,author', $key)) {
+                self::$pg->addHead("  <meta name='$key' content='$value'>\n");
+
+            } elseif ($key === 'robots') {
+                self::$pg->addHead("  <meta name='robots' content='noindex,nofollow,noarchive'>\n");
+
+            } elseif ($key === 'wrapperTag') {
+                $this->wrapperTag = $value;
+
+            } elseif ($key === 'wrapperClass') {
+                $this->wrapperClass = $value;
+
+            } elseif ($key === 'css') {
+                // hold back till ".this"/"#this" can be resolved:
+                $this->sectionsCss = $value;
+
+            } elseif ($key === 'scss') {
+                // hold back till ".this"/"#this" can be resolved:
+                $this->sectionsScss = $value;
+
+            } elseif ($key === 'js') {
+                self::$pg->addJs($value);
+
+            } elseif ($key === 'jq') {
+                self::$pg->addJq($value);
+
+            } elseif ($key === 'assets') {
+                $assets = Yaml::decode($value);
+                foreach ($assets as $asset) {
+                    self::$pg->addAssets($asset);
+                }
+
+            } else {
+                // unescape escaped dividers within a field
+                TransVars::setVariable($key, $value);
             }
-            $key = str_replace('_', '-', $key);
-            self::$trans->setVariable($key , (string)$value);
         }
-
-        // 'generator':
-        // for performance reasons we cache the gitTag, so, if that changes you need to remember to clear site/.#pfy-cache
-        $gitTag = fileGetContents(PFY_CACHE_PATH.'gitTag.txt');
-        if (!$gitTag) {
-            $gitTag = getGitTag();
-            file_put_contents(PFY_CACHE_PATH.'gitTag.txt', $gitTag);
-        }
-        $version = 'Kirby v'. Kirby::version(). " + PageFactory $gitTag";
-        self::$trans->setVariable('generator', $version);
-
-        // 'user', 'pfy-logged-in-as-user', 'pfy-admin-panel-link':
-        $appUrl = self::$appUrl;
-        $loginIcon = svg('site/plugins/pagefactory/assets/icons/user.svg');
-        $user = kirby()->user();
-        if ($user) {
-            $username = (string)$user->nameOrEmail();
-            self::$trans->setVariable('user', $username);
-            self::$trans->setVariable('pfy-login-button', "<button class='pfy-login-button' title='{{ pfy-edit-user-account }}'>$loginIcon</span></button>");
-        } else {
-            self::$trans->setVariable('pfy-logged-in-as-user', "<a href='{$appUrl}login'>Login</a>");
-            self::$trans->setVariable('pfy-login-button', "<button class='pfy-login-button' title='{{ pfy-login-button-label }}'>$loginIcon</button>");
-        }
-        self::$trans->setVariable('pfy-admin-panel-link', "<a href='{$appUrl}panel' target='_blank'>{{ pfy-admin-panel-link-text }}</a>");
-    } // setStandardVariables
-
-
-
-    /**
-     * @return void
-     */
-    private function determineAssetFilesList(): void
-    {
-        // get asset-files definition:
-        if (self::$config['assetFiles']??false) {
-            $this->assetFiles = self::$config['assetFiles'];
-        } else { // if not found, use following as default values:
-            $this->assetFiles = [
-                '-pagefactory.css' => [
-                    'site/plugins/pagefactory/scss/autoload/*',
-                ],
-                '-pagefactory-async.css' => [
-                    'site/plugins/pagefactory/scss/autoload-async/*',
-                ],
-                '-styles.css' => [
-                    'content/assets/autoload/*',
-                ],
-                '-styles-async.css' => [
-                    'content/assets/autoload-async/*',
-                ],
-
-                '-pagefactory.js' => [
-                    'site/plugins/pagefactory/assets/js/autoload/*',
-                ],
-
-                // prepare rest as individual files ready for explicit queueing/loading:
-                '*' => [
-                    'site/plugins/pagefactory/scss/*',
-                ],
-            ];
-        }
-    } // determineAssetFilesList
-
-
-    /**
-     * reloadAgent() can prepare a message to be shown on next page view, here we show the message:
-     * @return void
-     */
-    private function showPendingMessage(): void
-    {
-        if ($msg = $this->session->get('pfy.message')) {
-            self::$pg->setMessage($msg);
-            $this->session->remove('pfy.message');
-        }
-    } // showPendingMessage
-
-
-    /**
-     * Checks whether template contains 'pfy-default-styling', i.e. uses default styling. If not, removes
-     * those entries from the asset queue
-     * @param mixed $html
-     * @return void
-     */
-    private function checkDefaultStylingActive(mixed $html): void
-    {
-        $this->useDefaultStyling = str_contains($html, 'pfy-default-styling');
-        if (!$this->useDefaultStyling) {
-            self::$assets->excludeSystemAssets();
-        }
-    } // checkDefaultStylingActive
+    } // extractFrontmatter
 
 } // PageFactory

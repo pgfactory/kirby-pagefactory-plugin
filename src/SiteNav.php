@@ -15,12 +15,17 @@ define('NAV_ACTIVE',    'pfy-active');  // currently open page and all its ances
 class SiteNav
 {
     public static $inx = 1;
+    private bool $deep = true;
+    private $args;
+    private $page;
+    private $site;
+    private $arrow;
+    private $hidden;
 
-    public function __construct($pfy)
+    public function __construct()
     {
-        $this->pfy = $pfy;
-        $this->page = $pfy->page;
-        $this->site = $pfy->site;
+        $this->page = page();
+        $this->site = site();
         $this->arrow = NAV_ARROW;
         $this->hidden = 'false';
         PageFactory::$assets->addJqFiles('site/plugins/pagefactory/assets/js/nav.jq');
@@ -34,14 +39,16 @@ class SiteNav
      */
     public function render($args): string
     {
-        $inx = self::$inx++;
-        $this->args = $args;
-        $wrapperClass = $args['wrapperClass'];
+        $inx = self::$inx++; // index of nav-element
+        $this->args = &$args;
+        $wrapperClass = &$args['wrapperClass'];
         $class = $args['class'];
 
-        $this->deep = ($this->args['type'] !== 'top');
-
-        if (strpos($wrapperClass, 'pfy-nav-collapsed')) {
+       if ($args['type'] === 'top') {
+           $args['wrapperClass'] .= ' pfy-nav-top-horizontal pfy-nav-indented pfy-nav-collapsed pfy-nav-animated pfy-nav-hoveropen pfy-encapsulated pfy-nav-small-tree';
+       }
+//ToDo: when $this->deep = false; ??
+        if (str_contains($wrapperClass, 'pfy-nav-collapsed')) {
             $this->hidden = 'true';
         }
         $out = '';
@@ -74,11 +81,11 @@ class SiteNav
 
         $out = <<<EOT
 
-    <div id='pfy-nav-$inx' class='pfy-nav-wrapper $wrapperClass'>
-      <nav class='pfy-nav $class'>
+<div id='pfy-nav-$inx' class='pfy-nav-wrapper $wrapperClass'>
+  <nav class='pfy-nav $class'>
 $out
-      </nav>
-    </div><!-- /pfy-nav-wrapper -->
+  </nav>
+</div><!-- /pfy-nav-wrapper -->
 EOT;
         return $out;
     } // render
@@ -95,8 +102,8 @@ EOT;
         $out = '';
         foreach ($subtree->listed() as $pg) {
             $depth = $pg->depth();
-            $indent = '  '.str_repeat('    ', $depth+1);
-            $curr = $pg->isActive();
+            $indent = '';
+            $curr = $pg->isActive() ? ' aria-current="page"': '';
             $class = NAV_LEVEL . $depth;
             if ($curr) {
                 $class .= ' ' . NAV_CURRENT;
@@ -120,13 +127,13 @@ EOT;
                 $aElem = "<span class='pfy-nav-label'>$title</span><span class='pfy-nav-arrow' ".
                          "aria-hidden='{$this->hidden}'>{$this->arrow}</span>";
                 $class .= ' pfy-has-children pfy-nav-has-content';
-                $out .= "  $indent<li class='$class'><a href='$url'>$aElem</a>\n";
-                $out .= "  $indent  <div class='pfy-nav-sub-wrapper' aria-hidden='{$this->hidden}'>\n";
+                $out .= "$indent<li class='$class'><a href='$url'$curr>$aElem</a>\n";
+                $out .= "$indent  <div class='pfy-nav-sub-wrapper' aria-hidden='{$this->hidden}'>\n";
                 $out .= $this->_render($pg->children());
-                $out .= "  $indent  </div>\n";
-                $out .= "  $indent</li>\n";
+                $out .= "$indent</div>\n";
+                $out .= "$indent</li>\n";
             } else {
-                $out .= "  $indent<li class='$class'><a href='$url'>$title</a></li>\n";
+                $out .= "$indent<li class='$class'><a href='$url'$curr>$title</a></li>\n";
             }
         }
         if (!$out) {

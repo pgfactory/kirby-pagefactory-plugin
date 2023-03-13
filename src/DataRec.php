@@ -18,7 +18,7 @@ class DataRec
     public function __construct($recKey, $recData, $parent = null)
     {
         $this->{DATAREC_KEY} = $recKey;
-        $this->recData = $recData;
+        $this->recData = &$recData;
         $this->parent = $parent;
         if (isset($recData[DATAREC_KEY])) {
             $this->{DATAREC_KEY} = $recData[DATAREC_KEY];
@@ -35,6 +35,19 @@ class DataRec
             $this->_timestamp = time();
         }
 
+        foreach ($recData as $k => $v) {
+            $elemKeyNormalized = translateToIdentifier($k);
+
+            // add key to list of elementKeys (unless it starts with _)
+            if ($k[0] !== '_') {
+                $parent->elementKeys[$elemKeyNormalized] = $k;
+            }
+            // if key and normalized key differ, swap:
+            if ($k !== $elemKeyNormalized) {
+                $recData[$elemKeyNormalized] = $v;
+                unset($recData[$k]);
+            }
+        }
         $this->maxRecLockTime = $this->parent->get('maxRecLockTime');
     } // __construct
 

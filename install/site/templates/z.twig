@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="{{ page.lang }}">
+<head>
+  <meta charset="utf-8">
+  <title>{{ page.headTitle }}</title>
+
+  <meta name="viewport" content="width=device-width, user-scalable=yes, initial-scale=1">
+  <meta name="generator" content="{{ page.generator }} (on PHP {{ page.phpVersion }})">
+
+  {{ page.headInjections|raw }}
+</head>
+
+<body id='pfy' class='pfy-default-styling {{ page.bodyTagClasses|raw }}' {{ page.bodyTagAttributes|raw }}>
+
+<div class='pfy-page'>
+
+  <header class='pfy-header'>
+    {{ nav({ wrapperClass: 'pfy-primary-nav', type: 'top' }) }}
+  </header>
+
+
+
+
+  <!-- === page content =============== -->
+  <main id='main' class='pfy-main'>
+
+    {{ page.pageContent | raw }}
+
+  </main>
+  <!-- === /page content =============== -->
+
+
+
+  <footer class="pfy-footer">
+    <div class="pfy-footer-left">
+      {{ page.langSelection|raw }}
+    </div>
+
+    <div class="pfy-footer-center">
+    {{ page.adminPanelLink|raw }}
+    </div>
+
+    <div class='pfy-footer-right'>
+    {{ page.loginButton|raw }}
+    </div><!-- /pfy-footer-right -->
+  </footer>
+
+
+
+
+  <div class="pfy-small-screen-header pfy-small-screen-only" style='display: none;'>
+    {{ page.smallScreenHeader|raw }}
+  </div><!-- /pfy-small-screen-header -->
+
+
+  {{ prevnextlinks() }}
+
+</div><!-- /.pfy-page -->
+
+
+
+{{ page.bodyEndInjections|raw }}
+</body>
+</html>
+
