@@ -96,13 +96,14 @@ class Scss
      */
     private static function dir_name(string $path): string
     {
-        if (!$path || str_starts_with($path, '/')) {
+        if ($path && ($path[strlen($path)-1]) === '/') {
             return $path;
-        }
-        if (str_contains(basename($path), '.')) {  // if it contains a '.' we assume it's a file
+        } elseif (is_dir($path)) {
+            return  $path . '/';
+        } elseif (is_file($path)) {
             return dirname($path) . '/';
         } else {
-            return rtrim($path, '/') . '/';
+            return $path;
         }
     } // dir_name
 
