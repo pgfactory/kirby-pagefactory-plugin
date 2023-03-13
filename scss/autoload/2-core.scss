@@ -40,18 +40,30 @@ html, body, section {
     .dispblock {
         display: block;
     }
-    .sr-only,
-    .pfy-invisible,
-    .invisible,
-    .visually-hidden {
-        position: absolute !important;
-        right: 10000px;
-        width: 1px;
-        height: 1px;
-        overflow: hidden;
-        display: inline;
-        clip: rect(1px, 1px, 1px, 1px);
+
+  // --- accessible: visually hidden:
+  @mixin visually-hidden {
+    display: visually-hidden;
+    border: 0;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
+  }
+
+  .pfy-invisible,
+  .sr-only,
+  .visually-hidden {
+    &:not(:focus):not(:active) {
+      @include visually-hidden;
     }
+  }
+
     .pfy-disabled {
         filter: contrast(50%);
         opacity: 0.7;
@@ -61,26 +73,6 @@ html, body, section {
         text-decoration: none;
         border-bottom: none;
     }
-
-
-
-
-    // === visible on focus only:
-    .pfy-focus-only-visible {
-        display: none;
-        color: transparent;
-        background: transparent;
-        position: absolute;
-        right: -1000vw;
-    }
-    a:hover > .pfy-focus-only-visible,
-    a:focus > .pfy-focus-only-visible {
-        display: inline-block;
-        color: black;
-        position: relative;
-        right: unset;
-    }
-
 
 
 } // pfy-default-styling
