@@ -326,7 +326,6 @@ EOT;
         }
         $str = rtrim($str, ",\n");
         $str = "\n\tsrcset='\n$str'";
-//        $str .= "\n\tsizes='{$this->nominalWidth}px'";
         return $str;
     } // renderAbsSrcset
 

@@ -1546,12 +1546,6 @@ function parseArgumentStr(string $str, string $delim = ',', mixed $superBrackets
             $rest = ltrim(substr($rest, 1));
             $value = parseArgValue($rest, $delim);
             $json .= "$key: $value,";
-//            if (!is_string($value)) {
-//            if (is_bool($value) || (trim($value) !== '')) {
-//                $json .= "$key: $value,";
-//            } else {
-//                $json .= "$key: "; //??
-//            }
         }
         $index++;
     }
@@ -1564,13 +1558,6 @@ function parseArgumentStr(string $str, string $delim = ',', mixed $superBrackets
     }
 
     // case a value was written in '{...}' notation -> unpack:
-//    if (str_contains($json, '<raw>')) {
-//        foreach ($options as $key => $value) {
-//            if (str_starts_with($value, '<raw>')) {
-//                $options[$key] = unshieldStr($value, true);
-//            }
-//        }
-//    }
 
     if ($superBrackets) {
         $options = superBracketsDecode($options);
@@ -1709,10 +1696,6 @@ function parseArgValue(string &$rest, string $delim): mixed
     } elseif (is_bool($value)) {
         $value = $value? 'true': 'false';
     }
-//    if (($value !== 'true') && ($value !== 'false')) {
-//        $value = preg_replace('/(?!\\\\)"/', '\\"', $value);
-//        $value = '"' . $value . '"';
-//    }
     $pattern = "^[$delim\n]+";
     $rest = preg_replace("/$pattern/", '', $rest);
     return $value;
