@@ -1518,7 +1518,7 @@ function parseArgumentStr(string $str, string $delim = ',', mixed $superBrackets
     }
 
     // if string starts with { we assume it's "non-relaxed" json:
-    if (($str[0] === '{') && (strpos($str, '<raw>') !== 0) && (strpos($str, '{md{') !== 0)) {
+    if (($str[0] === '{') && (strpos($str, '<tt>') !== 0) && (strpos($str, '{md{') !== 0)) {
         return Json::decode($str);
     }
 
@@ -2143,7 +2143,7 @@ function shieldStr(string $str, bool $mdCompile = false): string
     if ($mdCompile) {
         return '<md>' . base64_encode($str) . '</md>';
     } else {
-        return '<raw>' . base64_encode($str) . '</raw>';
+        return '<tt>' . base64_encode($str) . '</tt>';
     }
 } // shieldStr
 
@@ -2157,8 +2157,8 @@ function shieldStr(string $str, bool $mdCompile = false): string
 function unshieldStr(string $str, bool $unshieldLiteral = null): string
 {
     if ($unshieldLiteral !== false) {
-        $str = str_replace(['&lt;raw&gt;','&lt;/raw&gt;'], ['<raw>','</raw>'], $str);
-        if (preg_match_all('|<raw>(.*?)</raw>|m', $str, $m)) {
+        $str = str_replace(['&lt;raw&gt;','&lt;/raw&gt;'], ['<tt>','</tt>'], $str);
+        if (preg_match_all('|<tt>(.*?)</tt>|m', $str, $m)) {
             foreach ($m[1] as $i => $item) {
                 $literal = base64_decode($m[1][$i]);
                 $str = str_replace($m[0][$i], $literal, $str);
