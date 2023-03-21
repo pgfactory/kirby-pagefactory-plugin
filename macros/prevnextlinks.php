@@ -13,7 +13,9 @@ function prevnextlinks($argStr = '')
         'options' => [
             'class' => ['Class to be applied to the element', false],
             'wrapperClass' => ['Class to be applied to the wrapper element. ', false],
-            'type' => ['[top,bottom] Defines where the page switcher links will be displayed', 'bottom'],
+            'type' => ['[links,head-elem] "links" returns a DIV to be placed inside page body. '.
+                '"head-elem" returns two &lt;link> elements for the head section. ', 'links'],
+            'option' => ['[top,bottom] Defines which default class to apply.', 'bottom'],
         ],
         'summary' => <<<EOT
 # $funcName()
@@ -39,7 +41,7 @@ EOT,
         list($options, $str) = $str;
     }
 
-    $options['wrapperClass'] = ($options['type'][0] === 't')? ' pfy-show-as-top-arrows': ' pfy-show-as-arrows-and-text';
+    $options['wrapperClass'] = ($options['option'][0] === 't')? ' pfy-show-as-top-arrows': ' pfy-show-as-arrows-and-text';
 
     // assemble output:
     $obj = new PrevNextLinks();
@@ -71,17 +73,44 @@ class PrevNextLinks
         $this->page  = PageFactory::$page;
         $this->pages = PageFactory::$pages;
 
-        $out = "\n<div class='pfy-page-switcher-wrapper {$args['wrapperClass']}'>\n";
-        $out .= $this->renderPrevLink();
-        $out .= $this->renderNextLink();
+        if (($args['type'][0]??'') === 'h') {
+            $out = $this->renderHeadLinkElements();
 
-        // inject script code for page-switching:
-        $url = PageFactory::$appUrl."media/plugins/usility/pagefactory/js/page-switcher.js";
-        $out .= "\t<script data-src='$url' class='pfy-onload'></script>\n";
-        $out .= "</div>\n";
+        } else {
+            $out = "\n<div class='pfy-page-switcher-wrapper {$args['wrapperClass']}'>\n";
+            $out .= $this->renderPrevLink();
+            $out .= $this->renderNextLink();
+
+            // inject script code for page-switching:
+            $url = PageFactory::$appUrl . "media/plugins/usility/pagefactory/js/page-switcher.js";
+            $out .= "\t<script data-src='$url' class='pfy-onload'></script>\n";
+            $out .= "</div>\n";
+        }
 
         return $out;
     } // render
+
+
+    /**
+     * Renders the HTML <link> elements for the page's head section.
+     * @return string
+     */
+    private function renderHeadLinkElements(): string
+    {
+        $out = "";
+        $pg = $this->findPrev(page());
+        if ($pg) {
+            $url = $pg->url();
+            $out = "<link rel='prev' href='$url'>\n";
+        }
+        $pg = $this->findNext(page());
+        if ($pg) {
+            $url = $pg->url();
+            $out .= "  <link rel='next' href='$url'>\n";
+        }
+
+        return $out;
+    } // renderHeadLinkElements
 
 
     /**
@@ -92,24 +121,14 @@ class PrevNextLinks
     {
         $out = "\t<div></div>\n";
 
-        // get first and current page:
-        $current = $this->page->url();
-        $next = $this->pages->first(); // i.e. first page
-        $prev = false; // element 1 step behind, i.e. the right one once we hit the current
-
-        // start from first page and walk through sitemap till current page is found:
-        while ($next && ($current !== $next->url())) {
-            $prev = $next;
-            $next = $this->findNext($next);
-        }
-
+        $prev = $this->findPrev();
         if ($prev) {
             TransVars::setVariable('pfy-prev-page-title', (string)$prev->title());
             $url = $prev->url();
             $title = TransVars::getVariable('pfy-link-to-prev-page');
             $text = '<span class="pfy-page-switcher-link-text">'.$prev->title()->value().'</span>';
             $text = TransVars::getVariable('pfy-previous-page-text').$text;
-            $prevLink = "<a href='$url' title='$title'>\n\t\t$text\n\t\t</a>";
+            $prevLink = "<a href='$url' title='$title' rel='prev'>\n\t\t$text\n\t\t</a>";
             $out = <<<EOT
       <div class="pfy-page-switcher-links pfy-previous-page-link $this->class">
         $prevLink
@@ -134,7 +153,7 @@ EOT;
             $title = TransVars::getVariable('pfy-link-to-next-page');
             $text = '<span class="pfy-page-switcher-link-text">'.$next->title()->value().'</span>';
             $text = $text.TransVars::getVariable('pfy-next-page-text');
-            $nextLink = "<a href='$nextUrl' title='$title'>\n\t\t$text\n\t\t</a>";
+            $nextLink = "<a href='$nextUrl' title='$title' rel='next'>\n\t\t$text\n\t\t</a>";
             $out = <<<EOT
       <div class="pfy-page-switcher-links pfy-next-page-link $this->class">
         $nextLink
@@ -174,5 +193,25 @@ EOT;
         }
         return $next;
     } // findNext
+
+
+    /**
+     * Finds the previous page relative to given one.
+     * @return object
+     */
+    private function findPrev()
+    {
+        // get first and current page:
+        $current = $this->page->url();
+        $next = $this->pages->first(); // i.e. first page
+        $prev = false; // element 1 step behind, i.e. the right one once we hit the current
+
+        // start from first page and walk through sitemap till current page is found:
+        while ($next && ($current !== $next->url())) {
+            $prev = $next;
+            $next = $this->findNext($next);
+        }
+        return $prev;
+    } // findPrev
 
 } // PrevNextLinks
