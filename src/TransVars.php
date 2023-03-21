@@ -272,7 +272,7 @@ class TransVars
                     $out .= "<span class='pfy-lang-elem $langCode'><a href='?lang=$lang' title='$title'>$text</a></span> ";
                 }
             }
-            $out = "\t<span class='pfy-lang-selection'>$out</span>\n";
+            $out = "<span class='pfy-lang-selection'>$out</span>\n";
         }
         return $out;
     } // renderLanguageSelector
@@ -364,6 +364,14 @@ class TransVars
         list($p1, $p2) = strPosMatching($str);
         while ($p1 !== false && $p2 !== false) {
             $key = trim(substr($str, $p1+2, $p2-$p1-2));
+
+            // handle '|raw':
+            $doShield = false;
+            if (preg_match('/ \s* \| \s* raw \s* $/mx', $key, $m)) {
+                $doShield = true;
+                $key = substr($key, 0, - strlen($m[0]));
+            }
+
             // skip macro() calls:
             if (strpbrk($key, '()')) {
                 list($p1, $p2) = strPosMatching($str, $p2);
@@ -408,6 +416,9 @@ class TransVars
                         self::setVariable($key1, "$s1$n$s2");
                     }
                 }
+            }
+            if ($doShield) {
+                $value = shieldStr($value, 'i');
             }
             $str = substr($str, 0, $p1).$value.substr($str, $p2+2);
             list($p1, $p2) = strPosMatching($str, $p1);
