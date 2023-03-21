@@ -1518,7 +1518,9 @@ function parseArgumentStr(string $str, string $delim = ',', mixed $superBrackets
     }
 
     // if string starts with { we assume it's "non-relaxed" json:
-    if (($str[0] === '{') && (strpos($str, '<tt>') !== 0) && (strpos($str, '{md{') !== 0)) {
+    if (($str[0] === '{') && !str_contains($str, '<'.INLINE_SHIELD.'>') &&
+            !str_contains($str, '<'.BLOCK_SHIELD.'>') &&
+            !str_contains($str, '{md{')) {
         return Json::decode($str);
     }
 
@@ -1643,10 +1645,15 @@ function parseArgKey(string &$rest, string $delim): string
     // case naked key or value:
     } else {
         // case value without key:
-        $pattern = "[^$delim\n:]+";
-        if (preg_match("/^ ($pattern) (.*) /xms", $rest, $m)) {
+        if (preg_match('|^(https?://\S*)(.*)|', $rest, $m)) {
             $key = $m[1];
             $rest = $m[2];
+        } else {
+            $pattern = "[^$delim\n:]+";
+            if (preg_match("/^ ($pattern) (.*) /xms", $rest, $m)) {
+                $key = $m[1];
+                $rest = $m[2];
+            }
         }
     }
     $key = preg_replace('/(?<!\\\)"/', '\\"', $key);
@@ -1713,8 +1720,7 @@ function parseArgValue(string &$rest, string $delim): mixed
   */
  function strPosMatching(string $str, int $p0 = 0, string $pat1 = '{{', string $pat2 = '}}'): array
  {
-
-     if (!$str) {
+     if (!$str || ($p0 === null) || (strlen($str) < $p0)) {
          return [false, false];
      }
 
@@ -2138,14 +2144,16 @@ function compileMarkdown(string $mdStr, bool $omitPWrapperTag = false): string
 * @param bool $mdCompile
 * @return string
 */
-function shieldStr(string $str, bool $mdCompile = false): string
-{
-    if ($mdCompile) {
-        return '<md>' . base64_encode($str) . '</md>';
-    } else {
-        return '<tt>' . base64_encode($str) . '</tt>';
-    }
-} // shieldStr
+ function shieldStr(string $str, mixed $options = false): string
+ {
+     if (($options[0]??'') === 'm') {
+         return '<'.MD_SHIELD.'>' . base64_encode($str) . '</'.MD_SHIELD.'>';
+     } elseif (($options[0]??'') === 'i') {
+         return '<'.INLINE_SHIELD.'>' . base64_encode($str) . '</'.INLINE_SHIELD.'>';
+     } else {
+         return '<'.BLOCK_SHIELD.'>' . base64_encode($str) . '</'.BLOCK_SHIELD.'>';
+     }
+ } // shieldStr
 
 
 
@@ -2156,16 +2164,19 @@ function shieldStr(string $str, bool $mdCompile = false): string
 */
 function unshieldStr(string $str, bool $unshieldLiteral = null): string
 {
+    // pseudo-tags <INLINE_SHIELD>,<BLOCK_SHIELD> and <MD_SHIELD> may be (partially) translated, fix them:
+    $str = preg_replace('#(&lt;|<)(/?('.INLINE_SHIELD.'|'.BLOCK_SHIELD.'|'.MD_SHIELD.'))(&gt;|>)#', "<$2>", $str);
+
     if ($unshieldLiteral !== false) {
-        $str = str_replace(['&lt;raw&gt;','&lt;/raw&gt;'], ['<tt>','</tt>'], $str);
-        if (preg_match_all('|<tt>(.*?)</tt>|m', $str, $m)) {
-            foreach ($m[1] as $i => $item) {
-                $literal = base64_decode($m[1][$i]);
+        // patters <INLINE_SHIELD>,<BLOCK_SHIELD>
+        if (preg_match_all('/<('.INLINE_SHIELD.'|'.BLOCK_SHIELD.')>(.*?)<\/('.INLINE_SHIELD.'|'.BLOCK_SHIELD.')>/m', $str, $m)) {
+            foreach ($m[2] as $i => $item) {
+                $literal = base64_decode($m[2][$i]);
                 $str = str_replace($m[0][$i], $literal, $str);
             }
         }
     }
-    if (preg_match_all('|<md>(.*?)</md>|m', $str, $m)) {
+    if (preg_match_all('|<'.MD_SHIELD.'>(.*?)</'.MD_SHIELD.'>|m', $str, $m)) {
         foreach ($m[1] as $i => $item) {
             $md = base64_decode($m[1][$i]);
             $html = compileMarkdown($md);
