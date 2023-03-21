@@ -21,6 +21,9 @@ const PFY_MACROS_PATH =            PFY_BASE_PATH.'macros/';
 define('PFY_LOGS_PATH',            'site/logs/');
 define('PFY_CACHE_PATH',           'site/cache/pagefactory/'); // available in extensions
 const PFY_MKDIR_MASK =             0700; // permissions for file accesses by PageFactory
+const BLOCK_SHIELD =               'div shielded';
+const INLINE_SHIELD =              'span shielded';
+const MD_SHIELD =                  'span mdshielded';
 
  // URLs:
 const PFY_BASE_ASSETS_URL =        'media/plugins/usility/';
@@ -39,7 +42,7 @@ define('OPTIONS_DEFAULTS', [
     'externalLinksToNewWindow'      => true,  // -> used by Link() -> whether to open external links in new window
     'imageAutoQuickview'            => true,  // -> used by Img() macro
     'imageAutoSrcset'               => true,  // -> used by Img() macro
-    'divblock-chars'                => '@%',  // possible alternative: ':$@%'
+    'divblockChars'                => '@%',  // possible alternative: ':$@%'
     'includeMetaFileContent'        => true,  // -> option for website using '(include: *.md)' in metafile
                                               // e.g. when converting from MdP site to Pfy
     'activateH1Sections'            => false, //
@@ -348,7 +351,7 @@ EOT;
         // shield argument lists enclosed in '({' and '})'
         if (preg_match_all('/\(\{ (.*?) }\)/x', $html, $m)) {
             foreach ($m[1] as $i => $pattern) {
-                $str = shieldStr($pattern);
+                $str = shieldStr($pattern, 'inline');
                 $html = str_replace($m[0][$i], "('$str')", $html);
             }
         }

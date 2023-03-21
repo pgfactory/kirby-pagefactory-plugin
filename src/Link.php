@@ -305,7 +305,7 @@ class Link
     private function getText()
     {
         if ($this->args['text']??false) {
-            $this->text = compileMarkdown($this->args['text'], true);
+            $this->text = trim(compileMarkdown($this->args['text'], true));
 
         } elseif (!$this->text) {
             $url = $this->url;

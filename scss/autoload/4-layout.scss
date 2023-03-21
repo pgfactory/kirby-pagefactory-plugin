@@ -40,4 +40,10 @@ $box-width: 300px;
         margin-bottom: -5px; /* ??? bug workaround? */
     }
 
+    .mdp-iframe {
+        width: 100%;
+        min-height: 20em;
+        border: none;
+    }
+
 } // pfy-default-styling
