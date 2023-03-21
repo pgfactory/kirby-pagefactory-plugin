@@ -29,7 +29,7 @@ EOT,
 
     // assemble output:
     $str = "<span style='color:var(--pfy-color, {$options['color']});'>{$options['text']}</span>";
-    $str = shieldStr($str);
+    $str = shieldStr($str, 'inline');
 
     return $str;
 }

@@ -63,7 +63,7 @@ EOT,
     $obj = new Img();
     $str .= $obj->render($options);
 
-    $str = shieldStr($str);
+    $str = shieldStr($str, 'inline');
 
     return $str;
 }

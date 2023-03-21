@@ -33,7 +33,7 @@ EOT,
     $str .= '';
 
     //$str = markdown($str); // markdown-compile
-    //$str = shieldStr($str); // shield from further processing if necessary
+    //$str = shieldStr($str, 'inline'); // shield from further processing if necessary
 
     //PageFactory::$pg->requireFramework();
     //PageFactory::$pg->addAssets('XY');

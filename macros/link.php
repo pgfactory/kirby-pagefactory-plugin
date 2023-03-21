@@ -52,7 +52,7 @@ EOT,
     // assemble output:
     $lnk = new Link();
     $str = $lnk->render($args);
-    $str = shieldStr($str); // shield because svg icon in link can fool subsequently MD compiler
+    $str = shieldStr($str, 'inline'); // shield because svg icon in link can fool subsequently MD compiler
 
     return $sourceCode . $str;
 }
