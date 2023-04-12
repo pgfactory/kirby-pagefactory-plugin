@@ -39,6 +39,16 @@ class Utils
         if (!($_GET??false)) {
             return;
         }
+
+        // ?logout
+        if (isset($_GET['logout'])) {
+            if ($user = kirby()->user()) {
+                $user->logout();
+            }
+            reloadAgent(); // get rid of url-command
+            return;
+        }
+
         self::execAsAnon('printview,printpreview,print');
         self::execAsAdmin('help,localhost,timer,reset,notranslate');
     } // handleAgentRequests
@@ -208,6 +218,7 @@ EOT;
 [?variables](./?variables)      >> show currently defined variables
 [?macros](./?macros)      >> show currently defined macros()
 [?lang=](./?lang)      >> activate given language
+[?logout](./?logout)      >> log out user
 [?debug](./?debug)      >> activate debug mode
 [?localhost=false](./?localhost=false)      >> mimicks running on a remote host (for testing)
 [?notranslate](./?notranslate)      >> show variables instead of translating them
