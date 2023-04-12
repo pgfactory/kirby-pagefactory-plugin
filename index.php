@@ -28,7 +28,7 @@ foreach ($twigFunctions as $file) {
 }
 
 
-Kirby::plugin('usility/pagefactory', [
+Kirby::plugin('pgfactory/pagefactory', [
 
     'routes' => [
         [
