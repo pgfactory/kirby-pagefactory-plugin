@@ -561,7 +561,16 @@ class TransVars
         // get arguments:
         $options = self::parseMacroArguments($config, $args);
 
-        return [$options, $src, $inx, $macroName];
+        $auxOptions = [];
+        $supportedKeys = array_keys($config['options']);
+        foreach ($options as $key => $value) {
+            if (!in_array($key, $supportedKeys)) {
+                $auxOptions[$key] = $value;
+                unset($options[$key]);
+            }
+        }
+
+        return [$options, $src, $inx, $macroName, $auxOptions];
     } // initMacro
 
 
