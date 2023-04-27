@@ -6,8 +6,6 @@ use Kirby\Filesystem\F;
 use Kirby\Data\Yaml as Yaml;
 
  // meta keys:
-const DATAREC_KEY = '_origRecKey';
-const DATAREC_UID = '_uid';
 const DATAREC_TIMESTAMP = '_timestamp';
 const SUPPORTED_FILE_TYPES = 'yaml,json,csv';
 
@@ -43,6 +41,7 @@ class DataSet
     protected $lastModified = 0;
     protected $maxRecLockTime;
     protected $maxRecBlockingTime;
+    protected $avoidDuplicates;
 
 
     /**
@@ -62,13 +61,14 @@ class DataSet
      */
     public function __construct(string $file, array $options = [])
     {
-        $this->includeMeta =            isset($options['includeMeta']) ? $options['includeMeta'] : false;
-        $this->readWriteMode =          isset($options['readWriteMode']) ? $options['readWriteMode'] : true;
+        $this->includeMeta =            $options['includeMeta'] ?? false;
+        $this->readWriteMode =          $options['readWriteMode'] ?? true;
         $this->maxRecLockTime =         (isset($options['maxRecLockTime']) && $options['maxRecLockTime']) ?
                                             $options['maxRecLockTime']: DEFAULT_MAX_REC_LOCK_TIME;
         $this->maxRecBlockingTime =     (isset($options['maxRecBlockingTime']) && $options['maxRecBlockingTime'])
                                             ?$options['maxRecBlockingTime'] : DEFAULT_MAX_REC_BLOCKING_TIME;
-        $this->downloadFilename =       isset($options['downloadFilename']) ? $options['downloadFilename'] : false;
+        $this->downloadFilename =       $options['downloadFilename'] ?? false;
+        $this->avoidDuplicates =        $options['avoidDuplicates'] ?? true;
 
         if (isset($options['blocking'])) {
             if (is_int($options['blocking'])) {
@@ -128,7 +128,7 @@ class DataSet
                     if (is_string($rec)) {
                         continue;
                     }
-                    $out[$rec->_uid] = $rec->data($includeMetaFields);
+                    $out[$rec->_reckey] = $rec->data($includeMetaFields);
                 }
             } catch (\Exception $e) {
                 $this->resetCache();
@@ -178,7 +178,7 @@ class DataSet
                 if (is_int($key)) {
                     $key = false;
                 }
-                $this->add($key, $rec);
+                $this->addRec($rec);
             }
 
         // Payload is already of type DataSet -> just replace :
@@ -221,58 +221,58 @@ class DataSet
         if ($flush) {
             $this->flush();
         }
+        $this->nRows = sizeof($this->data);
         return $this;
     } // write
 
 
     /**
-     * Adds a data record to datasource. Or overwrites an existing record with same key.
-     *    $ds->add('max', ['email' => 'max@site.com',]);
-     *    $ds->add(new DataRec('john', ['email' => 'john@site.com',]));
-     *    $ds->add(['hugo' => ['email' => 'hugo@site.com',]]);
-     * Note: if rec with same key exists, it gets overwritten
-     * @param mixed $key
-     * @param mixed|null $rec
+     * Adds a data record (not DataRec) to datasource.
+     * Optionally, if $recKeyToUse is given, overwrites a possibly existing record with same key.
+     * @param array $rec
      * @param bool $flush
-     * @param mixed $recKeyToUse
-     * @return object
+     * @param $recKeyToUse
+     * @return object|string
      * @throws \Exception
      */
-    public function add(mixed $key, mixed $rec = null, bool $flush = false, $recKeyToUse = false): object
+    public function addRec(array $rec, bool $flush = true, $recKeyToUse = false): object|string
     {
         if (!$this->readWriteMode) {
             throw new \Exception("Datasource '$this->name' is in read-only mode, unable to add data");
         }
         if ($recKeyToUse) {
-            $dr = new DataRec($key, $rec, $this);
-            $dr->set('_uid', $recKeyToUse);
+            $dr = new DataRec($recKeyToUse, $rec, $this);
+            $dr->set('_reckey', $recKeyToUse);
             $this->data[$recKeyToUse] = $dr;
 
         } else {
-            if (is_int($key)) {
-                if ($rec[DATAREC_UID] ?? false) {
-                    $key = $rec[DATAREC_UID];
+                if (!$this->avoidDuplicates || !$this->recExists($rec)) {
+                    $dr = new DataRec(false, $rec, $this);
+                    $uid = $dr->get('_reckey');
+                    $this->data[$uid] = $dr;
                 }
-            }
-            if (is_a($key, '\Usility\PageFactory\DataRec') && ($rec === null)) {
-                $uid = $key->get('_uid');
-                $this->data[$uid] = $key;
-
-            } elseif (is_a($rec, '\Usility\PageFactory\DataRec')) {
-                $uid = $rec->get('_uid');
-                $this->data[$uid] = $rec;
-
-            } else {
-                $dr = new DataRec($key, $rec, $this);
-                $uid = $dr->get('_uid');
-                $this->data[$uid] = $dr;
-            }
         }
         if ($flush) {
             $this->flush();
         }
+        $this->nRows = sizeof($this->data);
         return $this;
-    } // add
+    } // addRec
+
+
+
+    /**
+     * @param $rec
+     * @return bool
+     */
+    public function recExists(array $rec): bool
+    {
+        $dataStr = json_encode($this->data);
+        $newRec = rtrim(json_encode($rec), '}');
+        $duplicate = str_contains($dataStr, $newRec);
+        return $duplicate;
+    } // isDuplicate
+
 
 
     /**
@@ -304,7 +304,8 @@ class DataSet
 
             $inx = $this->findRecKeyOf($key);
             if ($inx === null) {
-                return $this->add($key, $rec, flush: $flush);
+                // rec doesn't exist, create new one:
+                return $this->addRec($rec, flush: $flush);
 
             } elseif (is_a($rec, '\Usility\PageFactory\DataRec')) {
                 $this->data[$inx] = $rec;
@@ -316,22 +317,19 @@ class DataSet
         if ($flush) {
             $this->flush();
         }
+        $this->nRows = sizeof($this->data);
         return $this;
     } // update
 
 
     /**
-     * Deletes one or multiple records from datasource.
-     *    $ds->delete('max');
-     *    $ds->delete('A', 'cat');
-     *    $ds->delete('B', 'cat', 'all');
-     *    $ds->delete(3);
-     *    $ds->delete([2,4,7]);
+     * Deletes a record from datasource.
+     *    $ds->delete('ABCDEF');
      * @param mixed $key
      * @return object
      * @throws \Exception
      */
-    public function remove($key, mixed $rec = null, bool $flush = false)
+    public function remove($key, bool $flush = false)
     {
         if (isset($this->data[$key])) {
             unset($this->data[$key]);
@@ -344,6 +342,7 @@ class DataSet
         if ($flush) {
             $this->flush();
         }
+        $this->nRows = sizeof($this->data);
         return $this;
     } // remove
 
@@ -466,7 +465,7 @@ class DataSet
 
 
     /**
-     * Returns a normalized data-array, i.e. makes sure that all records have all same elements
+     * Returns a normalized data-array, i.e. makes sure that all records have the same structure (i.e. same set of elements)
      * -> result is a rectangular table.
      * @param bool $includeHeader
      * @param bool $includeRecKeys
@@ -478,28 +477,37 @@ class DataSet
         if ($includeMeta === null) {
             $includeMeta = $this->includeMeta;
         }
+
+        // check whether has been 2d-normalized before:
         if ($this->data2DNormalized[$includeHeader][$includeMeta]??false) {
             $data2D = $this->data2DNormalized[$includeHeader][$includeMeta];
-            $this->nRows = sizeof($data2D); //???
             $this->nCols = sizeof(reset($data2D));
             return $data2D;
         }
 
         $data = $this->data($includeMeta);
+        if (!$data) {
+            return []; // nothing to do
+        }
         $data2D = [];
-        $headers = $this->getElementLabels($includeMeta);
+        $elementKeys = $this->getElementKeys($includeMeta);
 
         if ($includeHeader) {
-            $data2D['_hdr'] = array_combine($headers, $headers);
+            $data2D['_hdr'] = array_combine($elementKeys, $elementKeys);
         }
         foreach ($data as $key => $rec) {
             $newRec = [];
-            foreach ($this->elementKeys as $elemKey => $elemLabel) {
-                $newRec[$elemKey] = $rec[$elemKey] ?? '';
+            foreach ($elementKeys as $elemKey) {
+                $value = $rec[$elemKey] ?? '';
+                // if element contains an array, stringify it:
+                if (is_array($value)) {
+                    $value = var_r($value, false, true);
+                    $value = trim($value, '[] ');
+                }
+                $newRec[$elemKey] = $value;
             }
             $data2D[$key] = $newRec;
         }
-        $this->nRows = sizeof($data2D);
         $this->nCols = sizeof(reset($data2D));
         $this->data2DNormalized[$includeHeader][$includeMeta] = $data2D;
         return $data2D;
@@ -507,30 +515,30 @@ class DataSet
 
 
     /**
-     * Returns an array containing all element labels found in all data records
+     * Returns an array containing all element keys found in all data records
      * @param bool $includeMeta
      * @return array
      */
-    public function getElementLabels(bool $includeMeta = false): array
+    public function getElementKeys(bool $includeMeta = false): array
     {
         if (!$this->elementKeys) {
             return [];
         }
-        $elmentLabels = array_values($this->elementKeys);
+        $elementKeys = array_values($this->elementKeys);
         if ($includeMeta || $this->includeMeta) {
-            $elmentLabels[DATAREC_KEY] = DATAREC_KEY;
-            $elmentLabels[DATAREC_UID] = DATAREC_UID;
-            $elmentLabels[DATAREC_TIMESTAMP] = DATAREC_TIMESTAMP;
+            $elementKeys['_origRecKey'] = '_origRecKey';
+            $elementKeys['_reckey'] = '_reckey';
+            $elementKeys[DATAREC_TIMESTAMP] = DATAREC_TIMESTAMP;
         }
-        return $elmentLabels;
-    } // getElementLabels
+        return $elementKeys;
+    } // getElementKeys
 
 
     /**
      * Returns the index of one or multiple record(s) that match description.
      *    $inx = $ds->findRecKeyOf('Bob'); // case insensitive
      *    $inx = $ds->findRecKeyOf('M40ED116'); // uid instead of key
-     *    $inx = $ds->findRecKeyOf('M40ED116', '_uid');
+     *    $inx = $ds->findRecKeyOf('M40ED116', '_reckey');
      *    $inx = $ds->findRecKeyOf('123456', 'password'); // value and element-label
      *    $inx = $ds->findRecKeyOf('x', 'x'); // no match returns null
      *    $inx = $ds->findRecKeyOf(2); // error
@@ -544,13 +552,13 @@ class DataSet
     {
         $found = [];
         if ($attribute) {
-            // allow for 'uid' instead of internally used '_uid':
-            if ($attribute === 'uid') {
-                $attribute = '_uid';
+            // allow for 'uid' instead of internally used '_reckey':
+            if ($attribute === 'reckey') {
+                $attribute = '_reckey';
             }
             foreach ($this->data as $recUid => $elem) {
-                // check whether matches with '_uid'-property:
-                if (($attribute === '_uid') && strcasecmp($elem->_uid, $key) === 0) {
+                // check whether matches with '_reckey'-property:
+                if (($attribute === '_reckey') && strcasecmp($elem->_reckey, $key) === 0) {
                     $found[] = $recUid;
                     if (!$all) { break; }
 
@@ -561,9 +569,9 @@ class DataSet
                 }
             }
         } else {
-            // no attribute specified, check index, key and _uid:
+            // no attribute specified, check index, key and _reckey:
             foreach ($this->data as $recUid => $elem) {
-                if (($key === $recUid) || ($key === $elem->{DATAREC_KEY})) {
+                if (($key === $recUid) || ($key === $elem->_origRecKey)) {
                     $found[] = $recUid;
                     if (!$all) { break; }
                 }
@@ -588,7 +596,7 @@ class DataSet
      *   $dataRec = $ds->find('Bob'); // key
      *   $dataRec = $ds->find('Bob@site.com', 'email'); // value and element-label
      *   $dataRec = $ds->find('M40ED116', 'uid'); // uid
-     *   $dataRec = $ds->find('M40ED116', '_uid'); // uid (internally used label)
+     *   $dataRec = $ds->find('M40ED116', '_reckey'); // uid (internally used label)
      *   $dataRec = $ds->find('A', 'cat'); // finds first match
      *   $dataSet = $ds->find('A', 'cat', 'all'); // returns a DataSet of all matching records
      * @param ...$keys
@@ -627,18 +635,17 @@ class DataSet
             }
         }
 
-        if ($recUid === null) {
-            throw new \Exception("Element '$key' not found in datasource '$this->name'");
-        }
+/* ??? what was that?
         if (is_array($recUid) && $recUid) {
             $ds = $this->clone();
             $ds->set('data', []);
             foreach ($recUid as $i) {
                 $elem = $this->nth($i);
-                $ds->add($elem);
+                $ds->addRec($elem); // $ds->add($elem);
             }
             return $ds;
         }
+*/
         return $this->nth($recUid);
     } // find
 
@@ -981,10 +988,16 @@ class DataSet
     } // exportToCsv
 
 
-
+    /**
+     * @param string $file
+     * @param bool $includeMeta
+     * @param bool $includeHeader
+     * @return string
+     * @throws \Exception
+     */
     public function exportToOfficeDoc(string $file,
-                                bool  $includeMeta = false,
-                                bool  $includeHeader = true): string
+                                      bool   $includeMeta = false,
+                                      bool   $includeHeader = true): string
     {
         if (!$this->officeFormatAvailable) {
             throw new \Exception("Support for Office Formats not available in this installation.");
@@ -999,6 +1012,11 @@ class DataSet
     } // exportToOfficeDoc
 
 
+    /**
+     * @param mixed $basename
+     * @return string
+     * @throws \Exception
+     */
     protected function getDownloadFilename(mixed $basename = false): string
     {
         // use name of master file 
@@ -1076,7 +1094,7 @@ class DataSet
 
 
     /**
-     * Imports data from master file trying to use previously used DATAREC_KEY.
+     * Imports data from master file trying to use previously used '_origRecKey'.
      * @return mixed
      * @throws \Exception
      */
@@ -1091,7 +1109,7 @@ class DataSet
                 }
 
                 $rec0 = reset($data);
-                if (isset($rec0['_uid'])) {
+                if (isset($rec0['_reckey'])) {
                     $oldData = false;
                 } else {
                     if (file_exists($this->cacheFile)) {
@@ -1106,15 +1124,15 @@ class DataSet
                     // if cache file existed, retrieve UIDs for re-use:
                     if ($oldData) {
                         foreach ($oldData as $oldElem) {
-                            if ($oldElem->{DATAREC_KEY} === $key) {
-                                $recKeyToUse = $oldElem->_uid;
+                            if ($oldElem->_origRecKey === $key) {
+                                $recKeyToUse = $oldElem->_reckey;
                                 break;
                             }
                         }
                     } else {
-                        $recKeyToUse = $rec['_uid'] ?? false;
+                        $recKeyToUse = $rec['_reckey'] ?? false;
                     }
-                    $this->add($key, $rec, recKeyToUse: $recKeyToUse);
+                    $this->addRec($rec, flush: false, recKeyToUse: $recKeyToUse);
                 }
             } catch (\Exception $e) {
                 throw new \Exception($e->getMessage());
@@ -1136,7 +1154,7 @@ class DataSet
             throw new \Exception("Error: DB modified while locked");
         }
 
-        $recKeyType =             $this->options['masterFileRecKeyType'] ?? DATAREC_KEY; // default: re-use original rec key
+        $recKeyType =             $this->options['masterFileRecKeyType'] ?? '_origRecKey'; // default: re-use original rec key
         $recKeySort =             $this->options['masterFileRecKeySort'] ?? false;
         $recKeySortOnElement =    $this->options['masterFileRecKeySortOnElement'] ?? false;
 
@@ -1145,10 +1163,10 @@ class DataSet
             $parts = explodeTrim(',', $keys);
             foreach ($parts as $el) {
                 // determine recKey: recKey|index|uid|timestamp or a data-rec-element as 'rec.xy'
-                if (preg_match('/(index|'.DATAREC_KEY.'|_uid)/', $el, $m)) {
+                if (preg_match('/(index|_origRecKey|_reckey)/', $el, $m)) {
                     $recKeyType = $m[1];
-                } else if ($el === 'uid') { // synonym for _uid
-                    $recKeyType = '_uid';
+                } else if ($el === 'uid') { // synonym for _reckey
+                    $recKeyType = '_reckey';
                 } elseif (preg_match('/.*\.\s*(.+)/', $el, $m)) { // rec.xy
                     $recKeyType = '.' . $m[1];
 
@@ -1166,7 +1184,7 @@ class DataSet
         try {
             // sort:
             if ($recKeySort) {
-                if ($recKeySort === 'sort' || $recKeySort === 'asc') {
+                if ($recKeySort === 'sort' || $recKeySort === 'asc' || $recKeySort === true) {
                     $recKeySort = false;
                 } elseif ($recKeySort === 'desc') {
                     $recKeySort = 'arsort';
@@ -1176,14 +1194,14 @@ class DataSet
                 $data = $this->data($this->includeMeta);
             }
 
-            // create new data-set with requested rec-key (unless _uid selected):
-            if ($recKeyType && $recKeyType !== '_uid') {
+            // create new data-set with requested rec-key (unless _reckey selected):
+            if ($recKeyType && $recKeyType !== '_reckey') {
                 $data1 = [];
 
                 // case index:
                 if ($recKeyType === 'index') {
                     foreach ($data as $k => $v) {
-                        $v[DATAREC_UID] = $k;
+                        $v['_reckey'] = $k;
                         $data1[] = $v;
                     }
 
@@ -1192,7 +1210,7 @@ class DataSet
                     $recKeyType = substr($recKeyType, 1);
                     // loop over records and assemble new data set:
                     foreach ($data as $k => $v) {
-                        $v[DATAREC_UID] = $k;
+                        $v['_reckey'] = $k;
                         $k = $v[$recKeyType] ?? $k; // access rec-element, use key if that not exists
                         $data1[$k] = $v;
                     }
@@ -1200,9 +1218,13 @@ class DataSet
                 // case rec object property: dr->xy
                 } else {
                     foreach ($data as $k => $v) {
-                        $v[DATAREC_UID] = $k;
+                        $v['_reckey'] = $k;
                         $key = $this->data[$k]->$recKeyType ?? $k;
-                        $data1[$key] = $v;
+                        if ($key === false) {
+                            $data1[] = $v;
+                        } else {
+                            $data1[$key] = $v;
+                        }
                     }
                 }
                 $data = $data1;
@@ -1250,6 +1272,7 @@ class DataSet
     protected function readCacheFile(): void
     {
         $obj = unserialize(readFileLocking($this->cacheFile));
+        $obj->options = $this->options;
         foreach ($obj as $key => $value) {
             $this->$key = $value;
         }

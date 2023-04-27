@@ -11,23 +11,25 @@ class DataRec
     public $parent;
     public $recData;
     public $_timestamp = 0;
-    public $_uid;
+    public $_reckey;
     public $_lock = false;
     public $_lockedBy = false;
+    public $_origRecKey;
+    public $maxRecLockTime;
 
     public function __construct($recKey, $recData, $parent = null)
     {
-        $this->{DATAREC_KEY} = $recKey;
+        $this->_origRecKey = $recKey;
         $this->recData = &$recData;
         $this->parent = $parent;
-        if (isset($recData[DATAREC_KEY])) {
-            $this->{DATAREC_KEY} = $recData[DATAREC_KEY];
-            unset($recData[DATAREC_KEY]);
+        if (isset($recData['_origRecKey'])) {
+            $this->_origRecKey = $recData['_origRecKey'];
+            unset($recData['_origRecKey']);
         }
-        if (isset($recData[DATAREC_UID])) {
-            $this->_uid = $recData[DATAREC_UID];
+        if (isset($recData['_reckey'])) {
+            $this->_reckey = $recData['_reckey'];
         } else {
-            $this->_uid = createHash();
+            $this->_reckey = createHash();
         }
         if (isset($recData[DATAREC_TIMESTAMP])) {
             $this->_timestamp = $recData[DATAREC_TIMESTAMP];
@@ -35,18 +37,19 @@ class DataRec
             $this->_timestamp = time();
         }
 
+        $i = 0;
         foreach ($recData as $k => $v) {
             $elemKeyNormalized = translateToIdentifier($k);
 
             // add key to list of elementKeys (unless it starts with _)
             if ($k[0] !== '_') {
                 $parent->elementKeys[$elemKeyNormalized] = $k;
+                // if key and normalized key differ, swap:
+                if ($k !== $elemKeyNormalized) {
+                    array_splice_assoc($recData, $i, 1, [$elemKeyNormalized => $v]);
+                }
             }
-            // if key and normalized key differ, swap:
-            if ($k !== $elemKeyNormalized) {
-                $recData[$elemKeyNormalized] = $v;
-                unset($recData[$k]);
-            }
+            $i++;
         }
         $this->maxRecLockTime = $this->parent->get('maxRecLockTime');
     } // __construct
@@ -57,19 +60,19 @@ class DataRec
      * @param bool $includeMetaFields
      * @return mixed
      */
-    public function data(bool $includeMetaFields = false)
+    public function data(bool $includeMetaFields = false): array
     {
         $recData = $this->recData;
         if ($includeMetaFields) {
-            $recData[DATAREC_KEY] = $this->{DATAREC_KEY};
-            $recData[DATAREC_UID] = $this->_uid;
+            $recData['_origRecKey'] = $this->_origRecKey;
+            $recData['_reckey'] = $this->_reckey;
             $recData[DATAREC_TIMESTAMP] = $this->_timestamp;
         } else {
-            if (isset($recData[DATAREC_KEY])) {
-                unset($recData[DATAREC_KEY]);
+            if (isset($recData['_origRecKey'])) {
+                unset($recData['_origRecKey']);
             }
-            if (isset($recData[DATAREC_UID])) {
-                unset($recData[DATAREC_UID]);
+            if (isset($recData['_reckey'])) {
+                unset($recData['_reckey']);
             }
             if (isset($recData[DATAREC_TIMESTAMP])) {
                 unset($recData[DATAREC_TIMESTAMP]);
@@ -90,7 +93,7 @@ class DataRec
     public function update($recKey, $value = null, bool $flush = false): mixed
     {
         if ($this->isLocked()) {
-            throw new \Exception("DataRec '".$this->{DATAREC_KEY}."' is locked");
+            throw new \Exception("DataRec '".$this->_origRecKey."' is locked");
         }
         if ($value) {
             if (is_array($value)) {
@@ -115,12 +118,12 @@ class DataRec
 
 
     /**
-     * Returns the DataRec's _uid
+     * Returns the DataRec's _reckey
      * @return bool|mixed
      */
-    public function dataRecKey()
+    public function dataRecKey(): string
     {
-        return $this->_uid;
+        return $this->_reckey;
     } // dataRecKey
 
 
@@ -141,12 +144,12 @@ class DataRec
      * @return void
      * @throws \Exception
      */
-    public function remove(bool $flush = false)
+    public function remove(bool $flush = false): object
     {
         if ($this->isLocked()) {
-            throw new \Exception("DataRec '".$this->{DATAREC_KEY}."' is locked");
+            throw new \Exception("DataRec '".$this->_origRecKey."' is locked");
         }
-        $this->parent->remove($this->_uid);
+        $this->parent->remove($this->_reckey);
         if ($flush) {
             $this->parent->flush();
         }
@@ -200,9 +203,9 @@ class DataRec
                     return true;
                 }
             }
-            throw new \Exception("Timeout while waiting for DataRec '".$this->{DATAREC_KEY}."' to be unlocked");
+            throw new \Exception("Timeout while waiting for DataRec '".$this->_origRecKey."' to be unlocked");
         } else {
-            throw new \Exception("DataRec '".$this->{DATAREC_KEY}."' is locked");
+            throw new \Exception("DataRec '".$this->_origRecKey."' is locked");
         }
     } // lock
 
@@ -248,7 +251,7 @@ class DataRec
             return false;
         }
         if ($toParent) {
-            $this->parent->setData($this->_uid, $key, $value, flush: $flush);
+            $this->parent->setData($this->_reckey, $key, $value, flush: $flush);
         }
         $this->$key = $value;
     } // set
@@ -267,7 +270,7 @@ class DataRec
             return false;
         }
         if ($toParent) {
-            $this->parent->setRecData($this->_uid, $key, $value, flush: $flush);
+            $this->parent->setRecData($this->_reckey, $key, $value, flush: $flush);
         }
         $this->recData[$key] = $value;
     } // setRecData
@@ -301,9 +304,9 @@ class DataRec
     {
         $str = '';
         $str .= "parent: [OMITTED]\n";
-        $str .= "key: ".$this->{DATAREC_KEY}."\n";
+        $str .= "key: ".$this->_origRecKey."\n";
         $str .= "_timestamp: $this->_timestamp\n";
-        $str .= "_uid: $this->_uid\n";
+        $str .= "_reckey: $this->_reckey\n";
         $str .= "_lock: " . ($this->_lock ? 'true' : 'false') . "\n";
         $str .= "_lockedBy: $this->_lockedBy\n";
         $str .= "\nDATA:\n";
