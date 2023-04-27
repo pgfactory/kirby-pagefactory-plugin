@@ -1517,11 +1517,8 @@ function parseArgumentStr(string $str, string $delim = ',', mixed $superBrackets
         return [ $str ];
     }
 
-    // if string starts with { we assume it's "non-relaxed" json:
-    if (($str[0] === '{') && !str_contains($str, '<'.INLINE_SHIELD.'>') &&
-            !str_contains($str, '<'.BLOCK_SHIELD.'>') &&
-            !str_contains($str, '{md{')) {
-        return Json::decode($str);
+    if (preg_match('/^\s* { .* } \s* $/x', $str, $m)) {
+        $str = $m[1];
     }
 
     // otherwise, interpret as 'relaxed Yaml':
@@ -1556,7 +1553,7 @@ function parseArgumentStr(string $str, string $delim = ',', mixed $superBrackets
     $json = '{'.$json.'}';
     $options = json_decode($json, true);
     if ($options === null) {
-        $options = [];
+        throw new Exception("Error in argument list: \"$str\"");
     }
 
     // case a value was written in '{...}' notation -> unpack:
@@ -1682,11 +1679,12 @@ function parseArgValue(string &$rest, string $delim): mixed
             $rest = ltrim($m[3], ', ');
         }
 
-    // case string wrapped in {} -> assume it's propre Json:
+    // case string wrapped in {} -> assume it's relaxed Json:
     } elseif ($ch1 === '{') {
         $p = strPosMatching($rest, 0, '{', '}');
-        $value = substr($rest, $p[0], $p[1]-$p[0]+1);
-        $rest = substr($rest, $p[1]+1);
+        $value = substr($rest, $p[0]+1, $p[1]-$p[0]-1);
+        $rest = ltrim(substr($rest, $p[1]+1), ",\n\t ");
+        $value = json_encode(parseArgumentStr($value));
         return $value;
 
     } else {
@@ -2338,7 +2336,6 @@ function translateToClassName(string $str, bool $handleLeadingNonChar = true): s
 }    // camelCase
 
 
-
  /**
   * Converts an array or object to a more or less readable string.
   * @param $var
@@ -2374,6 +2371,7 @@ function var_r($var, string $varName = '', bool $flat = false, bool $toHtml = fa
         } else {
             $out = $varName . var_export($var, true);
             $out = str_replace(["array (\n", "),\n", ")\n", '=>'], ["[\n", "],\n", "]\n", '\=>'], $out);
+            $out[strlen($out)-1] = ']';
         }
     }
     if ($toHtml) {
