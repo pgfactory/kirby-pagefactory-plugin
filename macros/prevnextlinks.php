@@ -82,7 +82,7 @@ class PrevNextLinks
             $out .= $this->renderNextLink();
 
             // inject script code for page-switching:
-            $url = PageFactory::$appUrl . "media/plugins/usility/pagefactory/js/page-switcher.js";
+            $url = PageFactory::$appUrl . "media/plugins/pgfactory/pagefactory/js/page-switcher.js";
             $out .= "\t<script data-src='$url' class='pfy-onload'></script>\n";
             $out .= "</div>\n";
         }

@@ -26,7 +26,7 @@ const INLINE_SHIELD =              'span shielded';
 const MD_SHIELD =                  'span mdshielded';
 
  // URLs:
-const PFY_BASE_ASSETS_URL =        'media/plugins/usility/';
+const PFY_BASE_ASSETS_URL =        'media/plugins/pgfactory/';
 const PFY_ASSETS_URL =             PFY_BASE_ASSETS_URL.'pagefactory/';
 const PAGED_POLYFILL_SCRIPT_URL =  PFY_ASSETS_URL.'js/paged.polyfill.min.js';
 

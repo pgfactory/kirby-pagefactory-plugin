@@ -9,7 +9,7 @@ use Kirby\Exception\Exception;
 const DEFAULT_ASSET_GROUPS = [
 
     // 1) Plugin-Assets
-    // Note: plugin assets are made available via URL 'media/plugins/usility/pagefactory/...':
+    // Note: plugin assets are made available via URL 'media/plugins/pgfactory/pagefactory/...':
     'site/plugins/pagefactory/assets/css/-pagefactory.css' => [   // $dest
         'site/plugins/pagefactory/scss/autoload/*',               // $sources
         'site/plugins/markdownplus/assets/css/*',

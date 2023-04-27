@@ -27,7 +27,7 @@ List of useful variables:
 
 *) Define/override variables via ``site/config/config.php``. Example:
 
-    'usility.pagefactory.options' => [
+    'pgfactory.pagefactory.options' => [
         'variables' => [
              'pfy-page-title' => [
                  'de' => 'MEINE SEITE',

@@ -42,7 +42,7 @@ Renders an image tag.
 
 Configuration options in 'site/config/config.php':
 
-    'usility.pagefactory.options' \=> [
+    'pgfactory.pagefactory.options' \=> [
         'imageAutoQuickview'  \=> true,  \// turns quickview on by default
         'imageAutoSrcset'  \=> true,     \// turns srcset on by default
     ],

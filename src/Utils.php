@@ -427,7 +427,7 @@ EOT;
      */
     public static function loadPfyConfig():void
     {
-        $optionsFromConfigFile = kirby()->option('usility.pagefactory.options');
+        $optionsFromConfigFile = kirby()->option('pgfactory.pagefactory.options');
         if ($optionsFromConfigFile) {
             PageFactory::$config = array_replace_recursive(OPTIONS_DEFAULTS, $optionsFromConfigFile);
         } else {
@@ -506,7 +506,7 @@ EOT;
         $config = (string)fileGetContents(PFY_CONFIG_FILE);
 
         // check whether section pagefactory already exists, then inject values accordingly:
-        if (preg_match("/(['\"]usility.pagefactory.options['\"]\s*=>\s*\[)/", $config, $m)) {
+        if (preg_match("/(['\"]pgfactory.pagefactory.options['\"]\s*=>\s*\[)/", $config, $m)) {
             $str = "\n\t\t'$key'\t\t=> '$value',$comment,";
             $config = str_replace($m[0], $m[0].$str, $config);
             file_put_contents(PFY_CONFIG_FILE, $config);
@@ -514,7 +514,7 @@ EOT;
         } elseif (preg_match("/(];)/", $config, $m)) {
             $str = <<<EOT
 
-    'usility.pagefactory.options' => [
+    'pgfactory.pagefactory.options' => [
         '$key'		=> '$value',$comment
     ],
 

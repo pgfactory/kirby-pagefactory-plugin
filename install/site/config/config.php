@@ -16,7 +16,7 @@ return [
     'amteich.twig.env.functions' => $functions, // register pagefactory's twig-functions
     //'amteich.twig.cache' => false,            // disable if necessary
 
-    'usility.pagefactory.options' => [
+    'pgfactory.pagefactory.options' => [
         'default-nav'   => true,            // set to true when using the built-in nav() function
         //'timezone'		=> 'Europe/Zurich', // Override PageFactory's guess if necessary
     ],
