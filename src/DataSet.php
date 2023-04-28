@@ -267,10 +267,9 @@ class DataSet
      */
     public function recExists(array $rec): bool
     {
-        $dataStr = json_encode($this->data);
-        $newRec = rtrim(json_encode($rec), '}');
-        $duplicate = str_contains($dataStr, $newRec);
-        return $duplicate;
+        $dataStr = strtolower(json_encode($this->data()));
+        $newRec = strtolower(rtrim(json_encode($rec), '}'));
+        return str_contains($dataStr, $newRec);
     } // isDuplicate
 
 
