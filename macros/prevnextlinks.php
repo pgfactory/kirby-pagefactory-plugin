@@ -41,7 +41,7 @@ EOT,
         list($options, $str) = $str;
     }
 
-    $options['wrapperClass'] = ($options['option'][0] === 't')? ' pfy-show-as-top-arrows': ' pfy-show-as-arrows-and-text';
+    $options['wrapperClass'] .= ($options['option'][0] === 't')? ' pfy-show-as-top-arrows': ' pfy-show-as-arrows-and-text';
 
     // assemble output:
     $obj = new PrevNextLinks();
