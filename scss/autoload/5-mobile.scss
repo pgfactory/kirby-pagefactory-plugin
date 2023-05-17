@@ -1,5 +1,26 @@
 /*
  * styles for mobile view
+ *
+ * CSS Variables:
+ *    --pfy-mobile-bg-color
+ *    --pfy-mobile-txt-color
+ *    --pfy-mobile-link-color
+ *  nav:
+ *    --pfy-mobile-nav-txt-size
+ *    --pfy-mobile-nav-bg-color
+ *    --pfy-mobile-nav-txt-color
+ *    --pfy-mobile-nav-title-color
+ *    --pfy-mobile-nav-title-bg-color
+ *  header:
+ *    --pfy-mobile-header-height
+ *    --pfy-mobile-header-txt-color
+ *    --pfy-mobile-header-bg-color
+ *    --pfy-mobile-header-txt-size
+ *  footer:
+ *    --pfy-mobile-footer-height
+ *    --pfy-mobile-footer-txt-color
+ *    --pfy-mobile-footer-bg-color
+ *    --pfy-mobile-footer-txt-size
  */
 
  @import '../_scss-variables.scss';
@@ -7,18 +28,22 @@
 
 // === Small/Mobile Screen:
 #pfy.pfy-default-styling.pfy-small-screen .pfy-encapsulated,
-.pfy-default-styling.pfy-small-screen {
+#pfy.pfy-default-styling.pfy-small-screen {
   font-family: Verdana, sans-serif;
-//    background: $mobile-nav-bg-color;
-//    background: var(--pfy-mobile-nav-bg-color, $mobile-nav-bg-color);
 
     .pfy-small-screen-header {
-        display: block !important;
-        background: $mobile-header-bg-color;
-        color: $mobile-header-txt-color;
+      display: block !important;
+      height:$mobile-header-height;
+      height: var(--pfy-mobile-header-height, #{$mobile-header-height});
+
+      color: $mobile-header-txt-color;
+      color: var(--pfy-mobile-header-txt-color, #{$mobile-header-txt-color});
+
+      background: $mobile-header-bg-color;
+      background: var(--pfy-mobile-header-bg-color, #{$mobile-header-bg-color});
+
         width: 100%;
         margin: 0;
-        height: $mobile-header-height;
         position: fixed;
         top: 0;
         left: 0;
@@ -26,21 +51,24 @@
         z-index: 9;
         h1 {
             font-size: $mobile-header-font-size;
+            font-size: var(--pfy-mobile-header-txt-size, $mobile-header-font-size);
             text-align: center;
-            margin: 0 $mobile-header-height;
+            margin: 0 var(--pfy-mobile-header-height, #{$mobile-header-height});
             padding: 0;
-            height: $mobile-header-height;
-            line-height: $mobile-header-height;
+            height: var(--pfy-mobile-header-height, #{$mobile-header-height});
+            line-height: var(--pfy-mobile-header-height, #{$mobile-header-height});
         }
         #pfy-nav-menu-icon {
-            border: none;
-            background: none;
+          font-size: var(--pfy-mobile-header-txt-size, $mobile-header-font-size);
+          border: none;
+          background: none;
         }
         svg {
             position: absolute;
-            top: calc(#{$mobile-header-height} * 0.15);
+            width: unset;
+            top: calc(var(--pfy-mobile-header-height, #{$mobile-header-height}) * 0.15);
+            height: calc(var(--pfy-mobile-header-height, #{$mobile-header-height}) * 0.6);
             left: calc(#{$mobile-header-height} * 0.15);
-            height: calc(#{$mobile-header-height} * 0.6);
             cursor: pointer;
             path {
                 fill: whitesmoke;
@@ -58,12 +86,13 @@
         margin: 0;
         height: calc(100vh - var(--pfy-mobile-header-height, #{$mobile-header-height}));
         width: 100vw;
+        background: $mobile-nav-bg-color;
+        background: var(--pfy-mobile-nav-bg-color, $mobile-nav-bg-color);
     }
 
     .pfy-main {
         padding: 10px;
         z-index: 2;
-// box-shadow: 0 0 1em orange;
     }
 
     &.pfy-nav-mobile-open .pfy-main {
@@ -72,7 +101,15 @@
     }
 
     .pfy-primary-nav {
-        font-size: 1vw;
+        .pfy-nav {
+          &, a {
+            font-size: $mobile-nav-txt-size;
+            font-size: var(--pfy-mobile-nav-txt-size, $mobile-nav-txt-size);
+          }
+          li div {
+            text-align: unset;
+          }
+        }
         width: $mobile-nav-width;
         padding: 1em;
         * {
@@ -83,18 +120,6 @@
             border-left: 3px solid red;
         }
     }
-/*
-    .pfy-page-switcher-links a {
-        font-size: var(--pfy-mobile-header-font-size, 8vw);
-        color: #ddd;
-        top: 0.5em;
-    }
-
-    .pfy-prev-page-link a {
-        right: 1.2em;
-        left: initial;
-    }
-*/
 
     .pfy-large-screen-footer {
         display: none;
@@ -103,9 +128,8 @@
     .pfy-main,
     .pfy-header {
         position: fixed;
-        top: #{$mobile-header-height};
+        top: $mobile-header-height;
         top: var(--pfy-mobile-header-height, #{$mobile-header-height});
-        //overflow-y: auto;
         padding-bottom: 15vh;
     }
 
@@ -139,15 +163,14 @@
         margin: 0;
     }
 
-    .pfy-mobile-page-header {
-        color: #{$mobile-header-txt-color};
-        color: var(--pfy-mobile-header-txt-color, #{$mobile-header-txt-color});
-        background: #{$mobile-nav-bg-color};
-        background: var(--pfy-mobile-header-bg-color, #{$mobile-header-bg-color});
-    }
-
     .pfy-header {
-        display: none;
+      position: fixed;
+      top: calc(#{$mobile-header-height} + 1em);
+      left: 0;
+      width: 65vw;
+      .pfy-primary-nav {
+        justify-content: flex-start;
+      }
     }
 
     .pfy-footer {
@@ -201,7 +224,7 @@
 
 
     .pfy-large-screen-only {
-        display: none;
+        display: none!important;
     }
 
 } // pfy-small-screen
