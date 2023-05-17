@@ -51,6 +51,14 @@ class Extensions
                     $newAssetGroupss = $obj->getAssetGroups();
                     PageFactory::$assets->addAssetGroups($newAssetGroupss);
                 }
+
+                // load extension's variables:
+                $files = getDir($extPath.'variables/');
+                if (is_array($files)) {
+                    foreach ($files as $file) {
+                        TransVars::loadVariables($file, doTranslate: true);
+                    }
+                }
             }
         }
     } // loadExtensions
