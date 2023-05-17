@@ -343,6 +343,22 @@ pfy-close:
     de: Schliessen
     _:  Close
 
+pfy-cancel:
+    de: Abbrechen
+    _:  Cancel
+
+pfy-ok:
+    de: Ok
+    _:  Ok
+
+pfy-continue:
+    de: Weiter
+    _:  Continue
+
+pfy-confirm:
+    de: Bestätigen
+    _:  Confirm
+
 pfy-list-empty:
     de: Nichts gefunden
     _:  Nothing found
