@@ -34,10 +34,9 @@ class TransVars
         ];
         foreach ($varLocations as $dir) {
             $files = getDir("$dir*.yaml");
-            foreach ($files as $file) {
-                $transVars = loadFile($file);
-                if ($transVars) {
-                    self::$transVars = array_merge_recursive(self::$transVars, $transVars);
+            if (is_array($files)) {
+                foreach ($files as $file) {
+                    self::loadVariables($file);
                 }
             }
         }
@@ -56,6 +55,27 @@ class TransVars
 
         self::loadMacros();
     } // init
+
+
+    /**
+     * Loads variables from given file
+     * @param string $file
+     * @return void
+     * @throws InvalidArgumentException
+     */
+    public static function loadVariables(string $file, bool $doTranslate = false): void
+    {
+        $transVars = loadFile($file);
+        if ($transVars) {
+            self::$transVars = array_merge_recursive(self::$transVars, $transVars);
+
+            if ($doTranslate) {
+                foreach ($transVars as $key => $rec) {
+                    self::$variables[camelCase($key)] = self::translateVariable($key);
+                }
+            }
+        }
+    } // loadVariables
 
 
 
@@ -237,7 +257,7 @@ class TransVars
     {
         PageFactory::$page->headInjections()->value     = PageFactory::$pg->renderHeadInjections();
 
-        $bodyTagClasses   = PageFactory::$pg->bodyTagClasses ?: 'pfy-large-screen';
+        $bodyTagClasses   = PageFactory::$pg->bodyTagClasses ?: 'pfy-small-screen';
         if (isAdmin()) {
             $bodyTagClasses .= ' pfy-admin';
         } elseif (kirby()->user()) {
