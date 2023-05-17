@@ -54,6 +54,9 @@ class Utils
     } // handleAgentRequests
 
 
+    /**
+     * @return void
+     */
     public static function executeCustomCode()
     {
         $files = getDir(PFY_CUSTOM_CODE_PATH.'*.php');
@@ -474,7 +477,7 @@ EOT;
      * (thus avoiding subsequent calls to https://ipapi.co/timezone)
      * @return string
      */
-    public static function setTimezone():string
+    public static function getTimezone():string
     {
         // check whether timezone is properly set (e.g. "UTC" is not sufficient):
         $systemTimeZone = date_default_timezone_get();
@@ -487,8 +490,68 @@ EOT;
             }
             \Kirby\Toolkit\Locale::set($systemTimeZone);
         }
+        date_default_timezone_set($systemTimeZone);
         return $systemTimeZone;
-    } // setTimezone
+    } // getTimezone
+
+
+    /**
+     * @return string
+     */
+    public static function setTimezone(): string
+    {
+        return self::getTimezone();
+    }
+
+
+    /**
+     * @return string
+     */
+    public static function getCurrentLocale(): string
+    {
+        return \Locale::acceptFromHttp($_SERVER['HTTP_ACCEPT_LANGUAGE']);
+    } // getCurrentLocale
+
+
+    /**
+     * @param mixed|null $datetime
+     * @param bool $includeTime
+     * @return string
+     */
+    public static function timeToString(mixed $datetime = null, bool $includeTime = null): string
+    {
+        if ($datetime === null) {
+            $datetime = time();
+        } elseif (is_string($datetime)) {
+            if (str_contains($datetime, 'T') && ($includeTime === null)) {
+                $includeTime = true;
+            }
+            $datetime = strtotime($datetime);
+        }
+        if (!is_object('IntlDateFormatter')) {
+            if ($includeTime) {
+                $out = date('d.n.Y, H:i', $datetime);
+            } else {
+                $out = date('d.n.Y', $datetime);
+            }
+
+        } else {
+            try {
+                $includeTime = $includeTime ? IntlDateFormatter::SHORT : IntlDateFormatter::NONE;
+                $fmt = datefmt_create(
+                    self::getCurrentLocale(),
+                    IntlDateFormatter::SHORT,
+                    $includeTime,
+                    self::getTimezone(),
+                    IntlDateFormatter::GREGORIAN
+                );
+                $out = datefmt_format($fmt, $datetime);
+            } catch (\Exception $e) {
+                $out = date('d.n.Y', $datetime);
+            }
+        }
+        return $out;
+    } // timeToString
 
 
     /**
