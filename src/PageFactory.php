@@ -92,6 +92,8 @@ class PageFactory
     public static $pg;
     public static $md;
     public static $debug;
+    public static string $timezone;
+    public static string $locale;
     public static $isLocalhost;
     public static $timer;
     public static $user;
@@ -150,7 +152,8 @@ class PageFactory
 
         Utils::determineDebugState();
 
-        Utils::setTimezone();
+        self::$timezone = Utils::getTimezone();
+        self::$locale = Utils::getCurrentLocale();
 
         self::$pagePath = substr(self::$page->root(), strlen(site()->root())+1) . '/';
         self::$absAppRoot = kirby()->root().'/';
@@ -376,7 +379,7 @@ EOT;
      */
     private function extractFrontmatter(&$mdStr)
     {
-        $fields = preg_split('!\n----\s*\n*!', $mdStr);
+        $fields = preg_split('!\n-{4}\n!', $mdStr);
         $n = sizeof($fields)-1;
         $mdStr = $fields[$n];
 
