@@ -1526,7 +1526,6 @@ function parseArgumentStr(string $str, string $delim = ',', mixed $superBrackets
     $rest = ltrim($str, ", \n");
     $rest = rtrim($rest, ", \n)");
 
-    $rest = superBracketsEncode($rest, $superBrackets);
     if (preg_match('/^(.*?) \)\s*}}/msx', $rest, $mm)) {
         $rest = rtrim($mm[1], " \t\n");
     }
@@ -1556,68 +1555,8 @@ function parseArgumentStr(string $str, string $delim = ',', mixed $superBrackets
         throw new Exception("Error in argument list: \"$str\"");
     }
 
-    // case a value was written in '{...}' notation -> unpack:
-
-    if ($superBrackets) {
-        $options = superBracketsDecode($options);
-    }
     return $options;
 } // parseArgumentStr
-
-
- /**
-  * Shield content of superbrackets (i.e. base64_encode)
-  * @param string $str
-  * @param mixed $superBrackets
-  * @return array|mixed|string|string[]
-  */
-function superBracketsEncode(string $str, mixed $superBrackets)
-{
-    if ($superBrackets) {
-        if (is_string($superBrackets)) {
-            $superBrackets = [$superBrackets];
-        }
-        foreach ($superBrackets as $bracket) {
-            $pattern = "/ (?<!\\\\) $bracket (.*?) (?<!\\\\) $bracket/xms";
-            if (preg_match_all($pattern, $str, $m)) {
-                foreach ($m[1] as $i => $value) {
-                    $value = base64_encode($value);
-                    $str = str_replace($m[0][$i], "'@@b64@$value@b64@@'", $str);
-                }
-            }
-        }
-    }
-    return $str;
-} // superBracketsEncode
-
-
- /**
-  * Decode shielded string
-  * @param mixed $item
-  * @return array|mixed|string|string[]
-  */
-function superBracketsDecode(mixed $item): mixed
-{
-    if (is_string($item)) {
-        if (preg_match_all('/@@b64@ (.*?) @b64@@/xms', $item, $m)) {
-            foreach ($m[1] as $i => $value) {
-                $value = base64_decode($value);
-                $item = str_replace($m[0][$i], $value, $item);
-            }
-        }
-
-    } elseif (is_array($item)) {
-        foreach ($item as $key => $value) {
-            if (is_string($value) && preg_match_all('/@@b64@ (.*?) @b64@@/xms', $value, $m)) {
-                foreach ($m[1] as $i => $v) {
-                    $v = base64_decode($v);
-                    $item[$key] = str_replace($m[0][$i], $v, $value);
-                }
-            }
-        }
-    }
-    return $item;
-} // superBracketsEncode
 
 
  /**
