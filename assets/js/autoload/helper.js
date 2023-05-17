@@ -23,9 +23,6 @@ for (i=0;i<elem.length;i++) {
 window.onresize = function() {
     adaptToWidth();
 }
-window.onload = function() {
-    adaptToWidth();
-}
 
 
 function adaptToWidth() {
@@ -33,11 +30,11 @@ function adaptToWidth() {
     // console.log("document.documentElement.clientWidth;: " + document.documentElement.clientWidth);
     let windowWidth = document.documentElement.clientWidth;
   if (windowWidth < screenSizeBreakpoint) {
-    document.body.classList.add('pfy-small-screen');
     document.body.classList.remove('pfy-large-screen');
+    document.body.classList.add('pfy-small-screen');
   } else {
-    document.body.classList.add('pfy-large-screen');
     document.body.classList.remove('pfy-small-screen');
+    document.body.classList.add('pfy-large-screen');
   }
 }
 

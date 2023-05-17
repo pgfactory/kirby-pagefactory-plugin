@@ -436,6 +436,13 @@ EOT;
 
     <script>
 $js
+        if (document.documentElement.clientWidth < screenSizeBreakpoint) {
+            document.body.classList.remove('pfy-large-screen');
+            document.body.classList.add('pfy-small-screen');
+        } else {
+            document.body.classList.remove('pfy-small-screen');
+            document.body.classList.add('pfy-large-screen');
+        }
     </script>
 
 EOT;
