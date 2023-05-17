@@ -95,6 +95,7 @@ class DataSet
             $this->cacheFile = PFY_CACHE_PATH . "data/$dataFile.cache.dat";
             $this->lockFile = PFY_CACHE_PATH . "data/$dataFile.lock";
             if (!is_file($file)) {
+                preparePath($file);
                 touch($file);
                 if (file_exists($this->cacheFile)) {
                     unlink($this->cacheFile);
@@ -763,8 +764,31 @@ class DataSet
      */
     public function count(): int
     {
-        return sizeof($this->data);
+        return is_array($this->data) ? sizeof($this->data) : 0;
     } // count
+
+
+    /**
+     * Returns the sum
+     * @param string|false $onField
+     * @return int
+     */
+    public function sum(string|false $onField = false): int
+    {
+        if (!$onField) {
+            return is_array($this->data) ? sizeof($this->data) : 0;
+        } else {
+            $count = 0;
+            if (is_array($this->data)) {
+                foreach ($this->data as $rec) {
+                    if (isset($rec->recData[$onField])) {
+                        $count += $rec->recData[$onField];
+                    }
+                }
+            }
+            return $count;
+        }
+    } // sum
 
 
     /**
