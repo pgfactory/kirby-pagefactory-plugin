@@ -641,7 +641,7 @@ EOT;
             $options = $args;
         } else {
             $args = unshieldStr($args, true);
-            $options = parseArgumentStr($args);
+            $options = parseArgumentStr("$args,");
         }
         foreach ($config['options'] as $key => $value) {
             $optVal = &$options[$key];
