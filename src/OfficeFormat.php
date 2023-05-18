@@ -10,6 +10,9 @@ use cebe\markdown\MarkdownExtra;
 
 class OfficeFormat
 {
+    private $spreadsheet;
+    private $sheet;
+
     public function __construct($data)
     {
         $this->spreadsheet = new Spreadsheet();
