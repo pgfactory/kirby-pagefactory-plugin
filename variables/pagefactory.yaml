@@ -359,6 +359,10 @@ pfy-confirm:
     de: Bestätigen
     _:  Confirm
 
+pfy-submit:
+    de: Absenden
+    _:  Submit
+
 pfy-list-empty:
     de: Nichts gefunden
     _:  Nothing found
