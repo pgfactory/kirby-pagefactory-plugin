@@ -395,28 +395,44 @@ EOT;
      * Determines the current debug state
      * Note: PageFactory maintains its own "debug" state, which diverges slightly from Kirby's.
      * enter debug state, if:
-     * - on localhost:
-     *      - true, unless $userDebugRequest or $kirbyDebugState explicitly false
      * - on productive host:
      *      - false unless
      *          - $kirbyDebugState explicitly true
      *          - logged in as admin and $userDebugRequest true -> remember as long as logged in
+     * - on localhost:
+     *      - $kirbyDebugState, unless overridden by ?debug URL-Cmd
      */
     public static function determineDebugState(): bool
     {
-        $debug = kirby()->option('debug');
-        if (isAdminOrLocalhost()) {
-            $debug = $_GET['debug']??false;
-            if (($debug === null) && PageFactory::$session->get('pfy.debug')) {
-                $debug = true;
-            } elseif ($debug === 'false' || $debug === null) {
-                $debug = false;
+        $kirbyDebugState = kirby()->option('debug');
+        if (isset($_GET['debug'])) {
+            $userDebugRequest = $_GET['debug'];
+            if (($userDebugRequest === '') || ($userDebugRequest === 'true')) {
+                PageFactory::$session->set('pfy.debug', true);
+            } elseif ($userDebugRequest === 'false') {
+                PageFactory::$session->set('pfy.debug', false);
+            } elseif ($userDebugRequest === 'reset') {
                 PageFactory::$session->remove('pfy.debug');
-            } else {
-                $debug = ($debug !== 'false');
             }
-            if ($debug) {
-                PageFactory::$session->set('pfy.debug', $debug);
+        } elseif (isset($_GET['reset'])) {
+            PageFactory::$session->remove('pfy.debug');
+        }
+        $debug = PageFactory::$session->get('pfy.debug'); // null, if not exists
+
+        // on productive host:
+        if (!isLocalhost()) {
+            if (isAdmin()) { // if admin, use Kirby's debug state:
+                $debug = $kirbyDebugState;
+            } else {
+                if ($debug !== null) { // remove cookie if exists
+                    PageFactory::$session->remove('pfy.debug');
+                }
+                $debug = false;
+            }
+        // on localhost:
+        } else {
+            if ($debug === null) { // use Kirby's debug state, unless overridden by ?debug URL-Cmd
+                $debug = $kirbyDebugState;
             }
         }
         PageFactory::$debug = $debug;
