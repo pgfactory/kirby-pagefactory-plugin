@@ -348,8 +348,7 @@ EOT;
         $mdStr = TransVars::resolveVariables($mdStr);
         $mdStr = TransVars::executeMacros($mdStr);
 
-        $mdp = new \Usility\MarkdownPlus\MarkdownPlus();
-        $html =  $mdp->compile($mdStr, sectionIdentifier: "pfy-section-$inx", removeComments: false);
+        $html = markdown($mdStr, sectionIdentifier: "pfy-section-$inx", removeComments: false);
 
         // shield argument lists enclosed in '({' and '})'
         if (preg_match_all('/\(\{ (.*?) }\)/x', $html, $m)) {

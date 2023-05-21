@@ -12,7 +12,6 @@ const DEFAULT_ASSET_GROUPS = [
     // Note: plugin assets are made available via URL 'media/plugins/pgfactory/pagefactory/...':
     'site/plugins/pagefactory/assets/css/-pagefactory.css' => [   // $dest
         'site/plugins/pagefactory/scss/autoload/*',               // $sources
-        'site/plugins/markdownplus/assets/css/*',
     ],
     // scss-compile to site/plugins/pagefactory/css/xy.css, where xy is filename of source
     'site/plugins/pagefactory/assets/css/' => [
@@ -92,11 +91,14 @@ class Assets
         $this->hostUrl = PageFactory::$hostUrl;
         $this->hostUrlLen = strlen($this->hostUrl)-1;
         $this->pageFolderfiles = page()->files()->data();
-        $this->pageFolderPath = page()->contentFileDirectory().'/';
+        $this->pageFolderPath = page()->root().'/';
 
         $this->definitions = &Page::$definitions;
         if (!($this->assetGroups = PageFactory::$config['assetGroups']??false)) {
             $this->assetGroups = DEFAULT_ASSET_GROUPS;
+        }
+        if (class_exists('Usility\MarkdownPlus\MarkdownPlus')) {
+            $this->assetGroups['site/plugins/pagefactory/assets/css/-pagefactory.css'][] = 'site/plugins/markdownplus/assets/css/*';
         }
         $this->prepareAssets();
     } // __construct

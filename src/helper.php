@@ -5,10 +5,10 @@ namespace Usility\PageFactory;
 use Kirby\Data\Yaml as Yaml;
 use Kirby\Data\Json as Json;
 use Kirby\Data\Data;
- use Kirby\Exception\InvalidArgumentException;
- use Kirby\Filesystem\F;
+use Kirby\Exception\InvalidArgumentException;
+use Kirby\Filesystem\F;
 use Exception;
- use Usility\MarkdownPlus\MarkdownPlus;
+use Usility\MarkdownPlus\MarkdownPlus;
 
 const FILE_BLOCKING_MAX_TIME = 500; //ms
 const FILE_BLOCKING_CYCLE_TIME = 50; //ms
@@ -2046,11 +2046,15 @@ function compileMarkdown(string $mdStr, bool $omitPWrapperTag = false): string
   * @return string
   * @throws Exception
   */
- function markdown(string $mdStr, bool $omitPWrapperTag = false): string
+ function markdown(string $mdStr, bool $omitPWrapperTag = false, $sectionIdentifier = '', $removeComments = false): string
 {
     if ($mdStr) {
-        $md = new MarkdownPlus();
-        return $md->compile($mdStr, $omitPWrapperTag);
+        if (class_exists('Usility\MarkdownPlus\MarkdownPlus')) {
+            $md = new MarkdownPlus();
+            return $md->compile($mdStr, $omitPWrapperTag, $sectionIdentifier, $removeComments);
+        } else {
+            return kirbytext($mdStr);
+        }
     } else {
         return '';
     }
@@ -2066,8 +2070,12 @@ function compileMarkdown(string $mdStr, bool $omitPWrapperTag = false): string
  function markdownParagrah(string $mdStr, bool $omitPWrapperTag = false): string
 {
     if ($mdStr) {
-        $md = new MarkdownPlus();
-        return $md->compileParagraph($mdStr, $omitPWrapperTag);
+        if (class_exists('Usility\MarkdownPlus\MarkdownPlus')) {
+            $md = new MarkdownPlus();
+            return $md->compileParagraph($mdStr, $omitPWrapperTag);
+        } else {
+            return kirbytextinline($mdStr);
+        }
     } else {
         return '';
     }
