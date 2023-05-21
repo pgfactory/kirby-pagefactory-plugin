@@ -4,24 +4,30 @@
  */
 
 
+execLateLoading();
+
+window.onresize = function() {
+  adaptToWidth();
+}
+
+
+
+function execLateLoading() {
 // perform late loading:
-var elem = document.getElementsByClassName('pfy-onload-css');
-for (i=0;i<elem.length;i++) {
+  var elem = document.getElementsByClassName('pfy-onload-css');
+  for (i = 0; i < elem.length; i++) {
     let href = elem[i].getAttribute('href');
     elem[i].setAttribute('media', 'all');
     console.log('async load: ' + href);
-}
+  }
 
-elem = document.getElementsByClassName('pfy-onload');
-for (i=0;i<elem.length;i++) {
+  elem = document.getElementsByClassName('pfy-onload');
+  for (i = 0; i < elem.length; i++) {
     let src = elem[i].getAttribute('data-src');
     elem[i].setAttribute('src', src);
     elem[i].removeAttribute('data-src');
     console.log('async load: ' + src);
-}
-
-window.onresize = function() {
-    adaptToWidth();
+  }
 }
 
 
@@ -60,43 +66,42 @@ function scrollIntoView( selector, container ) {
 
 
 
-function execAjaxPromise(cmd, options, url) {
-    return new Promise(function(resolve) {
-
-        if (typeof url === 'undefined') {
-            url = appRoot;
-        }
-        url = appendToUrl(url, cmd);
-        $.ajax({
-            method: 'POST',
-            url: url,
-            data: options
-        })
-            .done(function ( json ) {
-                resolve( json );
-            });
-    });
-} // execAjax
-
-
-
-function appendToUrl(url, arg) {
-    if (!arg) {
-        return url;
-    }
-    arg = arg.replace(/^[?&]/, '');
-    if (url.match(/\?/)) {
-        url = url + '&' + arg;
-    } else {
-        url = url + '?' + arg;
-    }
-    return url;
-} // appendToUrl
+// function execAjaxPromise(cmd, options, url) {
+//     return new Promise(function(resolve) {
+//
+//         if (typeof url === 'undefined') {
+//             url = appRoot;
+//         }
+//         url = appendToUrl(url, cmd);
+//         $.ajax({
+//             method: 'POST',
+//             url: url,
+//             data: options
+//         })
+//         .done(function ( json ) {
+//             resolve( json );
+//         });
+//     });
+// } // execAjax
 
 
 
-function translateVar(transvarDef)
-{
+// function appendToUrl(url, arg) {
+//     if (!arg) {
+//         return url;
+//     }
+//     arg = arg.replace(/^[?&]/, '');
+//     if (url.match(/\?/)) {
+//         url = url + '&' + arg;
+//     } else {
+//         url = url + '?' + arg;
+//     }
+//     return url;
+// } // appendToUrl
+
+
+
+function translateVar(transvarDef) {
   if (typeof transvarDef === 'undefined') {
     transvarDef = '_' + transvarDef;
     if (typeof transvarDef === 'undefined') {
@@ -120,30 +125,22 @@ function translateVar(transvarDef)
 
 
 
-function camelize(str) {
-  return str.replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function(match, index) {
-    if (+match === 0) return "";
-    return index === 0 ? match.toLowerCase() : match.toUpperCase();
-  });
-} // camelize
 
-
-
-function pfyReload( arg, url, confirmMsg ) {
-    let newUrl = window.location.pathname.replace(/\?.*/, '');
-    if (typeof url !== 'undefined') {
-        newUrl = url.trim();
-    }
-    if (typeof arg !== 'undefined') {
-        newUrl = appendToUrl(newUrl, arg);
-    }
-    if (typeof confirmMsg !== 'undefined') {
-        pfyConfirm(confirmMsg).then(function() {
-            console.log('initiating page reload: "' + newUrl + '"');
-            window.location.replace(newUrl);
-        });
-    } else {
-        console.log('initiating page reload: "' + newUrl + '"');
-        window.location.replace(newUrl);
-    }
-} // pfyReload
+// function pfyReload( arg, url, confirmMsg ) {
+//     let newUrl = window.location.pathname.replace(/\?.*/, '');
+//     if (typeof url !== 'undefined') {
+//         newUrl = url.trim();
+//     }
+//     if (typeof arg !== 'undefined') {
+//         newUrl = appendToUrl(newUrl, arg);
+//     }
+//     if (typeof confirmMsg !== 'undefined') {
+//         pfyConfirm(confirmMsg).then(function() {
+//             console.log('initiating page reload: "' + newUrl + '"');
+//             window.location.replace(newUrl);
+//         });
+//     } else {
+//         console.log('initiating page reload: "' + newUrl + '"');
+//         window.location.replace(newUrl);
+//     }
+// } // pfyReload

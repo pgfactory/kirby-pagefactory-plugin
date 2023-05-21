@@ -97,7 +97,7 @@ class PageFactory
     public static $isLocalhost;
     public static $timer;
     public static $user;
-    public static $slug;
+    public static string $slug = '';
     public static $pageId;
     public static $urlToken; // the hash code extracted from HTTP request (e.g. home/ABCDEF)
     public static $availableIcons;
@@ -161,7 +161,9 @@ class PageFactory
         self::$appRoot = dirname(substr($_SERVER['SCRIPT_FILENAME'], -strlen($_SERVER['SCRIPT_NAME']))).'/';
         self::$appUrl = dirname(substr($_SERVER['SCRIPT_FILENAME'], -strlen($_SERVER['SCRIPT_NAME']))).'/';
         self::$appRootUrl = kirby()->url().'/';
-        self::$slug = page()->slug();
+        if (!self::$slug) {
+            self::$slug = page()->slug();
+        }
         self::$pageId = page()->id();
         self::$pageRoot = 'content/' . self::$pagePath;
         self::$absPageRoot = self::$page->root() . '/';
@@ -171,8 +173,6 @@ class PageFactory
             self::$user = (string)$user->name();
         }
         $this->autoSplitSections = self::$config['autoSplitSectionsOnH1']??false;
-
-        Utils::handleUrlToken();
 
         preparePath(PFY_LOGS_PATH);
         Utils::showPendingMessage();

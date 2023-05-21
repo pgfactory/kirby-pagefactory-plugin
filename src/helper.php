@@ -1441,9 +1441,14 @@ function normalizePath(string $path): string
   * @param string $str
   * @throws Exception
   */
-function mylog(string $str): void
+function mylog(string $str, mixed $filename = false): void
 {
-    $logFile = PFY_LOGS_PATH. 'log.txt';
+    $filename = $filename?: 'log.txt';
+
+    if (!\Kirby\Toolkit\V::filename($filename)) {
+        return;
+    }
+    $logFile = PFY_LOGS_PATH. $filename;
     $logMaxWidth = 80;
 
     if ((strlen($str) > $logMaxWidth) || (strpos($str, "\n") !== false)) {
@@ -1455,7 +1460,7 @@ function mylog(string $str): void
             }
             $str1 .= "$l\n";
         }
-        $str = $str1;
+        $str = rtrim($str1);
     }
     $str = timestampStr()."  $str\n\n";
     writeFile($logFile, $str, FILE_APPEND);

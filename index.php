@@ -12,46 +12,14 @@
  */
 
 const TWIG_FUNCTIONS_FOLDER = __DIR__.'/twig-functions/';
-
 require_once __DIR__ . '/vendor/autoload.php';
 
-//use Kirby\Cms\App as Kirby;
 use Usility\PageFactory\PageFactory as PageFactory;
 use Usility\PageFactory\TransVars;
 
-// load twig-functions:
-$twigFunctions = TransVars::findAllMacros(includePaths: true);
-foreach ($twigFunctions as $file) {
-    if (basename($file)[0] !== '#') {
-        require_once $file;
-    }
-}
-
+loadTwigFunctions();
 
 Kirby::plugin('pgfactory/pagefactory', [
-
-    'routes' => [
-        [
-            // catch tokens in URLs: (i.e. all capital letter or digit codes like 'p1/A1B2C3')
-            'pattern' => '(:all)',
-            'action'  => function ($slug) {
-                // check pattern 'p1/ABCDEF':
-                if (preg_match('|^(.*?) / ([A-Z]{5,15})$|x', $slug, $m)) {
-                    $slug = $m[1];
-                    PageFactory::$slug = $slug;
-                    PageFactory::$urlToken = $m[2];
-                    return site()->visit($slug);
-
-                // check pattern 'ABCDEF', i.e. page without slug:
-                } elseif (preg_match('|^ ([A-Z]{5,15})$|x', $slug, $m)) {
-                    PageFactory::$slug = '';
-                    PageFactory::$urlToken = $m[1];
-                    return site()->visit(page());
-                }
-                return $this->next();
-            }
-        ],
-    ],
 
     'blueprints' => [
         'pages/z' => function() {    // == PFY_PAGE_META_FILE_BASENAME
@@ -61,25 +29,24 @@ Kirby::plugin('pgfactory/pagefactory', [
     ],
 
     'hooks' => [
+        'route:before' => function (\Kirby\Http\Route $route, string $path) {
+            // when user opens panel -> update .txt files according to .md content:
+            if (strpos($path, 'panel/pages/') === 0) {
+                require_once 'site/plugins/pagefactory/src/panelHelper.php';
+                onPanelLoad($path);
+            }
+        },
+
         'page.render:before' => function (string $contentType, array $data, Kirby\Cms\Page $page) {
             $pfy = new PageFactory($data);
 
             // render page content and store in page.text variable, where the twig template picks it up:
             $page->pageContent()->value = $pfy->renderPageContent();
-
             return $data;
         },
 
         'page.render:after' => function (string $contentType, array $data, string $html, Kirby\Cms\Page $page) {
             return Usility\PageFactory\unshieldStr($html, true);
-        },
-
-        // when user opens panel -> update .txt files according to .md content:
-        'route:before' => function (\Kirby\Http\Route $route, string $path) {
-            if (strpos($path, 'panel/pages/') === 0) {
-                require_once 'site/plugins/pagefactory/src/panelHelper.php';
-                onPanelLoad($path);
-            }
         },
 
         // create initial .md content file for newly created pages:
@@ -101,3 +68,18 @@ Kirby::plugin('pgfactory/pagefactory', [
     ], // hooks
 
 ]);
+
+
+/**
+ * @return void
+ */
+function loadTwigFunctions(): void
+{
+    // load twig-functions:
+    $twigFunctions = TransVars::findAllMacros(includePaths: true);
+    foreach ($twigFunctions as $file) {
+        if (basename($file)[0] !== '#') {
+            require_once $file;
+        }
+    }
+}

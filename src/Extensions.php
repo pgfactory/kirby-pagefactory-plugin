@@ -33,10 +33,16 @@ class Extensions
                 }
                 // === load index.php now:
                 $extensionClassName = require_once $indexFile;
+                if (!is_string($extensionClassName)) {
+                    return;
+                }
                 self::$loadedExtensions[$extensionClassName] = $extPath;
 
                 // instantiate extension object:
                 $extensionClass = "Usility\\PageFactoryElements\\$extensionClassName";
+                if (!class_exists($extensionClass)) {
+                    return;
+                }
                 $obj = new $extensionClass();
                 self::$loadedExtensionObjects[] = $obj;
 
