@@ -1427,9 +1427,6 @@ function normalizePath(string $path): string
      while ($path && preg_match('|(.*?) ([^/.]+/\.\./) (.*)|x', $path, $m)) {
          $path = $m[1] . $m[3];
      }
-     if (strpos($path, '//')) {
-         $x = true;
-     }
      $path = str_replace('/./', '/', $path);
      $path = preg_replace('|(?<!:)//|', '/', $path);
      return $hdr.$path;
@@ -1449,22 +1446,32 @@ function mylog(string $str, mixed $filename = false): void
         return;
     }
     $logFile = PFY_LOGS_PATH. $filename;
-    $logMaxWidth = 80;
+    $logMaxWidth = 60;
 
     if ((strlen($str) > $logMaxWidth) || (strpos($str, "\n") !== false)) {
-        $str = wordwrap($str, $logMaxWidth, "\n", false);
-        $str1 = '';
-        foreach (explode("\n", $str) as $i => $l) {
-            if ($i > 0) {
-                $str1 .= '                     ';
-            }
-            $str1 .= "$l\n";
-        }
-        $str = rtrim($str1);
+        $str = log_wordwrap($str, $logMaxWidth);
     }
     $str = timestampStr()."  $str\n\n";
     writeFile($logFile, $str, FILE_APPEND);
 } // mylog
+
+
+ /**
+  * @param string $string
+  * @param int $width
+  * @return string
+  */
+ function log_wordwrap(string $str, int $width=75): string
+ {
+     if (strlen($str) <= $width) {
+         return $str;
+     }
+
+     $pattern = '/(.{1,'.$width.'})(?:[\s,])|(.{'.$width.'})(?!$)/uS';
+     $str = preg_replace($pattern, "$1$2\n                     ", $str);
+     return $str;
+ } // log_wordwrap
+
 
 
  /**
