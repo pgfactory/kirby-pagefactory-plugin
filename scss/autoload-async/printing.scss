@@ -10,7 +10,12 @@
 
 
 @media print {
-    #pfy.pfy-default-styling .pfy-encapsulated,
+  .screen_only,
+  .screen-only {
+    display: none!important;
+  }
+
+  #pfy.pfy-default-styling .pfy-encapsulated,
     .pfy-default-styling {
         // all elements that shall not be included on hardcopies:
         header,
