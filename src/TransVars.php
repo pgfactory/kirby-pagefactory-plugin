@@ -194,6 +194,7 @@ class TransVars
         self::setVariable('langSelection', self::renderLanguageSelector());
         self::setVariable('pageUrl', PageFactory::$pageUrl);
         self::setVariable('appUrl', $appUrl);
+        self::setVariable('hostUrl', PageFactory::$hostUrl);
         self::setVariable('lang', PageFactory::$langCode);
         self::setVariable('langActive', PageFactory::$lang); // can be lang-variant, e.g. de2
         self::setVariable('phpVersion', phpversion());
