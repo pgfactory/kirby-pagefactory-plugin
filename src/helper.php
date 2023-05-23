@@ -1684,7 +1684,7 @@ function parseArgValue(string &$rest, string $delim): mixed
      checkBracesBalance($str, $p0, $pat1, $pat2);
 
      $d = strlen($pat2);
-     if ((strlen($str) < 4) || ($p0 > strlen($str))) {
+     if ((strlen($str) < (strlen($pat1)+$d)) || ($p0 > strlen($str))) {
          return [false, false];
      }
 
