@@ -659,6 +659,9 @@ class DataSet
      */
     public function sort($sortArg, $sortFunction = false)
     {
+        if (!$this->data) {
+            return $this;
+        }
         $sortIndex = [];
         if (!$sortFunction) {
             $sortFunction = 'asort';
