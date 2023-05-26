@@ -350,6 +350,27 @@ EOT;
 
 
     /**
+     * Accepts jsFramework code (without the ready-statement) and injects it after loading instructions of js/jq-files
+     * @param string $str
+     */
+    public function setJsReady(string $str):void
+    {
+        $this->jq = trim($str, "\t\n ")."\n";
+    }
+
+
+    /**
+     * Like setJqReady, but does not overwrite previous injection requests
+     * @param string $str
+     */
+    public function addJsReady(string $str):void
+    {
+        $this->jq .= trim($str, "\t\n ")."\n";
+        $this->requireFramework();
+    }
+
+
+    /**
      * Forwards call to Assets->addAssets()
      * @param mixed $assets  array or comma separated list
      * @param bool $treatAsJq
@@ -418,9 +439,7 @@ EOT;
         $jqInjection = '';
         $miscInjection = "\n$this->bodyEndInjections";
         $screenSizeBreakpoint = PageFactory::$config['screenSizeBreakpoint']??false;
-        if (!$screenSizeBreakpoint) {
-            $screenSizeBreakpoint = 480;
-        }
+        $screenSizeBreakpoint = $screenSizeBreakpoint ?: 480;
 
         $js = "var screenSizeBreakpoint = $screenSizeBreakpoint\n";
         $js .= "const hostUrl = '" .        PageFactory::$appRoot . "';\n";
@@ -456,10 +475,10 @@ EOT;
             $jqInjection .= <<<EOT
 
     <script>
-        $(document).ready(function() {
+document.addEventListener('DOMContentLoaded', function() {
 $jq
-        });        
-    </script>
+});
+</script>
 
 EOT;
         }
