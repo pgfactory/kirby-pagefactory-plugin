@@ -85,12 +85,19 @@ class Utils
         $printClose = TransVars::getVariable('pfy-close');
         $jq = <<<EOT
 setTimeout(function() {
-    console.log('now running paged.polyfill.js');
-    $.getScript( '$pagedPolyfillScript' );
+  console.log('now running paged.polyfill.js');
+  var script = document.createElement('script');
+  script.src = '$pagedPolyfillScript';
+  document.body.appendChild(script);
 }, 1000);
+
 setTimeout(function() {
-    console.log('now adding buttons');
-    $('body').append( "<div class='pfy-print-btns'><a href='./?print' class='pfy-button' >$printNow</a><a href='./' class='pfy-button' >$printClose</a></div>" ).addClass('pfy-print-preview');
+  console.log('now adding buttons');
+  var printBtns = document.createElement('div');
+  printBtns.className = 'pfy-print-btns';
+  printBtns.innerHTML = "<a href='./?print' class='pfy-button'>$printNow</a><a href='./' class='pfy-button'>$printClose</a>";
+  document.body.appendChild(printBtns);
+  document.body.classList.add('pfy-print-preview');
 }, 1200);
 
 EOT;
