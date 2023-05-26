@@ -28,7 +28,7 @@ class SiteNav
         $this->site = site();
         $this->arrow = NAV_ARROW;
         $this->hidden = 'false';
-        PageFactory::$assets->addJqFiles('site/plugins/pagefactory/assets/js/nav.jq');
+        PageFactory::$assets->addJsFiles('site/plugins/pagefactory/assets/js/nav.jq');
     } // __construct
 
 
