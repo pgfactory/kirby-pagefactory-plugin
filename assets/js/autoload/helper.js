@@ -18,7 +18,6 @@ function execLateLoading() {
   for (i = 0; i < elem.length; i++) {
     let href = elem[i].getAttribute('href');
     elem[i].setAttribute('media', 'all');
-    console.log('async load: ' + href);
   }
 
   elem = document.getElementsByClassName('pfy-onload');
@@ -26,14 +25,11 @@ function execLateLoading() {
     let src = elem[i].getAttribute('data-src');
     elem[i].setAttribute('src', src);
     elem[i].removeAttribute('data-src');
-    console.log('async load: ' + src);
   }
 }
 
 
 function adaptToWidth() {
-    // console.log("window.innerWidth: " + window.innerWidth);
-    // console.log("document.documentElement.clientWidth;: " + document.documentElement.clientWidth);
     let windowWidth = document.documentElement.clientWidth;
   if (windowWidth < screenSizeBreakpoint) {
     document.body.classList.remove('pfy-large-screen');
@@ -45,9 +41,47 @@ function adaptToWidth() {
 }
 
 
-function mylog(str) {
-    console.log(str);
+function mylog(str, showOnScreen) {
+  console.log(str);
+  if (typeof showOnScreen !== 'undefined') {
+    logToScreen(str);
+  }
 }
+
+
+function logToScreen(text) {
+  var $log = document.getElementById('pfy-log');
+  if (!$log) {
+    var logPlaceholder = document.createElement('div');
+    logPlaceholder.id = 'pfy-log-placeholder';
+    document.body.appendChild(logPlaceholder);
+
+    $log = document.createElement('div');
+    $log.id = 'pfy-log';
+    document.body.appendChild($log);
+  }
+
+  var newLogEntry = document.createElement('p');
+  newLogEntry.innerHTML = timeStamp() + '&nbsp;&nbsp;' + text;
+  $log.appendChild(newLogEntry);
+
+  $log.scrollTop = $log.scrollHeight;
+}
+
+
+function timeStamp() {
+  const now = new Date();
+  const options = {
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    second: 'numeric'
+  };
+  return now.toLocaleString(undefined, options);
+}
+
 
 
 
@@ -63,41 +97,6 @@ function scrollIntoView( selector, container ) {
         // }, 500);
     // }
 } // scrollIntoView
-
-
-
-// function execAjaxPromise(cmd, options, url) {
-//     return new Promise(function(resolve) {
-//
-//         if (typeof url === 'undefined') {
-//             url = appRoot;
-//         }
-//         url = appendToUrl(url, cmd);
-//         $.ajax({
-//             method: 'POST',
-//             url: url,
-//             data: options
-//         })
-//         .done(function ( json ) {
-//             resolve( json );
-//         });
-//     });
-// } // execAjax
-
-
-
-// function appendToUrl(url, arg) {
-//     if (!arg) {
-//         return url;
-//     }
-//     arg = arg.replace(/^[?&]/, '');
-//     if (url.match(/\?/)) {
-//         url = url + '&' + arg;
-//     } else {
-//         url = url + '?' + arg;
-//     }
-//     return url;
-// } // appendToUrl
 
 
 
@@ -124,23 +123,3 @@ function translateVar(transvarDef) {
 } // translateVar
 
 
-
-
-// function pfyReload( arg, url, confirmMsg ) {
-//     let newUrl = window.location.pathname.replace(/\?.*/, '');
-//     if (typeof url !== 'undefined') {
-//         newUrl = url.trim();
-//     }
-//     if (typeof arg !== 'undefined') {
-//         newUrl = appendToUrl(newUrl, arg);
-//     }
-//     if (typeof confirmMsg !== 'undefined') {
-//         pfyConfirm(confirmMsg).then(function() {
-//             console.log('initiating page reload: "' + newUrl + '"');
-//             window.location.replace(newUrl);
-//         });
-//     } else {
-//         console.log('initiating page reload: "' + newUrl + '"');
-//         window.location.replace(newUrl);
-//     }
-// } // pfyReload
