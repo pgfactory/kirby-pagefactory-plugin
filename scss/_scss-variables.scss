@@ -24,7 +24,6 @@ $mobile-nav-title-bg-color: #ddd;
 $mobile-nav-txt-size:     4.5vw;
 
 // mobile footer:
-//$mobile-footer-height:    3rem;
 $mobile-footer-height:    8vw;
 $mobile-footer-txt-color: #ddd;
 $mobile-footer-font-size: 4vw;
@@ -39,3 +38,30 @@ $box-width: 300px;
 
 $min-font-size: 15;
 $max-font-size: 24;
+
+@mixin _pfy-button {
+  color: #666;
+  font-family: helvetica, arial, sans-serif;
+  border-radius: 4px;
+  border: 1px solid #bcbcbc;
+  -webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  background: -webkit-linear-gradient(#FFF 0%, #EFEFEF 60%, #E1DFE2 100%);
+  background: -ms-linear-gradient(#FFF 0%, #EFEFEF 60%, #E1DFE2 100%);
+  background: linear-gradient(#FFF 0%, #EFEFEF 60%, #E1DFE2 100%);
+  padding: 0.3em 1.5em;
+}
+
+// --- accessible: visually hidden:
+@mixin visually-hidden {
+  border: 0;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}

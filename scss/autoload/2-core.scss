@@ -7,13 +7,10 @@ CSS-Variables:
 @import '../_scss-variables.scss';
 
 /* === Extended Resets =============================== */
-html {
-	height: fill-available;
-}
 body {
 	min-width: 100vw;
+//	min-height: fill-available;
 	min-height: 100vh;
-	min-height: fill-available;
 }
 
 html, body, section {
@@ -41,19 +38,9 @@ html, body, section {
         display: block;
     }
 
-  // --- accessible: visually hidden:
-  @mixin visually-hidden {
-    display: visually-hidden;
-    border: 0;
-    clip: rect(0 0 0 0);
-    clip-path: inset(50%);
-    height: 1px;
-    margin: -1px;
-    overflow: hidden;
-    padding: 0;
-    position: absolute;
-    white-space: nowrap;
-    width: 1px;
+  a:focus-visible,
+  button:focus-visible {
+    box-shadow: 0 0 0 1px black, 0 0 0 2px white, 0 0 0 3px  var(--pfy-focus-color, #{$focus-color});
   }
 
   .pfy-invisible,
