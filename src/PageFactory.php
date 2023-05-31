@@ -19,7 +19,9 @@ const PFY_USER_CODE_PATH =         PFY_CUSTOM_PATH.'macros/';
 const PFY_CUSTOM_CODE_PATH =       PFY_CUSTOM_PATH.'autoexecute/';
 const PFY_MACROS_PATH =            PFY_BASE_PATH.'macros/';
 define('PFY_LOGS_PATH',            'site/logs/');
-define('PFY_CACHE_PATH',           'site/cache/pagefactory/'); // available in extensions
+if (!defined('PFY_CACHE_PATH')) { // available in extensions
+    define('PFY_CACHE_PATH', 'site/cache/pagefactory/'); // available in extensions
+}
 const PFY_MKDIR_MASK =             0700; // permissions for file accesses by PageFactory
 const BLOCK_SHIELD =               'div shielded';
 const INLINE_SHIELD =              'span shielded';
