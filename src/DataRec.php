@@ -251,7 +251,11 @@ class DataRec
             return false;
         }
         if ($toParent) {
-            $this->parent->setData($this->_reckey, $key, $value, flush: $flush);
+            if ($this->parent) {
+                $this->parent->setData($this->_reckey, $key, $value, flush: $flush);
+            } else {
+                mylog("Fishy: DataRec -> parent unknown");
+            }
         }
         $this->$key = $value;
     } // set
