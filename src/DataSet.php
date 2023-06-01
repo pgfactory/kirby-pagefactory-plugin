@@ -323,6 +323,16 @@ class DataSet
 
 
     /**
+     * Returns the size of the data (i.e. number of records) or false, if no data present
+     * @return int|false
+     */
+    public function getSize(): int|false
+    {
+        return $this->nRows??0;
+    } // getSize
+
+
+    /**
      * Deletes a record from datasource.
      *    $ds->delete('ABCDEF');
      * @param mixed $key
