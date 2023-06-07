@@ -1648,6 +1648,10 @@ function parseArgValue(string &$rest, string $delim): mixed
     }
     $value = fixDataType($value);
     if (is_string($value)) {
+        // if value contains variable, translate it:
+        if (str_contains($value, '{{')) {
+            $value = TransVars::translate($value);
+        }
         $value = '"' . trim($value) . '"';
     } elseif (is_bool($value)) {
         $value = $value? 'true': 'false';
