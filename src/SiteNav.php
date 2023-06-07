@@ -21,6 +21,8 @@ class SiteNav
     private $site;
     private $arrow;
     private $hidden;
+    public static $prev = false;
+    public static $next = null;
 
     public function __construct()
     {
@@ -51,6 +53,7 @@ class SiteNav
         if (str_contains($wrapperClass, 'pfy-nav-collapsed')) {
             $this->hidden = 'true';
         }
+
         $out = '';
         // type=branch:
         if ($this->args['type'] === 'branch') {
@@ -101,12 +104,21 @@ EOT;
     {
         $out = '';
         foreach ($subtree->listed() as $pg) {
+            $hasContent = $this->hasMdContent($pg);
+            // set $next once $curr was passed and the next page with content has been reached:
+            if (self::$next === false && $hasContent) {
+                self::$next = $pg;
+            }
             $depth = $pg->depth();
             $indent = '';
             $curr = $pg->isActive() ? ' aria-current="page"': '';
             $class = NAV_LEVEL . $depth;
             if ($curr) {
                 $class .= ' ' . NAV_CURRENT;
+                self::$next = false;
+            } elseif (!self::$next && $hasContent) {
+                // drag $prev along until $curr has been reached (but skipping pages without content):
+                self::$prev = $pg;
             }
             $active = $pg->isAncestorOf($this->page);
             if ($active || $curr) {
@@ -117,7 +129,7 @@ EOT;
             $hasChildren = !$pg->children()->listed()->isEmpty();
 
             // if folder contains no md-file, fall through to first child page:
-            if ($hasChildren && !$this->hasMdContent($pg)) {
+            if ($hasChildren && !$hasContent) {
                 if ($pg1 = $pg->children()->listed()->first()) {
                     $url = $pg1->url();
                 }
@@ -148,6 +160,7 @@ EOT;
 
     /**
      * Check page folder for presence of .md files
+     * Ignores files starting with '#'
      * @param string $path
      * @return bool
      */

@@ -98,14 +98,14 @@ class PrevNextLinks
     private function renderHeadLinkElements(): string
     {
         $out = "";
-        $pg = $this->findPrev(page());
-        if ($pg) {
-            $url = $pg->url();
+        $prev = SiteNav::$prev;
+        if ($prev) {
+            $url = $prev->url();
             $out = "<link rel='prev' href='$url'>\n";
         }
-        $pg = $this->findNext(page());
-        if ($pg) {
-            $url = $pg->url();
+        $next = SiteNav::$next;
+        if ($next) {
+            $url = $next->url();
             $out .= "  <link rel='next' href='$url'>\n";
         }
 
@@ -121,7 +121,7 @@ class PrevNextLinks
     {
         $out = "\t<div></div>\n";
 
-        $prev = $this->findPrev();
+        $prev = SiteNav::$prev;
         if ($prev) {
             TransVars::setVariable('pfy-prev-page-title', (string)$prev->title());
             $url = $prev->url();
@@ -147,7 +147,7 @@ EOT;
     private function renderNextLink(): string
     {
         $out = "\t<div></div>\n";
-        $next = $this->findNext(page());
+        $next = SiteNav::$next;
         if ($next) {
             $nextUrl = $next->url();
             $title = TransVars::getVariable('pfy-link-to-next-page');
@@ -163,55 +163,5 @@ EOT;
         }
         return $out;
     } // renderNextLink
-
-
-    /**
-     * Finds the next page relative to given one.
-     * @param object $page
-     * @return object|null
-     */
-    private function findNext(object $page)
-    {
-        if ($page->hasListedChildren()) {     // down:
-            $next = $page->children()->listed()->first();
-
-        } elseif ($page->hasNextListed()) {   // next sibling:
-            $next = $page->nextListed();
-
-        } else {                             // next uncle:
-            $next = $page;
-            while ($next) {
-                $next = $next->parent();
-                if (!$next) {
-                    break;
-                }
-                if ($next->hasNextListed()) {
-                    $next = $next->nextListed();
-                    break;
-                }
-            }
-        }
-        return $next;
-    } // findNext
-
-
-    /**
-     * Finds the previous page relative to given one.
-     * @return object
-     */
-    private function findPrev()
-    {
-        // get first and current page:
-        $current = $this->page->url();
-        $next = $this->pages->first(); // i.e. first page
-        $prev = false; // element 1 step behind, i.e. the right one once we hit the current
-
-        // start from first page and walk through sitemap till current page is found:
-        while ($next && ($current !== $next->url())) {
-            $prev = $next;
-            $next = $this->findNext($next);
-        }
-        return $prev;
-    } // findPrev
 
 } // PrevNextLinks
