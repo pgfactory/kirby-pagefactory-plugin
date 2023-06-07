@@ -404,7 +404,8 @@ EOT;
         } elseif (isset($_GET['reset'])) {
             PageFactory::$session->remove('pfy.debug');
         }
-        $debug = PageFactory::$session->get('pfy.debug'); // null, if not exists
+        $session = kirby()->session();
+        $debug = $session->get('pfy.debug') ?? null; // null, if not exists
 
         // on productive host:
         if (!isLocalhost()) {
@@ -412,7 +413,7 @@ EOT;
                 $debug = $kirbyDebugState;
             } else {
                 if ($debug !== null) { // remove cookie if exists
-                    PageFactory::$session->remove('pfy.debug');
+                    $session->remove('pfy.debug');
                 }
                 $debug = false;
             }
