@@ -40,6 +40,9 @@ function onPanelLoad($path)
     $mdContents = '';
     if ($mds) {
         foreach ($mds as $file) {
+            if ((basename($file))[0] === '#') {
+                continue;
+            }
             $md = file_get_contents($file);
             $md = preg_replace("/\n----/ms", "\n\\----", $md);
             $name = filenameToVarname($file);
@@ -48,6 +51,9 @@ function onPanelLoad($path)
     }
 
     // update .txt files with $mdContents:
+    if (!$mdContents) {
+        $mdContents = "----\nskipped_page-md:\n=== Skipped Page - Do not modify! ===\n";;
+    }
     foreach ($txts as $txtFile) {
         $str = file_get_contents($txtFile);
         $parts = explode("\n----\n", $str);
@@ -56,7 +62,7 @@ function onPanelLoad($path)
                 unset($parts[$i]);
             }
         }
-        $out = implode("\n----\n", $parts)."\n";
+        $out = implode("\n----\n", $parts) . "\n";
         $out .= $mdContents;
         file_put_contents($txtFile, $out);
     }
@@ -229,8 +235,13 @@ function assembleBlueprint()
     }
     $basename = basename($pgId);
 
+    $blueprint = [];
     $path = getPagePath($pgId);
-    if ($path && file_exists($path) && ($mds = glob("$path/*.md"))) {
+    if ($path && file_exists($path)) {
+        $mds = glob("$path/*.md");
+        if (!$mds) {
+            $mds = ["$path/skipped-page.md"];
+        }
         $blueprint = [
             'Title' => $basename,
             'tabs'  => [],
