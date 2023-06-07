@@ -97,6 +97,9 @@ class DataSet
             $this->cacheFile = PFY_CACHE_PATH . "data/$dataFile.cache.dat";
             $this->lockFile = PFY_CACHE_PATH . "data/$dataFile.lock";
 
+            $session = kirby()->session();
+            $session->set('absAppRoot', __DIR__.'/');
+
             // if data file doesn't exist, prepare it empty and make sure no old cache/lock-files exist.
             if (!is_file($file)) {
                 preparePath($file);
@@ -1406,8 +1409,12 @@ class DataSet
      */
     protected function unlockDatasource(): void
     {
-        if (file_exists($this->lockFile)) {
-            @unlink($this->lockFile);
+        // may be called from __destruct where relative path doesn't work:
+        $session = kirby()->session();
+        $dir = $session->get('absAppRoot');
+        $lockFile = "$dir$this->lockFile";
+        if (file_exists($lockFile)) {
+            @unlink($lockFile);
             $this->readWriteMode = false;
         }
     } // unlockDatasource
