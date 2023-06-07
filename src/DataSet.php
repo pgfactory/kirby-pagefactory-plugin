@@ -10,10 +10,10 @@ const DATAREC_TIMESTAMP = '_timestamp';
 const SUPPORTED_FILE_TYPES = 'yaml,json,csv';
 
  // timings:
-const DEFAULT_MAX_DB_LOCK_TIME      = 600; // sec
-const DEFAULT_MAX_DB_BLOCKING_TIME  = 500; // ms
-const DEFAULT_MAX_REC_LOCK_TIME     = 20; // sec
-const DEFAULT_MAX_REC_BLOCKING_TIME = 5; // sec
+const DEFAULT_MAX_DB_LOCK_TIME      = 60; // sec
+const DEFAULT_MAX_DB_BLOCKING_TIME  = 5; // ms
+const DEFAULT_MAX_REC_LOCK_TIME     = 600; // sec
+const DEFAULT_MAX_REC_BLOCKING_TIME = 2; // sec
 
 const DOWNLOAD_PATH                 = 'download/';
 const DOWNLOAD_PATH_LINK_FILE       = '.#download.link';
@@ -42,6 +42,7 @@ class DataSet
     protected $maxRecLockTime;
     protected $maxRecBlockingTime;
     protected $avoidDuplicates;
+    protected $debug;
 
 
     /**
@@ -78,6 +79,7 @@ class DataSet
             }
         }
         $this->options = $options;
+        $this->debug = PageFactory::$debug ?? Utils::determineDebugState();
 
         // access data file:
         if ($file) {
@@ -94,6 +96,8 @@ class DataSet
             $dataFile = str_replace('/', '_', dirname($file)) . '_' . base_name($file, false);
             $this->cacheFile = PFY_CACHE_PATH . "data/$dataFile.cache.dat";
             $this->lockFile = PFY_CACHE_PATH . "data/$dataFile.lock";
+
+            // if data file doesn't exist, prepare it empty and make sure no old cache/lock-files exist.
             if (!is_file($file)) {
                 preparePath($file);
                 touch($file);
@@ -112,6 +116,12 @@ class DataSet
 
         $this->officeFormatAvailable = (class_exists('PhpOffice\PhpSpreadsheet\Spreadsheet'));
     } // __construct
+
+
+    public function __destruct()
+    {
+        $this->unlockDatasource();
+    } // __destruct
 
 
     /**
@@ -200,7 +210,7 @@ class DataSet
             if (!$arg1) {
                 $this->data = [];
                 foreach ($rec as $k => $r) {
-                    $this->data[] = new DataRec($k, $r);
+                    $this->data[] = new DataRec($k, $r, $this);
                 }
 
             //
@@ -210,9 +220,9 @@ class DataSet
                 } elseif ($arg1) {
                     $inx = $this->findRecKeyOf($arg1);
                     if ($inx !== null) {
-                        $this->data[$inx] = new DataRec($arg1, $rec);
+                        $this->data[$inx] = new DataRec($arg1, $rec, $this);
                     } else {
-                        $this->data[] = new DataRec($arg1, $rec);
+                        $this->data[] = new DataRec($arg1, $rec, $this);
                     }
                 }
             }
@@ -397,6 +407,15 @@ class DataSet
     public function unlock()
     {
         $this->unlockDatasource();
+    } // unlock
+
+
+    public function unlockRecs()
+    {
+       foreach ($this->data as $rec) {
+           $rec->unlock(flush: false);
+       }
+       $this->flush();
     } // unlock
 
 
@@ -1312,6 +1331,9 @@ class DataSet
         foreach ($obj as $key => $value) {
             $this->$key = $value;
         }
+        foreach ($this->data as $key => $rec) {
+            $this->data[$key]->parent = $this;
+        }
     } // readCacheFile
 
 
@@ -1414,21 +1436,13 @@ class DataSet
         $str .= "elementKeys: ".var_r($this->elementKeys, '', true)."\n";
         $str .= "cacheFile: $this->cacheFile\n";
         $str .= "lockFile: $this->lockFile\n";
+        $str .= "maxRecLockTime: $this->maxRecLockTime\n";
+        $str .= "maxRecBlockingTime: $this->maxRecBlockingTime\n";
         $str .= "readWriteMode: " . ($this->readWriteMode ? 'true' : 'false') . "\n";
         $str .= "options:\n  " . rtrim(str_replace("\n", "\n  ", Yaml::encode($this->options)));
-        $str .= "\nDB-lock: " . (file_exists($this->lockFile) ? 'true' : 'false') . "\n";
-        $str .= "\nDATA:\n";
-        foreach ($this->data as $k => $v) {
-            $d = (array)$v;
-            $dat = $d['recData'];
-            unset($d['parent']);
-            unset($d['recData']);
-            $s = Yaml::encode($d);
-            $s = str_replace("\n", "\n  ", $s);
-            $s1 = Yaml::encode($dat);
-            $s .= "DATA:\n    ";
-            $s .= str_replace("\n", "\n    ", $s1);
-            $str .= "$k:\n  $s\n";
+        $str .= "\nDATA-RECORDS:\n";
+        foreach ($this->data as $k => $rec) {
+            $str .= $rec->debugDump(false);
         }
         if ($cacheFile) {
             F::write($cacheFile . '.txt', $str);

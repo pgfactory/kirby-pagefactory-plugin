@@ -214,14 +214,15 @@ class DataRec
      * @param bool $force
      * @return bool
      */
-    public function unlock(bool $force = false): bool
+    public function unlock(bool $force = false, $flush = true): bool
     {
+        $sessId = getSessionId();
         // if force unlock or locked by self or lock timed out:
         if ($force ||
                 ($this->_lockedBy === getSessionId()) ||
                 ($this->_lock < (time() - $this->maxRecLockTime))) {
-            $this->set('_lock', false, flush: true, ignoreLock: true);
-            $this->set('_lockedBy', false, flush: true, ignoreLock: true);
+            $this->set('_lock', false, flush: $flush, ignoreLock: true);
+            $this->set('_lockedBy', false, flush: $flush, ignoreLock: true);
             return true;
         } else {
             return false;
@@ -306,20 +307,24 @@ class DataRec
      */
     public function debugDump(bool $asHtml = true)
     {
-        $str = '';
-        $str .= "parent: [OMITTED]\n";
+        $str = "=============\n";
+        $str .= $this->parent? "parent: [OMITTED]\n" : "parent: [missing]\n";
         $str .= "key: ".$this->_origRecKey."\n";
-        $str .= "_timestamp: $this->_timestamp\n";
         $str .= "_reckey: $this->_reckey\n";
-        $str .= "_lock: " . ($this->_lock ? 'true' : 'false') . "\n";
+        $str .= "_timestamp: $this->_timestamp\n";
+        $str .= "_lock: " . ($this->_lock ?: 'false') . "\n";
         $str .= "_lockedBy: $this->_lockedBy\n";
-        $str .= "\nDATA:\n";
+        $str .= "DATA-REC:\n";
         foreach ($this->recData as $k => $v) {
-            $str .= "    $k: $v\n";
+            if (is_scalar($v)) {
+                $str .= "    $k: $v\n";
+            } else {
+                $str .= "    $k: ".json_encode($v)."\n";
+            }
         }
         if ($asHtml) {
             return "<pre>$str</pre>\n";
         }
-        return $str;
+        return "$str\n";
     } // debugDump
 } // DataRec
