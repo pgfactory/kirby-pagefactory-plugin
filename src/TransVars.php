@@ -472,6 +472,9 @@ class TransVars
                 }
                 if (function_exists("Usility\\PageFactory\\$macroName")) {
                     $value = "Usility\\PageFactory\\$macroName"($argStr);
+                    if (is_array($value)) {
+                        $value = shieldStr($value[0], 'inline');
+                    }
                 } elseif ($hideIfUnknown) {
                     $value = '';
                 } else {
@@ -556,24 +559,7 @@ class TransVars
         $src = '';
         if (is_string($args)) {
             // handle showSource:
-            if (preg_match('/,?\s*showSource:\s*true/', $args, $m)) {
-                $args = str_replace($m[0], '', $args);
-                $src = markdownParagrah($args);
-                $args = strip_tags($src);
-
-                $multiline = str_contains($src, "\n") ? "\n        " : '';
-                $multiline2 = $multiline ? "\n    " : ' ';
-                $src = preg_replace('/\n\s*\n/', "\n", $src);
-                if ($multiline) {
-                    $src = indentLines($src);
-                } else {
-                    $src = rtrim($src, ' ,');
-                }
-                $src = str_replace('~', '&#126;', $src);
-                $macroName1 = ltrim($macroName, '_');
-                $src = "<pre><code>\\{{ $macroName1($src$multiline)$multiline2}}\n</code></pre>";
-                $src = shieldStr($src) . "\n\n";
-            }
+            list($args, $src) = self::handleShowSource($args, $src, $macroName);
 
         } elseif (!is_array($args)) {
             throw new \Exception("Macros: unexpected case -> macro arguments neither string nor array.");
@@ -711,6 +697,33 @@ EOT;
         $html .= "<ul>\n";
         return $html;
     } // renderTwigFunctions
+
+    private static function handleShowSource(string $args, array|string $src, string $macroName): array
+    {
+        if (preg_match('/,?\s*showSource:\s*true/', $args, $m)) {
+            $args = str_replace($m[0], '', $args);
+            $src = str_replace(["''", ',,', '->'], ["\\''", "\\,,", "\\->"], $args);
+            $src = markdownParagrah($src);
+
+            $multiline = str_contains($src, "\n") ? "\n    " : '';
+            $multiline2 = $multiline ? "\n" : ' ';
+            $src = preg_replace('/\n\s*\n/', "\n", $src);
+            if ($multiline) {
+                $src = rtrim($src, "\n\t ");
+            } else {
+                $src = rtrim($src, ' ,');
+            }
+            $src = str_replace('~', '&#126;', $src);
+            $macroName1 = ltrim($macroName, '_');
+            $src = "<pre class='pfy-source-code'><code>{{ $macroName1($src$multiline)$multiline2}}\n</code></pre>";
+            $src = shieldStr($src) . "\n\n";
+
+            // remove some highlighting in args:
+            $args = preg_replace('/\*\*(.*?)\*\*/', "$1", $args);
+            $args = preg_replace('/\*(.*?)\*/', "$1", $args);
+        }
+        return array($args, $src);
+    } // handleShowSource
 
 
 } // TwigVars
