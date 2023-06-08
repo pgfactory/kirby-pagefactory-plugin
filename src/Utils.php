@@ -467,9 +467,11 @@ EOT;
      */
     public static function showPendingMessage(): void
     {
-        if ($msg = PageFactory::$session->get('pfy.message')) {
-            PageFactory::$pg->setMessage($msg);
-            PageFactory::$session->remove('pfy.message');
+        $session = kirby()->session();
+        if (!isset($_GET['ajax'])) {
+            if ($msg = $session->pull('pfy.message')) {
+                PageFactory::$pg->setMessage($msg);
+            }
         }
     } // showPendingMessage
 
