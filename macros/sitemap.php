@@ -40,7 +40,7 @@ EOT,
     if (is_string($str = TransVars::initMacro(__FILE__, $config, $argStr))) {
         return $str;
     } else {
-        list($options, $sourceCode) = $str;
+        list($options, $str) = $str;
     }
 
     // assemble output:
@@ -59,6 +59,6 @@ EOT,
     }
     $nav = new SiteNav();
     $str = $nav->render($options);
-    return $sourceCode.shieldStr($str);
+    return [$str];
 }
 

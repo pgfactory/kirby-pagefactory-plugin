@@ -43,7 +43,7 @@ EOT,
     if (is_string($str = TransVars::initMacro(__FILE__, $config, $argStr))) {
         return $str;
     } else {
-        list($args, $sourceCode) = $str;
+        list($args, $str) = $str;
     }
 
     if ($args['href']) {
@@ -51,9 +51,8 @@ EOT,
     }
     // assemble output:
     $lnk = new Link();
-    $str = $lnk->render($args);
-    $str = shieldStr($str, 'inline'); // shield because svg icon in link can fool subsequently MD compiler
+    $str .= $lnk->render($args);
 
-    return $sourceCode . $str;
+    return [$str];
 }
 

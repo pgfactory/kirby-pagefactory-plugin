@@ -59,8 +59,6 @@ EOT;
         PageFactory::$pg->addJsReady($jq);
     }
 
-    $str = shieldStr($str, 'inline'); // shield from further processing if necessary
-
-    return $str;
+    return [$str];
 }
 
