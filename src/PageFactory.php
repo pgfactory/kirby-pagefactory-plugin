@@ -139,7 +139,7 @@ class PageFactory
 
         Extensions::findExtensions();
 
-        self::$hostUrl = $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].'/';
+        self::$hostUrl = $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST'] . '/';
 
         $this->utils = new Utils();
         Utils::loadPfyConfig();
@@ -157,12 +157,12 @@ class PageFactory
         self::$timezone = Utils::getTimezone();
         self::$locale = Utils::getCurrentLocale();
 
-        self::$pagePath = substr(self::$page->root(), strlen(site()->root())+1) . '/';
-        self::$absAppRoot = kirby()->root().'/';
-        self::$absPfyRoot = __DIR__.'/';
-        self::$appRoot = dirname(substr($_SERVER['SCRIPT_FILENAME'], -strlen($_SERVER['SCRIPT_NAME']))).'/';
-        self::$appUrl = dirname(substr($_SERVER['SCRIPT_FILENAME'], -strlen($_SERVER['SCRIPT_NAME']))).'/';
-        self::$appRootUrl = kirby()->url().'/';
+        self::$pagePath = substr(self::$page->root(), strlen(site()->root()) + 1) . '/';
+        self::$absAppRoot = kirby()->root() . '/';
+        self::$absPfyRoot = __DIR__ . '/';
+        self::$appRoot = dirname(substr($_SERVER['SCRIPT_FILENAME'], -strlen($_SERVER['SCRIPT_NAME']))) . '/';
+        self::$appUrl = dirname(substr($_SERVER['SCRIPT_FILENAME'], -strlen($_SERVER['SCRIPT_NAME']))) . '/';
+        self::$appRootUrl = kirby()->url() . '/';
         if (!self::$slug) {
             self::$slug = page()->slug();
         }
@@ -170,11 +170,11 @@ class PageFactory
         self::$pageRoot = 'content/' . self::$pagePath;
         self::$absPageRoot = self::$page->root() . '/';
         self::$absPageUrl = (string)self::$page->url() . '/';
-        self::$pageUrl = substr(self::$absPageUrl, strlen(self::$hostUrl)-1);
+        self::$pageUrl = substr(self::$absPageUrl, strlen(self::$hostUrl) - 1);
         if ($user = self::$kirby->user()) {
             self::$user = (string)$user->name();
         }
-        $this->autoSplitSections = self::$config['autoSplitSectionsOnH1']??false;
+        $this->autoSplitSections = self::$config['autoSplitSectionsOnH1'] ?? false;
 
         preparePath(PFY_LOGS_PATH);
         Utils::showPendingMessage();
