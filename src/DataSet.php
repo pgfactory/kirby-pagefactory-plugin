@@ -1288,7 +1288,7 @@ class DataSet
                 $data = $data1;
                 unset($data1);
             }
-            writeFileLocking($this->file, $data);
+            writeFileLocking($this->file, $data, blocking: true);
         } catch (\Exception $e) {
             throw new \Exception($e->getMessage());
         }
@@ -1309,12 +1309,14 @@ class DataSet
                 foreach ($data as $key => $rec) {
                     $data[$key]->parent = null;
                 }
-                writeFileLocking($this->cacheFile, serialize($ds));
+            } else {
+                $data = [];
             }
+            writeFileLocking($this->cacheFile, serialize($ds), blocking: true);
 
             // export debug copy if debug enabled:
             if (PageFactory::$debug) {
-                $this->debugDump(false, $this->cacheFile);
+                $ds->debugDump(false, $this->cacheFile);
             }
         } catch (\Exception $e) {
             throw new \Exception($e->getMessage());
@@ -1331,11 +1333,15 @@ class DataSet
     {
         $obj = unserialize(readFileLocking($this->cacheFile));
         $obj->options = $this->options;
-        foreach ($obj as $key => $value) {
-            $this->$key = $value;
-        }
-        foreach ($this->data as $key => $rec) {
-            $this->data[$key]->parent = $this;
+        if (is_array($obj)) {
+            foreach ($obj as $key => $value) {
+                $this->$key = $value;
+            }
+            foreach ($this->data as $key => $rec) {
+                $this->data[$key]->parent = $this;
+            }
+        } else {
+            $this->data = [];
         }
     } // readCacheFile
 
@@ -1377,7 +1383,7 @@ class DataSet
             $tLockFile = fileTime($this->lockFile);
             if ($tLockFile < (time() - DEFAULT_MAX_DB_LOCK_TIME)) {
                 // time out reached -> overwrite:
-                writeFileLocking($this->lockFile, $sidToWrite);
+                writeFileLocking($this->lockFile, $sidToWrite, blocking: true);
                 return;
             }
 
@@ -1452,7 +1458,7 @@ class DataSet
             $str .= $rec->debugDump(false);
         }
         if ($cacheFile) {
-            F::write($cacheFile . '.txt', $str);
+            file_put_contents($cacheFile.'.txt', $str);
             return '';
         } else {
             if ($asHtml) {

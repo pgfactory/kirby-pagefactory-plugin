@@ -1013,7 +1013,7 @@ function writeFile(string $file, string $content, int $flags = 0): void
   * @return void
   * @throws Exception
   */
- function writeFileLocking(string $file, mixed $content, string $type = '', string $blocking = ''): void
+ function writeFileLocking(string $file, mixed $content, string $type = '', bool $blocking = false): void
 {
     if (!$type) {
         $type = strtolower(fileExt($file));
@@ -2383,6 +2383,9 @@ function reloadAgent(mixed $target = '', string $message = ''): void
         $target = page()->url();
     }
     if ($message) {
+        if (str_contains($message, '{{')) {
+            $message = TransVars::translate($message);
+        }
         $session = kirby()->session();
         $session->set('pfy.message', $message);
     }
