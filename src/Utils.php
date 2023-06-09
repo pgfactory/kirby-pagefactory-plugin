@@ -529,7 +529,10 @@ EOT;
         if ($datetime === null) {
             $datetime = time();
         } elseif (is_string($datetime)) {
-            if (str_contains($datetime, 'T') && ($includeTime === null)) {
+            if (preg_match('/(\d{4}-\d\d-\d\d) (\d\d:\d\d)/', $datetime, $m)) {
+                $datetime = str_replace($m[0], "{$m[1]}T{$m[1]}", $datetime);
+                $includeTime = true;
+            } elseif (str_contains($datetime, 'T') && ($includeTime === null)) {
                 $includeTime = true;
             }
             $datetime = strtotime($datetime);
