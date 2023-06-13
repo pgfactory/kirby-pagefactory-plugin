@@ -108,7 +108,7 @@ class TransVars
      * @param bool $varNameIfNotFound
      * @return string
      */
-    public static function getVariable(string $varName0, bool $varNameIfNotFound = false): mixed
+    public static function getVariable(string $varName0, bool $varNameIfNotFound = false, string $lang = ''): mixed
     {
         $varName = camelCase($varName0);
         $out = null;
@@ -116,7 +116,7 @@ class TransVars
         // check for lang-selector, e.g. 'varname.de':
         if (preg_match('/(.*)\.(\w+)$/', $varName, $m)) {
             $varName = $m[1];
-            $lang = $m[2];
+            $lang = $m[2]?:$lang;
             $out = self::translateVariable($varName, $lang);
             if ($out === false) {
                 $varName1 = preg_replace('/\.\w+$/', '', $varName0);
@@ -200,8 +200,8 @@ class TransVars
         self::setVariable('phpVersion', phpversion());
 
         // default webmaster email derived from current domain:
-        self::setVariable('webmasterEmail', 'webmaster@'.preg_replace('|^https?://([\w.-]+)(.*)|', "$1", site()->url()));
-
+        PageFactory::$webmasterEmail = 'webmaster@'.preg_replace('|^https?://([\w.-]+)(.*)|', "$1", site()->url());
+        self::setVariable('webmasterEmail', PageFactory::$webmasterEmail);
 
 
         // Copy site field values to transvars:
@@ -368,9 +368,9 @@ class TransVars
      * @param $str
      * @return string
      */
-    public static function translate($str): string
+    public static function translate($str, string $lang = ''): string
     {
-        return self::resolveVariables($str);
+        return self::resolveVariables($str, $lang);
     } // translate
 
 
@@ -379,7 +379,7 @@ class TransVars
      * @param string $str
      * @return string
      */
-    public static function resolveVariables(string $str): string
+    public static function resolveVariables(string $str, string $lang = ''): string
     {
         // calls containing increment/decrement, e.g. {{ n++ }}
         list($p1, $p2) = strPosMatching($str);
@@ -413,7 +413,7 @@ class TransVars
                     $key = ltrim($key,'^ ');
                 }
                 $key1 = str_replace(['++', '--'], '', $key);
-                $value = self::getVariable($key1, $varNameIfNotFound);
+                $value = self::getVariable($key1, $varNameIfNotFound, $lang);
                 if ($key !== $key1) {
                     $s1 = $s2 = '';
                     if (preg_match('/^(.*?)([-\d.]+)(.*)$/', $value, $m)) {
@@ -577,6 +577,7 @@ class TransVars
             }
         }
 
+        $options['inx'] = $inx;
         return [$options, $src, $inx, $macroName, $auxOptions];
     } // initMacro
 
