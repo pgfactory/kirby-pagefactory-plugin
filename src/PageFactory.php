@@ -90,7 +90,7 @@ class PageFactory
     public static $langCode;
     public static $defaultLanguage;
     public static $supportedLanguages;
-    public static $trans;
+    public static $webmasterEmail;
     public static $pg;
     public static $md;
     public static $debug;
@@ -107,9 +107,9 @@ class PageFactory
     public static $assets;
     public static $config;
     public static $session;
-    public $pageOptions;
-    public $utils;
-    public $value; //???
+    public        $pageOptions;
+    public        $utils;
+    public        $value; //???
     private string $wrapperTag;
     private string $wrapperClass;
     private string $wrapperClass2;
