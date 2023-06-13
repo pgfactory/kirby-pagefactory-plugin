@@ -39,6 +39,7 @@ class DataRec
 
         $i = 0;
         foreach ($recData as $k => $v) {
+            $k = (string)$k;
             $elemKeyNormalized = translateToIdentifier($k, toLowerCase:false);
 
             // add key to list of elementKeys (unless it starts with _)
