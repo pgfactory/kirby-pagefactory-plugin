@@ -3,6 +3,7 @@
 namespace Usility\PageFactory;
 
 use Kirby;
+use Kirby\Email\PHPMailer;
 use Exception;
 
 
@@ -610,5 +611,33 @@ EOT;
         curl_close($ch);
         return $output;
     } // getServerTimezone
+
+
+    public static function sendMail(string $to, string $subject, string $body, string $debugInfo = '', string $from = '', string $fromName = ''): void
+    {
+        if (str_contains($subject, '{{')) {
+            $subject = TransVars::translate($subject);
+        }
+        if (str_contains($body, '{{')) {
+            $body = TransVars::translate($body);
+        }
+        $props = [
+            'to' => $to,
+            'from' => $from ?: TransVars::getVariable('webmaster_email'),
+            'fromName' => $fromName ?: false,
+            'subject' => $subject,
+            'body' => $body,
+        ];
+
+        if (PageFactory::$isLocalhost) {
+            $props['body'] = "\n\n" . $props['body'];
+            $text = var_r($props);
+            $html = "<pre>$debugInfo:\n$text</pre>";
+            PageFactory::$pg->setOverlay($html);
+        } else {
+            new PHPMailer($props);
+        }
+    } // sendMail
+
 
 } // Utils
