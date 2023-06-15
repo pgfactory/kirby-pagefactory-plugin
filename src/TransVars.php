@@ -216,7 +216,7 @@ class TransVars
         // Copy page field values to transvars:
         $pageAttributes = page()->content()->data();
         foreach ($pageAttributes as $key => $value) {
-            if (str_contains(',title,text,uuid,', ",$key,") || str_ends_with($key, '_md')) {
+            if (str_contains(',title,text,uuid,accesscodes,', ",$key,") || str_ends_with($key, '_md')) {
                 continue;
             } elseif ($key === 'variables') {
                 $values = Yaml::decode($value);
