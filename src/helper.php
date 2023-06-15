@@ -29,8 +29,8 @@ function isLocalhost(): bool
     if (($_GET['localhost']??'') === 'false') {
         return false;
     }
-    $remoteAddress = $_SERVER["REMOTE_ADDR"] ?? 'REMOTE_ADDR';
-    return (($remoteAddress == 'localhost') || (str_starts_with($remoteAddress, '192.')) || ($remoteAddress == '::1'));
+    $ip = kirby()->visitor()->ip();
+    return ((str_starts_with($ip, '192.')) || ($ip === '::1'));
 } // isLocalhost
 
 
