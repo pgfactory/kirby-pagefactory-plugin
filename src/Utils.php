@@ -406,7 +406,7 @@ EOT;
             PageFactory::$session->remove('pfy.debug');
         }
         $session = kirby()->session();
-        $debug = $session->get('pfy.debug') ?? null; // null, if not exists
+        $debug = $session->get('pfy.debug', null); // null, if not exists
 
         // on productive host:
         if (!isLocalhost()) {
