@@ -1557,6 +1557,7 @@ function parseArgumentStr(string $str, string $delim = ',', mixed $superBrackets
             $value = parseArgValue($rest, $delim);
             $json .= "$key: $value,";
         }
+        $rest = ltrim($rest);
         $index++;
     }
 
@@ -1608,7 +1609,6 @@ function parseArgKey(string &$rest, string $delim): string
     return "\"$key\"";
 } // parseArgKey
 
-
  /**
   * Parses the value part of 'key: value'
   * @param string $rest
@@ -1623,7 +1623,7 @@ function parseArgValue(string &$rest, string $delim): mixed
     $ch1 = $ch1[0]??'';
     if (($ch1 === '"') || ($ch1 === "'")) {
         $rest = ltrim($rest);
-        $pattern = "$ch1 (.*?) $ch1";
+        $pattern = "$ch1 (.*?) (?<!\\\)$ch1";
         // case 'value' without key:
         if (preg_match("/^ ($pattern) (.*)/xms", $rest, $m)) {
             $value = $m[2];
@@ -1652,6 +1652,7 @@ function parseArgValue(string &$rest, string $delim): mixed
         if (str_contains($value, '{{')) {
             $value = TransVars::translate($value);
         }
+        $value = preg_replace('/(?<!\\\)"/', '\\"', $value);
         $value = '"' . trim($value) . '"';
     } elseif (is_bool($value)) {
         $value = $value? 'true': 'false';
@@ -2545,6 +2546,14 @@ function iconExists(string $iconName): bool
      }
      return $hash;
  } // createHash
+
+
+function isHash(string $str): bool
+{
+     $isHash = preg_match('/[A-Z][A-Z0-9]{4,20}]/', $str);
+     return $isHash;
+} // isHash
+
 
 
  /**
