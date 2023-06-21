@@ -149,7 +149,7 @@ class DataSet
                     } else {
                         if ($recKeyType === 'origKey') {
                             $key = $rec['_origRecKey'];
-                        } elseif ($recKeyType[0] === '.') {
+                        } elseif (($recKeyType[0]??'') === '.') {
                             $key = substr($recKeyType,1);
                             if (isset($rec[$key])) {
                                 throw new \Exception("Data Error: '\$rec[$key]' not defined.");
