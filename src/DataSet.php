@@ -33,6 +33,8 @@ class DataSet
     protected $includeMeta;
     protected $data;
     protected $data2DNormalized;
+    protected $masterFileRecKeyType;    // rec key type as to appear externally (e.g. in Yaml file)
+    protected $recKeyType;              // rec key type used internally, default: hash
     protected $officeFormatAvailable;
     protected $officeDoc = false;
     protected $downloadFilename;
@@ -70,6 +72,8 @@ class DataSet
                                             ?$options['maxRecBlockingTime'] : DEFAULT_MAX_REC_BLOCKING_TIME;
         $this->downloadFilename =       $options['downloadFilename'] ?? false;
         $this->avoidDuplicates =        $options['avoidDuplicates'] ?? true;
+        $this->recKeyType =             $options['recKeyType'] ?? 'hash';
+        $this->masterFileRecKeyType =   $options['masterFileRecKeyType'] ?? 'hash';
 
         if (isset($options['blocking'])) {
             if (is_int($options['blocking'])) {
@@ -133,20 +137,40 @@ class DataSet
      * @return array
      * @throws \Exception
      */
-    public function data(bool $includeMetaFields = false): array
+    public function data(bool $includeMetaFields = false, string $recKeyType = null): array
     {
         $out = [];
         if ($this->data) {
             try {
-                foreach ($this->data as $rec) {
-                    if (is_string($rec)) {
-                        continue;
+                foreach ($this->data as $key => $dataRec) {
+                    $rec = $dataRec->data(true);
+                    if ($recKeyType === 'index') {
+                        $out[] = $rec;
+                    } else {
+                        if ($recKeyType === 'origKey') {
+                            $key = $rec['_origRecKey'];
+                        } elseif ($recKeyType[0] === '.') {
+                            $key = substr($recKeyType,1);
+                            if (isset($rec[$key])) {
+                                throw new \Exception("Data Error: '\$rec[$key]' not defined.");
+                            }
+                            $key = $rec[$key];
+                        }
+                        $out[$key] = $rec;
                     }
-                    $out[$rec->_reckey] = $rec->data($includeMetaFields);
                 }
             } catch (\Exception $e) {
                 $this->resetCache();
                 throw new \Exception("Error in data(): ".$e->getMessage());
+            }
+        }
+        if (!$includeMetaFields) {
+            foreach ($out as $key => $rec) {
+                unset($out[$key]['_timestamp']);
+                unset($out[$key]['_reckey']);
+                if ($rec['_origRecKey']??false) {
+                    unset($out[$key]['_origRecKey']);
+                }
             }
         }
         return $out;
@@ -714,11 +738,14 @@ class DataSet
         // case string defining element to sort on:
         // special notation to access data sub-elements: a.b.c = [a][b][c]
         } elseif (is_string($sortArg)) {
+            // sort on meta-data, e.g. '_origRecKey' or '_timestamp':
             if (strpos($sortArg, '.') === false) {
                 // element of first level -> access directly:
                 foreach ($this->data as $key => $elem) {
-                    $sortIndex[$key] = $elem->recData[$sortArg] ?? PHP_INT_MAX;
+                    $sortIndex[$key] = $elem->$sortArg ?? PHP_INT_MAX;
                 }
+
+            // sort on rec data, e.g. 'name' -> specified as '.name':
             } else {
                 // nested element:
                 $keys = explode('.', $sortArg);
@@ -1161,37 +1188,26 @@ class DataSet
         if (file_exists($this->file)) {
             $textEncoding = $this->options['textEncoding'] ?? false;
             try {
+                // get raw data:
                 $data = readFileLocking($this->file, $this->type, textEncoding: $textEncoding);
                 if (!$data) {
                     return;
                 }
-
-                $rec0 = reset($data);
-                if (isset($rec0['_reckey'])) {
-                    $oldData = false;
-                } else {
-                    if (file_exists($this->cacheFile)) {
-                        $obj = unserialize(readFileLocking($this->cacheFile));
-                        $oldData = $obj->data;
-                    } else {
-                        $oldData = [];
-                    }
-                }
+                // loop over loaded data, fix recKey and convert it to a DataRec:
                 foreach ($data as $key => $rec) {
-                    $recKeyToUse = false;
-                    // if cache file existed, retrieve UIDs for re-use:
-                    if ($oldData) {
-                        foreach ($oldData as $oldElem) {
-                            if ($oldElem->_origRecKey === $key) {
-                                $recKeyToUse = $oldElem->_reckey;
-                                break;
-                            }
-                        }
+                    if (isHash($key) && ($this->masterFileRecKeyType !== 'origKey')) {
+                        $recKeyToUse = $key;
                     } else {
-                        $recKeyToUse = $rec['_reckey'] ?? false;
+                        $rec['_origRecKey'] = $key;
+                        if (!isset($rec['_reckey'])) {
+                            $rec['_reckey'] = createHash();
+                        }
+                        $recKeyToUse = $rec['_reckey'];
                     }
+
                     $this->addRec($rec, flush: false, recKeyToUse: $recKeyToUse);
                 }
+
             } catch (\Exception $e) {
                 throw new \Exception($e->getMessage());
             }
@@ -1212,21 +1228,22 @@ class DataSet
             throw new \Exception("Error: DB modified while locked");
         }
 
-        $recKeyType =             $this->options['masterFileRecKeyType'] ?? '_origRecKey'; // default: re-use original rec key
+        $masterFileRecKeyType =   $this->masterFileRecKeyType;
         $recKeySort =             $this->options['masterFileRecKeySort'] ?? false;
         $recKeySortOnElement =    $this->options['masterFileRecKeySortOnElement'] ?? false;
 
         // determine which data element shall be used as rec-keys in the master-file:
-        if ($keys =               $this->options['masterFileRecKeys'] ?? '') {
-            $parts = explodeTrim(',', $keys);
+        // 'masterFileRecKeys' : 'index,sort:name'
+        if ($masterFileRecKeyType) {
+            $parts = explodeTrim(',', $masterFileRecKeyType);
             foreach ($parts as $el) {
                 // determine recKey: recKey|index|uid|timestamp or a data-rec-element as 'rec.xy'
                 if (preg_match('/(index|_origRecKey|_reckey)/', $el, $m)) {
-                    $recKeyType = $m[1];
+                    $masterFileRecKeyType = $m[1];
                 } else if ($el === 'uid') { // synonym for _reckey
-                    $recKeyType = '_reckey';
+                    $masterFileRecKeyType = '_reckey';
                 } elseif (preg_match('/.*\.\s*(.+)/', $el, $m)) { // rec.xy
-                    $recKeyType = '.' . $m[1];
+                    $masterFileRecKeyType = '.' . $m[1];
 
                 // determine sorting instructions
                 } elseif (preg_match('/(sort|asc.*|desc.*):\s*(.+)/', $el, $m)) {
@@ -1235,8 +1252,8 @@ class DataSet
                 }
             }
         }
-        if (!$keys && $this->type === 'csv') {
-            $recKeyType = 'index';
+        if (!$masterFileRecKeyType && $this->type === 'csv') {
+            $masterFileRecKeyType = 'index';
         }
 
         try {
@@ -1247,47 +1264,12 @@ class DataSet
                 } elseif ($recKeySort === 'desc') {
                     $recKeySort = 'arsort';
                 }
-                $data = $this->clone()->sort($recKeySortOnElement, $recKeySort)->data();
+                $data = $this->clone()->sort($recKeySortOnElement, $recKeySort)->data(recKeyType: $masterFileRecKeyType);
+
             } else {
-                $data = $this->data($this->includeMeta);
+                $data = $this->data($this->includeMeta, recKeyType: $masterFileRecKeyType);
             }
 
-            // create new data-set with requested rec-key (unless _reckey selected):
-            if ($recKeyType && $recKeyType !== '_reckey') {
-                $data1 = [];
-
-                // case index:
-                if ($recKeyType === 'index') {
-                    foreach ($data as $k => $v) {
-                        $v['_reckey'] = $k;
-                        $data1[] = $v;
-                    }
-
-                // case rec data element: dr->recData[xy]
-                } elseif ($recKeyType[0] === '.') {
-                    $recKeyType = substr($recKeyType, 1);
-                    // loop over records and assemble new data set:
-                    foreach ($data as $k => $v) {
-                        $v['_reckey'] = $k;
-                        $k = $v[$recKeyType] ?? $k; // access rec-element, use key if that not exists
-                        $data1[$k] = $v;
-                    }
-
-                // case rec object property: dr->xy
-                } else {
-                    foreach ($data as $k => $v) {
-                        $v['_reckey'] = $k;
-                        $key = $this->data[$k]->$recKeyType ?? $k;
-                        if ($key === false) {
-                            $data1[] = $v;
-                        } else {
-                            $data1[$key] = $v;
-                        }
-                    }
-                }
-                $data = $data1;
-                unset($data1);
-            }
             writeFileLocking($this->file, $data, blocking: true);
         } catch (\Exception $e) {
             throw new \Exception($e->getMessage());
