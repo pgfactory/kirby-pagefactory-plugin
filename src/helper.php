@@ -2334,11 +2334,12 @@ function var_r($var, string $varName = '', bool $flat = false, bool $toHtml = fa
             }
         } else {
             $out = $varName . var_export($var, true);
-            $out = str_replace(["array (\n", "),\n", ")\n", '=>'], ["[\n", "],\n", "]\n", '\=>'], $out);
+            $out = str_replace(["array (\n", "),\n", ")\n"], ["[\n", "],\n", "]\n"], $out);
             $out[strlen($out)-1] = ']';
         }
     }
     if ($toHtml) {
+        $out = str_replace('=>', '\=>', $out);
         $out = "<div><pre>$out\n</pre></div>\n";
     }
     return $out;
