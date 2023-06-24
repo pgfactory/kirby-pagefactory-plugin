@@ -53,6 +53,6 @@ EOT,
     $lnk = new Link();
     $str .= $lnk->render($args);
 
-    return [$str];
-}
+    return $str;
+} // link
 
