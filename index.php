@@ -46,6 +46,7 @@ Kirby::plugin('pgfactory/pagefactory', [
         },
 
         'page.render:after' => function (string $contentType, array $data, string $html, Kirby\Cms\Page $page) {
+            $html = Usility\PageFactory\Utils::resolveUrl($html);
             return Usility\PageFactory\unshieldStr($html, true);
         },
 
