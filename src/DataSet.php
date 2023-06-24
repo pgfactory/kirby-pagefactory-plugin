@@ -28,6 +28,7 @@ class DataSet
     protected $lockFile;
     protected $blocking = 0;
     protected $readWriteMode;
+    protected $obfuscateRecKeys;
     public $elementKeys;
     protected $options;
     protected $includeMeta;
@@ -45,6 +46,8 @@ class DataSet
     protected $maxRecBlockingTime;
     protected $avoidDuplicates;
     protected $debug;
+    protected static $session;
+    protected static $obfuscateSessKey;
 
 
     /**
@@ -66,6 +69,7 @@ class DataSet
     {
         $this->includeMeta =            $options['includeMeta'] ?? false;
         $this->readWriteMode =          $options['readWriteMode'] ?? true;
+        $this->obfuscateRecKeys =       $options['obfuscateRecKeys'] ?? false;
         $this->maxRecLockTime =         (isset($options['maxRecLockTime']) && $options['maxRecLockTime']) ?
                                             $options['maxRecLockTime']: DEFAULT_MAX_REC_LOCK_TIME;
         $this->maxRecBlockingTime =     (isset($options['maxRecBlockingTime']) && $options['maxRecBlockingTime'])
@@ -85,6 +89,11 @@ class DataSet
         $this->options = $options;
         $this->debug = PageFactory::$debug ?? Utils::determineDebugState();
 
+        // prepare key-obfuscation mechanism:
+        if ($this->obfuscateRecKeys) {
+            $this->prepareSessionCache();
+        }
+
         // access data file:
         if ($file) {
             if (!file_exists(PFY_CACHE_PATH . 'data')) {
@@ -102,7 +111,7 @@ class DataSet
             $this->lockFile = PFY_CACHE_PATH . "data/$dataFile.lock";
 
             $session = kirby()->session();
-            $session->set('absAppRoot', __DIR__.'/');
+            $session->set('pfy.absAppRoot', __DIR__.'/');
 
             // if data file doesn't exist, prepare it empty and make sure no old cache/lock-files exist.
             if (!is_file($file)) {
@@ -137,7 +146,7 @@ class DataSet
      * @return array
      * @throws \Exception
      */
-    public function data(bool $includeMetaFields = false, string $recKeyType = null): array
+    public function data(mixed $includeMetaFields = false, string $recKeyType = null): array
     {
         $out = [];
         if ($this->data) {
@@ -155,6 +164,10 @@ class DataSet
                                 throw new \Exception("Data Error: '\$rec[$key]' not defined.");
                             }
                             $key = $rec[$key];
+                        } else {
+                            if ($this->obfuscateRecKeys) {
+                                $key = $this->obfuscateRecKey($key);
+                            }
                         }
                         $out[$key] = $rec;
                     }
@@ -168,7 +181,14 @@ class DataSet
             foreach ($out as $key => $rec) {
                 unset($out[$key]['_timestamp']);
                 unset($out[$key]['_reckey']);
-                if ($rec['_origRecKey']??false) {
+                if (isset($rec['_origRecKey'])) {
+                    unset($out[$key]['_origRecKey']);
+                }
+            }
+        } elseif ($includeMetaFields === '_reckey') {
+            foreach ($out as $key => $rec) {
+                unset($out[$key]['_timestamp']);
+                if (isset($rec['_origRecKey'])) {
                     unset($out[$key]['_origRecKey']);
                 }
             }
@@ -200,6 +220,7 @@ class DataSet
      */
     public function write(...$args)
     {
+//ToDo: unobfuscate
         $flush = $args['flush']??true;
         if (!$this->readWriteMode) {
             throw new \Exception("Datasource '$this->name' is in read-only mode, unable to write data");
@@ -279,6 +300,9 @@ class DataSet
             throw new \Exception("Datasource '$this->name' is in read-only mode, unable to add data");
         }
         if ($recKeyToUse) {
+            if ($this->obfuscateRecKeys) {
+                $recKeyToUse = $this->deObfuscateRecKey($recKeyToUse);
+            }
             $dr = new DataRec($recKeyToUse, $rec, $this);
             $dr->set('_reckey', $recKeyToUse);
             $this->data[$recKeyToUse] = $dr;
@@ -334,6 +358,9 @@ class DataSet
                 return $this;
             }
             // key contains uid:
+            if ($this->obfuscateRecKeys) {
+                $key = $this->deObfuscateRecKey($key);
+            }
             if (isset($this->data[$key])) {
                 $this->data[$key]->update($rec);
                 return $this;
@@ -378,6 +405,9 @@ class DataSet
      */
     public function remove($key, bool $flush = false)
     {
+        if ($this->obfuscateRecKeys) {
+            $key = $this->deObfuscateRecKey($key);
+        }
         if (isset($this->data[$key])) {
             unset($this->data[$key]);
         } else {
@@ -442,7 +472,8 @@ class DataSet
        foreach ($this->data as $rec) {
            $rec->unlock(flush: false);
        }
-       $this->flush();
+       $this->flush(cacheOnly: true);
+//       $this->flush();
     } // unlock
 
 
@@ -669,6 +700,9 @@ class DataSet
 
             } elseif (is_scalar($key)) {    // normal case: key and opt. attribute supplied
                 $key = (string)$key;
+                if ($this->obfuscateRecKeys) {
+                    $key = $this->deObfuscateRecKey($key);
+                }
                 $all = $args[1] ?? false;
                 $recUid = $this->findRecKeyOf($key, $attribute, $all);
 
@@ -683,6 +717,9 @@ class DataSet
                 $recUid = [];
                 foreach ($key as $v) {
                     if (is_string($v)) {    // normal case: key and opt. attribute supplied
+                        if ($this->obfuscateRecKeys) {
+                            $v = $this->deObfuscateRecKey($v);
+                        }
                         $recUid[] = $this->findRecKeyOf($v);
                     }
                 }
@@ -690,18 +727,6 @@ class DataSet
                 $recUid = $this->findRecKeyOf($key, $args);
             }
         }
-
-/* ??? what was that?
-        if (is_array($recUid) && $recUid) {
-            $ds = $this->clone();
-            $ds->set('data', []);
-            foreach ($recUid as $i) {
-                $elem = $this->nth($i);
-                $ds->addRec($elem); // $ds->add($elem);
-            }
-            return $ds;
-        }
-*/
         return $this->nth($recUid);
     } // find
 
@@ -868,7 +893,8 @@ class DataSet
             $this->data[$recUid]->$key = $value;
         }
         if ($flush) {
-            $this->flush();
+            $this->flush(cacheOnly: true);
+//            $this->flush();
         }
         return $this;
     } // setData
@@ -908,7 +934,8 @@ class DataSet
         if (property_exists($this, $key)) {
             $this->$key = $value;
             if ($flush) {
-                $this->flush();
+                $this->flush(cacheOnly: true);
+//                $this->flush();
             }
         }
         return $this;
@@ -981,10 +1008,12 @@ class DataSet
      * @return void
      * @throws \Exception
      */
-    public function flush()
+    public function flush($cacheOnly = false)
     {
         if ($this->file) {
-            $this->exportToMasterFile();
+            if (!$cacheOnly) {
+                $this->exportToMasterFile();
+            }
             $this->updateCacheFile();
             $this->lastModified = time();
         }
@@ -1187,6 +1216,7 @@ class DataSet
     {
         if (file_exists($this->file)) {
             $textEncoding = $this->options['textEncoding'] ?? false;
+            $modified = false;
             try {
                 // get raw data:
                 $data = readFileLocking($this->file, $this->type, textEncoding: $textEncoding);
@@ -1201,11 +1231,15 @@ class DataSet
                         $rec['_origRecKey'] = $key;
                         if (!isset($rec['_reckey'])) {
                             $rec['_reckey'] = createHash();
+                            $modified = true;
                         }
                         $recKeyToUse = $rec['_reckey'];
                     }
 
                     $this->addRec($rec, flush: false, recKeyToUse: $recKeyToUse);
+                }
+                if ($modified) {
+                    $this->exportToMasterFile();
                 }
 
             } catch (\Exception $e) {
@@ -1256,6 +1290,7 @@ class DataSet
             $masterFileRecKeyType = 'index';
         }
 
+        $includeMeta = $this->includeMeta?:'_reckey';
         try {
             // sort:
             if ($recKeySort) {
@@ -1264,10 +1299,10 @@ class DataSet
                 } elseif ($recKeySort === 'desc') {
                     $recKeySort = 'arsort';
                 }
-                $data = $this->clone()->sort($recKeySortOnElement, $recKeySort)->data(recKeyType: $masterFileRecKeyType);
+                $data = $this->clone()->sort($recKeySortOnElement, $recKeySort)->data($includeMeta, recKeyType: $masterFileRecKeyType);
 
             } else {
-                $data = $this->data($this->includeMeta, recKeyType: $masterFileRecKeyType);
+                $data = $this->data($includeMeta, recKeyType: $masterFileRecKeyType);
             }
 
             writeFileLocking($this->file, $data, blocking: true);
@@ -1315,9 +1350,11 @@ class DataSet
     {
         $obj = unserialize(readFileLocking($this->cacheFile));
         $obj->options = $this->options;
-        if (is_array($obj)) {
+        if (is_object($obj)) {
             foreach ($obj as $key => $value) {
-                $this->$key = $value;
+                if (!str_contains('sess', $key)) {
+                    $this->$key = $value;
+                }
             }
             foreach ($this->data as $key => $rec) {
                 $this->data[$key]->parent = $this;
@@ -1399,13 +1436,37 @@ class DataSet
     {
         // may be called from __destruct where relative path doesn't work:
         $session = kirby()->session();
-        $dir = $session->get('absAppRoot');
+        $dir = $session->get('pfy.absAppRoot');
         $lockFile = "$dir$this->lockFile";
         if (file_exists($lockFile)) {
             @unlink($lockFile);
             $this->readWriteMode = false;
         }
     } // unlockDatasource
+
+
+    protected function obfuscateRecKey(string $key): string
+    {
+        $tableRecKeyTab = self::$session->get(self::$obfuscateSessKey);
+        if (!$tableRecKeyTab || !($obfuscatedKey = array_search($key, $tableRecKeyTab))) {
+            $obfuscatedKey = \Usility\PageFactory\createHash();
+        }
+        $tableRecKeyTab[$obfuscatedKey] = $key;
+        self::$session->set(self::$obfuscateSessKey, $tableRecKeyTab);
+        return $obfuscatedKey;
+    } // deObfuscateRecKey
+
+
+    protected function deObfuscateRecKey(string $key): string
+    {
+        $this->prepareSessionCache();
+        $tableRecKeyTab = self::$session->get(self::$obfuscateSessKey);
+        if ($tableRecKeyTab && (isset($tableRecKeyTab[$key]))) {
+            $key = $tableRecKeyTab[$key];
+        }
+        return $key;
+    } // deObfuscateRecKey
+
 
 
     /**
@@ -1449,5 +1510,17 @@ class DataSet
             return $str;
         }
     } // debugDump
+
+
+    private function prepareSessionCache(): void
+    {
+        if (!self::$session) {
+            $pageId = page()->id();
+            self::$obfuscateSessKey = ($this->options['obfuscateSessKey'] ?? false) ?: "obfuscate:$pageId:keys";
+//            self::$obfuscateSessKey = ($this->options['obfuscateSessKey'] ?? false) ?: "pfy:$pageId:keys";
+//            self::$sessKey = "pfy:$pageId:keys";
+            self::$session = kirby()->session();
+        }
+    } // prepareSessionCache
 
 } // DataSet
