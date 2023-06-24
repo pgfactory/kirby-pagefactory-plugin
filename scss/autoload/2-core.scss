@@ -27,16 +27,16 @@ html, body, section {
 #pfy.pfy-default-styling .pfy-encapsulated,
 .pfy-default-styling {
 
-    // --- generic rules:
-    .pfy-dispno,
-    .dispno,
-    .disp-no,
-    .disp_no {
-        display: none!important;
-    }
-    .dispblock {
-        display: block;
-    }
+  // --- generic rules:
+  .pfy-dispno,
+  .dispno,
+  .disp-no,
+  .disp_no {
+      display: none!important;
+  }
+  .dispblock {
+      display: block;
+  }
 
   a:focus-visible,
   button:focus-visible {
@@ -51,16 +51,19 @@ html, body, section {
     }
   }
 
-    .pfy-disabled {
-        filter: contrast(50%);
-        opacity: 0.7;
-    }
+  .pfy-disabled {
+      filter: contrast(50%);
+      opacity: 0.7;
+  }
 
-    .pfy-no-decoration {
-        text-decoration: none;
-        border-bottom: none;
-    }
+  .pfy-no-decoration {
+      text-decoration: none;
+      border-bottom: none;
+  }
 
+  .pfy-fully-hidden {
+    @include visually-hidden;
+  }
 
 } // pfy-default-styling
 
