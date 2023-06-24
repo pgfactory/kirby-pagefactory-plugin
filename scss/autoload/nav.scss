@@ -21,8 +21,10 @@ $nav-sub-txt-color: inherit;
 $nav-sub-bg-color: #ddd;
 
 // current:
-$nav-curr-txt-color: #ddd;
-$nav-curr-bg-color:  #444;
+$nav-curr-txt-color: #000;
+$nav-curr-bg-color:  #ddd;
+$nav-active-txt-color: #000;
+$nav-active-bg-color:  #eee;
 
 // hover:
 $nav-hover-txt-color: #000;
@@ -163,18 +165,18 @@ $slidedownX6: calc(var(--pfy-nav-top-horizontal-first-indent, #{$nav-top-horizon
         }
 
         // pfy-curr:
-        .pfy-curr {
+        .pfy-curr.pfy-curr {
             > a {
-                color:      var(--pfy-nav-curr-txt-color, var(--pfy-nav-txt-color));
-                background: var(--pfy-nav-curr-bg-color, var(--pfy-nav-elem-bg-color));
+                color:      var(--pfy-nav-curr-txt-color, var(--pfy-nav-txt-color, #{$nav-curr-txt-color}));
+                background: var(--pfy-nav-curr-bg-color, var(--pfy-nav-elem-bg-color, #{$nav-curr-bg-color}));
             }
         }
 
         // pfy-active:
-        .pfy-active {
+        .pfy-active.pfy-active {
             > a {
-                color:      var(--pfy-nav-active-txt-color, var(--pfy-nav-txt-color));
-                background: var(--pfy-nav-active-bg-color, var(--pfy-nav-elem-bg-color));
+                color:      var(--pfy-nav-active-txt-color, var(--pfy-nav-txt-color, #{$nav-active-txt-color}));
+                background: var(--pfy-nav-active-bg-color, var(--pfy-nav-elem-bg-color, #{$nav-active-bg-color}));
             }
         }
 
