@@ -284,7 +284,7 @@ EOT;
             '~media/'   => 'media/',
             '~assets/'  => 'content/assets/',
             '~data/'    => 'site/custom/data/',
-            '~page/'    => PageFactory::$pagePath,
+            '~page/'    => PageFactory::$pageUrl,
         ];
         $url = str_replace(array_keys($patterns), array_values($patterns), $url);
         $url = normalizePath($url);
