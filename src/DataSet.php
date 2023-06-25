@@ -467,13 +467,16 @@ class DataSet
     } // unlock
 
 
+    /**
+     * @return void
+     * @throws \Exception
+     */
     public function unlockRecs()
     {
        foreach ($this->data as $rec) {
            $rec->unlock(flush: false);
        }
        $this->flush(cacheOnly: true);
-//       $this->flush();
     } // unlock
 
 
@@ -894,7 +897,6 @@ class DataSet
         }
         if ($flush) {
             $this->flush(cacheOnly: true);
-//            $this->flush();
         }
         return $this;
     } // setData
@@ -935,7 +937,6 @@ class DataSet
             $this->$key = $value;
             if ($flush) {
                 $this->flush(cacheOnly: true);
-//                $this->flush();
             }
         }
         return $this;
@@ -1445,6 +1446,11 @@ class DataSet
     } // unlockDatasource
 
 
+    /**
+     * @param string $key
+     * @return string
+     * @throws \Exception
+     */
     protected function obfuscateRecKey(string $key): string
     {
         $tableRecKeyTab = self::$session->get(self::$obfuscateSessKey);
@@ -1457,6 +1463,10 @@ class DataSet
     } // deObfuscateRecKey
 
 
+    /**
+     * @param string $key
+     * @return string
+     */
     protected function deObfuscateRecKey(string $key): string
     {
         $this->prepareSessionCache();
@@ -1512,13 +1522,14 @@ class DataSet
     } // debugDump
 
 
+    /**
+     * @return void
+     */
     private function prepareSessionCache(): void
     {
         if (!self::$session) {
             $pageId = page()->id();
             self::$obfuscateSessKey = ($this->options['obfuscateSessKey'] ?? false) ?: "obfuscate:$pageId:keys";
-//            self::$obfuscateSessKey = ($this->options['obfuscateSessKey'] ?? false) ?: "pfy:$pageId:keys";
-//            self::$sessKey = "pfy:$pageId:keys";
             self::$session = kirby()->session();
         }
     } // prepareSessionCache
