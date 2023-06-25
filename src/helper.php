@@ -1013,13 +1013,16 @@ function writeFile(string $file, string $content, int $flags = 0): void
   * @return void
   * @throws Exception
   */
- function writeFileLocking(string $file, mixed $content, string $type = '', bool $blocking = false): void
+function writeFileLocking(string $file, mixed $content, string $type = '', bool $blocking = false): void
 {
     if (!$type) {
         $type = strtolower(fileExt($file));
     }
     // encode data:
-    if (strpos('yml,yaml,json', $type) !== false) {
+    if (str_contains('yml,yaml', $type)) {
+        $content = shieldNewlines($content);
+        $content = Data::encode($content, $type);
+    } elseif ($type === 'json') {
         $content = Data::encode($content, $type);
     } elseif (is_object($content)) {
         $content = serialize($content);
@@ -1047,6 +1050,31 @@ function writeFile(string $file, string $content, int $flags = 0): void
         throw new \Exception("Error closing file '$file'");
     }
 } // writeFileLocking
+
+
+ /**
+  * Replaces newline char with '\n'
+  * -> fixes a 'peculiarity' in Kirby's Data implementation
+  * @param array $data
+  * @return array
+  */
+ function shieldNewlines(array $data): array
+ {
+     foreach ($data as $key => $rec) {
+         if (is_array($rec)) {
+             foreach ($rec as $k => $v) {
+                 if (is_string($v) && str_contains($v, "\n")) {
+                     $data[$key][$k] = str_replace("\n", '\\n', $v);
+                 }
+             }
+         } else {
+             if (str_contains($rec, "\n")) {
+                 $data[$key] = str_replace("\n", '\\n', $rec);
+             }
+         }
+     }
+     return $data;
+ } // shieldNewlines
 
 
  /**
@@ -2549,7 +2577,11 @@ function iconExists(string $iconName): bool
  } // createHash
 
 
-function isHash(string $str): bool
+ /**
+  * @param string $str
+  * @return bool
+  */
+ function isHash(string $str): bool
 {
      $isHash = preg_match('/[A-Z][A-Z0-9]{4,20}]/', $str);
      return $isHash;
