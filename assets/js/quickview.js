@@ -90,7 +90,7 @@ PfyQuickview.prototype.open = function( $elem ) {
         }
     }
     $( 'body' ).keydown( function (e) {
-        if (e.which === 27) {
+        if (e.key === 27) {
             pfyQuickview.close();
         }
     });

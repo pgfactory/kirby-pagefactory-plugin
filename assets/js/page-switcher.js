@@ -33,7 +33,7 @@ $( document ).ready(function() {
             return document.defaultAction;
         }
 
-        var keycode = e.which;
+        var keycode = e.key;
 
         // Standard arrow key handling:
         if ((keycode === 37) || (keycode === 33)) {	// left or pgup
