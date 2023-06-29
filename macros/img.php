@@ -20,13 +20,13 @@ function img($argStr = '')
             'wrapperClass' => ['Class to be applied to the wrapper tag.', ''],
             'caption' => ['Optional caption. If set, Lizzy will wrap the image into a &lt;figure> tag and wrap the ".
                 "caption itself in &lt;figcaption> tag.', false],
-            'srcset' => ["Let's you override the automatic srcset mechanism.", ''],
+            'srcset' => ["Let's you override the automatic srcset mechanism.", null],
             'attributes' => ["Supplied string is put into the &lt;img> tag as is. This way you can apply advanced ".
                 "attributes, such as 'sizes' or 'crossorigin', etc.", false],
             'imgTagAttributes' => ["Supplied string is put into the &lt;img> tag as is. This way you can apply advanced ".
                 "attributes, such as 'sizes' or 'crossorigin', etc.", false],
             'quickview' => ["If true, activates the quickview mechanism (default: false). Quickview: click on the ".
-                "image to see in full size.", ''],
+                "image to see in full size.", null],
             // 'lateImgLoading' => ["If true, activates the lazy-load mechanism: images get loaded after the page is ready otherwise.", false],
     
             'link' => ["Wraps a &lt;a href='link-argument'> tag round the image..", false],
@@ -111,7 +111,6 @@ class Img
             $attributes .= " id='pfy-img-$inx'";
         }
 
-        $wrapperClass = $args['wrapperClass'];
         $this->class = $args['class'];
 
         if ($args['alt']) {
@@ -128,14 +127,13 @@ class Img
             $attributes .= " {$args['imgTagAttributes']}";
         }
         if (($args['quickview'] === true) ||
-            (($args['quickview'] === '') && (PageFactory::$config['imageAutoQuickview']??false))) {
+            (($args['quickview'] === null) && (PageFactory::$config['imageAutoQuickview']??false))) {
             $attributes .= $this->renderQuickview();
-            $this->class .= ' pfy-quickview';
         }
 
         // determine srcset/sizes attributes:
         if (($args['srcset'] !== false) ||
-            (($args['srcset'] === '') && (PageFactory::$config['imageAutoSrcset']??false))) {
+            (($args['srcset'] === null) && (PageFactory::$config['imageAutoSrcset']??false))) {
             $attributes .= $this->renderSrcset();
         }
 
@@ -152,32 +150,12 @@ class Img
             $str = $this->applyLinkWrapper($str);
         }
 
-        $wrapperTag = 'div';
-        if ($args['wrapperTag'] === false) {
-            return $str;
-        } elseif ($args['wrapperTag'] !== null) {
-            $wrapperTag = $args['wrapperTag'];
-        }
-        if ($args['caption']) {
-            $str = <<<EOT
-
-<figure class="pfy-img-wrapper pfy-figure $wrapperClass">
-$str
-<figcaption>{$args['caption']}</figcaption>
-</figure>
-
-EOT;
-        } else {
-            $str = <<<EOT
-
-<$wrapperTag class="pfy-img-wrapper $wrapperClass">
-$str
-</$wrapperTag>
-
-EOT;
+        if ($args['wrapperTag'] || $args['wrapperClass']) {
+            $str = $this->applyFigureWrapper($str);
         }
         return $str;
     } // render
+
 
 
     /**
@@ -229,7 +207,7 @@ EOT;
         } else {
             $src = resolvePath($src);
             $this->srcFilePath = $src;
-            if (strpos($src, 'content/') === 0) {
+            if (str_starts_with($src, 'content/')) {
                 $src = substr($src, 8);
                 $files = site()->index()->files();
                 $file = $files->find($src);
@@ -393,6 +371,40 @@ EOT;
 
 
     /**
+     * @param string $str
+     * @return string
+     */
+    private function applyFigureWrapper(string $str): string
+    {
+        $wrapperTag = 'div';
+        if ($this->args['wrapperTag'] !== null) {
+            $wrapperTag = $this->args['wrapperTag'];
+        }
+
+        $wrapperClass = $this->args['wrapperClass'];
+        if ($this->args['caption']) {
+            $str = <<<EOT
+
+<figure class="pfy-img-wrapper pfy-figure $wrapperClass">
+$str
+<figcaption>{$this->args['caption']}</figcaption>
+</figure>
+
+EOT;
+        } else {
+            $str = <<<EOT
+
+<$wrapperTag class="pfy-img-wrapper $wrapperClass">
+$str
+</$wrapperTag>
+
+EOT;
+        }
+        return $str;
+    } // applyFigureWrapper
+
+
+    /**
      * Injects code for quickview feature: attrib, css and jq
      * @return string
      */
@@ -405,9 +417,9 @@ EOT;
             $src = $this->srcFilePath;
             if ($src && file_exists($src)) {
                 list($w0, $h0) = getimagesize($src);
-                $qvDataAttr = " data-qv-src='{$this->srcFileUrl}' data-qv-width='$w0' data-qv-height='$h0'";
+                $qvDataAttr = " data-qvSrc='{$this->srcFileUrl}' data-qvWidth='$w0' data-qvHeight='$h0'";
                 PageFactory::$assets->addAssets('QUICKVIEW');
-                if (strpos($this->class, 'pfy-quickview') === false) {
+                if (!str_contains($this->class, 'pfy-quickview')) {
                     $this->class .= ' pfy-quickview';
                 }
             }
