@@ -1,89 +1,92 @@
 // Page Switcher
 
-$( document ).ready(function() {
+"use strict";
 
-    var prevLink = $('.pfy-previous-page-link a').attr('href');
-    var nextLink = $('.pfy-next-page-link a').attr('href');
+// let touchstartX = 0
+// let touchendX = 0
+// let touchstartY = 0
+// let touchendY = 0
+// const swipeMinDistanceX = 10;
+// const swipeMaxDistanceY = 5;
 
-    // Touch gesture handling:
-	if ($('body').hasClass('touch')) {
-		console.log('swipe detection activated');
+document.addEventListener("DOMContentLoaded", function () {
+  const prevLinkElem = document.querySelector('.pfy-previous-page-link a');
+  let prevLink = '';
+  if (prevLinkElem) {
+    prevLink = prevLinkElem.getAttribute('href');
+  }
+  const nextLinkElem = document.querySelector('.pfy-next-page-link a');
+  let nextLink = '';
+  if (nextLinkElem) {
+    nextLink = nextLinkElem.getAttribute('href');
+  }
 
-        $('main').hammer().bind("swipeleft swiperight", function(ev) {
-		    var overflow = $(ev.gesture.target).css('overflowX'); // bug: returns value of 'overflow', not 'overflowX'
-            // if ((overflow == 'auto') || (overflow == 'scroll')) { // -> due to bug: not checking for 'auto'
-            if (overflow === 'scroll') {
-                console.log('page switching suppressed: was over scrolling element');
-		        return;
-            }
-			if ((typeof prevLink !== 'undefined') && prevLink && (ev.type === 'swiperight')) {
-                $( 'body' ).addClass('pfy-dimmed');
-                window.location = prevLink;
-			}
-			if ((typeof nextLink !== 'undefined') && nextLink && (ev.type === 'swipeleft')) {
-                $( 'body' ).addClass('pfy-dimmed');
-                window.location = nextLink;
-			}
-		});
-	}
-
-	// Key handling:
-    $( 'body' ).keydown( function (e) {
-        if (isProtectedTarget()) {
-            return document.defaultAction;
-        }
-
-        var keycode = e.key;
-
-        // Standard arrow key handling:
-        if ((keycode === 37) || (keycode === 33)) {	// left or pgup
-            if (typeof prevLink !== 'undefined') {
-                console.log('prevLink: ' + prevLink);
-                e.preventDefault();
-                window.location = prevLink;
-                return false;
-            } else {
-                console.log('Error: prevLink is not defined');
-            }
-        }
-        if ((keycode === 39) || (keycode === 34)) {	// right or pgdown
-            if (typeof nextLink !== 'undefined') {
-            console.log('nextLink: '+nextLink);
-            e.preventDefault();
-            window.location = nextLink;
-            return false;
-            } else {
-                console.log('Error: nextLink is not defined');
-            }
-        }
-        if (keycode === 115) {
-            if (typeof simplemde === 'undefined') {	// F4 -> start editing mode
-                e.preventDefault();
-                window.location = '?edit';
-                return false;
-            }
-        }
-        return document.defaultAction;
-    });
-});
-
-
-
-
-function isProtectedTarget()
-{
-    // Exceptions, where arrow keys should NOT switch page:
-    if ($( document.activeElement ).closest('form').length ||	        // Focus within form field
-        $( document.activeElement ).closest('input').length ||	        // Focus within input field
-        $('.inhibitPageSwitch').length  ||				                // class .inhibitPageSwitch found
-        $('.pfy-presentation-support').length  ||				                // class .pfy-presentation-support found
-        ($('.ug-lightbox').length &&
-            ($('.ug-lightbox').css('display') !== 'none')) ||            // special case: ug-album in full screen mode
-        $( document.activeElement ).closest('.pfy-panels-widget').length	// Focus within pfy-panels-widget field
-    )
-    {
-        // console.log('skipping page-switcher');
-        return true;
+  // Key handling:
+  document.body.addEventListener("keydown", function (e) {
+    if (isProtectedTarget()) {
+      return;
     }
-    return false;
-}
+
+    const keycode = e.key;
+
+    // Standard arrow key handling:
+    if (keycode === 'ArrowLeft' || keycode === 'ArrowUp') { // left or pgup
+      if (prevLink) {
+        console.log('prevLink: ' + prevLink);
+        e.preventDefault();
+        window.location.href = prevLink;
+        return false;
+      }
+    }
+    if (keycode === 'ArrowRight' || keycode === 'ArrowDown') { // right or pgdown
+      if (nextLink) {
+        console.log('nextLink: ' + nextLink);
+        e.preventDefault();
+        window.location.href = nextLink;
+        return false;
+      }
+    }
+    return document.defaultAction;
+  });
+
+  /*
+  if (false) {
+    // Swipe handling:
+    document.addEventListener('touchstart', e => {
+      touchstartX = e.changedTouches[0].screenX;
+      touchstartY = e.changedTouches[0].screenY;
+    });
+
+    document.addEventListener('touchend', e => {
+      touchendX = e.changedTouches[0].screenX;
+      touchendY = e.changedTouches[0].screenY;
+      const dY = Math.abs(touchstartX - e.changedTouches[0].screenY);
+      const isHorizontalSwipe = true;
+      if (isHorizontalSwipe && (touchendX < touchstartX - swipeMinDistanceX)) { // swiped left
+        // window.location.href = nextLink;
+        document.body.classList.add('right');
+        document.body.classList.remove('left');
+
+      } else if (isHorizontalSwipe && (touchendX > touchstartX + swipeMinDistanceX)) { // swiped right
+        // window.location.href = prevLink;
+        document.body.classList.add('left');
+        document.body.classList.remove('right');
+      }
+    });
+  }
+  */
+}); // document ready
+
+
+function isProtectedTarget() {
+  // Exceptions, where arrow keys should NOT switch page:
+  const activeElement = document.activeElement;
+  return !!(activeElement.closest('form') || // Focus within form field
+    activeElement.closest('input') || // Focus within input field
+    document.querySelector('.inhibitPageSwitch') || // class .inhibitPageSwitch found
+    document.querySelector('.pfy-presentation-support') || // class .pfy-presentation-support found
+    (document.querySelector('.ug-lightbox') &&
+      window.getComputedStyle(document.querySelector('.ug-lightbox')).display !== 'none') || // special case: ug-album in full screen mode
+    activeElement.closest('.pfy-panels-widget'));
+} // isProtectedTarget
+
