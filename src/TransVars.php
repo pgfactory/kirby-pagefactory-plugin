@@ -408,7 +408,7 @@ class TransVars
 
             } else {
                 $varNameIfNotFound = true;
-                if ($key[0] === '^') {
+                if (($key[0]??false) === '^') {
                     $varNameIfNotFound = false;
                     $key = ltrim($key,'^ ');
                 }
