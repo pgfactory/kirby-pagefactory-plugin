@@ -46,8 +46,6 @@ class DataSet
     protected $maxRecBlockingTime;
     protected $avoidDuplicates;
     protected $debug;
-    protected static $session;
-    protected static $obfuscateSessKey;
 
 
     /**
@@ -88,11 +86,6 @@ class DataSet
         }
         $this->options = $options;
         $this->debug = PageFactory::$debug ?? Utils::determineDebugState();
-
-        // prepare key-obfuscation mechanism:
-        if ($this->obfuscateRecKeys) {
-            $this->prepareSessionCache();
-        }
 
         // access data file:
         if ($file) {
@@ -1453,12 +1446,13 @@ class DataSet
      */
     protected function obfuscateRecKey(string $key): string
     {
-        $tableRecKeyTab = self::$session->get(self::$obfuscateSessKey);
+        $session = kirby()->session();
+        $tableRecKeyTab = $session->get('obfuscatedKeys');
         if (!$tableRecKeyTab || !($obfuscatedKey = array_search($key, $tableRecKeyTab))) {
             $obfuscatedKey = \Usility\PageFactory\createHash();
         }
         $tableRecKeyTab[$obfuscatedKey] = $key;
-        self::$session->set(self::$obfuscateSessKey, $tableRecKeyTab);
+        $session->set('obfuscatedKeys', $tableRecKeyTab);
         return $obfuscatedKey;
     } // deObfuscateRecKey
 
@@ -1469,8 +1463,7 @@ class DataSet
      */
     protected function deObfuscateRecKey(string $key): string
     {
-        $this->prepareSessionCache();
-        $tableRecKeyTab = self::$session->get(self::$obfuscateSessKey);
+        $tableRecKeyTab = kirby()->session()->get('obfuscatedKeys');
         if ($tableRecKeyTab && (isset($tableRecKeyTab[$key]))) {
             $key = $tableRecKeyTab[$key];
         }
@@ -1520,18 +1513,5 @@ class DataSet
             return $str;
         }
     } // debugDump
-
-
-    /**
-     * @return void
-     */
-    private function prepareSessionCache(): void
-    {
-        if (!self::$session) {
-            $pageId = page()->id();
-            self::$obfuscateSessKey = ($this->options['obfuscateSessKey'] ?? false) ?: "obfuscate:$pageId:keys";
-            self::$session = kirby()->session();
-        }
-    } // prepareSessionCache
 
 } // DataSet
