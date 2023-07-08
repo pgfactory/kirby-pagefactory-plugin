@@ -124,7 +124,11 @@ class TransVars
             }
         } else {
             if (!isset(self::$variables[$varName])) {
-                $out = PageFactory::$page->$varName()->value; // try to get Kirby field
+                try {
+                    $out = PageFactory::$page->$varName()->value; // try to get Kirby field
+                } catch (\Exception $e) {
+                    $out = $varName;
+                }
             } else {
                 $out = self::$variables[$varName];
             }
@@ -703,7 +707,7 @@ EOT;
     {
         if (preg_match('/,?\s*showSource:\s*true/', $args, $m)) {
             $args = str_replace($m[0], '', $args);
-            $src = str_replace(["''", ',,', '->'], ["\\''", "\\,,", "\\->"], $args);
+            $src = str_replace(["''", ',,', '->', '<'], ["\\''", "\\,,", "\\->", '&lt;'], $args);
             $src = markdownParagrah($src);
 
             $multiline = str_contains($src, "\n") ? "\n    " : '';
