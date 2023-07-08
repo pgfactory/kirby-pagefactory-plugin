@@ -213,7 +213,6 @@ class DataSet
      */
     public function write(...$args)
     {
-//ToDo: unobfuscate
         $flush = $args['flush']??true;
         if (!$this->readWriteMode) {
             throw new \Exception("Datasource '$this->name' is in read-only mode, unable to write data");
@@ -377,6 +376,13 @@ class DataSet
         $this->nRows = sizeof($this->data);
         return $this;
     } // update
+
+
+    public function purge()
+    {
+        $this->data = [];
+        $this->flush();
+    } // purge
 
 
     /**
@@ -1323,6 +1329,7 @@ class DataSet
             } else {
                 $data = [];
             }
+            $ds->officeDoc = [];
             writeFileLocking($this->cacheFile, serialize($ds), blocking: true);
 
             // export debug copy if debug enabled:
