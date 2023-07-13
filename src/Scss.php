@@ -65,6 +65,7 @@ class Scss
             return;
         }
         $srcStr = self::getFile($srcFile);
+        $srcStr = self::resolveUrls($srcStr);
         self::$scssphp->setImportPaths(dir_name($srcFile));
         $css = self::compileStr($srcStr);
         $css = "/* === Automatically created from ".basename($srcFile)." - do not modify! === */\n\n$css";
@@ -204,5 +205,37 @@ class Scss
         }
         return $css;
     } // removeEmptyRules
+
+
+    /**
+     * @param string $html
+     * @return string
+     * @throws \Exception
+     */
+    private static function resolveUrls(string $html): string
+    {
+        $l = strlen(PageFactory::$hostUrl);
+        // special case: ~assets/ -> need to get url from Kirby:
+        if (preg_match_all('|~assets/([^\s"\']*)|', $html, $m)) {
+            foreach ($m[1] as $i => $item) {
+                $filename = 'assets/'.$m[1][$i];
+                $file= site()->index()->files()->find($filename);
+                if ($file) {
+                    $url = $file->url();
+                    $url = substr($url, $l);
+                    $html = str_replace($m[0][$i], $url, $html);
+                } else {
+                    throw new \Exception("Error: unable to find asset '~$filename'");
+                }
+            }
+        }
+        $appRootUrl =  kirby()->url() . '/';
+        $patterns = [
+            '~/'        => $appRootUrl,
+            '~data/'    => $appRootUrl.'site/custom/data/',
+        ];
+        $html = str_replace(array_keys($patterns), array_values($patterns), $html);
+        return $html;
+    } // resolveUrls
 
 } // Scss
