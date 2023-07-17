@@ -22,7 +22,6 @@ html, body, section {
 }
 
 
-
 // ======= Default Styling =========================
 #pfy.pfy-default-styling .pfy-encapsulated,
 .pfy-default-styling {
@@ -38,9 +37,11 @@ html, body, section {
       display: block;
   }
 
-  a:focus-visible,
-  button:focus-visible {
-    box-shadow: 0 0 0 1px black, 0 0 0 2px white, 0 0 0 3px  var(--pfy-focus-color, #{$focus-color});
+  :focus {
+      outline: none;
+  }
+  :focus-visible {
+    @include _focus;
   }
 
   .pfy-invisible,
@@ -66,7 +67,6 @@ html, body, section {
   }
 
 } // pfy-default-styling
-
 
 
 // === Screen-Size ==========================

@@ -214,9 +214,15 @@ class Scss
      */
     private static function resolveUrls(string $html): string
     {
-        $l = strlen(PageFactory::$hostUrl);
+        // special case: @import ~/path/file; (i.e. file from other plugin):
+        if (preg_match('|@import\s+([\'"])~/|', $html, $m )) {
+            $path = kirby()->root();
+            $html = str_replace($m[0], "@import {$m[1]}$path/", $html);
+        }
+
         // special case: ~assets/ -> need to get url from Kirby:
         if (preg_match_all('|~assets/([^\s"\']*)|', $html, $m)) {
+            $l = strlen(PageFactory::$hostUrl);
             foreach ($m[1] as $i => $item) {
                 $filename = 'assets/'.$m[1][$i];
                 $file= site()->index()->files()->find($filename);

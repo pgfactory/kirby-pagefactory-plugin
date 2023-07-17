@@ -1,7 +1,8 @@
 // === Definitions ================================
 
-//$focus-color: magenta;
-$focus-color: orange;
+$focus-color1: #00008088; // orange
+$focus-color2: #ffa50088; // navy
+
 
 $dl-as-table-dt-width: 6em;
 
@@ -39,6 +40,7 @@ $box-width: 300px;
 $min-font-size: 15;
 $max-font-size: 24;
 
+// use: @include _pfy-button;
 @mixin _pfy-button {
   color: #666;
   font-family: helvetica, arial, sans-serif;
@@ -64,4 +66,12 @@ $max-font-size: 24;
   position: absolute;
   white-space: nowrap;
   width: 1px;
+}
+
+// use: @include _focus;
+@mixin _focus {
+  box-shadow:
+    0 0 0 1px white,
+    0 0 0 2px var(--pfy-focus-color2, #{$focus-color2}),
+    inset 0 0 0 1px var(--pfy-focus-color, #{$focus-color1}) !important;
 }
