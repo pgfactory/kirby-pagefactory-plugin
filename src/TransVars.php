@@ -191,9 +191,16 @@ class TransVars
         $appUrl = PageFactory::$appUrl;
         $menuIcon         = svg('site/plugins/pagefactory/assets/icons/menu.svg');
         self::setVariable('menuIcon',$menuIcon);
-        $smallScreenHeader = self::$variables['smallScreenHeader']?? site()->title()->value();
-        self::setVariable('smallScreenHeader', "\n\t<h1>$smallScreenHeader</h1>\n".
-            "\t<button id='pfy-nav-menu-icon'>$menuIcon</button>\n");
+        $smallScreenTitle = self::$variables['smallScreenHeader']?? site()->title()->value();
+        $smallScreenHeader = <<<EOT
+
+<div class="pfy-small-screen-header pfy-small-screen-only">
+    <h1>$smallScreenTitle</h1>
+    <button id='pfy-nav-menu-icon' type="button">$menuIcon</button>
+</div>
+EOT;
+
+        self::setVariable('smallScreenHeader', $smallScreenHeader);
 
         self::setVariable('langSelection', self::renderLanguageSelector());
         self::setVariable('pageUrl', PageFactory::$pageUrl);
