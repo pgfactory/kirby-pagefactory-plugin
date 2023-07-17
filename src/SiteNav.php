@@ -2,9 +2,9 @@
 
 namespace Usility\PageFactory;
 
-define('NAV_ARROW', '<span><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M15 12L9 6V18L15 12Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
-</svg></span>');
+//define('NAV_ARROW', '<span><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+//<path d="M15 12L9 6V18L15 12Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+//</svg></span>');
 
  // classes:
 define('NAV_LIST_TAG',  'ol');          // the list tag to be used
@@ -19,7 +19,7 @@ class SiteNav
     private $args;
     private $page;
     private $site;
-    private $arrow;
+//    private $arrow;
     private $hidden;
     public static $prev = false;
     public static $next = null;
@@ -28,9 +28,9 @@ class SiteNav
     {
         $this->page = page();
         $this->site = site();
-        $this->arrow = NAV_ARROW;
+//        $this->arrow = NAV_ARROW;
         $this->hidden = 'false';
-        PageFactory::$assets->addJsFiles('site/plugins/pagefactory/assets/js/nav.jq');
+        PageFactory::$assets->addJsFiles('site/plugins/pagefactory/assets/js/nav.js');
     } // __construct
 
 
@@ -134,18 +134,15 @@ EOT;
                     $url = $pg1->url();
                 }
             }
-
             if ($this->deep && $hasChildren) {
-                $aElem = "<span class='pfy-nav-label'>$title</span><span class='pfy-nav-arrow' ".
-                         "aria-hidden='{$this->hidden}'>{$this->arrow}</span>";
-                $class .= ' pfy-has-children pfy-nav-has-content';
-                $out .= "$indent<li class='$class'><a href='$url'$curr>$aElem</a>\n";
-                $out .= "$indent  <div class='pfy-nav-sub-wrapper' aria-hidden='{$this->hidden}'>\n";
+//                $aElem = "<span class='pfy-nav-label'>$title</span><span class='pfy-nav-arrow' ".
+//                         "aria-hidden='{$this->hidden}'>{$this->arrow}</span>";
+                $out .= "$indent<li><a href='$url'$curr>$title</a>\n";
+//                $out .= "$indent<li><a href='$url'$curr>$aElem</a>\n";
                 $out .= $this->_render($pg->children());
-                $out .= "$indent</div>\n";
                 $out .= "$indent</li>\n";
             } else {
-                $out .= "$indent<li class='$class'><a href='$url'$curr>$title</a></li>\n";
+                $out .= "$indent<li><a href='$url'$curr>$title</a></li>\n";
             }
         }
         if (!$out) {

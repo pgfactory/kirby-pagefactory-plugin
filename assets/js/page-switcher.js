@@ -87,6 +87,7 @@ function isProtectedTarget() {
     document.querySelector('.pfy-presentation-support') || // class .pfy-presentation-support found
     (document.querySelector('.ug-lightbox') &&
       window.getComputedStyle(document.querySelector('.ug-lightbox')).display !== 'none') || // special case: ug-album in full screen mode
+    activeElement.closest('.pfy-nav') ||
     activeElement.closest('.pfy-panels-widget'));
 } // isProtectedTarget
 

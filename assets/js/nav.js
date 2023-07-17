@@ -1,454 +1,415 @@
-// PageFactory Nav.js
-
 "use strict";
 
+/*
+  nav
+    ol
+      li.pfy-has-children
+        a
+        div.pfy-nav-sub-wrapper
+          ol [margin-top: -Hpx  aria-hidden: true];
+            li
+              a
+ */
 
-function PfyNav() {
-    this.largeScreenClasses = '';
-    this.hoverTimer = [];
-}
+const PfyNav = {
+  isSmallScreen: (window.innerWidth < screenSizeBreakpoint),
+  nav: null,
+  navWrapper: null,
+  navElements: null,
+  isTopNav: null,
+  transitionTime: 200,
+  arrowSvg: '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+    '<path d="M15 12L9 6V18L15 12Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>' +
+    '</svg>',
 
-
-
-PfyNav.prototype.init = function() {
-    // hide collapsed sub-trees:
-    $('.pfy-nav-collapsed li.pfy-has-children > div > ol').css('margin-top', '-10000px');
-
-    if (!$('#pfy').length) {
-        alert("Warning: '#pfy'-Id missing within this page \n-> PageFactory's nav() objects not working.");
+  init: function (nav) {
+    this.nav = nav;
+    this.navWrapper = nav.closest('.pfy-nav-wrapper');
+    this.isTopNav = this.navWrapper.classList.contains('pfy-nav-top-horizontal');
+    if (this.navWrapper.classList.contains('pfy-nav-animated')) {
+      this.navWrapper.classList.remove('pfy-nav-animated');
+      this.navWrapper.classList.add('pfy-nav-animation-active');
     }
-    this.largeScreenClasses = $('.pfy-primary-nav').attr('class');
+    this.initNavHtml(nav);
+    this.navElements = nav.querySelectorAll('a');
 
-    var isSmallScreen = ($(window).width() < screenSizeBreakpoint);
-    this.adaptMainMenuToScreenSize( isSmallScreen );
+    PfyNav.setupMouseHandlers(nav);
+    PfyNav.setupKeyHandlers(nav);
+    PfyNav.initMobileMode();
+  }, // init
 
-    let parent = this;
-    $(window).resize(function() {
-        let w = $(this).width();
-        let isSmallScreen = (w < screenSizeBreakpoint);
-        parent.adaptMainMenuToScreenSize(isSmallScreen);
-        parent.setHightOnHiddenElements();
-        // mylog('resize window');
-    });
-
-
-    if ($('.pfy-nav-collapsed, .pfy-nav-collapsible, .pfy-nav-top-horizontal').length) {
-        this.setHightOnHiddenElements();
-    }
-    // now make sure that all collapsed links are not focusable:
-    $('.pfy-nav [aria-hidden=true] a').attr('tabindex', -1);
-
-    this.initEventHandlers();
-    this.setupKeyboardEvents();
-    this.openCurrentElement();
-}; // init
-
-
-
-
-PfyNav.prototype.initEventHandlers = function() {
-    let parent = this;
-
-    // menu button in mobile mode:
-    $('#pfy-nav-menu-icon').click(function(e) {
-        e.stopPropagation();
-        parent.operateMobileMenuPane();
-    });
-
-
-    // mouse:
-    $('.pfy-has-children > * > .pfy-nav-arrow').dblclick(function(e) {        // double click -> open all
-        e.stopPropagation();
-        let $parentLi = $(this).closest('.pfy-has-children');
-        parent.toggleAccordion($parentLi, true, true);
-        return false;
-    });
-    $('.pfy-has-children > a > .pfy-nav-arrow').click(function(e) {  // click arrow
-        e.stopPropagation();
-        let $parentLi = $(this).closest('.pfy-has-children');
-        $parentLi.removeClass('pfy-hover');
-        let deep = ($parentLi.closest('.pfy-nav-top-horizontal').length !== 0);
-        parent.toggleAccordion($parentLi, deep);
-        return false;
-    });
-
-    // hover:
-    $('.pfy-nav-hoveropen .pfy-has-children').hover(
-        function() {    // mouseover
-            let $this = $(this);
-            let tInx = $('> li', $this.parent()).index($this);
-            if ((typeof parent.hoverTimer[tInx] !== 'undefined') && (parent.hoverTimer[tInx])) {
-                clearTimeout(parent.hoverTimer[tInx]);
-            }
-            if ($('body').hasClass('touch') || $this.hasClass('pfy-open')) {
-                return;
-            }
-            if ($this.closest('.pfy-nav').hasClass('pfy-nav-top-horizontal')) { // top-nav:
-                if ($this.hasClass('pfy-lvl1')) {
-                    $this.addClass('pfy-hover');
-                    parent.openAccordion($this, true);
-                }
-            } else {        // side-nav or sitemap
-                $this.addClass( 'pfy-hover' );
-                parent.openAccordion($this);
-            }
-        },
-
-        function() {     // mouseout
-            let $this = $(this);
-            let tInx = $('> li', $this.parent()).index($this);
-            if ($('body').hasClass('touch')) {  // no-touch only
-                return;
-            }
-            if ($this.hasClass('pfy-open')) {
-                $this.removeClass('pfy-hover');
-                return;
-            }
-            if ($this.closest('.pfy-nav').hasClass('pfy-nav-top-horizontal')) {  // top-nav
-                if ($this.hasClass('pfy-lvl1')) {
-                    parent.hoverTimer[tInx] = setTimeout(function () {
-                        $this.removeClass('pfy-hover');
-                        parent.closeAccordion($this, true);
-                    }, 400);
-                }
-            } else {        // side-nav or sitemap
-                $this.removeClass( 'pfy-hover' );
-                parent.closeAccordion($this);
-            }
-        }
-    );
-
-
-    // activate animations now (avoiding flicker)
-    $('.pfy-nav-animated').each(function() {
-        $( this ).removeClass('pfy-nav-animated').addClass('pfy-nav-animation-active');
-    });
-
-    if ($('body').hasClass('pfy-small-screen')) {
-        this.operateMobileMenuPane( false );
-    }
-
-    $('html').on('click', '.touch .pfy-nav-wrapper .pfy-has-children > a', function (event) {
-        parent.handleAccordion(this, event);
-    });
-};
-
-
-
-
-PfyNav.prototype.handleAccordion = function( elem, ev ) {
-    if ($( 'body' ).hasClass('touch') || $('html').hasClass('touchevents')) {
-        let $parentLi = $(elem).parent();
-        if ($parentLi.hasClass('pfy-open')) {
-            return true;
+  initMobileMode: function () {
+    const body = document.body;
+    const mobileMenuButton = document.getElementById('pfy-nav-menu-icon');
+    mobileMenuButton.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (body.classList.contains('pfy-nav-mobile-open')) {
+        body.classList.remove('pfy-nav-mobile-open');
+      } else {
+        body.classList.add('pfy-nav-mobile-open');
+      }
+      const mainNav = document.querySelector('.pfy-primary-nav');
+      if (mainNav) {
+        if (body.classList.contains('pfy-small-screen')) {
+          if (mainNav.classList.contains('pfy-nav-top-horizontal')) {
+            mainNav.classList.remove('pfy-nav-top-horizontal');
+            mainNav.dataset.layout = 'pfy-nav-top-horizontal';
+          }
         } else {
-            this.toggleAccordion($parentLi, true);
-            ev.preventDefault();
-            return false;
+          if (mainNav.dataset.layout === 'pfy-nav-top-horizontal') {
+            mainNav.classList.add('pfy-nav-top-horizontal');
+          }
         }
-    }
-}; // handleAccordion
-
-
-
-
-PfyNav.prototype.toggleAccordion = function( $parentLi, deep, newState ) {
-    let expanded = null;
-    if (typeof newState === 'undefined') {
-        expanded = $parentLi.hasClass('pfy-open');
-    } else {
-        expanded = !newState;
-    }
-
-    if ($parentLi.closest('.pfy-nav').hasClass('pfy-nav-top-horizontal')) {
-        this.closeAllAccordions($parentLi, deep, true);
-
-    } else if (expanded) { // -> close
-        this.closeAccordion($parentLi, deep, true);
-    }
-    if (!expanded) { // -> open
-        this.openAccordion($parentLi, deep, true);
-        return true;
-    }
-    return false;
-}; // toggleAccordion
-
-
-
-
-PfyNav.prototype.openAccordion = function( $parentLi, deep, setOpenCls ) {
-    if (typeof setOpenCls !== 'undefined') {
-        $parentLi.addClass('pfy-open');
-    }
-    $('> a', $parentLi).attr({'aria-expanded': 'true'});  // make focusable
-    if (deep === true) {
-        $( 'div', $parentLi ).attr({'aria-hidden': 'false'});        // next div
-        if (typeof setOpenCls !== 'undefined') {
-            $('.pfy-has-children', $parentLi).addClass('pfy-open');       // parent li
-        }
-        $('a', $parentLi).attr({'tabindex': ''});  // set aria-expanded and make focusable
-
-    } else {
-        $( '> div', $parentLi ).attr({'aria-hidden': 'false'});
-        $('> div > ol > li > a', $parentLi).attr({'tabindex': ''});  // make focusable
-    }
-}; // openAccordion
-
-
-
-
-PfyNav.prototype.closeAccordion = function( $parentLi, deep, setOpenCls ) {    let $nextDiv = $('> div', $parentLi);
-    if (deep === true) {
-        $nextDiv = $('div', $parentLi);
-    }
-    $('> a', $parentLi).attr({'aria-expanded': 'false'});  // make focusable
-    $('a', $parentLi).attr({'tabindex': ''});  // make focusable
-    $nextDiv.attr({'aria-hidden': 'true'});        // next div
-    if (typeof setOpenCls !== 'undefined') {
-        $parentLi.removeClass('pfy-open');       // parent li
-        $('.pfy-open', $parentLi).removeClass('pfy-open');       // parent li
-    }
-    $('li > a', $parentLi).attr('tabindex', '-1');             // make un-focusable
-
-}; // closeAccordion
-
-
-
-
-PfyNav.prototype.closeAllAccordions = function( $parentLi, setOpenCls ) {
-    let $nav = $parentLi.closest('.pfy-nav');
-    $('> a', $parentLi).attr({'aria-expanded': 'false'});  // make focusable
-    $('a', $parentLi).attr({'tabindex': ''});  // make focusable
-    $('.pfy-has-children', $nav).each(function() {
-        let $elem = $(this);
-        let $nextDivs = $('div', $elem);
-        if (typeof setOpenCls !== 'undefined') {
-            $elem.removeClass('pfy-open');
-            $('li', $elem ).removeClass('pfy-open');            // all li below parent li
-        }
-        $nextDivs.attr({'aria-hidden':'true' });              // next div
-        $('a', $nextDivs).attr('tabindex', '-1');            // make un-focusable
+      }
     });
-}; // closeAllAccordions
+  },
+
+  initNavHtml: function (nav) {
+    const liL1Elems = nav.querySelectorAll(':scope > ol > li');
+    this._initNavHtml(liL1Elems, 1);
+  }, // initNavHtml
 
 
+  _initNavHtml: function (liElems, depth) {
+    if (liElems) {
+      liElems.forEach(function (liElem) {
+        liElem.classList.add('pfy-lvl-' + depth);
+        const subOlElem = liElem.querySelector(':scope > ol');
+        if (subOlElem) {
+          liElem.classList.add('pfy-has-children');
 
-
-PfyNav.prototype.openCurrentElement = function() {
-    $('.pfy-nav-open-current .pfy-active, .pfy-nav-open-current .pfy-curr').each(function () {
-        let $parentLi = $( this );
-        $parentLi.addClass('pfy-open');
-        $( 'div', $parentLi ).attr({'aria-hidden': 'false'});        // next div
-        $('a', $parentLi).attr({'tabindex': ''});  // set aria-expanded and make focusable
-    });
-}; // openCurrentElement
-
-
-
-
-PfyNav.prototype.adaptMainMenuToScreenSize = function( smallScreen ) {
-    let parent = this;
-    if (smallScreen) {
-        $('.pfy-primary-nav')
-        // $('.pfy-primary-nav .pfy-nav')
-            .removeClass('pfy-nav-top-horizontal pfy-nav-hover pfy-nav-colored pfy-nav-dark-theme pfy-nav-hoveropen')
-            .addClass('pfy-nav-vertical pfy-nav-collapsed pfy-nav-open-current');
-
-        if ($('.pfy-nav-small-tree').length) {
-            this.openAccordion($('.pfy-primary-nav .pfy-has-children'), true, true); // open all
-        } else {
-            $('.pfy-primary-nav .pfy-active').each(function() {
-                mylog( $(this) , false);
-                parent.openAccordion( $(this), false, true );
+          // inject arrow into <a>:
+          const aElems = liElem.querySelectorAll(':scope > a');
+          if (aElems) {
+            const arrowUrl = hostUrl + 'media/plugins/pgfactory/pagefactory/icons/nav-arrow.svg';
+            aElems.forEach(function (aElem) {
+              const text = aElem.textContent;
+              const href = aElem.getAttribute('href');
+              aElem.outerHTML = `<a href="${href}" aria-expanded="false"><span class='pfy-nav-label'>${text}</span><span class='pfy-nav-arrow' aria-hidden='true'>${PfyNav.arrowSvg}</span></a>`;
             });
+          }
+
+          // wrap sub <ol> in a <div>:
+          if (depth === 1) {
+            subOlElem.outerHTML = '<div class="pfy-nav-sub-wrapper" style="opacity: 0;"><ol>' +
+              subOlElem.innerHTML + '</ol>';
+
+            PfyNav.presetSubElemHeight(liElem);
+          } else {
+            subOlElem.outerHTML = '<div class="pfy-nav-sub-wrapper" ><ol>' + subOlElem.innerHTML + '</ol>';
+          }
+
+          // process all contained <li> recursively:
+          const subLiElems = liElem.querySelectorAll(':scope > div > ol > li');
+          if (subLiElems.length) {
+            PfyNav._initNavHtml(subLiElems, depth + 1);
+          }
         }
-
-        scrollIntoView('.pfy-curr', '.pfy-primary-nav');
-
-    } else {
-        // restore classes:
-        $('.pfy-primary-nav').attr('class', this.largeScreenClasses);
-        // $('.pfy-primary-nav .pfy-nav').attr('class', this.largeScreenClasses);
-        $('.pfy-primary-nav .pfy-has-children').removeClass('pfy-open');
-        $('body').removeClass('pfy-nav-mobile-open');
+      });
     }
-}; // adaptMainMenuToScreenSize
+  }, // _initNavHtml
 
 
-
-
-PfyNav.prototype.operateMobileMenuPane = function( newState ) {
-    let $nav = $( '.pfy-nav-wrapper' );
-    let expanded = ($nav.attr('aria-expanded') === 'true');
-    if (typeof newState !== 'undefined') {
-        expanded = !newState;
-    }
-    if (expanded) {
-        $nav.attr('aria-expanded', 'false');
-        $('body').removeClass('pfy-nav-mobile-open');
-        $('.pfy-primary-nav .pfy-nav a').attr('tabindex', '-1');            // make un-focusable
-
-    } else {
-        $nav.attr('aria-expanded', 'true');
-        $('body').addClass('pfy-nav-mobile-open');
-        let $primaryNav = $('.pfy-primary-nav .pfy-nav');
-        $('> ol > li > a', $primaryNav).attr('tabindex', '0');            // make un-focusable
-    }
-}; // operateMobileMenuPane
-
-
-
-
-PfyNav.prototype.setHightOnHiddenElements = function() {
-    $('.pfy-nav-collapsible .pfy-has-children').addClass('pfy-open');
-
-    if (!($('html').hasClass('touchevents') || $('body').hasClass('touch'))) {
-        $('#pfy .pfy-nav-top-horizontal .pfy-has-children, ' +
-            '#pfy .pfy-nav-collapsible .pfy-has-children, ' +
-            '#pfy .pfy-nav-collapsed .pfy-has-children').each(function () {
-            let h = $('>div>ol', this).height() + 20 + 'px';                // set height to optimize animation
-            $('>div>ol', this).css('margin-top', '-' + h);
+  setupMouseHandlers: function (nav) {
+    const pfyNavSubWrappers = nav.querySelectorAll('.pfy-lvl-1.pfy-has-children');
+    if (pfyNavSubWrappers) {
+      pfyNavSubWrappers.forEach(function (pfyNavSubWrapper) {
+        pfyNavSubWrapper.addEventListener('mouseenter', PfyNav.openBranch);
+        pfyNavSubWrapper.addEventListener('mouseleave', function (ev) {
+          const elem = ev.currentTarget;
+          setTimeout(function () {
+            PfyNav.closeBranch(elem);
+          }, 400);
         });
+      })
     }
-}; // setHightOnHiddenElements
+  }, // setupMouseHandlers
 
 
+  setupKeyHandlers: function (nav) {
+    const liElems = nav.querySelectorAll('li');
+    const navWrapper = nav.closest('.pfy-nav-wrapper');
 
+    if (liElems) {
+      liElems.forEach(function (liElem) {
+        const aElem = liElem.querySelector('a');
+        aElem.addEventListener('keydown', function (ev) {
+          ev.stopPropagation();
+          const aElem = ev.currentTarget;
+          const liElem = aElem.closest('li');
+          const key = ev.key;
+          if (key === 'ArrowDown') {
+            PfyNav.focusOnNext(liElem);
 
-PfyNav.prototype.setupKeyboardEvents = function() {
-    let parent = this;
-    // supports: left/right, up/down, space and home
-    $('.pfy-nav a').keydown(function (event) {
-        event.stopPropagation();
-        let keyCode = event.keyCode;
-        let isHorizontal = ($(this).closest('.pfy-nav-vertical').length === 0);
-        let $this = $(this);
+          } else if (key === 'ArrowUp') {
+            PfyNav.focusOnPrevous(liElem);
 
-        if (isHorizontal) {
-            if (keyCode === 39) {           // right
-                event.preventDefault();
-                $('> a',$this.parent().next()).focus();
+          } else if (key === 'ArrowRight') {
+            PfyNav.focusOnNextSibling(liElem);
 
-            } else if (keyCode === 37) {    // left
-                event.preventDefault();
-                $('> a',$this.parent().prev()).focus();
+          } else if (key === 'ArrowLeft') {
+            PfyNav.focusOnPrevSibling(liElem);
 
-            } else if (keyCode === 38) {    // up
-                event.preventDefault();
-                if ($this.parent().hasClass('pfy-lvl1')) {
-                    parent.toggleAccordion($this.parent(),false, false);
-                } else {
-                    $.tabPrev();
-                }
-
-            } else if (keyCode === 40) {    // down
-                event.preventDefault();
-                let expanded = $this.closest('.pfy-lvl1').hasClass('pfy-open');
-                if (expanded) { // if open -> close
-                    $.tabNext();
-                } else {
-                    parent.toggleAccordion($this.parent(), false, true);
-                }
+          } else if (key === ' ') {
+            if (liElem.classList.contains('pfy-lvl-1')) {
+              PfyNav.toggleBranch(liElem, true);
             }
+          }
+        });
 
-        } else {
-            if (keyCode === 40) {    // down
-                event.preventDefault();
-                let expanded = $this.closest('.pfy-open').hasClass('pfy-open');
-                if (expanded) {
-                    if ( $this.parent().is(':last-child') ) {
-                        mylog('last-child');
-                    }
-                    $.tabNext();
-                } else {
-                    $('> a', $this.parent().next()).focus();
-                }
-
-            } else if (keyCode === 38) {    // up
-                event.preventDefault();
-                $('> a',$this.parent().prev()).focus();
-
-            } else if (keyCode === 37) {    // left
-                event.preventDefault();
-                if ($this.parent().hasClass('pfy-lvl1')) {
-                    parent.toggleAccordion($this.parent(),false, false);
-                } else {
-                    $.tabPrev();
-                }
-
-            } else if (keyCode === 39) {           // right
-                event.preventDefault();
-                let expanded = $this.closest('.pfy-lvl1').hasClass('pfy-open');
-                if (expanded) { // if open -> close
-                    $.tabNext();
-                } else {
-                    parent.toggleAccordion($this.parent(), false, true);
-                }
-            }
+        const arrow = liElem.querySelector('.pfy-nav-arrow');
+        if (arrow) {
+          arrow.addEventListener('click', PfyNav.freezeBranchState);
         }
-        if (keyCode === 36) {    // home
-            event.preventDefault();
-            $('.pfy-lvl1:first-child > a', $this.closest('ol')).focus();
-
-        } else if (keyCode === 35) {    // end
-            event.preventDefault();
-            $('.pfy-lvl1:last-child > a', $this.closest('ol')).focus();
-
-        } else if (keyCode === 32) {    // space
-            event.preventDefault();
-            parent.toggleAccordion($this.parent(), true);
-        }
-    });
-}; // setupKeyboardEvents
+      });
+    }
+  }, // setupKeyHandlers
 
 
-
-
-
-(function ( $ ) {
-    var nav = new PfyNav();
-    nav.init();
-}( jQuery ));
-
-
-
-
-function focusNextElement( reverse, activeElem ) {
-    // check if an element is defined or use activeElement:
-    activeElem = activeElem instanceof HTMLElement ? activeElem : document.activeElement;
-
-    let queryString = [
-            'a:not([disabled]):not([tabindex="-1"])',
-            'button:not([disabled]):not([tabindex="-1"])',
-            'input:not([disabled]):not([tabindex="-1"])',
-            'select:not([disabled]):not([tabindex="-1"])',
-            '[tabindex]:not([disabled]):not([tabindex="-1"])'
-            /* add custom queries here */
-        ].join(','),
-        queryResult = Array.prototype.filter.call(document.querySelectorAll(queryString), elem => {
-            /*check for visibility while always include the current activeElement*/
-            return elem.offsetWidth > 0 || elem.offsetHeight > 0 || elem === activeElem;
-        }),
-        indexedList = queryResult.slice().filter(elem => {
-            /* filter out all indexes not greater than 0 */
-            return elem.tabIndex == 0 || elem.tabIndex == -1 ? false : true;
-        }).sort((a, b) => {
-            /* sort the array by index from smallest to largest */
-            return a.tabIndex != 0 && b.tabIndex != 0
-                ? (a.tabIndex < b.tabIndex ? -1 : b.tabIndex < a.tabIndex ? 1 : 0)
-                : a.tabIndex != 0 ? -1 : b.tabIndex != 0 ? 1 : 0;
-        }),
-        focusable = [].concat(indexedList, queryResult.filter(elem => {
-            /* filter out all indexes above 0 */
-            return elem.tabIndex == 0 || elem.tabIndex == -1 ? true : false;
-        }));
-
-    let thisIndex = focusable.indexOf(activeElem);
-    let nextElem = null;
-    if (reverse) {
-        nextElem = (focusable[thisIndex - 1]);
+  focusOnPrevSibling: function (liElem) {
+    if (liElem.classList.contains('pfy-lvl-1') && liElem.classList.contains('pfy-open')) {
+      PfyNav.closeBranch(liElem);
+    }
+    const prevLiElem = liElem.previousElementSibling;
+    if (prevLiElem) {
+      PfyNav.setFocusOn(prevLiElem);
     } else {
-        nextElem = (focusable[thisIndex + 1] );
+      PfyNav.setFocusOn(liElem);
     }
-    $( nextElem ).focus();
-} // focusNextElement
+  }, // focusOnPrevSibling
+
+
+  focusOnNextSibling: function (liElem) {
+    if (liElem.classList.contains('pfy-lvl-1') && liElem.classList.contains('pfy-open')) {
+      PfyNav.closeBranch(liElem);
+    }
+    const nextLiElem = liElem.nextElementSibling;
+    if (nextLiElem) {
+      PfyNav.setFocusOn(nextLiElem);
+    } else {
+      PfyNav.setFocusOn(liElem);
+    }
+  }, // focusOnNextSibling
+
+
+  focusOnNext: function (liElem) {
+    if (liElem.classList.contains('pfy-lvl-1') && liElem.classList.contains('pfy-has-children')) {
+      if (!liElem.classList.contains('pfy-open')) {
+        PfyNav.openBranch(liElem);
+      }
+      const firstSubAElem = liElem.querySelector('div > ol > li > a');
+      if (firstSubAElem) {
+        PfyNav.setFocusOn(firstSubAElem);
+      }
+
+    // not first elem in branch:
+    } else {
+      const nextLi = PfyNav.setFocusOn(liElem, 1);
+      if (nextLi.classList.contains('pfy-lvl-1')) {
+        PfyNav.closeAll(nextLi);
+      }
+    }
+  }, // focusOnNext
+
+
+  focusOnPrevous: function (liElem) {
+    if (liElem.classList.contains('pfy-lvl-1')) {
+      if (liElem.classList.contains('pfy-has-children') && liElem.classList.contains('pfy-open')) {
+        PfyNav.closeBranch(liElem);
+        PfyNav.setFocusOn(liElem, 0);
+      } else {
+        PfyNav.focusOnPrevSibling(liElem);
+      }
+    } else {
+      PfyNav.setFocusOn(liElem, -1);
+    }
+  }, // focusOnPrevous
+
+
+  setFocusOn(currLi, offset) {
+    offset = (typeof offset !== 'undefined') ? offset : 0;
+    let nextA = currLi;
+    if (currLi.tagName !== 'A') {
+      nextA = PfyNav.getAElem(currLi, offset);
+    }
+    setTimeout(function () {
+      nextA.focus();
+    }, 50);
+    return nextA.closest('li');
+  }, // setFocusOn
+
+
+  getAElem: function(currLi, offset) {
+    const aElem = currLi.querySelector('a');
+    let currI = false;
+    let i = 0;
+    PfyNav.navElements.forEach(function (a) {
+      if (currI === false && a !== aElem) {
+        i++;
+      } else {
+        currI = i;
+      }
+    });
+    let nextI = currI + offset;
+    const max = PfyNav.navElements.length - 1;
+    nextI = Math.max(0, Math.min(max, nextI));
+    return PfyNav.navElements[nextI];
+  }, // getAElem
+
+
+  freezeBranchState: function (ev) {
+    ev.stopPropagation();
+    ev.preventDefault();
+    let liElem = ev.currentTarget;
+    if (liElem.classList.contains('pfy-nav-arrow')) {
+      liElem = liElem.closest('li');
+    }
+    if (liElem.closest('.pfy-nav-top-horizontal')) {
+      PfyNav.closeAll(liElem);
+    }
+    const isOpen = liElem.classList.contains('pfy-open');
+    if (liElem.classList.contains('pfy-branch-frozen')) {
+      liElem.classList.remove('pfy-branch-frozen');
+      if (isOpen) {
+        PfyNav.closeBranch(liElem, true);
+      }
+
+    } else {
+      liElem.classList.add('pfy-branch-frozen');
+      if (!isOpen) {
+        PfyNav.openBranch(liElem, true);
+      }
+    }
+  }, // freezeBranchState
+
+
+  toggleBranch: function (eventOrElem, closeOthers) {
+    let liElem = null;
+    if (typeof eventOrElem.currentTarget === 'undefined') {
+      liElem = eventOrElem;
+    } else {
+      liElem = eventOrElem.currentTarget;
+    }
+    if (liElem.classList.contains('pfy-nav-arrow')) {
+      liElem = liElem.closest('li');
+    }
+    const isOpen = liElem.classList.contains('pfy-open');
+    if (isOpen) {
+      PfyNav.closeBranch(liElem);
+    } else {
+      if (closeOthers) {
+        PfyNav.closeAll(liElem);
+      }
+      PfyNav.openBranch(liElem);
+    }
+  }, // toggleBranch
+
+
+  openBranch: function (eventOrElem, override) {
+    let liElem = null;
+    if (typeof eventOrElem.currentTarget === 'undefined') {
+      liElem = eventOrElem;
+    } else {
+      liElem = eventOrElem.currentTarget;
+    }
+    override = (typeof override !== 'undefined');
+    if (!override && liElem.classList.contains('pfy-branch-frozen')) {
+      return;
+    }
+
+    PfyNav.presetSubElemHeight(liElem);
+
+    if (liElem.classList.contains('pfy-lvl-1')) {
+      const divElem = liElem.querySelector('div');
+      if (divElem && typeof divElem.style !== 'undefined') {
+        divElem.style.display = "block";
+      }
+    }
+
+    liElem.classList.add('pfy-open');
+    const aElem = liElem.querySelector(':scope > a');
+    aElem.setAttribute('aria-expanded', true);
+  }, // openBranch
+
+
+  closeBranch: function (eventOrElem, override) {
+    let liElem = null;
+    if (typeof eventOrElem.currentTarget === 'undefined') {
+      liElem = eventOrElem;
+    } else {
+      liElem = eventOrElem.currentTarget;
+    }
+    override = (typeof override !== 'undefined');
+    if (!override && (liElem.classList.contains('pfy-branch-frozen'))) {
+      return;
+    } else {
+      liElem.classList.remove('pfy-open');
+      const aElem = liElem.querySelector(':scope > a');
+      aElem.setAttribute('aria-expanded', false);
+    }
+
+    const divElem = liElem.querySelector('div');
+    if (divElem) {
+      setTimeout(function () {
+        divElem.style.display = 'none';
+      }, PfyNav.transitionTime);
+    }
+  }, // closeBranch
+
+
+  closeAll: function (except) {
+    let nav = PfyNav.nav;
+    except = (typeof except !== 'undefined')? except: false;
+    if (except) {
+      nav = except.closest('nav');
+    }
+    const liElems = nav.querySelectorAll('.pfy-lvl-1.pfy-has-children');
+    if (liElems) {
+      liElems.forEach(function (liElem) {
+        if (liElem !== except) {
+          PfyNav.closeBranch(liElem, true);
+          liElem.classList.remove('pfy-branch-frozen')
+        }
+      })
+    }
+  }, // closeAll
+
+
+  presetSubElemHeights: function(nav)
+  {
+    const pfyNavSubWrappers = nav.querySelectorAll('.pfy-lvl-1.pfy-has-children');
+    if (pfyNavSubWrappers) {
+      pfyNavSubWrappers.forEach(function (liElem) {
+        PfyNav.presetSubElemHeight(liElem);
+      });
+    }
+  }, // presetSubElemHeights
+
+
+  presetSubElemHeight: function(liElem)
+  {
+    const subDivElem = liElem.querySelector(':scope > div');
+    if (!subDivElem) {
+      return;
+    }
+    subDivElem.style.opacity = 0;
+    subDivElem.style.display = 'block';
+    const olElem = liElem.querySelector(':scope > div > ol');
+    if (!olElem) {
+      return;
+    }
+    const h = olElem.offsetHeight;
+    olElem.setAttribute('style', `margin-top: -${h}px`);
+    subDivElem.style.display = 'none';
+    subDivElem.style.removeProperty('opacity');
+  }, // presetSubElemHeight
+
+} // PfyNav
+
+
+
+const navs = document.querySelectorAll('.pfy-nav');
+if (navs) {
+  navs.forEach(function (nav) {
+    PfyNav.init(nav);  })
+}
