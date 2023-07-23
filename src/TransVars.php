@@ -269,7 +269,7 @@ EOT;
     {
         PageFactory::$page->headInjections()->value     = PageFactory::$pg->renderHeadInjections();
 
-        $bodyTagClasses   = PageFactory::$pg->bodyTagClasses ?: 'pfy-small-screen';
+        $bodyTagClasses   = PageFactory::$pg->bodyTagClasses ?: 'pfy-large-screen';
         if (isAdmin()) {
             $bodyTagClasses .= ' pfy-admin';
         } elseif (kirby()->user()) {

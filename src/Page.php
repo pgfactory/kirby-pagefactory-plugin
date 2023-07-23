@@ -394,6 +394,11 @@ EOT;
      */
     public function renderHeadInjections(): string
     {
+        // check config settings, whether default-nav should be activated:
+        if (PageFactory::$config['default-nav']??false) {
+            $this->addAssets('NAV');
+        }
+
         // add misc elements from content/site.txt and the current page's frontmatter:
         $html  = $this->getHeaderElem('head');
         $html .= $this->getHeaderElem('description');
@@ -481,12 +486,6 @@ $jq
 </script>
 
 EOT;
-        }
-
-        // check config settings, whether default-nav should be activated:
-        if (PageFactory::$config['default-nav']??false) {
-            $this->requireFramework();
-            $this->addAssets('site/plugins/pagefactory/assets/js/nav.jq');
         }
 
         $jsFilesInjection = PageFactory::$assets->renderQueuedAssets('js');

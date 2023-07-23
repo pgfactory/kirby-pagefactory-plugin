@@ -188,7 +188,7 @@ class PageFactory
     public function __destruct()
     {
         $dataCachePath = self::$absAppRoot.PFY_CACHE_PATH.'data/';
-        $sessionId = PageFactory::$phpSessionId;
+        $sessionId = self::$phpSessionId;
         $lockFiles = getDir("$dataCachePath*.lock");
         foreach ($lockFiles as $lockFile) {
             $sid = fileGetContents($lockFile);
@@ -217,7 +217,7 @@ class PageFactory
         $html = '';
         $inx = 0;
 
-        if (PageFactory::$config['includeMetaFileContent']) {
+        if (self::$config['includeMetaFileContent']) {
             // get and compile meta-file's text field:
             $mdStr = self::$page->text()->value() . "\n\n";
             $html = $this->compile($mdStr, $inx);
@@ -251,8 +251,8 @@ class PageFactory
      */
     private function loadMdFiles(): string
     {
-        $this->wrapperTag = PageFactory::$config['sourceWrapperTag'];
-        $this->wrapperClass = PageFactory::$config['sourceWrapperClass'];
+        $this->wrapperTag = self::$config['sourceWrapperTag'];
+        $this->wrapperClass = self::$config['sourceWrapperClass'];
         $path = self::$page->root();
         $dir = getDir("$path/*.md");
         $inx = 0;
