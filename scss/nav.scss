@@ -141,8 +141,15 @@ $slidedownX6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-horizontal-firs
   }
 
   // pfy-pseudo-elem:
-  li.pfy-pseudo-elem > a {
-    background: var(--pfy-nav-pseudo-elem-bg-color, var(--pfy-nav-elem-bg-color, #{$nav-active-bg-color}));
+  li.pfy-pseudo-elem {
+    > a {
+      background: var(--pfy-nav-pseudo-elem-bg-color, var(--pfy-nav-elem-bg-color, #{$nav-active-bg-color}));
+      cursor: s-resize;
+    }
+    &.pfy-open > a .pfy-nav-arrow,
+    &.pfy-open > a {
+      cursor: n-resize;
+    }
   }
 
 } // pfy-large-screen
@@ -204,7 +211,6 @@ $slidedownX6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-horizontal-firs
       position: absolute;
       top: calc((var(--pfy-nav-elem-height, 2em) - 1.2em) / 2 - 0.1em);
       user-select: none;
-      cursor: s-resize;
       width: $nav-arrow-size;
       height: var(--pfy-nav-line-height, 1.2em);
       border-radius: 50%;

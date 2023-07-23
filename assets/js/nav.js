@@ -414,7 +414,7 @@ const PfyNav = {
 
   getAElem: function(liElem, offset) {
     const aElem = liElem.querySelector('a');
-    let activeAElems = this.getCurrentlyActiveAElments();
+    let activeAElems = this.getCurrentlyActiveAElments(liElem);
     const currI = Array.from(activeAElems).indexOf(aElem);
     let nextI = currI + offset;
     nextI = Math.max(0, Math.min(activeAElems.length - 1, nextI));
@@ -422,7 +422,7 @@ const PfyNav = {
   }, // getAElem
 
 
-  getCurrentlyActiveAElments: function () {
+  getCurrentlyActiveAElments: function (liElem) {
     const activeAElems = [];
     function traverse(liElem) {
       const aElem = liElem.querySelector('a');
@@ -439,7 +439,8 @@ const PfyNav = {
           }
       }
     }
-    this.navL1LiElements.forEach(liElem => traverse(liElem));
+    const navL1LiElements = liElem.closest('.pfy-nav').querySelectorAll(':scope > ol > li');
+    navL1LiElements.forEach(liElem => traverse(liElem));
     return activeAElems;
   }, // getCurrentlyActiveAElments
 
