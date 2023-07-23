@@ -11,7 +11,8 @@ function nav($args = null)
         'options' => [
             'wrapperClass' => ['Class applied to the Nav\'s wrapper.', ''],
             'class' => ['Class applied to the Nav element.', ''],
-            'type' => ['[top,branch].', ''],
+            'type' => ['[top,side,branch].', ''],
+            'listTag' => ['[ul,ol] The tag to be used in list of nav-elements.', 'ol'],
         ],
         'summary' => <<<EOT
 # $funcName()

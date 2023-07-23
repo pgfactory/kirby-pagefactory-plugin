@@ -2,35 +2,22 @@
 
 namespace Usility\PageFactory;
 
-//define('NAV_ARROW', '<span><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-//<path d="M15 12L9 6V18L15 12Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
-//</svg></span>');
 
- // classes:
-define('NAV_LIST_TAG',  'ol');          // the list tag to be used
-define('NAV_LEVEL',     'pfy-lvl-');    // identifies the nesting level
-define('NAV_CURRENT',   'pfy-curr');    // the currently opened page
-define('NAV_ACTIVE',    'pfy-active');  // currently open page and all its ancestors
+define('DEFAULT_NAV_LIST_TAG',  'ol');          // the list tag to be used
 
 class SiteNav
 {
     public static $inx = 1;
     private bool $deep = true;
     private $args;
-    private $page;
+    private $listTag;
     private $site;
-//    private $arrow;
-    private $hidden;
     public static $prev = false;
     public static $next = null;
 
     public function __construct()
     {
-        $this->page = page();
         $this->site = site();
-//        $this->arrow = NAV_ARROW;
-        $this->hidden = 'false';
-        PageFactory::$assets->addJsFiles('site/plugins/pagefactory/assets/js/nav.js');
     } // __construct
 
 
@@ -45,13 +32,25 @@ class SiteNav
         $this->args = &$args;
         $wrapperClass = &$args['wrapperClass'];
         $class = $args['class'];
+        $this->listTag = ($args['listTag']??false) ?: DEFAULT_NAV_LIST_TAG;
 
-       if ($args['type'] === 'top') {
-           $args['wrapperClass'] .= ' pfy-nav-top-horizontal pfy-nav-indented pfy-nav-collapsed pfy-nav-animated pfy-nav-hoveropen pfy-encapsulated pfy-nav-small-tree';
-       }
-//ToDo: when $this->deep = false; ??
-        if (str_contains($wrapperClass, 'pfy-nav-collapsed')) {
-            $this->hidden = 'true';
+        // 'top' short-hand:
+        if ($args['type'] === 'top') {
+           $args['wrapperClass'] .= ' pfy-nav-horizontal pfy-nav-indented pfy-nav-animated pfy-nav-hoveropen pfy-encapsulated';
+//           $args['wrapperClass'] .= ' pfy-nav-horizontal pfy-nav-indented pfy-nav-collapsed pfy-nav-animated pfy-nav-hoveropen pfy-encapsulated';
+
+       // 'side' short-hand:
+        } elseif ($args['type'] === 'side') {
+           $args['wrapperClass'] .= ' pfy-nav-indented pfy-nav-animated pfy-encapsulated';
+//           $args['wrapperClass'] .= ' pfy-nav-indented pfy-nav-collapsed pfy-nav-animated pfy-encapsulated';
+        }
+
+        if (!str_contains($args['wrapperClass'], 'pfy-nav-horizontal')) {
+            $args['wrapperClass'] .= ' pfy-nav-vertical';
+        }
+
+        if (str_contains($args['wrapperClass'], 'pfy-nav-collapsed') && !str_contains($args['wrapperClass'], 'pfy-nav-collapsible')) {
+            $args['wrapperClass'] .= ' pfy-nav-collapsible';
         }
 
         $out = '';
@@ -85,9 +84,10 @@ class SiteNav
         $out = <<<EOT
 
 <div id='pfy-nav-$inx' class='pfy-nav-wrapper $wrapperClass'>
-  <nav class='pfy-nav $class'>
+  <nav class='pfy-nav $class' style="display: none;">
 $out
   </nav>
+  <div class="pfy-top-nav-placeholder">.</div>
 </div><!-- /pfy-nav-wrapper -->
 EOT;
         return $out;
@@ -109,20 +109,13 @@ EOT;
             if (self::$next === false && $hasContent) {
                 self::$next = $pg;
             }
-            $depth = $pg->depth();
             $indent = '';
             $curr = $pg->isActive() ? ' aria-current="page"': '';
-            $class = NAV_LEVEL . $depth;
             if ($curr) {
-                $class .= ' ' . NAV_CURRENT;
                 self::$next = false;
             } elseif (!self::$next && $hasContent) {
                 // drag $prev along until $curr has been reached (but skipping pages without content):
                 self::$prev = $pg;
-            }
-            $active = $pg->isAncestorOf($this->page);
-            if ($active || $curr) {
-                $class .= ' ' . NAV_ACTIVE;
             }
             $url = $pg->url();
             $title = $pg->title()->html();
@@ -134,13 +127,17 @@ EOT;
                     $url = $pg1->url();
                 }
             }
+
+            $class = '';
+            if (!$hasContent) {
+                // if a nav item has no content it is treated as a pseudo element,
+                // the link points to the next element with content:
+                $class = " class='pfy-pseudo-elem'";
+            }
             if ($this->deep && $hasChildren) {
-//                $aElem = "<span class='pfy-nav-label'>$title</span><span class='pfy-nav-arrow' ".
-//                         "aria-hidden='{$this->hidden}'>{$this->arrow}</span>";
-                $out .= "$indent<li><a href='$url'$curr>$title</a>\n";
-//                $out .= "$indent<li><a href='$url'$curr>$aElem</a>\n";
-                $out .= $this->_render($pg->children());
-                $out .= "$indent</li>\n";
+                $out .= "$indent<li$class><a href='$url'$curr>$title</a>";
+                $out .=  $this->_render($pg->children());
+                $out .= "$indent</li>";
             } else {
                 $out .= "$indent<li><a href='$url'$curr>$title</a></li>\n";
             }
@@ -149,7 +146,7 @@ EOT;
             return '';
         }
 
-        $out = "$indent<" . NAV_LIST_TAG . ">\n$out$indent</" . NAV_LIST_TAG . ">\n";
+        $out = "$indent<{$this->listTag}>\n$out$indent</{$this->listTag}>";
         return $out;
     } // _render
 

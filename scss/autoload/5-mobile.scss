@@ -126,14 +126,19 @@
     }
 
     .pfy-main,
-    .pfy-header {
+    .pfy-mobile-nav-wrapper {
         position: fixed;
         top: $mobile-header-height;
         top: var(--pfy-mobile-header-height, #{$mobile-header-height});
         padding-bottom: 15vh;
     }
+  .pfy-mobile-nav-wrapper {
+    overflow-y: auto;
+    height: calc(100vh - var(--pfy-mobile-header-height, 11vw) - var(--pfy-mobile-footer-height, 8vw));
+    box-shadow: inset 0 0 5px gray;
+  }
 
-    .pfy-main {
+  .pfy-main {
         left: 0;
         width: 100vw;
         height: 100%;
@@ -161,16 +166,6 @@
         background: var(--pfy-mobile-nav-title-bg-color, #{$mobile-nav-title-bg-color});
         line-height: 2.5em;
         margin: 0;
-    }
-
-    .pfy-header {
-      position: fixed;
-      top: calc(#{$mobile-header-height} + 1em);
-      left: 0;
-      width: 65vw;
-      .pfy-primary-nav {
-        justify-content: flex-start;
-      }
     }
 
     .pfy-footer {
@@ -218,8 +213,8 @@
         }
     }
 
-    .pfy-primary-nav.pfy-nav-wrapper {
-        min-height: 200vh;
+    .pfy-primary-nav.pfy-nav-wrapper > * {
+        min-height: 120vh;
     }
 
 

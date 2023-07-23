@@ -41,6 +41,10 @@ const DEFAULT_ASSET_GROUPS = [
 ];
 
 const ASSET_URL_DEFINITIONS = [
+    'NAV' => [
+        'site/plugins/pagefactory/assets/js/nav.js',
+        'site/plugins/pagefactory/assets/css/-nav.css',
+    ],
     'QUICKVIEW' => [
         'site/plugins/pagefactory/assets/js/quickview.js',
         'site/plugins/pagefactory/assets/css/-quickview.css',
