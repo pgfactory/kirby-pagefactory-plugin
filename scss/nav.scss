@@ -143,7 +143,7 @@ $slidedownX6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-horizontal-firs
   // pfy-pseudo-elem:
   li.pfy-pseudo-elem {
     > a {
-      background: var(--pfy-nav-pseudo-elem-bg-color, var(--pfy-nav-elem-bg-color, #{$nav-active-bg-color}));
+//      background: var(--pfy-nav-pseudo-elem-bg-color, var(--pfy-nav-elem-bg-color, #{$nav-active-bg-color}));
       cursor: s-resize;
     }
     &.pfy-open > a .pfy-nav-arrow,
@@ -339,6 +339,12 @@ $slidedownX6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-horizontal-firs
               background: #{$nav-hover-bg-color};
               background: var(--pfy-nav-hover-bg-color,  #{$nav-hover-bg-color});
           }
+      }
+
+      li.pfy-pseudo-elem {
+        > a {
+          background: var(--pfy-nav-pseudo-elem-bg-color, var(--pfy-nav-elem-bg-color, #{$nav-active-bg-color}));
+        }
       }
 
       // pfy-curr:
