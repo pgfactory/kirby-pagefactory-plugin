@@ -2528,6 +2528,8 @@ function renderIcon(string $iconName, string $class = 'pfy-icon'): string
     } else {
         $icon = "<span class='$class'><img src='$iconFile' alt=''></span>";
     }
+    // remove all types of white spaces with blank -> avoid conflict with MDP tabulator:
+    $icon = preg_replace("/\s/ms", ' ', $icon); // remove \n etc.
     return $icon;
 } // renderIcon
 

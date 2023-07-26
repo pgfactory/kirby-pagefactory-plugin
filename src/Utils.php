@@ -336,7 +336,7 @@ EOT;
             if ($langObj = kirby()->language()) {
                 $lang = $langObj->code();
             } elseif (!($lang = kirby()->defaultLanguage())) {
-                $lang = 'en';
+                $lang = PageFactory::$config['defaultLanguage'] ?: 'en';
             }
             PageFactory::$lang = $lang;
             PageFactory::$langCode = substr($lang, 0, 2);

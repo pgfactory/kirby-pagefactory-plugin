@@ -63,7 +63,7 @@ EOT,
     $obj = new Img();
     $str .= $obj->render($options);
 
-    return [$str];
+    return shieldStr($str);
 }
 
 
@@ -217,6 +217,9 @@ class Img
                 }
             } else {
                 $file = PageFactory::$appRoot.$src;
+                if (str_starts_with($file, '//')) {
+                    $file = substr($file, 1);
+                }
                 $this->srcFileUrl = $file;
                 return $file;
             }

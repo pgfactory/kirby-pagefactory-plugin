@@ -295,6 +295,7 @@ class DataSet
             if ($this->obfuscateRecKeys) {
                 $recKeyToUse = $this->deObfuscateRecKey($recKeyToUse);
             }
+            $recKeyToUse = $this->deObfuscateRecKey($recKeyToUse);
             $dr = new DataRec($recKeyToUse, $rec, $this);
             $dr->set('_reckey', $recKeyToUse);
             $this->data[$recKeyToUse] = $dr;
@@ -378,6 +379,10 @@ class DataSet
     } // update
 
 
+    /**
+     * @return void
+     * @throws \Exception
+     */
     public function purge()
     {
         $this->data = [];
@@ -407,6 +412,8 @@ class DataSet
         if ($this->obfuscateRecKeys) {
             $key = $this->deObfuscateRecKey($key);
         }
+        $key = $this->deObfuscateRecKey($key);
+        mylog("DataSet: deleting dataRec $key from DB $this->file");
         if (isset($this->data[$key])) {
             unset($this->data[$key]);
         } else {
@@ -705,6 +712,7 @@ class DataSet
                 if ($this->obfuscateRecKeys) {
                     $key = $this->deObfuscateRecKey($key);
                 }
+                $key = $this->deObfuscateRecKey($key);
                 $all = $args[1] ?? false;
                 $recUid = $this->findRecKeyOf($key, $attribute, $all);
 
@@ -766,13 +774,13 @@ class DataSet
         // special notation to access data sub-elements: a.b.c = [a][b][c]
         } elseif (is_string($sortArg)) {
             // sort on meta-data, e.g. '_origRecKey' or '_timestamp':
-            if (strpos($sortArg, '.') === false) {
+            if (str_starts_with($sortArg, '_')) {
                 // element of first level -> access directly:
                 foreach ($this->data as $key => $elem) {
                     $sortIndex[$key] = $elem->$sortArg ?? PHP_INT_MAX;
                 }
 
-            // sort on rec data, e.g. 'name' -> specified as '.name':
+            // sort on rec data, e.g. 'name' -> specified as 'name' or 'a.b':
             } else {
                 // nested element:
                 $keys = explode('.', $sortArg);
@@ -1223,21 +1231,7 @@ class DataSet
                 if (!$data) {
                     return;
                 }
-                // loop over loaded data, fix recKey and convert it to a DataRec:
-                foreach ($data as $key => $rec) {
-                    if (isHash($key) && ($this->masterFileRecKeyType !== 'origKey')) {
-                        $recKeyToUse = $key;
-                    } else {
-                        $rec['_origRecKey'] = $key;
-                        if (!isset($rec['_reckey'])) {
-                            $rec['_reckey'] = createHash();
-                            $modified = true;
-                        }
-                        $recKeyToUse = $rec['_reckey'];
-                    }
-
-                    $this->addRec($rec, flush: false, recKeyToUse: $recKeyToUse);
-                }
+                $modified = $this->importData($data);
                 if ($modified) {
                     $this->exportToMasterFile();
                 }
@@ -1249,6 +1243,33 @@ class DataSet
             touch($this->file);
         }
     } // importFromMasterFile
+
+
+    /**
+     * @param array $data
+     * @return bool
+     * @throws \Exception
+     */
+    private function importData(array $data): bool
+    {
+        $modified = false;
+        // loop over loaded data, fix recKey and convert it to a DataRec:
+        foreach ($data as $key => $rec) {
+            if (isHash($key) && ($this->masterFileRecKeyType !== 'origKey')) {
+                $recKeyToUse = $key;
+            } else {
+                $rec['_origRecKey'] = $key;
+                if (!isset($rec['_reckey'])) {
+                    $rec['_reckey'] = createHash();
+                    $modified = true;
+                }
+                $recKeyToUse = $rec['_reckey'];
+            }
+
+            $this->addRec($rec, flush: false, recKeyToUse: $recKeyToUse);
+        }
+        return $modified;
+    } // importData
 
 
     /**
@@ -1300,6 +1321,9 @@ class DataSet
                     $recKeySort = 'arsort';
                 }
                 $data = $this->clone()->sort($recKeySortOnElement, $recKeySort)->data($includeMeta, recKeyType: $masterFileRecKeyType);
+                // update internal data after sorting:
+                $this->data = [];
+                $this->importData($data);
 
             } else {
                 $data = $this->data($includeMeta, recKeyType: $masterFileRecKeyType);

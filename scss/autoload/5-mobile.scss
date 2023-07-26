@@ -33,10 +33,8 @@
 
     .pfy-small-screen-header {
       display: block !important;
-      height:$mobile-header-height;
       height: var(--pfy-mobile-header-height, #{$mobile-header-height});
 
-      color: $mobile-header-txt-color;
       color: var(--pfy-mobile-header-txt-color, #{$mobile-header-txt-color});
 
       background: $mobile-header-bg-color;
@@ -50,7 +48,6 @@
         right: 0;
         z-index: 9;
         h1 {
-            font-size: $mobile-header-font-size;
             font-size: var(--pfy-mobile-header-txt-size, $mobile-header-font-size);
             text-align: center;
             margin: 0 var(--pfy-mobile-header-height, #{$mobile-header-height});
@@ -70,9 +67,6 @@
             height: calc(var(--pfy-mobile-header-height, #{$mobile-header-height}) * 0.6);
             left: calc(#{$mobile-header-height} * 0.15);
             cursor: pointer;
-            path {
-                fill: whitesmoke;
-            }
         }
     }
 
@@ -103,7 +97,6 @@
     .pfy-primary-nav {
         .pfy-nav {
           &, a {
-            font-size: $mobile-nav-txt-size;
             font-size: var(--pfy-mobile-nav-txt-size, $mobile-nav-txt-size);
           }
           li div {
@@ -113,7 +106,6 @@
         width: $mobile-nav-width;
         padding: 1em;
         * {
-            color: $mobile-nav-txt-color;
             color: var(--pfy-mobile-nav-txt-color, $mobile-nav-txt-color);
         }
         .pfy-curr > a {
@@ -128,7 +120,6 @@
     .pfy-main,
     .pfy-mobile-nav-wrapper {
         position: fixed;
-        top: $mobile-header-height;
         top: var(--pfy-mobile-header-height, #{$mobile-header-height});
         padding-bottom: 15vh;
     }
@@ -141,7 +132,6 @@
   .pfy-main {
         left: 0;
         width: 100vw;
-        height: 100%;
         height: calc(100vh - var(--pfy-mobile-header-height, #{$mobile-header-height}) - var(--pfy-mobile-footer-height, #{$mobile-footer-height}));
         background: var(--pfy-mobile-bg-color, $mobile-main-bg-color);
         color: var(--pfy-mobile-txt-color, $mobile-main-txt-color);
@@ -160,7 +150,6 @@
     }
 
     .pfy-nav-title {
-        color: #{$mobile-nav-title-color};
         color: var(--pfy-mobile-nav-title-color, #{$mobile-nav-title-color});
         background: #{$mobile-nav-title-bg-color};
         background: var(--pfy-mobile-nav-title-bg-color, #{$mobile-nav-title-bg-color});
@@ -185,9 +174,7 @@
     }
 
     .pfy-footer * {
-        color: #{$mobile-header-txt-color};
-        color: var(--pfy-mobile-footer-txt-color, #{$mobile-header-txt-color});
-        font-size: #{$mobile-footer-font-size};
+        color: var(--pfy-mobile-footer-txt-color, var(--pfy-mobile-header-txt-color, #{$mobile-header-txt-color}));
         font-size: var(--pfy-mobile-footer-txt-size, #{$mobile-footer-font-size});
         border-bottom: none;
     }

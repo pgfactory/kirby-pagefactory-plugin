@@ -1,5 +1,42 @@
 /***************************
 **  Styles for macro nav()
+**
+**    CSS Variables:
+
+--pfy-nav-txt-size
+--pfy-nav-elem-height
+--pfy-nav-line-height
+
+--pfy-nav-txt-color
+--pfy-nav-elem-bg-color
+--pfy-nav-hover-txt-color
+--pfy-nav-hover-bg-color
+--pfy-nav-sub-txt-color
+--pfy-nav-sub-width
+
+--pfy-nav-pseudo-elem-bg-color
+--pfy-focus-color
+--pfy-nav-focus-txt-color
+--pfy-nav-focus-bg-color
+
+--pfy-nav-curr-txt-color
+--pfy-nav-curr-bg-color
+--pfy-nav-active-txt-color
+--pfy-nav-active-bg-color
+
+--nav-arrow-hover-color
+
+--pfy-nav-first-indent
+--pfy-nav-indent-step
+--pfy-nav-collapse-speed
+
+--nav-hover-marker-color
+--nav-active-marker-color
+--nav-curr-marker-color
+
+--pfy-nav-horizontal-padding
+--pfy-nav-horizontal-col-gap
+
 ****************************/
 
 @import '_scss-variables.scss';
@@ -122,6 +159,10 @@ $slidedownX6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-horizontal-firs
       color:      var(--pfy-nav-hover-txt-color);
       background: var(--pfy-nav-hover-bg-color, var(--pfy-nav-elem-bg-color));
     }
+    .pfy-lvl-2 a {
+      color: var(--pfy-nav-sub-txt-color, var(--pfy-nav-txt-color, currentColor) );
+      background: var(--pfy-nav-sub-bg-color);
+    }
   }
 
   // pfy-curr:
@@ -143,7 +184,7 @@ $slidedownX6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-horizontal-firs
   // pfy-pseudo-elem:
   li.pfy-pseudo-elem {
     > a {
-//      background: var(--pfy-nav-pseudo-elem-bg-color, var(--pfy-nav-elem-bg-color, #{$nav-active-bg-color}));
+      background: var(--pfy-nav-pseudo-elem-bg-color);
       cursor: s-resize;
     }
     &.pfy-open > a .pfy-nav-arrow,
@@ -234,9 +275,6 @@ $slidedownX6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-horizontal-firs
         overflow: hidden;
     }
 
-    //li.pfy-pseudo-elem > a {
-    //  background: var(--pfy-nav-pseudo-elem-bg-color, var(--pfy-nav-elem-bg-color, #{$nav-active-bg-color}));
-    //}
   } // generic .pfy-nav
 
 
