@@ -4,10 +4,10 @@ namespace Usility\PageFactory;
 
 use Kirby;
 use Kirby\Data\Yaml;
-use Matrix\Exception;
 use ScssPhp\ScssPhp\Exception\SassException;
+use Usility\MarkdownPlus\Permission;
 
-// filesystem paths:
+ // filesystem paths:
 const PFY_BASE_PATH =              'site/plugins/pagefactory/';
 const PFY_CONTENT_ASSETS_PATH =    'content/assets/';
 const PFY_ASSETS_PATH =            'site/plugins/pagefactory/assets/';
@@ -162,6 +162,7 @@ class PageFactory
         self::$absPfyRoot = __DIR__ . '/';
         self::$appRoot = dirname(substr($_SERVER['SCRIPT_FILENAME'], -strlen($_SERVER['SCRIPT_NAME']))) . '/';
         self::$appUrl = dirname(substr($_SERVER['SCRIPT_FILENAME'], -strlen($_SERVER['SCRIPT_NAME']))) . '/';
+        self::$appUrl = str_replace('//', '/', self::$appUrl);
         self::$appRootUrl = kirby()->url() . '/';
         if (!self::$slug) {
             self::$slug = page()->slug();
@@ -267,7 +268,9 @@ class PageFactory
             $mdStr = getFile($file);
             $this->sectionsCss = '';
             $this->sectionsScss = '';
-            $this->extractFrontmatter($mdStr);
+            if (!$this->extractFrontmatter($mdStr)) {
+                continue;
+            }
             $sectId = '';
 
             if ($this->autoSplitSections) {
@@ -375,14 +378,15 @@ EOT;
 
     /**
      * @param $mdStr
-     * @return void
+     * @return bool
      * @throws Kirby\Exception\InvalidArgumentException
      */
-    private function extractFrontmatter(&$mdStr)
+    private function extractFrontmatter(&$mdStr): bool
     {
         $fields = preg_split('!\n-{4}\n!', $mdStr);
         $n = sizeof($fields)-1;
         $mdStr = $fields[$n];
+        $continue = true;
 
         // loop through all fields and add them to the content
         for ($i=0; $i<$n; $i++) {
@@ -435,11 +439,17 @@ EOT;
                     self::$pg->addAssets($asset);
                 }
 
+            } elseif ($key === 'visibility') {
+                if (!Permission::evaluate($value)) {
+                    $continue = false;
+                }
+
             } else {
                 // unescape escaped dividers within a field
                 TransVars::setVariable($key, $value);
             }
         }
+        return $continue;
     } // extractFrontmatter
 
 } // PageFactory
