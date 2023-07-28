@@ -58,9 +58,10 @@
 // === Macro Help ===============
 .pfy-help.pfy-encapsulated {
     font-size: 9pt;
-    background: white;
-    color: black;
+    background: #f5fffe;
+    color: #12049c;
     font-family: Verdana, sans-serif;
+    letter-spacing: 0;
     padding: 0 10px;
     border: 1px solid gray;
     margin: 2em 0;
@@ -69,6 +70,9 @@
     }
     h2 {
         font-size: 12pt;
+    }
+    h1, h2, h3, h4, strong {
+      color: #3d2cde;
     }
     dt {
         font-weight: bold;
