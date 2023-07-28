@@ -614,6 +614,8 @@ EOT;
             $default = $elem[1]??'false';
             if (is_bool($default)) {
                 $default = $default? 'true': 'false';
+            } elseif (is_array($default)) {
+                $default = json_encode($default);
             }
             $str .= <<<EOT
 <dt>$key</dt>
