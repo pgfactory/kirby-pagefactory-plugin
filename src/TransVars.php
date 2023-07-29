@@ -211,8 +211,13 @@ EOT;
         self::setVariable('phpVersion', phpversion());
 
         // default webmaster email derived from current domain:
-        PageFactory::$webmasterEmail = 'webmaster@'.preg_replace('|^https?://([\w.-]+)(.*)|', "$1", site()->url());
-        self::setVariable('webmasterEmail', PageFactory::$webmasterEmail);
+        PageFactory::$webmasterEmail = $webmasterEmail = 'webmaster@'.preg_replace('|^https?://([\w.-]+)(.*)|', "$1", site()->url());
+        self::setVariable('webmasterEmail', $webmasterEmail);
+        $lnk = new Link();
+        $webmasterLink = $lnk->render([
+            'url' => "mailto:$webmasterEmail",
+        ]);
+        self::setVariable('webmaster_link', $webmasterLink);
 
 
         // Copy site field values to transvars:

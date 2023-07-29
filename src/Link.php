@@ -261,7 +261,7 @@ class Link
         }
 
         // target:
-        if ($this->args['target'] !== null) {
+        if (($this->args['target']??null) !== null) {
             $this->target = $this->args['target'];
         }
         if (($this->target === true) || ($this->target === 'newwin')) {
