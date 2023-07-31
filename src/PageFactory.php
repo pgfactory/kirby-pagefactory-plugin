@@ -210,7 +210,7 @@ class PageFactory
     public function renderPageContent(): string
     {
         Extensions::extensionsFinalCode(); //??? best position?
-        TransVars::prepareStandardVariables();
+        Utils::prepareStandardVariables();
 
         Utils::handleAgentRequestsOnRenderedPage();
         Utils::executeCustomCode();
@@ -240,7 +240,7 @@ class PageFactory
             $html = str_replace(['{!!{', '}!!}', '⟮'], ['{{', '}}', '('], $html);
         }
 
-        TransVars::prepareTemplateVariables();
+        Utils::prepareTemplateVariables();
         self::$renderingClosed = true;
         return $html;
     } // renderPageContent

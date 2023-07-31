@@ -11,6 +11,160 @@ use Exception;
 class Utils
 {
     /**
+     * Assign values to variables that are used in templates or in page content
+     * - lang
+     * - langActive
+     * - pageUrl
+     * - appUrl
+     * - generator
+     * - phpVersion
+     * - pageTitle
+     * - siteTitle
+     * - headTitle
+     * - webmasterEmail
+     * - menuIcon
+     * - smallScreenHeader
+     * - langSelection
+     * - loggedInAsUser
+     * - loginButton
+     * - adminPanelLink
+     *      plus all fields defined for site, in particular 'siteTitle'
+     * Note: variables used inside page content are handled/replaced elsewhere
+     * @return void
+     * @throws \Kirby\Exception\LogicException|\Kirby\Exception\InvalidArgumentException
+     */
+    public static function prepareStandardVariables(): void
+    {
+        $kirbyPageTitle = TransVars::setVariable('title', PageFactory::$page->title());
+        TransVars::setVariable('kirbyPageTitle', $kirbyPageTitle);
+        $kirbySiteTitle = TransVars::setVariable('siteTitle', site()->title());
+        TransVars::setVariable('kirbySiteTitle', $kirbySiteTitle);
+        $headTitle = TransVars::getVariable('headTitle');
+        if (!$headTitle) {
+            $headTitle = "$kirbyPageTitle / $kirbySiteTitle";
+        } else {
+            $headTitle = TransVars::translate($headTitle);
+        }
+        TransVars::setVariable('headTitle', $headTitle);
+
+        // 'generator': we cache the gitTag, so, if that changes you need to remember to clear site/cache/pagefactory
+        $gitTag = fileGetContents(PFY_CACHE_PATH.'gitTag.txt');
+        if (!$gitTag) {
+            $gitTag = getGitTag();
+            file_put_contents(PFY_CACHE_PATH.'gitTag.txt', $gitTag);
+        }
+        TransVars::setVariable('generator', 'Kirby v'. kirby()::version(). " + PageFactory $gitTag");
+
+
+        $appUrl = PageFactory::$appUrl;
+        $menuIcon         = svg('site/plugins/pagefactory/assets/icons/menu.svg');
+        TransVars::setVariable('menuIcon',$menuIcon);
+        $smallScreenTitle = TransVars::$variables['smallScreenHeader']?? site()->title()->value();
+        $smallScreenHeader = <<<EOT
+
+<div class="pfy-small-screen-header pfy-small-screen-only">
+    <h1>$smallScreenTitle</h1>
+    <button id='pfy-nav-menu-icon' type="button">$menuIcon</button>
+</div>
+EOT;
+
+        TransVars::setVariable('smallScreenHeader', $smallScreenHeader);
+
+        TransVars::setVariable('langSelection', TransVars::renderLanguageSelector());
+        TransVars::setVariable('pageUrl', PageFactory::$pageUrl);
+        TransVars::setVariable('appUrl', $appUrl);
+        TransVars::setVariable('hostUrl', PageFactory::$hostUrl);
+        TransVars::setVariable('lang', PageFactory::$langCode);
+        TransVars::setVariable('langActive', PageFactory::$lang); // can be lang-variant, e.g. de2
+        TransVars::setVariable('phpVersion', phpversion());
+
+        $webmasterEmail = TransVars::getVariable('webmaster-email');
+        if ($webmasterEmail) {
+            PageFactory::$webmasterEmail = $webmasterEmail;
+        } else {
+            // default webmaster email derived from current domain:
+            PageFactory::$webmasterEmail = $webmasterEmail = 'webmaster@' . preg_replace('|^https?://([\w.-]+)(.*)|', "$1", site()->url());
+            TransVars::setVariable('webmaster-email', $webmasterEmail);
+        }
+        $lnk = new Link();
+        $webmasterLink = $lnk->render([
+            'url' => "mailto:$webmasterEmail",
+        ]);
+        TransVars::setVariable('webmaster_link', $webmasterLink);
+
+
+        // Copy site field values to transvars:
+        $siteAttributes = site()->content()->data();
+        foreach ($siteAttributes as $key => $value) {
+            if ($key === 'title') {
+                continue;
+            }
+            TransVars::setVariable($key, $value);
+        }
+
+        // Copy page field values to transvars:
+        $pageAttributes = page()->content()->data();
+        foreach ($pageAttributes as $key => $value) {
+            if (str_contains(',title,text,uuid,accesscodes,', ",$key,") || str_ends_with($key, '_md')) {
+                continue;
+            } elseif ($key === 'variables') {
+                $values = Yaml::decode($value);
+                foreach ($values as $k => $v) {
+                    TransVars::setVariable($k, $v);
+                }
+            } else {
+                TransVars::setVariable($key, (string)$value);
+            }
+        }
+
+        $user = kirby()->user();
+        if ($user) {
+            TransVars::setVariable('loggedInAsUser', (string)$user->nameOrEmail());
+        } else {
+            TransVars::setVariable('loggedInAsUser', "<a href='{$appUrl}?login'>Login</a>");
+        }
+
+        $pfyLoginButtonLabel = TransVars::getVariable('pfy-login-button-label');
+        $loginIcon = svg('site/plugins/pagefactory/assets/icons/user.svg');
+        TransVars::setVariable('loginButton', "<button class='pfy-login-button' title='$pfyLoginButtonLabel'>$loginIcon</button>");
+
+        $pfyAdminPanelLinkText = TransVars::getVariable('pfy-admin-panel-link-text');
+        TransVars::setVariable('adminPanelLink', "<a href='{$appUrl}panel' target='_blank'>$pfyAdminPanelLinkText</a>");
+    } // prepareStandardVariables
+
+
+
+    /**
+     * Assign values to variables that are used directly in templates (i.e. outside of page content)
+     *  - headInjections
+     *  - bodyTagClasses
+     *  - bodyTagAttributes
+     *  - bodyEndInjections
+     * @return void
+     * @throws \Kirby\Exception\LogicException|\ScssPhp\ScssPhp\Exception\SassException
+     */
+    public static function prepareTemplateVariables(): void
+    {
+        PageFactory::$page->headInjections()->value     = PageFactory::$pg->renderHeadInjections();
+
+        $bodyTagClasses   = PageFactory::$pg->bodyTagClasses ?: 'pfy-large-screen';
+        if (isAdmin()) {
+            $bodyTagClasses .= ' pfy-admin';
+        } elseif (kirby()->user()) {
+            $bodyTagClasses .= ' pfy-loggedin';
+        }
+        if (PageFactory::$debug) {
+            $bodyTagClasses = trim("debug $bodyTagClasses");
+        }
+        PageFactory::$page->bodyTagClasses()->value     = $bodyTagClasses;
+
+        PageFactory::$page->bodyTagAttributes()->value  = PageFactory::$pg->bodyTagAttributes;
+        PageFactory::$page->bodyEndInjections()->value  = PageFactory::$pg->renderBodyEndInjections();
+    } // prepareTemplateVariables
+
+
+
+    /**
      * Handles URL-commands, e.g. ?help, ?print etc.
      * Checks privileges which are required for some commands.
      * @return void
@@ -30,8 +184,8 @@ class Utils
             return;
         }
 
-        self::execAsAnon('printview,printpreview,print');
-        self::execAsAdmin('help,localhost,timer,reset,notranslate');
+        TransVars::execAsAnon('printview,printpreview,print');
+        TransVars::execAsAdmin('help,localhost,timer,reset,notranslate');
     } // handleAgentRequests
 
 
@@ -65,10 +219,10 @@ class Utils
             switch ($cmd) {
                 case 'printview':
                 case 'printpreview':
-                    self::printPreview();
+                    TransVars::printPreview();
                     break;
                 case 'print':
-                    self::print();
+                    TransVars::print();
                     break;
             }
         }
@@ -103,7 +257,7 @@ setTimeout(function() {
 
 EOT;
         PageFactory::$pg->addJq($jq);
-        self::preparePrintVariables();
+        TransVars::preparePrintVariables();
     } // printPreview
 
 
@@ -125,7 +279,7 @@ setTimeout(function() {
 
 EOT;
         PageFactory::$pg->addJq($jq);
-        self::preparePrintVariables();
+        TransVars::preparePrintVariables();
     } // print
 
 
@@ -176,7 +330,7 @@ EOT;
             $arg = $_GET[$cmd];
             switch ($cmd) {
                 case 'help': // ?help
-                    self::showHelp();
+                    TransVars::showHelp();
                     break;
 
                 case 'notranslate': // ?notranslate
@@ -492,8 +646,8 @@ EOT;
             // check whether timezone is defined in PageFactory's config settings:
             $systemTimeZone = PageFactory::$config['timezone']??false;
             if (!$systemTimeZone) {
-                $systemTimeZone = self::getServerTimezone();
-                self::appendToConfigFile('timezone', $systemTimeZone, 'Automatically set by PageFactory');
+                $systemTimeZone = TransVars::getServerTimezone();
+                TransVars::appendToConfigFile('timezone', $systemTimeZone, 'Automatically set by PageFactory');
             }
             \Kirby\Toolkit\Locale::set($systemTimeZone);
         }
@@ -507,7 +661,7 @@ EOT;
      */
     public static function setTimezone(): string
     {
-        return self::getTimezone();
+        return TransVars::getTimezone();
     }
 
 
@@ -549,10 +703,10 @@ EOT;
             try {
                 $includeTime = $includeTime ? IntlDateFormatter::SHORT : IntlDateFormatter::NONE;
                 $fmt = datefmt_create(
-                    self::getCurrentLocale(),
+                    TransVars::getCurrentLocale(),
                     IntlDateFormatter::SHORT,
                     $includeTime,
-                    self::getTimezone(),
+                    TransVars::getTimezone(),
                     IntlDateFormatter::GREGORIAN
                 );
                 $out = datefmt_format($fmt, $datetime);
