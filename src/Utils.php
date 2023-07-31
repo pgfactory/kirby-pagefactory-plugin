@@ -184,8 +184,8 @@ EOT;
             return;
         }
 
-        TransVars::execAsAnon('printview,printpreview,print');
-        TransVars::execAsAdmin('help,localhost,timer,reset,notranslate');
+        self::execAsAnon('printview,printpreview,print');
+        self::execAsAdmin('help,localhost,timer,reset,notranslate');
     } // handleAgentRequests
 
 
@@ -219,10 +219,10 @@ EOT;
             switch ($cmd) {
                 case 'printview':
                 case 'printpreview':
-                    TransVars::printPreview();
+                    self::printPreview();
                     break;
                 case 'print':
-                    TransVars::print();
+                    self::print();
                     break;
             }
         }
@@ -257,7 +257,7 @@ setTimeout(function() {
 
 EOT;
         PageFactory::$pg->addJq($jq);
-        TransVars::preparePrintVariables();
+        self::preparePrintVariables();
     } // printPreview
 
 
@@ -279,7 +279,7 @@ setTimeout(function() {
 
 EOT;
         PageFactory::$pg->addJq($jq);
-        TransVars::preparePrintVariables();
+        self::preparePrintVariables();
     } // print
 
 
@@ -330,7 +330,7 @@ EOT;
             $arg = $_GET[$cmd];
             switch ($cmd) {
                 case 'help': // ?help
-                    TransVars::showHelp();
+                    self::showHelp();
                     break;
 
                 case 'notranslate': // ?notranslate
@@ -646,8 +646,8 @@ EOT;
             // check whether timezone is defined in PageFactory's config settings:
             $systemTimeZone = PageFactory::$config['timezone']??false;
             if (!$systemTimeZone) {
-                $systemTimeZone = TransVars::getServerTimezone();
-                TransVars::appendToConfigFile('timezone', $systemTimeZone, 'Automatically set by PageFactory');
+                $systemTimeZone = self::getServerTimezone();
+                self::appendToConfigFile('timezone', $systemTimeZone, 'Automatically set by PageFactory');
             }
             \Kirby\Toolkit\Locale::set($systemTimeZone);
         }
@@ -661,7 +661,7 @@ EOT;
      */
     public static function setTimezone(): string
     {
-        return TransVars::getTimezone();
+        return self::getTimezone();
     }
 
 
@@ -703,10 +703,10 @@ EOT;
             try {
                 $includeTime = $includeTime ? IntlDateFormatter::SHORT : IntlDateFormatter::NONE;
                 $fmt = datefmt_create(
-                    TransVars::getCurrentLocale(),
+                    self::getCurrentLocale(),
                     IntlDateFormatter::SHORT,
                     $includeTime,
-                    TransVars::getTimezone(),
+                    self::getTimezone(),
                     IntlDateFormatter::GREGORIAN
                 );
                 $out = datefmt_format($fmt, $datetime);
