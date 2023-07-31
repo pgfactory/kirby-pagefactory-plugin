@@ -1,5 +1,9 @@
 # Custom Variables for PageFactory
+#
+# Usage: {{ myVar }}
 
-# pfy-page-title:
-#     de: MEINE SEITE
-#     _:  MY PAGE
+# myVar:
+#   de: 'was in Deutsch'
+#   _:  'something in default language'
+
+# webmaster-email: webmaster@domain.net

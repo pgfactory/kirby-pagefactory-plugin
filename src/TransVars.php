@@ -210,9 +210,14 @@ EOT;
         self::setVariable('langActive', PageFactory::$lang); // can be lang-variant, e.g. de2
         self::setVariable('phpVersion', phpversion());
 
-        // default webmaster email derived from current domain:
-        PageFactory::$webmasterEmail = $webmasterEmail = 'webmaster@'.preg_replace('|^https?://([\w.-]+)(.*)|', "$1", site()->url());
-        self::setVariable('webmasterEmail', $webmasterEmail);
+        $webmasterEmail = self::getVariable('webmaster-email');
+        if ($webmasterEmail) {
+            PageFactory::$webmasterEmail = $webmasterEmail;
+        } else {
+            // default webmaster email derived from current domain:
+            PageFactory::$webmasterEmail = $webmasterEmail = 'webmaster@' . preg_replace('|^https?://([\w.-]+)(.*)|', "$1", site()->url());
+            self::setVariable('webmaster-email', $webmasterEmail);
+        }
         $lnk = new Link();
         $webmasterLink = $lnk->render([
             'url' => "mailto:$webmasterEmail",
