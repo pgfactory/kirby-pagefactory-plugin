@@ -909,7 +909,7 @@ function resolvePath(string $path, bool $returnAbsPath = false, bool $relativeTo
         $path1 = preg_replace('|/.*|', '', substr($path, 1));
 
         // '~assets/' is an exception: it shall point to 'content/assets/' rather than 'assets/':
-        if (($path1 !== 'assets') && (strpos(KIRBY_ROOT_PATTERNS, ",$path1,") !== false)) {
+        if (!str_contains( 'assets,config', $path1) && (strpos(KIRBY_ROOT_PATTERNS, ",$path1,") !== false)) {
             $path = KIRBY_ROOTS[$path1].substr($path, strlen($path1)+1);
             return $path;
         }
@@ -937,6 +937,7 @@ function resolvePath(string $path, bool $returnAbsPath = false, bool $relativeTo
             '~/' => $appRoot,
             '~media/' => $appRoot . 'media/',
             '~assets/' => $appRoot . 'content/assets/',
+            '~config/' => $appRoot . 'site/config/',
             '~data/' => $appRoot . 'site/custom/data/',
             '~page/' => $pageRoot,
             '~pagefactory/' => $appRoot . 'site/plugins/pagefactory/assets/',
