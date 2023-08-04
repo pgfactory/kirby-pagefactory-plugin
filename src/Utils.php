@@ -486,7 +486,7 @@ EOT;
     public static function determineLanguage(): void
     {
         $supportedLanguages = PageFactory::$supportedLanguages = kirby()->languages()->codes();
-        if (!$supportedLanguages) {
+        if (!$supportedLanguages || $supportedLanguages[0] === 'default') {
             if ($langObj = kirby()->language()) {
                 $lang = $langObj->code();
             } elseif (!($lang = kirby()->defaultLanguage())) {
@@ -498,7 +498,10 @@ EOT;
         }
 
         if (!($lang = kirby()->session()->get('pfy.lang'))) {
-            $lang = kirby()->defaultLanguage()->code();
+            $lang = kirby()->defaultLanguage();
+            if ($lang) {
+                $lang = kirby()->defaultLanguage()->code();
+            }
         }
 
         if ($lang) {
