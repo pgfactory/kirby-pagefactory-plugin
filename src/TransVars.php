@@ -320,7 +320,7 @@ class TransVars
      * @return string
      * @throws \Exception
      */
-    public static function executeMacros($str)
+    public static function executeMacros($str, $onlyMacros = false)
     {
         list($p1, $p2) = strPosMatching($str);
         while ($p1 !== false) {
@@ -331,8 +331,12 @@ class TransVars
                 $cand = ltrim($cand,'^ ');
             }
 
-            if (preg_match('/(\w+) \( (.*) \)/xms', $cand, $m)) {
+            if (preg_match('/^([\w|]+) \( (.*) \)/xms', $cand, $m)) {
                 $macroName = $m[1];
+                if (str_contains($macroName, '|')) {
+                    list($p1, $p2) = strPosMatching($str, $p2);
+                    continue;
+                }
                 $argStr = $m[2];
                 if (str_contains(',list,', $macroName)) {
                     $macroName = "_$macroName";
@@ -347,6 +351,9 @@ class TransVars
                 } else {
                     $value = "\\{{ $cand }}";
                 }
+            } elseif ($onlyMacros) {
+                list($p1, $p2) = strPosMatching($str, $p2);
+                continue;
             } else {
                 if (self::$noTranslate) {
                     $value = "<span class='pfy-untranslated'>&#123;&#123; $cand &#125;&#125;</span>";;
