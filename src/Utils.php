@@ -437,7 +437,6 @@ EOT;
             '~/'        => '',
             '~media/'   => 'media/',
             '~assets/'  => 'content/assets/',
-            '~data/'    => 'site/custom/data/',
             '~page/'    => PageFactory::$pageUrl,
         ];
         $url = str_replace(array_keys($patterns), array_values($patterns), $url);
@@ -471,7 +470,6 @@ EOT;
         $patterns = [
             '~/'        => PageFactory::$appUrl,
             '~media/'   => PageFactory::$appRootUrl.'media/',
-            '~data/'    => PageFactory::$appRootUrl.'site/custom/data/',
             '~page/'    => PageFactory::$pageUrl,
         ];
         $html = str_replace(array_keys($patterns), array_values($patterns), $html);
