@@ -440,7 +440,6 @@ EOT;
             '~/'        => '',
             '~media/'   => 'media/',
             '~assets/'  => 'content/assets/',
-            '~data/'    => 'site/custom/data/',
             '~page/'    => PageFactory::$pageUrl,
         ];
         $url = str_replace(array_keys($patterns), array_values($patterns), $url);
@@ -474,7 +473,6 @@ EOT;
         $patterns = [
             '~/'        => PageFactory::$appUrl,
             '~media/'   => PageFactory::$appRootUrl.'media/',
-            '~data/'    => PageFactory::$appRootUrl.'site/custom/data/',
             '~page/'    => PageFactory::$pageUrl,
         ];
         $html = str_replace(array_keys($patterns), array_values($patterns), $html);
@@ -489,7 +487,7 @@ EOT;
     public static function determineLanguage(): void
     {
         $supportedLanguages = PageFactory::$supportedLanguages = kirby()->languages()->codes();
-        if (!$supportedLanguages) {
+        if (!$supportedLanguages || $supportedLanguages[0] === 'default') {
             if ($langObj = kirby()->language()) {
                 $lang = $langObj->code();
             } elseif (!($lang = kirby()->defaultLanguage())) {
@@ -501,7 +499,10 @@ EOT;
         }
 
         if (!($lang = kirby()->session()->get('pfy.lang'))) {
-            $lang = kirby()->defaultLanguage()->code();
+            $lang = kirby()->defaultLanguage();
+            if ($lang) {
+                $lang = kirby()->defaultLanguage()->code();
+            }
         }
 
         if ($lang) {
