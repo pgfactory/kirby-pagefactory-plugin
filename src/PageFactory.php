@@ -106,7 +106,6 @@ class PageFactory
     public static $phpSessionId;
     public static $assets;
     public static $config;
-    public static $session;
     public        $pageOptions;
     public        $utils;
     public        $value; //???
@@ -129,7 +128,6 @@ class PageFactory
         self::$page = $data['page'];
         self::$site = $data['site'];
         self::$siteFiles = self::$pages->files();
-        self::$session = self::$kirby->session();
         self::$phpSessionId = getSessionId();
 
         $this->pageOptions = self::$page->content()->data();
@@ -242,6 +240,7 @@ class PageFactory
 
         Utils::prepareTemplateVariables();
         self::$renderingClosed = true;
+        Cache::superviseKirbyCache();
         return $html;
     } // renderPageContent
 

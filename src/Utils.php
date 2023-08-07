@@ -184,8 +184,8 @@ EOT;
             return;
         }
 
-        TransVars::execAsAnon('printview,printpreview,print');
-        TransVars::execAsAdmin('help,localhost,timer,reset,notranslate');
+        self::execAsAnon('printview,printpreview,print');
+        self::execAsAdmin('help,localhost,timer,reset,notranslate');
     } // handleAgentRequests
 
 
@@ -219,10 +219,10 @@ EOT;
             switch ($cmd) {
                 case 'printview':
                 case 'printpreview':
-                    TransVars::printPreview();
+                    self::printPreview();
                     break;
                 case 'print':
-                    TransVars::print();
+                    self::print();
                     break;
             }
         }
@@ -257,7 +257,7 @@ setTimeout(function() {
 
 EOT;
         PageFactory::$pg->addJq($jq);
-        TransVars::preparePrintVariables();
+        self::preparePrintVariables();
     } // printPreview
 
 
@@ -279,7 +279,7 @@ setTimeout(function() {
 
 EOT;
         PageFactory::$pg->addJq($jq);
-        TransVars::preparePrintVariables();
+        self::preparePrintVariables();
     } // print
 
 
@@ -330,7 +330,7 @@ EOT;
             $arg = $_GET[$cmd];
             switch ($cmd) {
                 case 'help': // ?help
-                    TransVars::showHelp();
+                    self::showHelp();
                     break;
 
                 case 'notranslate': // ?notranslate
@@ -339,8 +339,11 @@ EOT;
 
                 case 'reset': // ?reset
                     Assets::reset();
-                    PageFactory::$session->clear();
-                    clearCache();
+                    kirby()->session()->clear();
+                    session_start();
+                    unset($_SESSION['pfyDebug']);
+                    session_write_close();
+                    Cache::flushAll();
                     reloadAgent();
             }
         }
@@ -546,21 +549,24 @@ EOT;
      */
     public static function determineDebugState(): bool
     {
+        session_start();
         $kirbyDebugState = kirby()->option('debug');
         if (isset($_GET['debug'])) {
             $userDebugRequest = $_GET['debug'];
+
             if (($userDebugRequest === '') || ($userDebugRequest === 'true')) {
-                PageFactory::$session->set('pfy.debug', true);
+                $_SESSION['pfy.debug'] = true;
             } elseif ($userDebugRequest === 'false') {
-                PageFactory::$session->set('pfy.debug', false);
+                $_SESSION['pfy.debug'] = false;
+                session_write_close();
+                reloadAgent();
             } elseif ($userDebugRequest === 'reset') {
-                PageFactory::$session->remove('pfy.debug');
+                unset($_SESSION['pfy.debug']);
             }
         } elseif (isset($_GET['reset'])) {
-            PageFactory::$session->remove('pfy.debug');
+            unset($_SESSION['pfy.debug']);
         }
-        $session = kirby()->session();
-        $debug = $session->get('pfy.debug', null); // null, if not exists
+        $debug = $_SESSION['pfy.debug']??null;
 
         // on productive host:
         if (!isLocalhost()) {
@@ -568,7 +574,7 @@ EOT;
                 $debug = $kirbyDebugState;
             } else {
                 if ($debug !== null) { // remove cookie if exists
-                    $session->remove('pfy.debug');
+                    unset($_SESSION['pfy.debug']);
                 }
                 $debug = false;
             }
@@ -578,6 +584,9 @@ EOT;
                 $debug = $kirbyDebugState;
             }
         }
+
+        $_SESSION['pfy.inhibitCaching'] = $debug;
+        session_write_close();
         PageFactory::$debug = $debug;
         return $debug;
     } // determineDebugState
@@ -646,8 +655,8 @@ EOT;
             // check whether timezone is defined in PageFactory's config settings:
             $systemTimeZone = PageFactory::$config['timezone']??false;
             if (!$systemTimeZone) {
-                $systemTimeZone = TransVars::getServerTimezone();
-                TransVars::appendToConfigFile('timezone', $systemTimeZone, 'Automatically set by PageFactory');
+                $systemTimeZone = self::getServerTimezone();
+                self::appendToConfigFile('timezone', $systemTimeZone, 'Automatically set by PageFactory');
             }
             \Kirby\Toolkit\Locale::set($systemTimeZone);
         }
@@ -661,7 +670,7 @@ EOT;
      */
     public static function setTimezone(): string
     {
-        return TransVars::getTimezone();
+        return self::getTimezone();
     }
 
 
@@ -703,10 +712,10 @@ EOT;
             try {
                 $includeTime = $includeTime ? IntlDateFormatter::SHORT : IntlDateFormatter::NONE;
                 $fmt = datefmt_create(
-                    TransVars::getCurrentLocale(),
+                    self::getCurrentLocale(),
                     IntlDateFormatter::SHORT,
                     $includeTime,
-                    TransVars::getTimezone(),
+                    self::getTimezone(),
                     IntlDateFormatter::GREGORIAN
                 );
                 $out = datefmt_format($fmt, $datetime);

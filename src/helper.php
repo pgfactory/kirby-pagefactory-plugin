@@ -2457,17 +2457,6 @@ function convertToPx(string $str): float
 
 
  /**
-  * Clears PageFactory's cache folder, also delete Kirby's media/ folder.
-  * @return void
-  */
-function clearCache(): void
-{
-    rrmdir(PFY_CACHE_PATH);
-    rrmdir('media');
-} // clearCache
-
-
- /**
   * Remove a folder recursively, even if not empty.
   * @param string $dir
   * @return bool
@@ -2646,9 +2635,9 @@ function iconExists(string $iconName): bool
         if (!$asString) {
             $value = ($value !== 'false');
         }
-        PageFactory::$session->set("pfy.$key", $value);
+        kirby()->session()->set("pfy.$key", $value);
     } else {
-        $value = PageFactory::$session->get("pfy.$key");
+        $value = kirby()->session()->get("pfy.$key");
         if ($value) {
             return $value;
         }
