@@ -3,6 +3,7 @@
 namespace Usility\PageFactory;
 
 use Kirby;
+use Kirby\Data\Yaml;
 use Kirby\Email\PHPMailer;
 use Exception;
 
@@ -153,6 +154,13 @@ EOT;
         } elseif (kirby()->user()) {
             $bodyTagClasses .= ' pfy-loggedin';
         }
+        // for debugging:
+        //if (kirby()->session()->get()) {
+        //    $bodyTagClasses = trim("session $bodyTagClasses");
+        //}
+        //if (PageFactory::$isLocalhost) {
+        //    $bodyTagClasses = trim("localhost $bodyTagClasses");
+        //}
         if (PageFactory::$debug) {
             $bodyTagClasses = trim("debug $bodyTagClasses");
         }
@@ -327,7 +335,6 @@ EOT;
                 PageFactory::$pg->setOverlay($str, true);
                 return;
             }
-            $arg = $_GET[$cmd];
             switch ($cmd) {
                 case 'help': // ?help
                     self::showHelp();
@@ -338,16 +345,33 @@ EOT;
                     break;
 
                 case 'reset': // ?reset
-                    Assets::reset();
-                    kirby()->session()->clear();
-                    session_start();
-                    unset($_SESSION['pfyDebug']);
-                    session_write_close();
-                    Cache::flushAll();
+                    self::resetAll();
                     reloadAgent();
             }
         }
     } // execAsAdmin
+
+
+    /**
+     * Resets Kirby and PageFactory
+     * @return void
+     */
+    private static function resetAll(): void
+    {
+        Assets::reset(); // Deletes all files created by Assets
+        kirby()->session()->clear(); // Resets all Kirby sessions
+
+        // deletes all PHP-session variables used by PageFactory:
+        session_start();
+        foreach ($_SESSION as $key => $value) {
+            if (str_starts_with($key, 'pfy.')) {
+                unset($_SESSION[$key]);
+            }
+        }
+        session_write_close();
+
+        Cache::flushAll(); // -> deletes media/ and site/cache/
+    } // resetAll
 
 
     /**
@@ -552,7 +576,7 @@ EOT;
     {
         session_start();
         $kirbyDebugState = kirby()->option('debug');
-        if (isset($_GET['debug'])) {
+        if (isset($_GET['debug']) && isAdminOrLocalhost()) {
             $userDebugRequest = $_GET['debug'];
 
             if (($userDebugRequest === '') || ($userDebugRequest === 'true')) {
@@ -563,6 +587,7 @@ EOT;
                 reloadAgent();
             } elseif ($userDebugRequest === 'reset') {
                 unset($_SESSION['pfy.debug']);
+                reloadAgent();
             }
         } elseif (isset($_GET['reset'])) {
             unset($_SESSION['pfy.debug']);
@@ -586,9 +611,7 @@ EOT;
             }
         }
 
-        $_SESSION['pfy.inhibitCaching'] = $debug;
         session_write_close();
-        PageFactory::$debug = $debug;
         return $debug;
     } // determineDebugState
 
@@ -777,6 +800,15 @@ EOT;
     } // getServerTimezone
 
 
+    /**
+     * @param string $to
+     * @param string $subject
+     * @param string $body
+     * @param string $debugInfo
+     * @param string $from
+     * @param string $fromName
+     * @return void
+     */
     public static function sendMail(string $to, string $subject, string $body, string $debugInfo = '', string $from = '', string $fromName = ''): void
     {
         if (str_contains($subject, '{{')) {

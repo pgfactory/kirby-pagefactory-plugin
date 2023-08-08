@@ -29,7 +29,7 @@ class DataSet
     protected $blocking = 0;
     protected $readWriteMode;
     protected $obfuscateRecKeys;
-    public $elementKeys;
+    public    $elementKeys;
     protected $options;
     protected $includeMeta;
     protected $data;
@@ -46,6 +46,7 @@ class DataSet
     protected $maxRecBlockingTime;
     protected $avoidDuplicates;
     protected $debug;
+    protected static $sessionId = false;
 
 
     /**
@@ -101,10 +102,8 @@ class DataSet
             $this->file = $file;
             $dataFile = str_replace('/', '_', dirname($file)) . '_' . base_name($file, false);
             $this->cacheFile = PFY_CACHE_PATH . "data/$dataFile.cache.dat";
-            $this->lockFile = PFY_CACHE_PATH . "data/$dataFile.lock";
-
-            $session = kirby()->session();
-            $session->set('pfy.absAppRoot', __DIR__.'/');
+            // lockFile needs to be absolute because it may be used by __destruct():
+            $this->lockFile = kirby()->root().'/'.PFY_CACHE_PATH . "data/$dataFile.lock";
 
             // if data file doesn't exist, prepare it empty and make sure no old cache/lock-files exist.
             if (!is_file($file)) {
@@ -539,25 +538,6 @@ class DataSet
         $sessionIdInFile = fileGetContents($this->lockFile);
         return (($sessionIdInFile[0]??'') === '!');
     } // isLockedPermanently
-
-
-    /**
-     * Unlocks all datasource locked by this session.
-     * @param $absAppRoot
-     * @return void
-     */
-    public static function unlockDatasources($absAppRoot): void
-    {
-        $dataCachePath = $absAppRoot.PFY_CACHE_PATH.'data/';
-        $sessionId = PageFactory::$phpSessionId;
-        $lockFiles = getDir("$dataCachePath*.lock");
-        foreach ($lockFiles as $lockFile) {
-            $sid = fileGetContents($lockFile);
-            if ($sid === $sessionId) {
-                @unlink($lockFile);
-            }
-        }
-    } // unlockDatasources
 
 
     /**
@@ -1400,7 +1380,7 @@ class DataSet
     protected function lockDatasource(bool $permanently = false): void
     {
         $file = basename($this->file);
-        $sessionId = $sidToWrite = getSessionId();
+        $sessionId = $sidToWrite = self::$sessionId = self::$sessionId ?: getSessionId();
         if ($permanently) {
             $sidToWrite = "!$sessionId";
         }
@@ -1454,17 +1434,18 @@ class DataSet
 
 
     /**
-     * Unlocks the datasource (ignoring owner of lock)
+     * Unlocks datasource locked by this session.
+     * @param $absAppRoot
      * @return void
      */
-    protected function unlockDatasource(): void
+    public function unlockDatasource(): void
     {
-        // may be called from __destruct where relative path doesn't work:
-        $session = kirby()->session();
-        $dir = $session->get('pfy.absAppRoot');
-        $lockFile = "$dir$this->lockFile";
-        if (file_exists($lockFile)) {
-            @unlink($lockFile);
+        if (file_exists($this->lockFile)) {
+            $sessionId = self::$sessionId ?: getSessionId();
+            $sid = file_get_contents($this->lockFile);
+            if ($sid === $sessionId) {
+                @unlink($this->lockFile);
+            }
             $this->readWriteMode = false;
         }
     } // unlockDatasource

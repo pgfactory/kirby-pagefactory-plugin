@@ -121,7 +121,6 @@ class PageFactory
     public function __construct($data)
     {
         self::$timer = microtime(true);
-        self::$isLocalhost = isLocalhost();
 
         self::$kirby = $data['kirby'];
         self::$pages = $data['pages'];
@@ -144,13 +143,14 @@ class PageFactory
         Utils::determineLanguage();
         TransVars::init();
 
+        self::$debug = Utils::determineDebugState();
+        self::$isLocalhost = isLocalhost() && self::$debug;
+
         self::$assets = new Assets($this);
         self::$pg = new Page($this);
         self::$pg->set('pageParams', self::$page->content()->data());
 
         Extensions::loadExtensions();
-
-        Utils::determineDebugState();
 
         self::$timezone = Utils::getTimezone();
         self::$locale = Utils::getCurrentLocale();
@@ -179,23 +179,6 @@ class PageFactory
         Utils::showPendingMessage();
         Utils::handleAgentRequests();
     } // __construct
-
-
-    /**
-     * Destructor: invokes DataSet::unlockDatasources
-     */
-    public function __destruct()
-    {
-        $dataCachePath = self::$absAppRoot.PFY_CACHE_PATH.'data/';
-        $sessionId = self::$phpSessionId;
-        $lockFiles = getDir("$dataCachePath*.lock");
-        foreach ($lockFiles as $lockFile) {
-            $sid = fileGetContents($lockFile);
-            if ($sid === $sessionId) {
-                @unlink($lockFile);
-            }
-        }
-    } // __destruct
 
 
     /**

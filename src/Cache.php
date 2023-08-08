@@ -40,7 +40,7 @@ class Cache
     {
         // In debug mode: inhibit rendering from cache. Moreover, force Kirby to rebuild cache:
         if (PageFactory::$debug) {
-            // ToDo: clear KirbyCache for current page only.
+            // ToDo: optimize, i.e. clear KirbyCache for current page only.
             self::clearKirbyCache(); // clears entire cache, good enough for now...
             self::updateCacheFlag(0);
             return;
@@ -79,6 +79,9 @@ class Cache
     private static function updateCacheFlag($t = null)
     {
         self::preparePath();
+        if ($t === null) {
+            $t = time();
+        }
         touch(LAST_CACHE_UPDATE_FILE, $t);
     } // updateCacheFlag
 
