@@ -8,12 +8,14 @@ CSS-Variables:
 
 /* === Extended Resets =============================== */
 body {
+  position: absolute;
+  inset: 0;
 	min-width: 100vw;
 //	min-height: fill-available;
 	min-height: 100vh;
 }
 
-html, body, section {
+section {
 	position: relative;
 	padding: 0;
 }
