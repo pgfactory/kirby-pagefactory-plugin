@@ -183,16 +183,7 @@ EOT;
             return;
         }
 
-        // ?logout
-        if (isset($_GET['logout'])) {
-            if ($user = kirby()->user()) {
-                $user->logout();
-            }
-            reloadAgent(); // get rid of url-command
-            return;
-        }
-
-        self::execAsAnon('printview,printpreview,print');
+        self::execAsAnon('printview,printpreview,print,logout,reset,flush,flushcache');
         self::execAsAdmin('help,localhost,timer,reset,notranslate');
     } // handleAgentRequests
 
@@ -231,6 +222,21 @@ EOT;
                     break;
                 case 'print':
                     self::print();
+                    break;
+                case 'flush':
+                case 'flushcache':
+                    if (PageFactory::$debug) {
+                        Cache::flush();
+                    }
+                    break;
+                case 'logout':
+                    if ($user = kirby()->user()) {
+                        $user->logout();
+                        reloadAgent(); // get rid of url-command
+                    }
+                    break;
+                case 'reset': // ?reset (as non-admin): harmless reset => just undo previous '?debug' commands
+                    self::resetDebugState();
                     break;
             }
         }
@@ -326,15 +332,18 @@ EOT;
             if (!isset($_GET[$cmd])) {
                 continue;
             }
+
+            // check admin-privilege:
             if (!isAdminOrLocalhost()) {
                 $str = <<<EOT
-# Help
+# ?$cmd
 
-You need to be logged in as Admin to use system commands.
+You need to be logged in as Admin to use this system command.
 EOT;
                 PageFactory::$pg->setOverlay($str, true);
-                return;
+                continue;
             }
+
             switch ($cmd) {
                 case 'help': // ?help
                     self::showHelp();
@@ -574,23 +583,25 @@ EOT;
      */
     public static function determineDebugState(): bool
     {
-        session_start();
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
         $kirbyDebugState = kirby()->option('debug');
-        if (isset($_GET['debug']) && isAdminOrLocalhost()) {
+        if (isset($_GET['debug']) && (isAdmin() || isLocalhost())) {
             $userDebugRequest = $_GET['debug'];
 
-            if (($userDebugRequest === '') || ($userDebugRequest === 'true')) {
+            if (($userDebugRequest === '') || ($userDebugRequest === 'true')) { // ?debug or ?debug=true
                 $_SESSION['pfy.debug'] = true;
-            } elseif ($userDebugRequest === 'false') {
+
+            } elseif ($userDebugRequest === 'false') { // ?debug=false -> simulate remote host without debug-mode
                 $_SESSION['pfy.debug'] = false;
                 session_write_close();
                 reloadAgent();
-            } elseif ($userDebugRequest === 'reset') {
+
+            } elseif ($userDebugRequest === 'reset') { // ?debug=reset
                 unset($_SESSION['pfy.debug']);
                 reloadAgent();
             }
-        } elseif (isset($_GET['reset'])) {
-            unset($_SESSION['pfy.debug']);
         }
         $debug = $_SESSION['pfy.debug']??null;
 
@@ -614,6 +625,21 @@ EOT;
         session_write_close();
         return $debug;
     } // determineDebugState
+
+
+    /**
+     * @return void
+     */
+    public static function resetDebugState(): void
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        if (isset($_SESSION['pfy.debug'])) {
+            unset($_SESSION['pfy.debug']);
+        }
+        self::determineDebugState();
+    } // resetDebugState
 
 
     /**

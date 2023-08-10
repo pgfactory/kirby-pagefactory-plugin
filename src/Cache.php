@@ -16,8 +16,18 @@ class Cache
     public static function flushAll(): void
     {
         rrmdir(CACHE_PATH);
+        PageFactory::$assets->prepareAssets(); // -> recompile scss files while still privileged
         rrmdir('media');
     } // flushAll
+
+
+    /**
+     * @return void
+     */
+    public static function flush(): void
+    {
+        self::updateCacheFlag(0);
+    } // flush
 
 
     /**
