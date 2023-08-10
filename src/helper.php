@@ -10,6 +10,7 @@ use Kirby\Filesystem\F;
 use Exception;
 use Usility\MarkdownPlus\MarkdownPlus;
 
+
 const FILE_BLOCKING_MAX_TIME = 500; //ms
 const FILE_BLOCKING_CYCLE_TIME = 50; //ms
 
@@ -63,11 +64,12 @@ function isAdmin(): bool
 
  /**
   * Checks whether visitor is admin or working on localhost
+  * (isLocalhost may be overridden by ?debug=false)
   * @return bool
   */
 function isAdminOrLocalhost(): bool
 {
-    return isAdmin() || isLocalhost();
+    return isAdmin() || (isLocalhost() && PageFactory::$debug);
 } // isAdminOrLocalhost
 
 
@@ -77,7 +79,7 @@ function isAdminOrLocalhost(): bool
   */
 function isLoggedinOrLocalhost(): bool
 {
-    return isLoggedIn() || isLocalhost();
+    return isLoggedIn() || (isLocalhost() && PageFactory::$debug);
 } // isLoggedinOrLocalhost
 
 
@@ -1023,8 +1025,11 @@ function writeFileLocking(string $file, mixed $content, string $type = '', bool 
     if (str_contains('yml,yaml', $type)) {
         $content = shieldNewlines($content);
         $content = Data::encode($content, $type);
+        $content = prettifyYaml($content);
+
     } elseif ($type === 'json') {
         $content = Data::encode($content, $type);
+
     } elseif (is_object($content)) {
         $content = serialize($content);
     }
@@ -1052,6 +1057,24 @@ function writeFileLocking(string $file, mixed $content, string $type = '', bool 
     }
 } // writeFileLocking
 
+ 
+function prettifyYaml(string $yamlStr): string
+{
+    if (preg_match_all('/\n(.*?:)(.+)/', $yamlStr, $m)) {
+        foreach ($m[1] as $i => $dummy) {
+            $val = trim($m[2][$i]);
+            if (str_contains($val, '#NL#')) {
+                if (preg_match('/^([\'"]).*\1$/', $val)) {
+                    $val = substr($val, 1, -2);
+                }
+                $val = "\n    ".str_replace('#NL#', "\n    ",$val);
+                $yamlStr = str_replace($m[0][$i], "\n".$m[1][$i] . " |$val", $yamlStr);
+            }
+        }
+    }
+    return $yamlStr;
+} // prettifyYaml
+ 
 
  /**
   * Replaces newline char with '\n'
@@ -1065,12 +1088,12 @@ function writeFileLocking(string $file, mixed $content, string $type = '', bool 
          if (is_array($rec)) {
              foreach ($rec as $k => $v) {
                  if (is_string($v) && str_contains($v, "\n")) {
-                     $data[$key][$k] = str_replace("\n", '\\n', $v);
+                     $data[$key][$k] = str_replace("\n", '#NL#', $v);
                  }
              }
          } else {
              if (str_contains($rec, "\n")) {
-                 $data[$key] = str_replace("\n", '\\n', $rec);
+                 $data[$key] = str_replace("\n", '#NL#', $rec);
              }
          }
      }
