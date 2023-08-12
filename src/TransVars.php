@@ -445,6 +445,9 @@ class TransVars
         $auxOptions = [];
         $supportedKeys = array_keys($config['options']);
         foreach ($options as $key => $value) {
+            if (is_string($value)) {
+                $options[$key] = self::resolveVariables($value);
+            }
             if (!in_array($key, $supportedKeys)) {
                 $auxOptions[$key] = $value;
                 unset($options[$key]);
@@ -467,6 +470,7 @@ class TransVars
     {
         $str = "<div class='pfy-help pfy-encapsulated'>\n";
         $summary = $mdCompile? markdown($config['summary'] ?? '') : '';
+        $summary = shieldStr($summary);
         $str .= "<div class='pfy-help-summary'>$summary</div>\n";
         $str .= "<h2>Arguments</h2>\n";
         $str .= "<dl class='pfy-help-argument-list'>\n";
