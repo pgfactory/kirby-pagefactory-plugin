@@ -79,7 +79,9 @@ EOT;
         TransVars::setVariable('langActive', PageFactory::$lang); // can be lang-variant, e.g. de2
         TransVars::setVariable('phpVersion', phpversion());
 
-        $webmasterEmail = TransVars::getVariable('webmaster-email');
+        if (!($webmasterEmail = PageFactory::$config['webmaster-email']??false)) {
+            $webmasterEmail = TransVars::getVariable('webmaster-email');
+        }
         if ($webmasterEmail) {
             PageFactory::$webmasterEmail = $webmasterEmail;
         } else {
