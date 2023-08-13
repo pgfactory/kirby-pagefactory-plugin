@@ -393,7 +393,7 @@ EOT;
                 self::$pg->addHead("  <meta name='$key' content='$value'>\n");
 
             } elseif ($key === 'robots') {
-                self::$pg->addHead("  <meta name='robots' content='noindex,nofollow,noarchive'>\n");
+                self::$pg->applyRobotsAttrib();
 
             } elseif ($key === 'wrapperTag') {
                 $this->wrapperTag = $value;

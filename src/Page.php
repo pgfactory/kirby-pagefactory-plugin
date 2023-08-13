@@ -21,6 +21,7 @@ class Page
     public string $scss = '';
     public string $js = '';
     public string $jq = '';
+    private string  $robots = 'false';
     public array|null $assetFiles = [];
     public array|null $asset = [];
     public bool $overrideContent = false;
@@ -118,6 +119,19 @@ class Page
     {
         $this->headInjections .= $str;
     }
+
+
+    /**
+     * @param bool|string $robots
+     * @return void
+     */
+    public function applyRobotsAttrib(bool|string $robots = 'true'): void
+    {
+        if (is_bool($robots)) {
+            $robots = $robots? 'true':'false';
+        }
+        $this->robots = $robots;
+    } // applyRobotsAttrib
 
 
     /**
@@ -404,7 +418,8 @@ EOT;
         $html .= $this->getHeaderElem('description');
         $html .= $this->getHeaderElem('keywords');
         $html .= $this->getHeaderElem('author');
-        $html .= $this->getHeaderElem('robots');
+//        $html .= $this->getHeaderElem('robots');
+        $html .= $this->getRobotsElem();
 
         // add injections that had been supplied explicitly:
         $html .= $this->headInjections;
@@ -516,11 +531,6 @@ EOT;
             $out = site()->$name()->value();
         }
 
-        if (($name === 'robots') && ($out === 'true' || $out === 'false')) {
-            // => any string value is rendered as is in robots meta tag
-            $out = 'noindex,nofollow,noarchive';
-        }
-
         if ($out) {
             if (stripos($out, '<meta') === false) {
                 $out = "\t<meta name='$name' content='$out'>\n";
@@ -533,6 +543,19 @@ EOT;
             return '';
         }
     } // getHeaderElem
+
+
+    /**
+     * @return string
+     */
+    private function getRobotsElem()
+    {
+        $val = $this->robots ?: (PageFactory::$page->robots()->value() ?? '');
+        if (is_bool($val) || $val === 'true' || $val === 'false') {
+            $val = 'noindex,nofollow,noarchive';
+        }
+        return "\t<meta name='robots' content='$val'>\n";
+    } // getRobotsElem
 
 } // Page
 
