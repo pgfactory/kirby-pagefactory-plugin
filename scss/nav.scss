@@ -379,30 +379,6 @@ $slidedownX6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-horizontal-firs
           }
       }
 
-      li.pfy-pseudo-elem {
-        > a {
-          background: var(--pfy-nav-pseudo-elem-bg-color, var(--pfy-nav-elem-bg-color, #{$nav-active-bg-color}));
-        }
-      }
-
-      // pfy-curr:
-      .pfy-curr {
-          > a {
-              color:      var(--pfy-nav-curr-txt-color, var(--pfy-nav-txt-color, #{$nav-curr-txt-color}));
-              background: #{$nav-curr-bg-color};
-              background: var(--pfy-nav-curr-bg-color,  #{$nav-curr-bg-color});
-          }
-      }
-
-      // pfy-active:
-      .pfy-active {
-          > a {
-            color:      var(--pfy-nav-active-txt-color, var(--pfy-nav-txt-color, #{$nav-active-txt-color}));
-            background: var(--pfy-nav-active-bg-color, var(--pfy-nav-elem-bg-color, #{$nav-active-bg-color}));
-          }
-      }
-
-
       // nav block:
       > ol {
           background: var(--pfy-nav-bg-color, transparent);
@@ -414,7 +390,31 @@ $slidedownX6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-horizontal-firs
               background: var(--pfy-nav-elem-bg-color, #{$nav-elem-bg-color});
           }
       }
-      .pfy-lvl-2 a {
+
+    .pfy-pseudo-elem {
+      > a {
+        background: var(--pfy-nav-pseudo-elem-bg-color, var(--pfy-nav-elem-bg-color, #{$nav-elem-bg-color}));
+      }
+    }
+
+    // pfy-curr:
+    .pfy-curr {
+      > a {
+        color:      var(--pfy-nav-curr-txt-color, var(--pfy-nav-txt-color, #{$nav-curr-txt-color}));
+        background: var(--pfy-nav-curr-bg-color,  #{$nav-curr-bg-color});
+      }
+    }
+
+    // pfy-active:
+    .pfy-active {
+      > a {
+        color:      var(--pfy-nav-active-txt-color, var(--pfy-nav-txt-color, #{$nav-active-txt-color}));
+        background: var(--pfy-nav-active-bg-color, var(--pfy-nav-elem-bg-color, #{$nav-active-bg-color}));
+      }
+    }
+
+
+    .pfy-lvl-2 a {
           color: var(--pfy-nav-sub-txt-color, var(--pfy-nav-txt-color, currentColor) );
           background: var(--pfy-nav-sub-bg-color, #{$nav-sub-bg-color});
       }
