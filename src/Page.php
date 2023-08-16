@@ -418,7 +418,6 @@ EOT;
         $html .= $this->getHeaderElem('description');
         $html .= $this->getHeaderElem('keywords');
         $html .= $this->getHeaderElem('author');
-//        $html .= $this->getHeaderElem('robots');
         $html .= $this->getRobotsElem();
 
         // add injections that had been supplied explicitly:
@@ -466,6 +465,7 @@ EOT;
         $js .= "const pageUrl = '" .        PageFactory::$pageUrl . "';\n";
         $js .= "const loggedinUser = '" .   PageFactory::$user . "';\n";
         $js .= "const currLang = '" .       PageFactory::$langCode . "';\n";
+        $js .= "const pageLoaded =          Math.floor(Date.now()/1000);\n";
         $js .= $this->js ? "$this->js\n": '';
         $js .= PageFactory::$page->js()->value() ?? '';
 
