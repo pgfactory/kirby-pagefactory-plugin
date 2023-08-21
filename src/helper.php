@@ -2487,6 +2487,9 @@ function convertToPx(string $str): float
   */
  function rrmdir(string $dir): bool
 {
+    if (is_file($dir)) {
+        $dir = dirname($dir);
+    }
     if (!file_exists($dir)) {
         return false;
     }
