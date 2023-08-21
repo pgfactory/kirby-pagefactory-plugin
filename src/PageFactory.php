@@ -202,7 +202,7 @@ class PageFactory
         if (self::$config['includeMetaFileContent']) {
             // get and compile meta-file's text field:
             $mdStr = self::$page->text()->value() . "\n\n";
-            $html = $this->compile($mdStr, $inx);
+            $html = TransVars::compile($mdStr, $inx);
         }
 
         // load content from .md files:
@@ -222,6 +222,7 @@ class PageFactory
         }
 
         Utils::prepareTemplateVariables();
+        $html = self::$pg->renderBody($html);
         self::$renderingClosed = true;
         Cache::superviseKirbyCache();
         return $html;
@@ -268,7 +269,7 @@ class PageFactory
                         $sectId = " $sectId";
                     }
                     $md = "#$md";
-                    $html1 = $this->compile($md, $inx, removeComments: false);
+                    $html1 = TransVars::compile($md, $inx, removeComments: false);
 
                     if ($i === 0) {
                         $html = $html1;
@@ -289,7 +290,7 @@ class PageFactory
                     $sectId = " $sectId";
                 }
 
-                $html = $this->compile($mdStr, $inx, removeComments: false);
+                $html = TransVars::compile($mdStr, $inx, removeComments: false);
             }
             $html = Utils::resolveUrls($html);
 
@@ -313,49 +314,6 @@ EOT;
 
         return $finalHtml;
     } // loadMdFiles
-
-
-    /**
-     * @param string $mdStr
-     * @param $inx
-     * @param $removeComments
-     * @return string
-     * @throws \Exception
-     */
-    private function compile(string $mdStr, $inx = 0, $removeComments = true): string
-    {
-        if ($removeComments) {
-            $mdStr = removeComments($mdStr);
-        }
-        if (!$mdStr) {
-            return '';
-        }
-
-        $mdStr = str_replace(['\\{{', '\\}}', '\\('], ['{!!{', '}!!}', '⟮'], $mdStr);
-        $mdStr = TransVars::resolveVariables($mdStr);
-        $mdStr = TransVars::executeMacros($mdStr);
-
-        $html = markdown($mdStr, sectionIdentifier: "pfy-section-$inx", removeComments: false);
-
-        // shield argument lists enclosed in '({' and '})'
-        if (preg_match_all('/\(\{ (.*?) }\)/x', $html, $m)) {
-            foreach ($m[1] as $i => $pattern) {
-                $str = shieldStr($pattern, 'inline');
-                $html = str_replace($m[0][$i], "('$str')", $html);
-            }
-        }
-
-        $html = str_replace(['\\{{', '\\}}', '\\('], ['{!!{', '}!!}', '⟮'], $html);
-
-        // add '|raw' to simple variables:
-        if (preg_match_all('/\{\{ ( [^}|(]+ ) }}/msx', $html, $m)) {
-            foreach ($m[1] as $i => $pattern) {
-                $str = "$pattern|raw";
-                $html = str_replace($m[0][$i], "{{ $str }}", $html);
-            }
-        }
-        return $html;
-    } // compile
 
 
     /**

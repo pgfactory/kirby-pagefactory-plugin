@@ -58,6 +58,51 @@ class TransVars
 
 
     /**
+     * @param string $mdStr
+     * @param $inx
+     * @param $removeComments
+     * @return string
+     * @throws \Exception
+     */
+    public static function compile(string $mdStr, int $inx = 0, bool|string $removeComments = true, bool $forTwig = true): string
+    {
+        if ($removeComments) {
+            $mdStr = removeComments($mdStr);
+        }
+        if (!$mdStr) {
+            return '';
+        }
+
+        $mdStr = str_replace(['\\{{', '\\}}', '\\('], ['{!!{', '}!!}', '⟮'], $mdStr);
+        $mdStr = TransVars::resolveVariables($mdStr);
+        $mdStr = TransVars::executeMacros($mdStr);
+
+        $html = markdown($mdStr, sectionIdentifier: "pfy-section-$inx", removeComments: false);
+
+        // shield argument lists enclosed in '({' and '})'
+        if (preg_match_all('/\(\{ (.*?) }\)/x', $html, $m)) {
+            foreach ($m[1] as $i => $pattern) {
+                $str = shieldStr($pattern, 'inline');
+                $html = str_replace($m[0][$i], "('$str')", $html);
+            }
+        }
+
+        $html = str_replace(['\\{{', '\\}}', '\\('], ['{!!{', '}!!}', '⟮'], $html);
+
+        if ($forTwig) {
+            // add '|raw' to simple variables:
+            if (preg_match_all('/\{\{ ( [^}|(]+ ) }}/msx', $html, $m)) {
+                foreach ($m[1] as $i => $pattern) {
+                    $str = "$pattern|raw";
+                    $html = str_replace($m[0][$i], "{{ $str }}", $html);
+                }
+            }
+        }
+        return $html;
+    } // compile
+
+
+    /**
      * Loads variables from given file
      * @param string $file
      * @return void
