@@ -24,7 +24,7 @@ class Page
     private string  $robots = 'false';
     public array|null $assetFiles = [];
     public array|null $asset = [];
-    public bool $overrideContent = false;
+    private string|false $overrideContent = false;
     public static array|null $definitions;
     private object $pfy;
     private object $trans;
@@ -138,8 +138,11 @@ class Page
      * Accepts a string which will replace the original page content.
      * @param string $str
      */
-    public function overrideContent(string $str): void
+    public function overrideContent(string $str, bool $compile = true): void
     {
+        if ($compile) {
+            $str = TransVars::compile($str);
+        }
         $this->overrideContent = $str;
     } // overrideContent
 
@@ -400,6 +403,19 @@ EOT;
 
 
     // === Rendering methods ==========================================
+    /**
+     * @param string $html
+     * @return string
+     */
+    public function renderBody(string $html): string
+    {
+        if ($this->overrideContent) {
+            $html = $this->overrideContent;
+        }
+        return $html;
+    } // renderBody
+
+
     /**
      * Assembles and renders the code that will be injected into the <head> element.
      * (Note: css-files containing '-async' will automatically be rendered for async loading)
