@@ -141,7 +141,7 @@ class Page
     public function overrideContent(string $str, bool $compile = true): void
     {
         if ($compile) {
-            $str = TransVars::compile($str);
+            $str = TransVars::compile($str, forTwig: false);
         }
         $this->overrideContent = $str;
     } // overrideContent

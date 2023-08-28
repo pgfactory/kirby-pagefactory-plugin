@@ -201,8 +201,9 @@ class PageFactory
 
         if (self::$config['includeMetaFileContent']) {
             // get and compile meta-file's text field:
-            $mdStr = self::$page->text()->value() . "\n\n";
-            $html = TransVars::compile($mdStr, $inx);
+            if ($mdStr = self::$page->text()->value()) {
+                $html = TransVars::compile($mdStr. "\n\n", $inx);
+            }
         }
 
         // load content from .md files:

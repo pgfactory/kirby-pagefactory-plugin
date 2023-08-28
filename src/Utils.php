@@ -127,12 +127,6 @@ EOT;
             TransVars::setVariable('loggedInAsUser', "<a href='{$appUrl}?login'>Login</a>");
         }
 
-        $pfyLoginButtonLabel = TransVars::getVariable('pfy-login-button-label');
-        $loginIcon = svg('site/plugins/pagefactory/assets/icons/user.svg');
-        TransVars::setVariable('loginButton', "<button class='pfy-login-button' title='$pfyLoginButtonLabel'>$loginIcon</button>");
-
-        $pfyAdminPanelLinkText = TransVars::getVariable('pfy-admin-panel-link-text');
-        TransVars::setVariable('adminPanelLink', "<a href='{$appUrl}panel' target='_blank'>$pfyAdminPanelLinkText</a>");
     } // prepareStandardVariables
 
 

@@ -11,11 +11,15 @@ clear: '<div style="clear:both;"></div>'
 
 pfy-login-icon: "<span class='pfy-icon -user_male_circle'></span>"
 
-pfy-login-button-label: Login
+pfy-login-button-title:
+    de: Anmelden
+    _: Log in
+pfy-logout-button-title:
+    de: Abmelden
+    _: Log out
 
 pfy-admin-panel-link-text:
     _: 'Admin'
-#    _: 'Admin-Panel'
 
 
 

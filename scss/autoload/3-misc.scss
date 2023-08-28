@@ -35,6 +35,8 @@
 
 
     // --- Login ------------------------------
+    a.pfy-login-button:hover,
+    a.pfy-login-button:focus,
     a.pfy-login-button {
         border-bottom: none;
     }
@@ -47,13 +49,10 @@
         width: 1.2em;
         height: 1.2em;
         margin-left: 0.5em;
+        white-space: nowrap;
         svg {
-            display: inline-block;
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 1.2em;
-            transform: translateY(-0.3em);
+          width: 1em;
+          transform: translateY(0.1em);
         }
     }
 
