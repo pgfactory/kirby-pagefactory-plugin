@@ -65,6 +65,11 @@ class Extensions
                         TransVars::loadVariables($file, doTranslate: true);
                     }
                 }
+
+                // check for and load extension's asset-definitions:
+                if (method_exists($obj, 'handleUrlRequests')) {
+                    $obj->handleUrlRequests();
+                }
             }
         }
     } // loadExtensions
