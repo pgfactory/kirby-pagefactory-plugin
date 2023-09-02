@@ -120,12 +120,44 @@ EOT;
             }
         }
 
+        $pageUrl = PageFactory::$pageUrl;
+        if (Extensions::$loadedExtensions['PageElements']??false) {
+            $loginLink = "$pageUrl?login";
+        } else {
+            $loginLink = PageFactory::$appUrl.'panel/login/';
+        }
+
         $user = kirby()->user();
         if ($user) {
-            TransVars::setVariable('loggedInAsUser', (string)$user->nameOrEmail());
+            $loginIcon = svg('site/plugins/pagefactory/assets/icons/logout.svg');
+            $username = (string)$user->nameOrEmail();
+            $logout = TransVars::getVariable('pfy-logout');
+            TransVars::setVariable('LoginLink', "<a href='$pageUrl?logout'>$logout</a>");
+
+            $label = TransVars::getVariable('pfy-logged-in-label');
+            TransVars::setVariable('loggedIn', $label.$username);
+
+            TransVars::setVariable('username', $username);
+
+            $pfyLoginButtonLabel = TransVars::getVariable('pfy-logout-button-title');
+            TransVars::setVariable('loginButton', "<div class='pfy-login-button'><a href='$pageUrl?logout' class='pfy-login-button' title='$pfyLoginButtonLabel'>$loginIcon</a></div>");
+
         } else {
-            TransVars::setVariable('loggedInAsUser', "<a href='{$appUrl}?login'>Login</a>");
+            $loginIcon = svg('site/plugins/pagefactory/assets/icons/user.svg');
+            $login = TransVars::getVariable('pfy-login');
+            TransVars::setVariable('LoginLink', "<a href='$loginLink'>$login</a>");
+
+            $label = TransVars::getVariable('pfy-not-logged-in-label');
+            TransVars::setVariable('loggedIn', $label);
+
+            TransVars::setVariable('username', '');
+
+            $pfyLoginButtonLabel = TransVars::getVariable('pfy-login-button-title');
+            TransVars::setVariable('loginButton', "<div class='pfy-login-button'><a href='$loginLink' class='pfy-login-button' title='$pfyLoginButtonLabel'>$loginIcon</a></div>");
         }
+
+        $pfyAdminPanelLinkText = TransVars::getVariable('pfy-admin-panel-link-text');
+        TransVars::setVariable('adminPanelLink', "<a href='{$appUrl}panel' target='_blank'>$pfyAdminPanelLinkText</a>");
 
     } // prepareStandardVariables
 
@@ -227,7 +259,9 @@ EOT;
                     break;
                 case 'logout':
                     if ($user = kirby()->user()) {
+                        $name = $user->nameOrEmail();
                         $user->logout();
+                        mylog("User '$name' logged out.", LOGIN_LOG_FILE);
                         reloadAgent(); // get rid of url-command
                     }
                     break;
@@ -399,9 +433,8 @@ EOT;
 [?debug](./?debug)      >> activate debug mode
 [?localhost=false](./?localhost=false)      >> mimicks running on a remote host (for testing)
 [?notranslate](./?notranslate)      >> show variables instead of translating them
- // for later:
- //[?login](./?login)      >> open login window
- //[?logout](./?logout)      >> logout user
+[?login](./?login)      >> open login window
+[?logout](./?logout)      >> logout user
 [?print](./?print)		    	>> starts printing mode and launches the printing dialog
 [?printpreview](./?printpreview)  	>> presents the page in print-view mode    
 [?reset](./?reset)		    	>> resets all state-defining information: caches, tokens, session-vars.
