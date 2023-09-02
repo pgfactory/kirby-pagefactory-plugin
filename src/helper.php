@@ -580,6 +580,9 @@ function fixPath(string $path): string
         if (str_contains($removeComments, 'e')) {    // empty lines
             $str = removeEmptyLines($str);
         }
+        if (str_contains($removeComments, 't')) {    // twig-style
+            $str = removeTwigStyleComments($str);
+        }
     }
     return $str;
 } // removeComments
@@ -701,6 +704,22 @@ function removeCStyleComments(string $str): string
     }
     return $str;
 } // removeCStyleComments
+
+
+ /**
+  * @param string $str
+  * @return string
+  * @throws Exception
+  */
+ function removeTwigStyleComments(string $str): string
+{
+ list($p1, $p2) = strPosMatching($str, 0, '{#', '#}');
+ while ($p1 !== false) {
+     $str = substr($str, 0, $p1) . substr($str, $p2+2);
+     list($p1, $p2) = strPosMatching($str, $p1, '{#', '#}');
+ }
+ return $str;
+} // removeTwigStyleComments
 
 
  /**
@@ -1057,8 +1076,12 @@ function writeFileLocking(string $file, mixed $content, string $type = '', bool 
     }
 } // writeFileLocking
 
- 
-function prettifyYaml(string $yamlStr): string
+
+ /**
+  * @param string $yamlStr
+  * @return string
+  */
+ function prettifyYaml(string $yamlStr): string
 {
     if (preg_match_all('/\n(.*?:)(.+)/', $yamlStr, $m)) {
         foreach ($m[1] as $i => $dummy) {
@@ -1499,6 +1522,7 @@ function mylog(string $str, mixed $filename = false): void
     }
     $logFile = PFY_LOGS_PATH. $filename;
     $logMaxWidth = 60;
+    logFileManager($logFile);
 
     if ((strlen($str) > $logMaxWidth) || (strpos($str, "\n") !== false)) {
         $str = log_wordwrap($str, $logMaxWidth);
@@ -1524,6 +1548,49 @@ function mylog(string $str, mixed $filename = false): void
      return $str;
  } // log_wordwrap
 
+
+ /**
+  * Manages age and size of log file: if too old or too big, renames for to archive name.
+  * Removes archive logs if older than $maxAge
+  * @param string $logFile
+  * @param int $maxSize
+  * @param int $maxAge
+  * @return void
+  */
+ function logFileManager(string $logFile, int $maxSize = 1048576, int $maxAge = 3): void
+ {
+     if (!file_exists($logFile)) {
+         return; // nothing to do
+     }
+
+     // check file size and new month:
+     if ((filesize($logFile) < $maxSize) && (date('m') === date('m',  filemtime($logFile)))) {
+        return; // nothing to do
+     }
+
+     // remove old log archives
+     if ($maxAge) {
+         $oldest = strtotime("-$maxAge months");
+         $selector = fileExt($logFile, true) . '[*';
+         foreach (glob($selector) as $file) {
+             if (filemtime($file) < $oldest) {
+                 unset($file);
+             }
+         }
+     }
+
+     // determine log archive name:
+     $ext = fileExt($logFile);
+     $basename = fileExt($logFile, true);
+     $newFileName = $basename.date('[Y-m]').".$ext";
+     while (file_exists($newFileName)) {
+         $i = ($i??0) + 1;
+         $newFileName = $basename.date('[Y-m]')."$i.$ext";
+     }
+
+     // rename current log to new archive name:
+     rename($logFile, $newFileName);
+ } // logFileManager
 
 
  /**
