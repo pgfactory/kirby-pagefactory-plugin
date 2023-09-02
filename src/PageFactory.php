@@ -22,6 +22,8 @@ define('PFY_LOGS_PATH',            'site/logs/');
 if (!defined('PFY_CACHE_PATH')) { // available in extensions
     define('PFY_CACHE_PATH', 'site/cache/pagefactory/'); // available in extensions
 }
+define('LOGIN_LOG_FILE', 'logins.txt'); // available in extensions
+
 const PFY_MKDIR_MASK =             0700; // permissions for file accesses by PageFactory
 const BLOCK_SHIELD =               'div shielded';
 const INLINE_SHIELD =              'span shielded';
@@ -150,8 +152,6 @@ class PageFactory
         self::$pg = new Page($this);
         self::$pg->set('pageParams', self::$page->content()->data());
 
-        Extensions::loadExtensions();
-
         self::$timezone = Utils::getTimezone();
         self::$locale = Utils::getCurrentLocale();
 
@@ -174,6 +174,8 @@ class PageFactory
             self::$user = (string)$user->name();
         }
         $this->autoSplitSections = self::$config['autoSplitSectionsOnH1'] ?? false;
+
+        Extensions::loadExtensions();
 
         preparePath(PFY_LOGS_PATH);
         Utils::showPendingMessage();
@@ -249,7 +251,7 @@ class PageFactory
             if (str_contains('#-_', basename($file)[0])) {
                 continue;
             }
-            $mdStr = getFile($file);
+            $mdStr = getFile($file, 'cstyle,emptylines,twig');
             $this->sectionsCss = '';
             $this->sectionsScss = '';
             if (!$this->extractFrontmatter($mdStr)) {
