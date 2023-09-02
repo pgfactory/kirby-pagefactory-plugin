@@ -67,7 +67,7 @@ class TransVars
     public static function compile(string $mdStr, int $inx = 0, bool|string $removeComments = true, bool $forTwig = true): string
     {
         if ($removeComments) {
-            $mdStr = removeComments($mdStr);
+            $mdStr = removeComments($mdStr, 'c,t');
         }
         if (!$mdStr) {
             return '';
@@ -554,6 +554,7 @@ EOT;
             $options = $args;
         } else {
             $args = unshieldStr($args, true);
+            $args = trim($args);
             $options = parseArgumentStr("$args,");
         }
         foreach ($config['options'] as $key => $value) {
@@ -566,8 +567,9 @@ EOT;
         }
         foreach ($options as $key => $value) {
             if (is_int($key) && $value) {
-                $key = array_keys($config['options'])[$key];
-                $options[$key] = fixDataType($value);
+                $key1 = array_keys($config['options'])[$key];
+                $options[$key1] = fixDataType($value);
+                unset($options[$key]);
             }
         }
         return $options;
@@ -623,6 +625,7 @@ EOT;
         $html .= "<ul>\n";
         return $html;
     } // renderTwigFunctions
+
 
     private static function handleShowSource(string $args, array|string $src, string $macroName): array
     {
