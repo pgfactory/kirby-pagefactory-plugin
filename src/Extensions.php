@@ -66,7 +66,7 @@ class Extensions
                     }
                 }
 
-                // check for and load extension's asset-definitions:
+                // check for and load extension's url-request handlers:
                 if (method_exists($obj, 'handleUrlRequests')) {
                     $obj->handleUrlRequests();
                 }
