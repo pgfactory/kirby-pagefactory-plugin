@@ -20,6 +20,7 @@ class Page
     public string $css = '';
     public string $scss = '';
     public string $js = '';
+    public string $jsWhenReady = '';
     public string $jq = '';
     private string  $robots = 'false';
     public array|null $assetFiles = [];
@@ -362,7 +363,6 @@ EOT;
     public function addJq(string $str):void
     {
         $this->jq .= trim($str, "\t\n ")."\n";
-        $this->requireFramework();
     }
 
 
@@ -372,18 +372,17 @@ EOT;
      */
     public function setJsReady(string $str):void
     {
-        $this->jq = trim($str, "\t\n ")."\n";
+        $this->jsWhenReady = trim($str, "\t\n ")."\n";
     }
 
 
     /**
-     * Like setJqReady, but does not overwrite previous injection requests
+     * Like setJsReady, but does not overwrite previous injection requests
      * @param string $str
      */
     public function addJsReady(string $str):void
     {
-        $this->jq .= trim($str, "\t\n ")."\n";
-        $this->requireFramework();
+        $this->jsWhenReady .= trim($str, "\t\n ")."\n";
     }
 
 
@@ -503,16 +502,22 @@ $js
 EOT;
         }
 
+        $jsWhenReady = $this->jsWhenReady ? "$this->jsWhenReady\n": '';
+        $jsWhenReady .= PageFactory::$page->jsWhenReady()->value() ?? '';
         $jq = $this->jq ? "$this->jq\n": '';
         $jq .= PageFactory::$page->jq()->value() ?? '';
         if ($jq) {
             $this->requireFramework();
-            $jq = "\t\t\t".str_replace("\n", "\n\t\t\t", rtrim($jq, "\n"));
+        }
+
+        $jsWhenReady .= $jq;
+        if ($jsWhenReady) {
+            $jsWhenReady = "\t\t\t".str_replace("\n", "\n\t\t\t", rtrim($jsWhenReady, "\n"));
             $jqInjection .= <<<EOT
 
     <script>
 document.addEventListener('DOMContentLoaded', function() {
-$jq
+$jsWhenReady
 });
 </script>
 
