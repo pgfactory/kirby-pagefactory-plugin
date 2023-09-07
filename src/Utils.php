@@ -79,15 +79,21 @@ EOT;
         TransVars::setVariable('langActive', PageFactory::$lang); // can be lang-variant, e.g. de2
         TransVars::setVariable('phpVersion', phpversion());
 
-        if (!($webmasterEmail = PageFactory::$config['webmaster-email']??false)) {
-            $webmasterEmail = TransVars::getVariable('webmaster-email');
+        if (!($webmasterEmail = PageFactory::$config['webmaster_email']??false)) {
+            $webmasterEmail = TransVars::getVariable('webmaster_email');
         }
         if ($webmasterEmail) {
             PageFactory::$webmasterEmail = $webmasterEmail;
         } else {
             // default webmaster email derived from current domain:
-            PageFactory::$webmasterEmail = $webmasterEmail = 'webmaster@' . preg_replace('|^https?://([\w.-]+)(.*)|', "$1", site()->url());
-            TransVars::setVariable('webmaster-email', $webmasterEmail);
+            $domain = preg_replace('|^https?://([\w.-]+)(.*)|', "$1", site()->url());
+
+            // for localhost: create pseudo
+            if (str_contains($domain, 'localhost')) {
+                $domain .= '.net';
+            }
+            PageFactory::$webmasterEmail = $webmasterEmail = 'webmaster@' . $domain;
+            TransVars::setVariable('webmaster_email', $webmasterEmail);
         }
         $lnk = new Link();
         $webmasterLink = $lnk->render([
@@ -880,14 +886,15 @@ EOT;
             'body' => $body,
         ];
 
-        if (PageFactory::$isLocalhost) {
-            $props['body'] = "\n\n" . $props['body'];
-            $text = var_r($props);
-            $html = "<pre>$debugInfo:\n$text</pre>";
-            PageFactory::$pg->setOverlay($html);
-        } else {
-            new PHPMailer($props);
-        }
+        new PHPMailer($props);
+//        if (PageFactory::$isLocalhost) {
+//            $props['body'] = "\n\n" . $props['body'];
+//            $text = var_r($props);
+//            $html = "<pre>$debugInfo:\n$text</pre>";
+//            PageFactory::$pg->setOverlay($html);
+//        } else {
+//            new PHPMailer($props);
+//        }
     } // sendMail
 
 

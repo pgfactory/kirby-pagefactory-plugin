@@ -22,7 +22,7 @@ return [
     'pgfactory.pagefactory.options' => [
         'default-nav'   => true,            // set to true when using the built-in nav() function
         // 'defaultLanguage' => 'de',
-        // 'webmaster-email'  => 'webmaster@domain.net',
+        // 'webmaster_email'  => 'webmaster@domain.net',
         // 'maxCacheAge'     => PFY_MAX_CACHE_AGE,          // 1 day
         // 'timezone'		=> 'Europe/Zurich', // Override PageFactory's guess if necessary
     ],
