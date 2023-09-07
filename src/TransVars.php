@@ -153,33 +153,33 @@ class TransVars
      * @param bool $varNameIfNotFound
      * @return string
      */
-    public static function getVariable(string $varName0, bool $varNameIfNotFound = false, string $lang = ''): mixed
+    public static function getVariable(string $varName, bool $varNameIfNotFound = false, string $lang = ''): mixed
     {
-        $varName = camelCase($varName0);
+        $varName1 = camelCase($varName);
         $out = null;
 
         // check for lang-selector, e.g. 'varname.de':
-        if (preg_match('/(.*)\.(\w+)$/', $varName, $m)) {
-            $varName = $m[1];
+        if (preg_match('/(.*)\.(\w+)$/', $varName1, $m)) {
+            $varName1 = $m[1];
             $lang = $m[2]?:$lang;
-            $out = self::translateVariable($varName, $lang);
+            $out = self::translateVariable($varName1, $lang);
             if ($out === false) {
-                $varName1 = preg_replace('/\.\w+$/', '', $varName0);
+                $varName1 = preg_replace('/\.\w+$/', '', $varName);
                 $out = self::translateVariable($varName1, $lang);
             }
         } else {
-            if (!isset(self::$variables[$varName])) {
+            if (!isset(self::$variables[$varName1])) {
                 try {
-                    $out = PageFactory::$page->$varName()->value; // try to get Kirby field
+                    $out = PageFactory::$page->$varName1()->value; // try to get Kirby field
                 } catch (\Exception $e) {
-                    $out = $varName;
+                    $out = $varName1;
                 }
             } else {
-                $out = self::$variables[$varName];
+                $out = self::$variables[$varName1];
             }
         }
         if ($out === null) {
-            $out = $varNameIfNotFound ? $varName0: '';
+            $out = $varNameIfNotFound ? $varName: '';
         } elseif (is_array($out)) {
             $out = reset($out);
         }
