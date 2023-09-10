@@ -66,7 +66,7 @@ class DataSet
      */
     public function __construct(string $file, array $options = [])
     {
-        $this->includeMeta =            $options['includeMeta'] ?? false;
+        $this->includeMeta =            $options['includeMeta'] ?? null;
         $this->readWriteMode =          $options['readWriteMode'] ?? true;
         $this->obfuscateRecKeys =       $options['obfuscateRecKeys'] ?? false;
         $this->maxRecLockTime =         (isset($options['maxRecLockTime']) && $options['maxRecLockTime']) ?
@@ -1291,7 +1291,7 @@ class DataSet
             $masterFileRecKeyType = 'index';
         }
 
-        $includeMeta = $this->includeMeta?:'_reckey';
+        $includeMeta = ($this->includeMeta !== null) ? $this->includeMeta :'_reckey';
         try {
             // sort:
             if ($recKeySort) {
