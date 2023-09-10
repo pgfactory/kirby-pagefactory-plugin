@@ -338,9 +338,12 @@ function updateDataCache(string $file, mixed $data, string $tag = '')
   */
 function cacheFileName(string $file, string $tag = ''): string
 {
+    if ($file[0] === '~') {
+        $file = resolvePath($file);
+    }
     $cacheFile = localPath($file);
     $cacheFile = str_replace('/', '_', $cacheFile);
-    return PFY_CACHE_PATH . $cacheFile . $tag .'.cache';
+    return PFY_CACHE_PATH . "data/$cacheFile$tag.cache";
 } // cacheFileName
 
 
@@ -930,7 +933,7 @@ function resolvePath(string $path, bool $returnAbsPath = false, bool $relativeTo
         $path1 = preg_replace('|/.*|', '', substr($path, 1));
 
         // '~assets/' is an exception: it shall point to 'content/assets/' rather than 'assets/':
-        if (!str_contains( 'assets,config', $path1) && (strpos(KIRBY_ROOT_PATTERNS, ",$path1,") !== false)) {
+        if (!str_contains( 'assets,config,cache', $path1) && (strpos(KIRBY_ROOT_PATTERNS, ",$path1,") !== false)) {
             $path = KIRBY_ROOTS[$path1].substr($path, strlen($path1)+1);
             return $path;
         }
@@ -959,6 +962,7 @@ function resolvePath(string $path, bool $returnAbsPath = false, bool $relativeTo
             '~media/' => $appRoot . 'media/',
             '~assets/' => $appRoot . 'content/assets/',
             '~config/' => $appRoot . 'site/config/',
+            '~cache/' => $appRoot . 'site/cache/pagefactory/',
             '~data/' => $appRoot . 'site/custom/data/',
             '~page/' => $pageRoot,
             '~pagefactory/' => $appRoot . 'site/plugins/pagefactory/assets/',
@@ -1674,6 +1678,10 @@ function parseArgumentStr(string $str, string $delim = ',', mixed $superBrackets
         } else {
             $rest = ltrim(substr($rest, 1));
             $value = parseArgValue($rest, $delim);
+
+            // handle patterns like "$[file]":
+            $value = handleDataImportPattern($value);
+
             $json .= "$key: $value,";
         }
         $rest = ltrim($rest);
@@ -1780,6 +1788,65 @@ function parseArgValue(string &$rest, string $delim): mixed
     $rest = preg_replace("/$pattern/", '', $rest);
     return $value;
 } // parseArgValue
+
+ 
+function handleDataImportPattern(string $str): string
+{
+    if (preg_match('/(?<!\\\) \$ (\[|{) (.*?) (\]|}) /x', $str, $m)) {
+        $file = resolvePath($m[2]);
+        $cachFile = str_replace('/','_',dirname($file)).'_'.base_name($file,false).'.txt';
+        $cachFile = resolvePath('~cache/data/'.$cachFile);
+        $tFile = fileTime($file);
+        $tCache = fileTime($cachFile);
+        if ($tCache > $tFile) {
+            // get cached value:
+            $s = file_get_contents($cachFile);
+        } else {
+            // determine value:
+            $mode = $m[1];
+            $s = extractPlainArray($file, $mode);
+
+            // save value in cache:
+            preparePath($cachFile);
+            file_put_contents($cachFile, $s);
+        }
+        $str = str_replace($m[0], $s, $str);
+    }
+    return $str;
+} // handleDataImportPattern
+
+
+function extractPlainArray($file, $mode)
+{
+    $s = getFile($file);
+    if (str_starts_with($s, '[{')) {
+        if (file_exists($file)) {
+            $data = Data::read($file);
+            if ($mode === '[') {            // pattern $[file]
+                $rec0 = reset($data);
+                if ($rec0) {
+                    $k = array_keys($rec0)[0];
+                    $arr = array_map(function ($e) use ($k) {
+                        return $e[$k] ?? '';
+                    }, $data);
+                    $s = json_encode($arr);
+                }
+
+            } else {                        // pattern ${file}
+                $arr = [];
+                foreach ($data as $e) {
+                    if (isset($e['key'])) {
+                        $arr[$e['key']] = $e['value'] ?? '';
+                    }
+                }
+                $s = json_encode($arr);
+            }
+        }
+    }
+    $s = str_replace('"', '\'', $s);
+    $s = trim($s, '[]{}');
+    return $s;
+} // extractPlainArray
 
 
  /**
