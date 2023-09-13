@@ -1235,6 +1235,9 @@ class DataSet
         $modified = false;
         // loop over loaded data, fix recKey and convert it to a DataRec:
         foreach ($data as $key => $rec) {
+            if (!is_array($rec)) {
+                throw new \Exception("Incompatible data: file '$this->file' does not contain an array of records.");
+            }
             if (isHash($key) && ($this->masterFileRecKeyType !== 'origKey')) {
                 $recKeyToUse = $key;
             } else {
