@@ -2481,7 +2481,7 @@ function translateToClassName(string $str, bool $handleLeadingNonChar = true): s
   */
  function camelCase(string $str): string
 {
-    $str = str_replace(['-','_'], '', ucwords(str_replace(' ','-', $str), '-'));
+    $str = str_replace('-', '', ucwords(str_replace(' ','-', $str), '-'));
     return lcfirst($str);
 }    // camelCase
 
