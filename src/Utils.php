@@ -887,14 +887,15 @@ EOT;
         ];
 
         new PHPMailer($props);
-//        if (PageFactory::$isLocalhost) {
-//            $props['body'] = "\n\n" . $props['body'];
-//            $text = var_r($props);
-//            $html = "<pre>$debugInfo:\n$text</pre>";
-//            PageFactory::$pg->setOverlay($html);
-//        } else {
-//            new PHPMailer($props);
-//        }
+        mylog("$subject\n\n$body", 'mail-log.txt');
+        //        if (PageFactory::$isLocalhost) {
+        //            $props['body'] = "\n\n" . $props['body'];
+        //            $text = var_r($props);
+        //            $html = "<pre>$debugInfo:\n$text</pre>";
+        //            PageFactory::$pg->setOverlay($html);
+        //        } else {
+        //            new PHPMailer($props);
+        //        }
     } // sendMail
 
 

@@ -15,8 +15,6 @@ const DEFAULT_MAX_DB_BLOCKING_TIME  = 5; // ms
 const DEFAULT_MAX_REC_LOCK_TIME     = 600; // sec
 const DEFAULT_MAX_REC_BLOCKING_TIME = 2; // sec
 
-const DOWNLOAD_PATH                 = 'download/';
-const DOWNLOAD_PATH_LINK_FILE       = '.#download.link';
 
 
 class DataSet
@@ -1132,18 +1130,19 @@ class DataSet
             $downloadFilename = base_name($basename, false);
         }
         // determine download path (i.e. random hash static per page):
-        $dlLinkFile = resolvePath('~page/'.DOWNLOAD_PATH_LINK_FILE);
+        $dlLinkFile = resolvePath('~cache/links/'.str_replace('/','_', $basename)).'.txt';
+        preparePath($dlLinkFile);
         if (file_exists($dlLinkFile)) {
             $dlHash = file_get_contents($dlLinkFile);
+            if (filemtime($dlLinkFile) < (time() - 600)) { // max file age: 10 min
+                $dlHash = createHash(8, false, true);
+                file_put_contents($dlLinkFile, $dlHash);
+            }
         } else {
             $dlHash = createHash(8, false, true);
             file_put_contents($dlLinkFile, $dlHash);
         }
-        // define time dependent sub-folder:
-        $ts = filemtime($this->file);
-        $ts = date('Ymd_Hi_', $ts);
-        // assemble path and filename:
-        $file = DOWNLOAD_PATH."$dlHash/$ts/$downloadFilename.";
+        $file = DOWNLOAD_PATH."$dlHash/$downloadFilename.";
         return $file;
     } // getDownloadFilename
 

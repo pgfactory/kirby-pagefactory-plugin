@@ -22,7 +22,8 @@ define('PFY_LOGS_PATH',            'site/logs/');
 if (!defined('PFY_CACHE_PATH')) { // available in extensions
     define('PFY_CACHE_PATH', 'site/cache/pagefactory/'); // available in extensions
 }
-define('LOGIN_LOG_FILE', 'logins.txt'); // available in extensions
+define('LOGIN_LOG_FILE',           'logins.txt'); // available in extensions
+define('DOWNLOAD_PATH',            'download/');
 
 const PFY_MKDIR_MASK =             0700; // permissions for file accesses by PageFactory
 const BLOCK_SHIELD =               'div shielded';

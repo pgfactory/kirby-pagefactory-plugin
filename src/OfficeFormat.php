@@ -36,7 +36,7 @@ class OfficeFormat
     public function export(string $file): void
     {
         $this->exportToXlsx($file);
-        $this->exportToOds($file);
+        //        $this->exportToOds($file);
     } // export
 
 
@@ -50,12 +50,12 @@ class OfficeFormat
     } // exportToXlsx
 
 
-    public function exportToOds(string $file): void
-    {
-        $file = resolvePath($file);
-        $file = fileExt($file, true).'.ods';
-        preparePath($file);
-        $writer = new Ods($this->spreadsheet);
-        $writer->save($file);
-    } // exportToOds
+    //    public function exportToOds(string $file): void
+    //    {
+    //        $file = resolvePath($file);
+    //        $file = fileExt($file, true).'.ods';
+    //        preparePath($file);
+    //        $writer = new Ods($this->spreadsheet);
+    //        $writer->save($file);
+    //    } // exportToOds
 } // OfficeFormat

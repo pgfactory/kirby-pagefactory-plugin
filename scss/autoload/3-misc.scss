@@ -25,6 +25,7 @@
         padding: 5px 10px;
         background: var(--pfy-pre-background, #f3f5e3);
         outline: 1px solid var(--pfy-pre-outline-color, #aaa);
+        outline-offset: -1px;
     }
     code {
         font-size: 90%;
