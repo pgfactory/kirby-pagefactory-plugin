@@ -658,6 +658,7 @@ EOT;
             $args = preg_replace('/\*(.*?)\*/', "$1", $args);
             
             if ($reveal) {
+                PageFactory::$pg->addAssets('REVEAL');
                 $src = <<<EOT
 <div class="pfy-reveal-source">
 <div class="pfy-reveal-controller-wrapper-src pfy-reveal-controller-wrapper">
