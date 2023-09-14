@@ -629,8 +629,14 @@ EOT;
 
     private static function handleShowSource(string $args, array|string $src, string $macroName): array
     {
-        if (preg_match('/,?\s*showSource:\s*true/', $args, $m)) {
+        if (preg_match('/,?\s*showSource:\s*(\w+)/', $args, $m)) {
             $args = str_replace($m[0], '', $args);
+            $optArg = $m[1];
+            if ($optArg === 'false') {
+                return array($args, '');
+            } 
+            $reveal = ($optArg === 'reveal');
+            
             $src = str_replace(["''", ',,', '->', '<'], ["\\''", "\\,,", "\\->", '&lt;'], $args);
             $src = markdownParagrah($src);
 
@@ -650,6 +656,22 @@ EOT;
             // remove some highlighting in args:
             $args = preg_replace('/\*\*(.*?)\*\*/', "$1", $args);
             $args = preg_replace('/\*(.*?)\*/', "$1", $args);
+            
+            if ($reveal) {
+                $src = <<<EOT
+<div class="pfy-reveal-source">
+<div class="pfy-reveal-controller-wrapper-src pfy-reveal-controller-wrapper">
+<input id="pfy-reveal-controller-src" class="pfy-reveal-controller" type="checkbox" data-reveal-target="#pfy-reveal-container-src" data-icon-closed="▷" data-icon-open="▷" aria-expanded="false">
+<label for="pfy-reveal-controller-src">{{ pfy-show-source-code }}</label>
+</div>
+
+<div id='pfy-reveal-container-src' class="pfy-reveal-container" aria-hidden="true">
+$src
+</div>
+</div>
+
+EOT;
+            }
         }
         return array($args, $src);
     } // handleShowSource
