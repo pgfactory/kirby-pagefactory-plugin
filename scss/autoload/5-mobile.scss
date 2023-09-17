@@ -67,6 +67,7 @@
             height: calc(var(--pfy-mobile-header-height, #{$mobile-header-height}) * 0.6);
             left: calc(#{$mobile-header-height} * 0.15);
             cursor: pointer;
+            color: var(--pfy-mobile-header-txt-color, #{$mobile-header-txt-color});
         }
     }
 
