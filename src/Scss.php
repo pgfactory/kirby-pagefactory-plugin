@@ -201,7 +201,11 @@ class Scss
             if (preg_match('/\{ \s* }/xms', $str)) {
                 $css = substr($css, 0, $p1).substr($css, $p2);
             }
-            $p1 = strpos($css, '}', $p2);
+            if ($p2 < strlen($css)) {
+                $p1 = strpos($css, '}', $p2);
+            } else {
+                break;
+            }
         }
         return $css;
     } // removeEmptyRules
