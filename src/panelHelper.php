@@ -17,7 +17,7 @@ if (!defined('PFY_PAGE_META_FILE_BASENAME')) {
  */
 function onPanelLoad($path)
 {
-    $allowNonPfyPages = kirby()->option('allowNonPfyPages');
+    $allowNonPfyPages = kirby()->option('debug_checkMetaFiles');
 
     $path = str_replace(['+', 'panel/pages/'], ['/', ''], $path);
     if (!($pg = page($path))) {
@@ -71,14 +71,16 @@ function onPanelLoad($path)
 
 /**
  * Checks all page folders, creates metafiles for all supported languages if missing.
- * If it's missing and allowNonPfyPages is true, an exception is thrown.
+ * If it's missing and debug_checkMetaFiles is true, an exception is thrown.
  * If multilang is active, missing lang variantes are created based on the primary lang.
  * @return void
  * @throws Exception
  */
-function checkMetaFiles()
+function checkMetaFiles(): void
 {
-    $allowNonPfyPages = kirby()->option('allowNonPfyPages');
+    if (!kirby()->option('pgfactory.pagefactory.options.debug_checkMetaFiles')) {
+        return;
+    }
 
     if (!$language = kirby()->language()) {
         if (!$language = kirby()->defaultLanguage()) {
@@ -107,11 +109,7 @@ function checkMetaFiles()
                     rename($primaryMetaFilename0, $primaryMetaFilename);
                 }
             } else {
-                if ($allowNonPfyPages) {
-                    continue;
-                } else {
-                    throw new Exception("Meta-file missing in page folder (i.e. $primaryMetaFilename)");
-                }
+                throw new Exception("Meta-file missing in page folder (i.e. $primaryMetaFilename)");
             }
         }
         foreach ($languages as $lang) {
