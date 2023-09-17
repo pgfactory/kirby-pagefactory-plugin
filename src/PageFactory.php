@@ -41,18 +41,18 @@ const DEFAULT_FRONTEND_FRAMEWORK_URLS = ['js' => PFY_ASSETS_URL.'js/jquery-3.7.0
 define('PFY_PAGE_META_FILE_BASENAME','z'); // 'define' required by site/plugins/pagefactory/index.php
 
 define('OPTIONS_DEFAULTS', [
-    'screenSizeBreakpoint'          => 480,
-    'defaultLanguage'               => 'en',
-    'allowNonPfyPages'              => false, // -> if true, Pagefactory will skip checks for presence of metafiles
+    'defaultLanguage'               => 'en',  // default language used, if none is available from Kirby
+    'default-nav'                   => true,  // automatically loads NAV assets
     'externalLinksToNewWindow'      => true,  // -> used by Link() -> whether to open external links in new window
-    'imageAutoQuickview'            => true,  // -> used by Img() macro
-    'imageAutoSrcset'               => true,  // -> used by Img() macro
-    'divblockChars'                => '@%',  // possible alternative: ':$@%'
+    'imageAutoQuickview'            => true,  // -> default for Img() macro
+    'imageAutoSrcset'               => true,  // -> default for Img() macro
     'includeMetaFileContent'        => true,  // -> option for website using '(include: *.md)' in metafile
                                               // e.g. when converting from MdP site to Pfy
-    'activateH1Sections'            => false, //
-    'sourceWrapperTag'              => 'section', //
-    'sourceWrapperClass'            => '', //
+    'screenSizeBreakpoint'          => 480,   // Value used by JS to switch body classes ('pfy-large-screen' and 'pfy-small-screen')
+    'sourceWrapperTag'              => 'section', // tag used to wrap .md content
+    'sourceWrapperClass'            => '',   // class applied to sourceWrapperTag
+    'webmaster_email'               => '', // email address of webmaster
+    'maxCacheAge'                   => 86400, // [s] max time after which Kirby's file cache is automatically flushed
     // 'timezone' => 'Europe/Zurich', // PageFactory tries to guess the timezone - you can override this manually
 
     // optionally define files to be used as css/js framework (e.g. jQuery or bootstrap etc):
@@ -63,7 +63,9 @@ define('OPTIONS_DEFAULTS', [
 
 
     // Options for dev phase:
-    'debug_compileScssWithLineNumbers'  => true,   // line numbers of original SCSS file
+    'debug_checkMetaFiles'   => false,   // if true, Pagefactory will skip checks for presence of metafiles
+    'debug_compileScssWithSrcRef'   => false,   // injects ref to source SCSS file&line in compiled CSS
+    //'debug_logIP'  // -> handled in ajax_server.php
 ]);
 
 
@@ -177,6 +179,8 @@ class PageFactory
         $this->autoSplitSections = self::$config['autoSplitSectionsOnH1'] ?? false;
 
         Extensions::loadExtensions();
+
+        TransVars::loadCustomVars();
 
         preparePath(PFY_LOGS_PATH);
         Utils::showPendingMessage();
@@ -373,6 +377,9 @@ EOT;
 
             } elseif ($key === 'js') {
                 self::$pg->addJs($value);
+
+            } elseif ($key === 'jsready') {
+                self::$pg->addJsReady($value);
 
             } elseif ($key === 'jq') {
                 self::$pg->addJq($value);
