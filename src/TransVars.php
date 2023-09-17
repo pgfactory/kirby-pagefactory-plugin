@@ -27,17 +27,11 @@ class TransVars
         self::$lang = PageFactory::$lang ?: $lang;
         self::$langCode = PageFactory::$langCode ?: $lang;
 
-        // load variable definitions from specified folders:
-        $varLocations = [
-            'site/plugins/pagefactory/variables/',
-            'site/custom/variables/',
-        ];
-        foreach ($varLocations as $dir) {
-            $files = getDir("$dir*.yaml");
-            if (is_array($files)) {
-                foreach ($files as $file) {
-                    self::loadVariables($file);
-                }
+        // load PFY's standard variable definitions:
+        $files = getDir('site/plugins/pagefactory/variables/*.yaml');
+        if (is_array($files)) {
+            foreach ($files as $file) {
+                self::loadVariables($file);
             }
         }
 
@@ -48,16 +42,12 @@ class TransVars
             }
         }
 
-        // compile currently active set of variables and their values:
-        foreach (self::$transVars as $key => $rec) {
-            self::$variables[camelCase($key)] = self::translateVariable($key);
-        }
-
         self::loadMacros();
     } // init
 
 
     /**
+     * Resolves given string: variables and macros, finally md-compiles, optionally for input to Twig
      * @param string $mdStr
      * @param $inx
      * @param $removeComments
@@ -103,6 +93,24 @@ class TransVars
 
 
     /**
+     * Loads custom variables from 'site/custom/variables/'
+     * @return void
+     * @throws InvalidArgumentException
+     */
+    public static function loadCustomVars(): void
+    {
+        // load custom variable definitions:
+        $files = getDir('site/custom/variables/*.yaml');
+        if (is_array($files)) {
+            foreach ($files as $file) {
+                self::loadVariables($file);
+            }
+        }
+        self::compileVars();
+    } // loadCustomVars
+
+
+    /**
      * Loads variables from given file
      * @param string $file
      * @return void
@@ -112,7 +120,13 @@ class TransVars
     {
         $transVars = loadFile($file);
         if ($transVars) {
-            self::$transVars = array_merge_recursive(self::$transVars, $transVars);
+            if (self::$transVars) {
+                foreach ($transVars as $key => $value) {
+                    self::$transVars[$key] = $value;
+                }
+            } else {
+                self::$transVars = $transVars;
+            }
 
             if ($doTranslate) {
                 foreach ($transVars as $key => $rec) {
@@ -156,7 +170,6 @@ class TransVars
     public static function getVariable(string $varName, bool $varNameIfNotFound = false, string $lang = ''): mixed
     {
         $varName1 = camelCase($varName);
-        $out = null;
 
         // check for lang-selector, e.g. 'varname.de':
         if (preg_match('/(.*)\.(\w+)$/', $varName1, $m)) {
@@ -185,33 +198,10 @@ class TransVars
         }
         return $out;
     } // getVariable
-    
-
-    /**
-     * Defines variable 'pfy-lang-selection', which expands to a language selection block,
-     * one language icon per supported language
-     */
-    public static function renderLanguageSelector(): string
-    {
-        $out = '';
-        if (sizeof(PageFactory::$supportedLanguages) > 1) {
-            foreach (PageFactory::$supportedLanguages as $lang) {
-                $langCode = substr($lang, 0, 2);
-                $text = self::getVariable("pfy-lang-select-$langCode");
-                if ($lang === PageFactory::$lang) {
-                    $out .= "<span class='pfy-lang-elem pfy-active-lang $langCode'><span>$text</span></span> ";
-                } else {
-                    $title = self::getVariable("pfy-lang-select-title-$langCode");
-                    $out .= "<span class='pfy-lang-elem $langCode'><a href='?lang=$lang' title='$title'>$text</a></span> ";
-                }
-            }
-            $out = "<span class='pfy-lang-selection'>$out</span>\n";
-        }
-        return $out;
-    } // renderLanguageSelector
 
 
     /**
+     * From a variable definition, selects the value for the current (or requested) language
      * @param string $varName
      * @param string $lang
      * @return string|bool
@@ -277,6 +267,7 @@ class TransVars
 
 
     /**
+     * Synonym for resolveVariables()
      * @param $str
      * @return string
      */
@@ -288,6 +279,7 @@ class TransVars
 
     /**
      * Replaces all occurences of {{ }} patterns with variable contents.
+     * -> does NOT execute macros.
      * @param string $str
      * @return string
      */
@@ -312,7 +304,7 @@ class TransVars
             }
 
             // catch in-text assignments, e.g. {{ n=3 }}:
-            if (preg_match('/^(.*?) = (.*)/', $key, $m)) {
+            if (preg_match('/^([\w-]*?)=(.*)/', $key, $m)) {
                 $key1 = trim($m[1]);
                 $value = trim($m[2]);
                 self::setVariable($key1, $value);
@@ -361,6 +353,7 @@ class TransVars
 
 
     /**
+     * Executes all macros found in given string.
      * @param $str
      * @return string
      * @throws \Exception
@@ -414,6 +407,8 @@ class TransVars
 
 
     /**
+     * Loads all macro definitions in this plug-in's as well as custom folders.
+     * -> Does NOT load macros in extensions.
      * @return void
      */
     private static function loadMacros(): void
@@ -468,6 +463,9 @@ class TransVars
             // render as unprocessed (?notranslate):
         } elseif (TransVars::$noTranslate) {
             $macroName1 = ltrim($macroName, '_');
+            if (is_array($args)) {
+                $args = implode(',', $args);
+            }
             return "<span class='pfy-untranslated'>&#123;&#123; $macroName1('$args') &#125;&#125;</span>";
         }
 
@@ -627,6 +625,27 @@ EOT;
     } // renderTwigFunctions
 
 
+    /**
+     * Updates self::$variables to contain key:value tuples for the current language.
+     * @return void
+     */
+    private static function compileVars(): void
+    {
+        // compile currently active set of variables and their values:
+        foreach (self::$transVars as $key => $rec) {
+            self::$variables[camelCase($key)] = self::translateVariable($key);
+        }
+    } // compileVars
+
+
+    /**
+     * Renders the macro call in presentable form. As a dropdown box, if requested
+     * @param string $args
+     * @param array|string $src
+     * @param string $macroName
+     * @return array
+     * @throws \Exception
+     */
     private static function handleShowSource(string $args, array|string $src, string $macroName): array
     {
         if (preg_match('/,?\s*showSource:\s*(\w+)/', $args, $m)) {
@@ -676,6 +695,5 @@ EOT;
         }
         return array($args, $src);
     } // handleShowSource
-
 
 } // TwigVars
