@@ -71,7 +71,7 @@ EOT;
 
         TransVars::setVariable('smallScreenHeader', $smallScreenHeader);
 
-        TransVars::setVariable('langSelection', TransVars::renderLanguageSelector());
+        TransVars::setVariable('langSelection', self::renderLanguageSelector());
         TransVars::setVariable('pageUrl', PageFactory::$pageUrl);
         TransVars::setVariable('appUrl', $appUrl);
         TransVars::setVariable('hostUrl', PageFactory::$hostUrl);
@@ -133,8 +133,8 @@ EOT;
             $loginLink = PageFactory::$appUrl.'panel/login/';
         }
 
-        $user = kirby()->user();
-        if ($user) {
+        $user = \Usility\MarkdownPlus\Permission::checkPageAccessCode();
+        if (is_object($user)) {
             $loginIcon = svg('site/plugins/pagefactory/assets/icons/logout.svg');
             $username = (string)$user->nameOrEmail();
             $logout = TransVars::getVariable('pfy-logout');
@@ -147,6 +147,18 @@ EOT;
 
             $pfyLoginButtonLabel = TransVars::getVariable('pfy-logout-button-title');
             TransVars::setVariable('loginButton', "<div class='pfy-login-button'><a href='$pageUrl?logout' class='pfy-login-button' title='$pfyLoginButtonLabel'>$loginIcon</a></div>");
+
+        } elseif (is_string($user)) {
+            $username = $user;
+            $loginIcon = svg('site/plugins/pagefactory/assets/icons/user.svg');
+
+            $label = TransVars::getVariable('pfy-logged-in-label');
+            TransVars::setVariable('loggedIn', $label.$username);
+
+            TransVars::setVariable('username', $username);
+
+            $pfyLoginButtonLabel = TransVars::getVariable('pfy-login-button-title');
+            TransVars::setVariable('loginButton', "<div class='pfy-login-button'><a href='$loginLink' class='pfy-login-button' title='$pfyLoginButtonLabel'>$loginIcon</a></div>");
 
         } else {
             $loginIcon = svg('site/plugins/pagefactory/assets/icons/user.svg');
@@ -166,6 +178,31 @@ EOT;
         TransVars::setVariable('adminPanelLink', "<a href='{$appUrl}panel' target='_blank'>$pfyAdminPanelLinkText</a>");
 
     } // prepareStandardVariables
+
+
+
+    /**
+     * Defines variable 'pfy-lang-selection', which expands to a language selection block,
+     * one language icon per supported language
+     */
+    public static function renderLanguageSelector(): string
+    {
+        $out = '';
+        if (sizeof(PageFactory::$supportedLanguages) > 1) {
+            foreach (PageFactory::$supportedLanguages as $lang) {
+                $langCode = substr($lang, 0, 2);
+                $text = TransVars::getVariable("pfy-lang-select-$langCode");
+                if ($lang === PageFactory::$lang) {
+                    $out .= "<span class='pfy-lang-elem pfy-active-lang $langCode'><span>$text</span></span> ";
+                } else {
+                    $title = TransVars::getVariable("pfy-lang-select-title-$langCode");
+                    $out .= "<span class='pfy-lang-elem $langCode'><a href='?lang=$lang' title='$title'>$text</a></span> ";
+                }
+            }
+            $out = "<span class='pfy-lang-selection'>$out</span>\n";
+        }
+        return $out;
+    } // renderLanguageSelector
 
 
 
