@@ -424,7 +424,7 @@ EOT;
     public function renderHeadInjections(): string
     {
         // check config settings, whether default-nav should be activated:
-        if (PageFactory::$config['default-nav']??false) {
+        if (PageFactory::$config['default-nav']) {
             $this->addAssets('NAV');
         }
 

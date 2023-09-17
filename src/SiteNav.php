@@ -18,6 +18,9 @@ class SiteNav
     public function __construct()
     {
         $this->site = site();
+        // PageFactory::$pg->addAssets('NAV');
+        // Note: normally, nav() is used in Twig template, but that's too late for loading assets.
+        // Thus, Pfy loads them, if option 'default-nav' is true
     } // __construct
 
 
@@ -37,12 +40,10 @@ class SiteNav
         // 'top' short-hand:
         if ($args['type'] === 'top') {
            $args['wrapperClass'] .= ' pfy-nav-horizontal pfy-nav-indented pfy-nav-animated pfy-nav-hoveropen pfy-encapsulated';
-//           $args['wrapperClass'] .= ' pfy-nav-horizontal pfy-nav-indented pfy-nav-collapsed pfy-nav-animated pfy-nav-hoveropen pfy-encapsulated';
 
        // 'side' short-hand:
         } elseif ($args['type'] === 'side') {
            $args['wrapperClass'] .= ' pfy-nav-indented pfy-nav-animated pfy-encapsulated';
-//           $args['wrapperClass'] .= ' pfy-nav-indented pfy-nav-collapsed pfy-nav-animated pfy-encapsulated';
         }
 
         if (!str_contains($args['wrapperClass'], 'pfy-nav-horizontal')) {

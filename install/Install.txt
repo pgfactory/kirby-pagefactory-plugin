@@ -71,5 +71,5 @@ For example:
     'site/home/z.txt' or
     'site/2_my-page/z.en.txt'   (-> published page and multiple languages active)
 
-This instructs Kirby to trigger PageFactory's template 'site/templates/z.php'.
+This instructs Kirby to trigger PageFactory's template 'site/templates/z.twig'.
 Any other meta-file names will let Kirby run its normal page rendering mechanism.
