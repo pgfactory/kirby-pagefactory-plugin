@@ -694,6 +694,11 @@ EOT;
             }
         }
 
+        // Right after installation on remote host, assets have not been compiled. Activate debug in that case:
+        if (!is_dir('site/plugins/pagefactory/assets/css/')) {
+            $debug = true;
+        }
+
         session_write_close();
         return $debug;
     } // determineDebugState
