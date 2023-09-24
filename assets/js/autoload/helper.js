@@ -30,7 +30,7 @@ function execLateLoading() {
 
 
 function adaptToWidth() {
-    let windowWidth = document.documentElement.clientWidth;
+  let windowWidth = document.documentElement.clientWidth;
   if (windowWidth < screenSizeBreakpoint) {
     document.body.classList.remove('pfy-large-screen');
     document.body.classList.add('pfy-small-screen');

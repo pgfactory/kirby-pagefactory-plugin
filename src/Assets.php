@@ -223,7 +223,7 @@ class Assets
 
 
     /**
-     * Extracts priority-hint from an file/url:
+     * Extracts priority-hint from a file/url:
      * @param string $file
      * @param int $default
      * @return mixed
