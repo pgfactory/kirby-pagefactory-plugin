@@ -13,15 +13,14 @@
 
 const PfyNav = {
   isSmallScreen: (window.innerWidth < screenSizeBreakpoint),
+  prevScreenMode: null,
   timer: [],
-  nav: null,
-  navWrapper: null,
-  navL1LiElements: null,
   isTopNav: null,
   collapsed: null,
   collapsible: false,
   hoveropen: false,
   arrowClicks: 0,
+  initialized: false,
 
   transitionTimeMs: 300,
   transitionTimeS: null,
@@ -30,88 +29,103 @@ const PfyNav = {
     '<path d="M15 12L9 6V18L15 12Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>' +
     '</svg>',
 
+
+
   init: function (nav) {
-    this.nav = nav;
-    this.navWrapper = nav.closest('.pfy-nav-wrapper');
-    this.navL1LiElements = this.nav.querySelectorAll(':scope > ol > li');
+    this.initialized = false;
+    const navWrapper = nav.closest('.pfy-nav-wrapper');
     this.transitionTimeS = (this.transitionTimeMs / 1000) + 's';
-    this.isTopNav = this.navWrapper.classList.contains('pfy-nav-horizontal');
-    this.collapsed = this.navWrapper.classList.contains('pfy-nav-collapsed')? 1 : false;
-    this.collapsible = this.navWrapper.classList.contains('pfy-nav-collapsible');
-    if (this.isTopNav) {
-      this.collapsible = true;
-      this.collapsed = false;
-    } else {
-      if (this.collapsed) {
-        this.collapsible = true;
-      } else if (this.collapsible) {
-        this.collapsed = 99;
-      }
-    }
-    this.hoveropen = this.navWrapper.classList.contains('pfy-nav-hoveropen');
-    this.fixNavLayout(nav);
+    this.isTopNav = navWrapper.classList.contains('pfy-nav-horizontal');
+    this.collapsed = navWrapper.classList.contains('pfy-nav-collapsed')? 1 : false;
+    this.hoveropen = navWrapper.classList.contains('pfy-nav-hoveropen');
 
-    this.initNavHtml(nav);
-    if (this.collapsible) {
-      this.presetSubElemHeights(nav);
-    }
-    if (this.collapsed) {
-      this.preOpenElems(nav, this.collapsed);
-      if (this.navWrapper.classList.contains('pfy-nav-open-current')) {
-        this.openCurrentLi();
-      }
-    }
+    this.initNavHtml(navWrapper);
 
-    PfyNav.setupMouseHandlers(nav);
-    PfyNav.setupKeyHandlers(nav);
-    PfyNav.initMobileMode();
-    PfyNav.pseudoElementHandler(nav);
+    this.adaptToWidth(navWrapper); // invokes this.setupMouseHandlers(navWrapper) if it's primary nav
+    if (!this.initialized) {
+      this.setupMouseHandlers(navWrapper);
+    }
+    this.setupKeyHandlers(navWrapper);
+    this.surrogateElementHandler(navWrapper);
+    if (this.collapsed && !this.isTopNav) {
+      this.openCurrentLi(navWrapper);
+    }
+    this.initAnimation(navWrapper);
   }, // init
 
 
+  // === desktop mode =====================================
+  initDesktopMode: function () {
+    mylog('initDesktopMode()');
+    const navWrapper = document.querySelector('.pfy-primary-nav');
+    this.setMobileMode(navWrapper, false);
+    if (this.isTopNav) {
+      this.collapsible = true;
+      this.collapsed = false;
+    }
+    this.presetSubElemHeights(navWrapper);
+    this.closeAllExcept(true, navWrapper);
+  }, // initDesktopMode
+
+
+
+  // === mobile mode =====================================
   initMobileMode: function () {
-    const body = document.body;
+    mylog('initMobileMode()');
+    const navWrapper = document.querySelector('.pfy-primary-nav');
+    this.setMobileMode(navWrapper, true);
+
+    this.presetSubElemHeights(navWrapper);
+
+    this.preOpenElems(navWrapper, 99);
+
     const mobileMenuButton = document.getElementById('pfy-nav-menu-icon');
     if (!mobileMenuButton.dataset.initialized) {
       mobileMenuButton.dataset.initialized = true;
+      mobileMenuButton.setAttribute('aria-controls', 'pfy-primary-nav');
+
+      // set button handler:
       mobileMenuButton.addEventListener('click', function (e) {
         e.stopPropagation();
-        if (body.classList.contains('pfy-nav-mobile-open')) {
-          body.classList.remove('pfy-nav-mobile-open');
-          PfyNav.setMobileMode(false);
+        const button = e.currentTarget;
+        if (document.body.classList.contains('pfy-nav-mobile-open')) {
+          document.body.classList.remove('pfy-nav-mobile-open');
+          button.setAttribute('aria-pressed', false);
         } else {
-          body.classList.add('pfy-nav-mobile-open');
-          PfyNav.setMobileMode(true);
+          document.body.classList.add('pfy-nav-mobile-open');
+          button.setAttribute('aria-pressed', true);
         }
       });
     }
   }, // initMobileMode
 
 
-  setMobileMode: function(activate){
-    const mainNav = document.querySelector('.pfy-primary-nav');
-    if (mainNav) {
+  setMobileMode: function(navWrapper, activate){
+    if (navWrapper) {
       if (activate) {    // small screen:
-        const classList = mainNav.getAttribute('class');
-        mainNav.dataset.classList = classList;
-        mainNav.setAttribute('class', 'pfy-nav-wrapper pfy-primary-nav pfy-nav-vertical pfy-nav-indented pfy-nav-collapsible pfy-nav-animated pfy-encapsulated');
-        PfyNav.preOpenElems(mainNav, 99);
+        navWrapper.dataset.classList = navWrapper.getAttribute('class');
+        let cls = 'pfy-nav-wrapper pfy-primary-nav pfy-nav-indented pfy-nav-collapsible pfy-nav-animated pfy-encapsulated';
+        if (navWrapper.classList.contains('pfy-mobile-nav-colored')) {
+          cls += ' pfy-mobile-nav-colored';
+        }
+        navWrapper.setAttribute('class', cls);
+        PfyNav.preOpenElems(navWrapper, 99);
 
       } else {                                              // large screen:
-        setTimeout(function () {
-          mainNav.setAttribute('class', mainNav.dataset.classList);
-          mainNav.dataset.classList = null;
-        }, 500);
+        if (typeof navWrapper.dataset.classList === 'string') {
+          navWrapper.setAttribute('class', navWrapper.dataset.classList);
+          navWrapper.dataset.classList = null;
+        }
       }
     }
   }, // setMobileMode
 
 
-  pseudoElementHandler: function(nav) {
-    const pseudoElements = nav.querySelectorAll('.pfy-pseudo-elem > a');
-    if (pseudoElements) {
-      pseudoElements.forEach(function (pseudoElement) {
-        pseudoElement.addEventListener('click', function (ev) {
+  surrogateElementHandler: function(navWrapper) {
+    const surrogateElements = navWrapper.querySelectorAll(':scope.pfy-nav-collapsible .pfy-has-surrogate-elem > a');
+    if (surrogateElements) {
+      surrogateElements.forEach(function (surrogateElement) {
+        surrogateElement.addEventListener('click', function (ev) {
           const el = ev.target??ev.currentTarget?? false;
           if (!el) {
             return;
@@ -125,17 +139,19 @@ const PfyNav = {
         });
       });
     }
-  }, // pseudoElementHandler
+  }, // surrogateElementHandler
 
 
-  initNavHtml: function (nav) {
-    this._initNavHtml(this.navL1LiElements, 1);
+  initNavHtml: function (navWrapper) {
+    this._initNavHtml(navWrapper.querySelectorAll('.pfy-nav > ol > li'), 1);
+    this.fixNavLayout(navWrapper);
   }, // initNavHtml
 
 
   _initNavHtml: function (liElems, depth) {
-    if (liElems) {
+    if (liElems.length) {
       const isCollapsible = liElems[0].closest('.pfy-nav-wrapper').classList.contains('pfy-nav-collapsible');
+
       let inx = 0;
       liElems.forEach(function (liElem) {
         // apply level-class:
@@ -156,25 +172,33 @@ const PfyNav = {
         // handle sub-branches:
         const subOlElem = liElem.querySelector('ol,ul');
         if (subOlElem) {
+          let isSurrogateELem = liElem.classList.contains('pfy-has-surrogate-elem');
           liElem.classList.add('pfy-has-children');
-          let isPseudoELem = liElem.classList.contains('pfy-pseudo-elem');
+          let ariaExpanded = PfyNav.isTopNav? 'false' : 'true';
+          if (!PfyNav.isTopNav) {
+            liElem.classList.add('pfy-open');
+          }
 
           // inject arrow into <a>:
           const aElem = liElem.querySelector('a');
           const text = aElem.textContent;
+
           const href = aElem.getAttribute('href');
           const currPage = aElem.getAttribute('aria-current')? ' aria-current="page"' : '';
-          if (PfyNav.collapsible && !(PfyNav.isTopNav && (depth > 1))) {
+          if (isCollapsible || (PfyNav.isTopNav && (depth === 1))) {
             if (currPage) {
-              aElem.outerHTML = `<a href="${href}" aria-expanded="false" aria-current="page"><span class='pfy-nav-label'>${text}</span><span class='pfy-nav-arrow' aria-hidden='true'>${PfyNav.arrowSvg}</span></a>`;
+              aElem.outerHTML = `<a href="${href}" aria-expanded="${ariaExpanded}" aria-current="page"><span class="pfy-nav-label">` +
+                `${text}</span><span class='pfy-nav-arrow' aria-hidden='true' aria-controls='pfy-primary-nav'>${PfyNav.arrowSvg}</span></a>`;
             } else {
-              aElem.outerHTML = `<a href="${href}" aria-expanded="false"><span class='pfy-nav-label'>${text}</span><span class='pfy-nav-arrow' aria-hidden='true'>${PfyNav.arrowSvg}</span></a>`;
+              aElem.outerHTML = `<a href="${href}" aria-expanded="${ariaExpanded}"><span class='pfy-nav-label'>` +
+                `${text}</span><span class='pfy-nav-arrow' aria-hidden='true' aria-controls='pfy-primary-nav'>${PfyNav.arrowSvg}</span></a>`;
             }
+
           } else {
             if (currPage) {
-              aElem.outerHTML = `<a href="${href}" aria-expanded="false" aria-current="page"><span class='pfy-nav-label'>${text}</span></a>`;
+              aElem.outerHTML = `<a href="${href}" aria-current="page"><span class='pfy-nav-label'>${text}</span></a>`;
             } else {
-              aElem.outerHTML = `<a href="${href}" aria-expanded="false"><span class='pfy-nav-label'>${text}</span></a>`;
+              aElem.outerHTML = `<a href="${href}"><span class='pfy-nav-label'>${text}</span></a>`;
             }
           }
 
@@ -189,17 +213,17 @@ const PfyNav = {
 
           let olInnerHtml = subOlElem.innerHTML;
 
-          // if liElem has children but is not yet a pseudo-elem, convert it into one now:
-          if (isCollapsible && !liElem.classList.contains('pfy-pseudo-elem')) {
+          // if liElem has children but is not yet a surrogate-elem, convert it into one now:
+          if (isCollapsible && !liElem.classList.contains('pfy-has-surrogate-elem')) {
             const aHref = aElem.getAttribute('href');
             const aText = aElem.innerHTML;
-            olInnerHtml = '<li class="pfy-lvl-' + (depth+1) + `"><a href="${aHref}">${aText}</a></li>` + olInnerHtml;
-            liElem.classList.add('pfy-pseudo-elem');
+            olInnerHtml = '<li class="pfy-lvl-' + (depth+1) + ` pfy-surrogate-elem"><a href="${aHref}">${aText}</a></li>` + olInnerHtml;
+            liElem.classList.add('pfy-has-surrogate-elem');
           }
 
           // wrap sub <ol> in a <div>:
           if (PfyNav.collapsible && !(PfyNav.isTopNav && (depth > 1))) {
-            subOlElem.outerHTML = '<div class="pfy-nav-sub-wrapper" style="display:none;"><ol>' + olInnerHtml + '</ol>';
+            subOlElem.outerHTML = '<div class="pfy-nav-sub-wrapper"><ol>' + olInnerHtml + '</ol>';
           } else {
             subOlElem.outerHTML = '<div class="pfy-nav-sub-wrapper"><ol>' + olInnerHtml + '</ol>';
           }
@@ -216,21 +240,35 @@ const PfyNav = {
   }, // _initNavHtml
 
 
-  fixNavLayout: function (nav) {
-    const fsVar = getComputedStyle(this.navWrapper).getPropertyValue('--pfy-nav-txt-size');
+  fixNavLayout: function (navWrapper) {
+    const nav = navWrapper.querySelector('.pfy-nav');
+    const fsVar = getComputedStyle(navWrapper).getPropertyValue('--pfy-nav-txt-size');
     if (!fsVar) {
-      const fs = getComputedStyle(this.navWrapper).getPropertyValue('font-size');
-      this.navWrapper.style.setProperty('--pfy-nav-txt-size', fs);
+      const fs = getComputedStyle(navWrapper).getPropertyValue('font-size');
+      navWrapper.style.setProperty('--pfy-nav-txt-size', fs);
     }
     nav.style.display = 'block';
-    const placeHolder = this.navWrapper.querySelector('.pfy-top-nav-placeholder');
-    placeHolder.style.display = 'none';
+    const placeHolder = navWrapper.querySelector('.pfy-top-nav-placeholder');
+    if (placeHolder) {
+      placeHolder.style.display = 'none';
+    }
   }, // fixNavLayout
 
 
-  setupMouseHandlers: function (nav) {
-    const isTopNav = this.navWrapper.classList.contains('pfy-nav-horizontal');
-    const liElems = nav.querySelectorAll('.pfy-has-children');
+  initAnimation: function (navWrapper) {
+    // switch classes from pfy-nav-animated to pfy-nav-animate after short delay:
+    setTimeout(function () {
+      if (navWrapper) {
+        navWrapper.classList.remove('pfy-nav-animated');
+        navWrapper.classList.add('pfy-nav-animate');
+      }
+    }, 100);
+  }, // initAnimation
+
+
+  setupMouseHandlers: function (navWrapper) {
+    const isTopNav = navWrapper.classList.contains('pfy-nav-horizontal');
+    const liElems = navWrapper.querySelectorAll('.pfy-has-children');
     if (liElems) {
       liElems.forEach(function (liElem) {
         const arrow = liElem.querySelector('.pfy-nav-arrow');
@@ -247,7 +285,7 @@ const PfyNav = {
     if (!isTopNav || !this.hoveropen) {
       return;
     }
-    const l1LiElems = nav.querySelectorAll('.pfy-lvl-1.pfy-has-children');
+    const l1LiElems = navWrapper.querySelectorAll('.pfy-lvl-1.pfy-has-children');
     if (l1LiElems) {
       l1LiElems.forEach(function (l1LiElem) {
         l1LiElem.addEventListener('mouseenter', function (ev) {
@@ -269,9 +307,8 @@ const PfyNav = {
   }, // setupMouseHandlers
 
 
-  setupKeyHandlers: function (nav) {
-    const liElems = nav.querySelectorAll('li');
-    const navWrapper = nav.closest('.pfy-nav-wrapper');
+  setupKeyHandlers: function (navWrapper) {
+    const liElems = navWrapper.querySelectorAll('li');
 
     if (!liElems) {
       return;
@@ -367,7 +404,7 @@ const PfyNav = {
     } else {
       const nextLi = PfyNav.setFocusOn(liElem, 1);
       if (isTopNav && nextLi.classList.contains('pfy-lvl-1')) {
-        PfyNav.closeAll(nextLi);
+        PfyNav.closeAllExcept(nextLi);
       }
     }
   }, // focusOnNext
@@ -401,8 +438,7 @@ const PfyNav = {
   }, // setFocusOn
 
 
-  setFocusOnParent: function (liElem)
-  {
+  setFocusOnParent: function (liElem){
     if (!liElem.classList.contains('pfy-lvl-1')) {
       const parentLi = liElem.parentElement.closest('li');
       PfyNav.setFocusOn(parentLi);
@@ -445,6 +481,32 @@ const PfyNav = {
   }, // getCurrentlyActiveAElments
 
 
+  handleSingleAndDoubleClick: function (event, singleClickCallback, doubleClickCallback) {
+    const el = event.target??event.currentTarget?? false;
+    if (!el) {
+      return;
+    }
+    const isTopNav = el.closest('.pfy-nav-wrapper').classList.contains('pfy-nav-horizontal');
+    if (isTopNav) {
+      doubleClickCallback(event);
+      return;
+    }
+
+    this.arrowClicks++;
+    if (this.arrowClicks > 1) {
+      this.arrowClicks = 0;
+      doubleClickCallback(event);
+    } else {
+      setTimeout(function () {
+        if (PfyNav.arrowClicks === 1) {
+          PfyNav.arrowClicks = 0;
+          singleClickCallback(event);
+        }
+      }, 250);
+    }
+  }, // handleSingleAndDoubleClick
+
+
   freezeBranchState: function (ev) {
     ev.stopPropagation();
     ev.preventDefault();
@@ -453,7 +515,7 @@ const PfyNav = {
       liElem = liElem.closest('li');
     }
     if (liElem.closest('.pfy-nav-horizontal')) {
-      PfyNav.closeAll(liElem);
+      PfyNav.closeAllExcept(liElem);
     }
     const isOpen = liElem.classList.contains('pfy-open');
     if (liElem.classList.contains('pfy-branch-frozen')) {
@@ -479,12 +541,12 @@ const PfyNav = {
       eventOrElem.stopPropagation();
       eventOrElem.preventDefault();
       PfyNav.handleSingleAndDoubleClick(eventOrElem,
-        function (eventOrElem) {
-          PfyNav._toggleBranch(eventOrElem, closeOthers);
-         },
-        function (eventOrElem) {
-          PfyNav._toggleBranch(eventOrElem, closeOthers, true);
-        }
+          function (eventOrElem) {
+            PfyNav._toggleBranch(eventOrElem, closeOthers);
+          },
+          function (eventOrElem) {
+            PfyNav._toggleBranch(eventOrElem, closeOthers, true);
+          }
       );
     }
   }, // toggleBranch
@@ -506,38 +568,12 @@ const PfyNav = {
         PfyNav.closeBranch(liElem, true, recursive);
       } else {
         if (closeOthers) {
-          PfyNav.closeAll(liElem);
+          PfyNav.closeAllExcept(liElem);
         }
         PfyNav.openBranch(liElem,true, recursive);
       }
     }
   }, // _toggleBranch
-
-
-  handleSingleAndDoubleClick: function (event, singleClickCallback, doubleClickCallback) {
-    const el = event.target??event.currentTarget?? false;
-    if (!el) {
-      return;
-    }
-    const isTopNav = el.closest('.pfy-nav-wrapper').classList.contains('pfy-nav-horizontal');
-    if (isTopNav) {
-      doubleClickCallback(event);
-      return;
-    }
-
-    this.arrowClicks++;
-    if (this.arrowClicks > 1) {
-      this.arrowClicks = 0;
-      doubleClickCallback(event);
-    } else {
-      setTimeout(function () {
-        if (PfyNav.arrowClicks === 1) {
-          PfyNav.arrowClicks = 0;
-          singleClickCallback(event);
-        }
-      }, 250);
-    }
-  }, // handleSingleAndDoubleClick
 
 
   isOpen: function (liElem) {
@@ -565,23 +601,27 @@ const PfyNav = {
       const liElems = liElem.querySelectorAll('li');
       if (liElems) {
         liElems.forEach(function (liElem) {
-          PfyNav.openLi(liElem);
+          PfyNav.openLi(liElem, true);
         });
       }
     }
   }, // openBranch
 
 
-  openLi: function(liElem) {
+  openLi: function(liElem, noDelay) {
     const divElem = liElem.querySelector('div');
     if (divElem && typeof divElem.style !== 'undefined') {
       divElem.style.display = null;
     }
     const aElem = liElem.querySelector('a');
     aElem.setAttribute('aria-expanded', true);
-    setTimeout(function () {
+    if (typeof noDelay === 'undefined') {
+      setTimeout(function () {
+        liElem.classList.add('pfy-open');
+      }, 50);
+    } else {
       liElem.classList.add('pfy-open');
-    }, 50);
+    }
   }, // openLi
 
 
@@ -594,7 +634,6 @@ const PfyNav = {
     }
     this.presetSubElemHeight(liElem, true);
 
-    // const isTopNav = this.navWrapper.classList.contains('pfy-nav-horizontal');
     const isTopNav = liElem.closest('.pfy-nav-wrapper').classList.contains('pfy-nav-horizontal');
     if (isTopNav && !override && (liElem.classList.contains('pfy-branch-frozen'))) {
       return;
@@ -611,29 +650,46 @@ const PfyNav = {
   }, // closeBranch
 
 
-  closeLi: function (liElem) {
+  closeLi: function (liElem, noDelay) {
     liElem.classList.remove('pfy-open');
     const aElem = liElem.querySelector('a');
     aElem.setAttribute('aria-expanded', false);
     const divElem = liElem.querySelector('div');
     if (divElem) {
-      setTimeout(function () {
+      if (typeof noDelay === 'undefined') {
+        setTimeout(function () {
+          divElem.style.display = 'none';
+        }, PfyNav.transitionTimeMs);
+      } else {
         divElem.style.display = 'none';
-      }, PfyNav.transitionTimeMs);
+      }
     }
   }, // closeLi
 
 
-  closeAll: function (except) {
-    let nav = PfyNav.nav;
-    except = (typeof except !== 'undefined')? except: false;
-    if (except) {
-      nav = except.closest('nav');
-    }
-    const liElems = nav.querySelectorAll('.pfy-lvl-1.pfy-has-children');
+  closeAll: function (navWrapper) {
+    const liElems = navWrapper.querySelectorAll('.pfy-has-children');
     if (liElems) {
       liElems.forEach(function (liElem) {
-        if (liElem !== except) {
+        PfyNav.closeLi(liElem, true);
+      });
+    }
+  }, // closeAll
+
+
+  closeAllExcept: function (exceptSubBranch, navWrapper) {
+    exceptSubBranch = (typeof exceptSubBranch !== 'undefined')? exceptSubBranch: false;
+    if (typeof exceptSubBranch === 'object') {
+      navWrapper = exceptSubBranch.closest('.pfy-nav-wrapper');
+    }
+    if (typeof navWrapper === 'undefined') {
+      navWrapper = document.querySelector('.pfy-primary-nav');
+    }
+
+    const liElems = navWrapper.querySelectorAll('.pfy-lvl-1.pfy-has-children');
+    if (liElems) {
+      liElems.forEach(function (liElem) {
+        if (liElem !== exceptSubBranch) {
           PfyNav.closeBranch(liElem, true);
           const isTopNav = liElem.closest('.pfy-nav-wrapper').classList.contains('pfy-nav-horizontal');
           if (isTopNav) {
@@ -642,18 +698,17 @@ const PfyNav = {
         }
       })
     }
-  }, // closeAll
+  }, // closeAllExcept
 
 
-  preOpenElems: function(nav, collapsed)
-  {
-    const pfyNavSubWrappers = nav.querySelectorAll('.pfy-has-children');
+  preOpenElems: function(navWrapper, collapseToDepth){
+    const pfyNavSubWrappers = navWrapper.querySelectorAll('.pfy-has-children');
     if (pfyNavSubWrappers) {
-      collapsed = parseInt(collapsed);
+      collapseToDepth = parseInt(collapseToDepth);
       pfyNavSubWrappers.forEach(function (liElem) {
         const cls = liElem.getAttribute('class');
         const depth = parseInt(cls.replace(/\D/g, ''));
-        if (collapsed > depth) {
+        if (collapseToDepth > depth) {
           PfyNav.openBranch(liElem);
           if (PfyNav.isTopNav) {
             liElem.classList.add('pfy-branch-frozen');
@@ -664,26 +719,32 @@ const PfyNav = {
   }, // preOpenElems
 
 
-  openCurrentLi: function ()
-  {
-    let liElem = this.nav.querySelector('.pfy-curr');
-    this.openLi(liElem);
+  openCurrentLi: function (navWrapper) {
+    this.closeAll(navWrapper);
+    let liElem = navWrapper.querySelector('.pfy-curr');
+    if (!liElem) {
+      return;
+    }
     liElem = liElem.parentElement.closest('li');
     while (liElem) {
-      this.openLi(liElem);
+      this.openLi(liElem, true);
       liElem = liElem.parentElement.closest('li');
     }
   }, // openCurrentLi
 
 
-  presetSubElemHeights: function(nav)
-  {
-    const isTopNav = this.navWrapper.classList.contains('pfy-nav-horizontal');
+  presetSubElemHeights: function(navWrapper){
+     const collapsible = navWrapper.classList.contains('pfy-nav-collapsible');
+     if (!collapsible) {
+       return;
+     }
+
+    const isTopNav = navWrapper.classList.contains('pfy-nav-horizontal');
     let pfyNavSubWrappers;
     if (isTopNav) {
-      pfyNavSubWrappers = nav.querySelectorAll('.pfy-lvl-1.pfy-has-children');
+      pfyNavSubWrappers = navWrapper.querySelectorAll('.pfy-lvl-1.pfy-has-children');
     } else {
-      pfyNavSubWrappers = nav.querySelectorAll('.pfy-has-children');
+      pfyNavSubWrappers = navWrapper.querySelectorAll('.pfy-has-children');
     }
     if (pfyNavSubWrappers) {
       pfyNavSubWrappers.forEach(function (liElem) {
@@ -697,8 +758,7 @@ const PfyNav = {
   }, // presetSubElemHeights
 
 
-  presetSubElemHeight: function(liElem, leavOpen = false)
-  {
+  presetSubElemHeight: function(liElem, leavOpen = false){
     const subDivElem = liElem.querySelector('div');
     if (!subDivElem) {
       return;
@@ -715,6 +775,26 @@ const PfyNav = {
     }
   }, // presetSubElemHeight
 
+
+  adaptToWidth: function(navWrapper) {
+    this.isSmallScreen = (window.innerWidth < screenSizeBreakpoint);
+    if (typeof navWrapper === 'undefined') {
+      navWrapper = document.querySelector('.pfy-primary-nav');
+    }
+    if (navWrapper.classList.contains('pfy-primary-nav')) {
+      if (this.prevScreenMode !== this.isSmallScreen) {
+          this.prevScreenMode = this.isSmallScreen;
+          if (this.isSmallScreen) {
+              this.initMobileMode();
+          } else {
+              this.initDesktopMode();
+          }
+        this.setupMouseHandlers(navWrapper);
+        this.initialized = true;
+      }
+    }
+  }, //adaptToWidth
+
 } // PfyNav
 
 
@@ -722,5 +802,12 @@ const PfyNav = {
 const navs = document.querySelectorAll('.pfy-nav');
 if (navs) {
   navs.forEach(function (nav) {
-    PfyNav.init(nav);  })
+    PfyNav.init(nav);
+  });
 }
+
+
+// monitor screen size changes:
+window.addEventListener("resize", function() {
+  PfyNav.adaptToWidth();
+});

@@ -3,11 +3,11 @@
 .pfy-page {
 	padding: 2em;
 }
-.pfy-primary-nav {
+.pfy-nav-horizontal {
 	display: flex;
 	justify-content: flex-end;
 }
-#pfy .pfy-primary-nav li.pfy-lvl-1:last-child > div {
+#pfy .pfy-nav-horizontal li.pfy-lvl-1:last-child > div {
     right: 0;
     left: unset !important;
     text-align: right;

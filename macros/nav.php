@@ -11,7 +11,9 @@ function nav($args = null)
         'options' => [
             'wrapperClass' => ['Class applied to the Nav\'s wrapper.', ''],
             'class' => ['Class applied to the Nav element.', ''],
-            'type' => ['[top,side,branch].', ''],
+            'id' => ['Id applied to the Nav element.', ''],
+            'type' => ['[top,side,branch|primary].', ''],
+            'isPrimary' => ['By default, first Nav is primary. Set to false to override.', null],
             'listTag' => ['[ul,ol] The tag to be used in list of nav-elements.', 'ol'],
         ],
         'summary' => <<<EOT
@@ -37,6 +39,10 @@ EOT,
         return $res;
     } else {
         list($options, $sourceCode) = $res;
+    }
+
+    if (str_contains($options['type']??'', 'primary')) {
+        $options['isPrimary'] = true;
     }
 
     $nav = new SiteNav();

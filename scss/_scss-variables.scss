@@ -1,7 +1,7 @@
 // === Definitions ================================
 
-$focus-color1: #00008088; // orange
-$focus-color2: #ffa50088; // navy
+$focus-frame-color1: #00008088; // orange
+$focus-frame-color2: #ffa50088; // navy
 
 
 $dl-as-table-dt-width: 6em;
@@ -12,14 +12,14 @@ $mobile-main-link-color: #333;
 $mobile-main-bg-color: white;
 
 // mobile header:
-$mobile-header-font-size: 6vw;
+$mobile-header-txt-size:  6vw;
 $mobile-header-height:    11vw;
 $mobile-header-txt-color: #ddd;
 $mobile-header-bg-color:  #444;
 
 $mobile-page-font-size:   4.5vw;
-$mobile-nav-bg-color:     #222;
-$mobile-nav-txt-color:     #ddd;
+$mobile-nav-bg-color:     #003;
+$mobile-nav-txt-color:    #eee;
 $mobile-nav-title-color:  #333;
 $mobile-nav-title-bg-color: #ddd;
 $mobile-nav-txt-size:     4.5vw;
@@ -30,7 +30,7 @@ $mobile-footer-txt-color: #ddd;
 $mobile-footer-font-size: 4vw;
 
 // mobile nav:
-$mobile-nav-width:       66vw;
+$mobile-nav-width:        66vw;
 
 $yPadding: 0.4rem;
 
@@ -72,6 +72,6 @@ $max-font-size: 24;
 @mixin _focus {
   box-shadow:
     0 0 0 1px white,
-    0 0 0 2px var(--pfy-focus-color2, #{$focus-color2}),
-    inset 0 0 0 1px var(--pfy-focus-color, #{$focus-color1}) !important;
+    0 0 0 2px var(--pfy-focus-frame-color2, #{$focus-frame-color2}),
+    inset 0 0 0 1px var(--pfy-focus-frame-color1, #{$focus-frame-color1}) !important;
 }

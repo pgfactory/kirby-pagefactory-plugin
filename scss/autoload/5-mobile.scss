@@ -2,9 +2,8 @@
  * styles for mobile view
  *
  * CSS Variables:
- *    --pfy-mobile-bg-color
- *    --pfy-mobile-txt-color
- *    --pfy-mobile-link-color
+ *    --pfy-mobile-main-bg-color
+ *
  *  nav:
  *    --pfy-mobile-nav-txt-size
  *    --pfy-mobile-nav-bg-color
@@ -25,190 +24,119 @@
 
  @import '../_scss-variables.scss';
 
+$mobile-main-bg-color:    var(--pfy-mobile-main-bg-color, #{$mobile-main-bg-color});
+$mobile-body-height:      calc(100vh - var(--pfy-mobile-header-height, #{$mobile-header-height}));
+
+$mobile-header-height:    var(--pfy-mobile-header-height, #{$mobile-header-height});
+$mobile-header-txt-size:  var(--pfy-mobile-header-txt-size, #{$mobile-header-txt-size});
+
+$mobile-header-txt-color: var(--pfy-mobile-header-txt-color, #{$mobile-header-txt-color});
+$mobile-header-bg-color:  var(--pfy-mobile-header-bg-color, #{$mobile-header-bg-color});
+
+$mobile-nav-txt-color:    var(--pfy-mobile-nav-txt-color, #{$mobile-nav-txt-color});
+$mobile-nav-bg-color:     var(--pfy-mobile-nav-bg-color, #{$mobile-nav-bg-color});
+
+
 
 // === Small/Mobile Screen:
 #pfy.pfy-default-styling.pfy-small-screen .pfy-encapsulated,
 #pfy.pfy-default-styling.pfy-small-screen {
-  font-family: Verdana, sans-serif;
 
-    .pfy-small-screen-header {
-      display: block !important;
-      height: var(--pfy-mobile-header-height, #{$mobile-header-height});
-
-      color: var(--pfy-mobile-header-txt-color, #{$mobile-header-txt-color});
-
-      background: $mobile-header-bg-color;
-      background: var(--pfy-mobile-header-bg-color, #{$mobile-header-bg-color});
-
-        width: 100%;
-        margin: 0;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        z-index: 9;
-        h1 {
-            font-size: var(--pfy-mobile-header-txt-size, $mobile-header-font-size);
-            text-align: center;
-            margin: 0 var(--pfy-mobile-header-height, #{$mobile-header-height});
-            padding: 0;
-            height: var(--pfy-mobile-header-height, #{$mobile-header-height});
-            line-height: var(--pfy-mobile-header-height, #{$mobile-header-height});
-        }
-        #pfy-nav-menu-icon {
-          font-size: var(--pfy-mobile-header-txt-size, $mobile-header-font-size);
-          border: none;
-          background: none;
-        }
-        svg {
-            position: absolute;
-            width: unset;
-            top: calc(var(--pfy-mobile-header-height, #{$mobile-header-height}) * 0.15);
-            height: calc(var(--pfy-mobile-header-height, #{$mobile-header-height}) * 0.6);
-            left: calc(#{$mobile-header-height} * 0.15);
-            cursor: pointer;
-            color: var(--pfy-mobile-header-txt-color, #{$mobile-header-txt-color});
-        }
-    }
-
-    .pfy-page {
-        padding: 0;
-        position: absolute;
-        top: var(--pfy-mobile-header-height, #{$mobile-header-height});
-        left: 0;
-        right: 0;
-        bottom: 0;
-        margin: 0;
-        height: calc(100vh - var(--pfy-mobile-header-height, #{$mobile-header-height}));
-        width: 100vw;
-        background: $mobile-nav-bg-color;
-        background: var(--pfy-mobile-nav-bg-color, $mobile-nav-bg-color);
-    }
-
-    .pfy-main {
-        padding: 10px;
-        z-index: 2;
-    }
-
-    &.pfy-nav-mobile-open .pfy-main {
-        left: $mobile-nav-width;
-        transition: left 0.3s;
-    }
-
-    .pfy-primary-nav {
-        .pfy-nav {
-          &, a {
-            font-size: var(--pfy-mobile-nav-txt-size, $mobile-nav-txt-size);
-          }
-          li div {
-            text-align: unset;
-          }
-        }
-        width: $mobile-nav-width;
-        padding: 1em;
-        * {
-            color: var(--pfy-mobile-nav-txt-color, $mobile-nav-txt-color);
-        }
-        .pfy-curr > a {
-            border-left: 3px solid red;
-        }
-    }
-
-    .pfy-large-screen-footer {
-        display: none;
-    }
-
-    .pfy-main,
-    .pfy-mobile-nav-wrapper {
-        position: fixed;
-        top: var(--pfy-mobile-header-height, #{$mobile-header-height});
-        padding-bottom: 15vh;
-    }
-  .pfy-mobile-nav-wrapper {
-    overflow-y: auto;
-    height: calc(100vh - var(--pfy-mobile-header-height, 11vw) - var(--pfy-mobile-footer-height, 8vw));
-    box-shadow: inset 0 0 5px gray;
+   .pfy-page {
+     position: fixed;
+     inset: $mobile-header-height 0 0 0;
+     padding: 0;
+     margin: 0;
+     height: $mobile-body-height;
   }
 
+  .pfy-main-wrapper {
+    position: absolute;
+    inset: 0;
+    transition: left 0.3s;
+    height: $mobile-body-height;
+    width: 100vw;
+    overflow-y: auto;
+    padding: 1em 1em 5em;
+    background: $mobile-main-bg-color;
+  } // pfy-main-wrapper
+
   .pfy-main {
-        left: 0;
-        width: 100vw;
-        height: calc(100vh - var(--pfy-mobile-header-height, #{$mobile-header-height}) - var(--pfy-mobile-footer-height, #{$mobile-footer-height}));
-        background: var(--pfy-mobile-bg-color, $mobile-main-bg-color);
-        color: var(--pfy-mobile-txt-color, $mobile-main-txt-color);
-        padding-bottom: 20vh;
-        transition: left 0.3s;
-        overflow-y: auto;
-        z-index: 1;
+    height: max-content;
+  }
 
-        a, a:visited {
-            color: var(--pfy-mobile-link-color, $mobile-main-link-color);
-        }
+
+  .pfy-small-screen-header {
+    position: fixed;
+    display: block!important;
+    top: 0; right: 0; left: 0;
+    z-index: 9;
+    height: $mobile-header-height;
+    color: $mobile-header-txt-color;
+    background: $mobile-header-bg-color;
+
+    h1 {
+      font-size: $mobile-header-txt-size;
+      text-align: center;
+      margin: 0 $mobile-header-height;
+      padding: 0;
+      height: $mobile-header-height;
+      line-height: $mobile-header-height;
+    }
+    #pfy-nav-menu-icon {
+      font-size: $mobile-header-txt-size;
+      border: none;
+      background: none;
+    }
+    svg {
+      position: absolute;
+      width: unset;
+      top:    calc(#{$mobile-header-height} * 0.15);
+      height: calc(#{$mobile-header-height} * 0.6);
+      left:   calc(#{$mobile-header-height} * 0.15);
+      cursor: pointer;
+      color: $mobile-header-txt-color;
     }
 
-    .pfy-section {
-        padding: 0 0.6rem;
+  } // .pfy-small-screen-header
+
+  .pfy-nav-outer-wrapper {
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+    height: $mobile-body-height;
+    width: $mobile-nav-width;
+    background: $mobile-nav-bg-color;
+    padding: 1em 0.5em 5em 0;
+    &, a, a:visited, a:focus {
+      color: $mobile-nav-txt-color;
     }
+  } // .pfy-nav-outer-wrapper
 
-    .pfy-nav-title {
-        color: var(--pfy-mobile-nav-title-color, #{$mobile-nav-title-color});
-        background: #{$mobile-nav-title-bg-color};
-        background: var(--pfy-mobile-nav-title-bg-color, #{$mobile-nav-title-bg-color});
-        line-height: 2.5em;
-        margin: 0;
+  &.pfy-nav-mobile-open {
+    .pfy-main-wrapper {
+      left: $mobile-nav-width;
+      transition: left 0.3s;
     }
+  }
 
-    .pfy-footer {
-        position: fixed;
-        left: 0;
-        width: 100vw;
-        bottom: 0;
-        color: var(--pfy-mobile-footer-txt-color, #000);
-        background: #{$mobile-header-bg-color};
-        background: var(--pfy-mobile-footer-bg-color, var(--pfy-mobile-header-bg-color, #{$mobile-header-bg-color}));
-        padding: 2px 0.5rem 2px 1rem;
-        margin-top: 0;
-        height: var(--pfy-mobile-footer-height, #{$mobile-footer-height});
-        padding-top: calc((var(--pfy-mobile-footer-height, #{$mobile-footer-height}) -
-                           var(--pfy-mobile-footer-txt-size, #{$mobile-footer-font-size})) * 0.25);
-        z-index: 9;
-    }
-
-    .pfy-footer * {
-        color: var(--pfy-mobile-footer-txt-color, var(--pfy-mobile-header-txt-color, #{$mobile-header-txt-color}));
-        font-size: var(--pfy-mobile-footer-txt-size, #{$mobile-footer-font-size});
-        border-bottom: none;
-    }
-
-    .pfy-mobile-page-header {
-        display: block;
-        z-index: 2;
-    }
-
-    .pfy-primary-nav {
-        position: relative;
-    }
-
-    &#pfy .pfy-nav {
-        .pfy-nav-label {
-            display: inline-block;
-            overflow-x: hidden;
-        }
-
-        &.pfy-nav-primary a {
-            background: #4f4f4f;
-            margin-bottom: 1px !important;
-        }
-    }
-
-    .pfy-primary-nav.pfy-nav-wrapper > * {
-        min-height: 120vh;
-    }
+} // .pfy-small-screen
 
 
-    .pfy-large-screen-only {
-        display: none!important;
-    }
 
-} // pfy-small-screen
+#pfy.pfy-default-styling.pfy-small-screen .pfy-encapsulated,
+#pfy.pfy-default-styling.pfy-small-screen {
+
+  .pfy-large-screen-only {
+    display: none;
+  }
+}
+
+#pfy.pfy-default-styling.pfy-large-screen .pfy-encapsulated,
+#pfy.pfy-default-styling.pfy-large-screen {
+
+  .pfy-small-screen-only {
+    display: none;
+  }
+}
 
