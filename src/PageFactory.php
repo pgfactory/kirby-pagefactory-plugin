@@ -149,7 +149,7 @@ class PageFactory
         TransVars::init();
 
         self::$debug = Utils::determineDebugState();
-        self::$isLocalhost = isLocalhost() && self::$debug;
+        self::$isLocalhost = isLocalhost();
 
         self::$assets = new Assets($this);
         self::$pg = new Page($this);
