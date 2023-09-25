@@ -5,6 +5,6 @@ return [
    'debug'  => true,
     'pgfactory.pagefactory.options' => [
         'debug_checkMetaFiles'        => true, // if false, Pagefactory will not check presence of metafiles
-        'debug_compileScssWithSrcRef' => true, // injects ref to source SCSS file&line in compiled CSS
+        'debug_compileScssWithSrcRef' => true, // injects refs to source SCSS file&line in compiled CSS
     ],
 ];

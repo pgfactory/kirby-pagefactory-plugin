@@ -36,7 +36,7 @@ return [
         // 'webmaster_email'               => '',     // email address of webmaster
         // 'maxCacheAge'                   => 86400,  // [s] max time after which Kirby's file cache is automatically flushed
 
-        // Options for dev phase:
+      // Options for dev phase:
         // 'debug_checkMetaFiles'          => true,   // if true, Pagefactory will skip checks for presence of metafiles
         // 'debug_compileScssWithSrcRef'   => true,   // injects ref to source SCSS file&line in compiled CSS
         // 'debug_logIP'                   => true,   // if true, serverLog() includes agent's IP address
@@ -49,7 +49,9 @@ return [
             'ignore' => function () {
                 $cacheFlagFile = 'site/cache/pagefactory/last-cache-update.txt';
                 $lastCacheRefresh = file_exists($cacheFlagFile) ? filemtime($cacheFlagFile) : 0;
-                if (intval($lastCacheRefresh / PFY_MAX_CACHE_AGE) !== intval(time() / PFY_MAX_CACHE_AGE)) {
+                // if not daily refresh, try using commented line:
+                // if (intval($lastCacheRefresh / 86400) !== intval(time() / 86400)) {
+                if (date('d', $lastCacheRefresh) !== date('d')) {
                     return true; // cache expired, don't cache, let PageFactory re-build pages
                 }
                 return false; // page may be cached

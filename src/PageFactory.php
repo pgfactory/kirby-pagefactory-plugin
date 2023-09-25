@@ -50,9 +50,10 @@ define('OPTIONS_DEFAULTS', [
                                               // e.g. when converting from MdP site to Pfy
     'screenSizeBreakpoint'          => 480,   // Value used by JS to switch body classes ('pfy-large-screen' and 'pfy-small-screen')
     'sourceWrapperTag'              => 'section', // tag used to wrap .md content
-    'sourceWrapperClass'            => '',   // class applied to sourceWrapperTag
-    'webmaster_email'               => '', // email address of webmaster
+    'sourceWrapperClass'            => '',    // class applied to sourceWrapperTag
+    'webmaster_email'               => '',    // email address of webmaster
     'maxCacheAge'                   => 86400, // [s] max time after which Kirby's file cache is automatically flushed
+    'autoSplitSectionsOnH1'         => false, // -> used by PE presentation_support, splits MD by H1 and wraps each in <section>
     // 'timezone' => 'Europe/Zurich', // PageFactory tries to guess the timezone - you can override this manually
 
     // optionally define files to be used as css/js framework (e.g. jQuery or bootstrap etc):
@@ -113,10 +114,8 @@ class PageFactory
     public static $config;
     public        $pageOptions;
     public        $utils;
-    public        $value; //???
     private string $wrapperTag;
     private string $wrapperClass;
-    private string $wrapperClass2;
     private string $sectionsCss;
     private string $sectionsScss;
 
@@ -250,39 +249,30 @@ class PageFactory
         $inx = 0;
         $finalHtml = '';
         foreach ($dir as $file) {
-            $inx++;
-            $inx0 = $inx;
-            $this->wrapperClass2 = '';
             if (str_contains('#-_', basename($file)[0])) {
                 continue;
             }
+            $inx++;
+            $inx0 = $inx;
             $mdStr = getFile($file, 'cstyle,emptylines,twig');
             $this->sectionsCss = '';
             $this->sectionsScss = '';
             if (!$this->extractFrontmatter($mdStr)) {
                 continue;
             }
-            $sectId = '';
+            $sectClass = '';
 
             if ($this->autoSplitSections) {
                 $sections = preg_split("/(\n|)#(?!#)/ms", $mdStr, 0, PREG_SPLIT_NO_EMPTY);
                 $html = '';
                 foreach ($sections as $i => $md) {
-                    $sectId = '';
-                    if (preg_match("/^\s+ ( .+? ) [\n{] /xms", $md, $m)) {
-                        $sectId = "$this->wrapperTag-".translateToClassName(rtrim($m[1]), false);
-
-                        $this->sectionsCss = str_replace(['#this','.this'], ["#$sectId", ".$sectId"], $this->sectionsCss);
-                        $this->sectionsScss = str_replace(['#this','.this'], ["#$sectId", ".$sectId"], $this->sectionsScss);
-                        $sectId = " $sectId";
-                    }
                     $md = "#$md";
                     $html1 = TransVars::compile($md, $inx, removeComments: false);
 
                     if ($i === 0) {
                         $html = $html1;
                     } else {
-                        $section = "\n</$this->wrapperTag>\n\n\n<$this->wrapperTag id='pfy-$this->wrapperTag-$inx' class='pfy-$this->wrapperTag-wrapper pfy-$this->wrapperTag-$inx $sectId $this->wrapperClass'>\n";
+                        $section = "\n</$this->wrapperTag>\n\n\n<$this->wrapperTag id='pfy-$this->wrapperTag-$inx' class='pfy-$this->wrapperTag-wrapper $this->wrapperClass'>\n";
                         $html .= $section.$html1;
                     }
 
@@ -290,12 +280,12 @@ class PageFactory
                 }
 
             } else {
-                if (preg_match("/^\s* \# \s ( .+? ) [\n{] /xms", $mdStr, $m)) {
-                    $sectId = "$this->wrapperTag-".translateToClassName(trim($m[1]), false);
+                if ($this->sectionsCss || $this->sectionsScss) {
+                    $sectId = "pfy-$this->wrapperTag-$inx";
 
                     $this->sectionsCss = str_replace(['#this','.this'], ["#$sectId", ".$sectId"], $this->sectionsCss);
                     $this->sectionsScss = str_replace(['#this','.this'], ["#$sectId", ".$sectId"], $this->sectionsScss);
-                    $sectId = " $sectId";
+                    $sectClass = "$sectId pfy-$this->wrapperTag-" . translateToClassName(base_name($file, false), false);
                 }
 
                 $html = TransVars::compile($mdStr, $inx, removeComments: false);
@@ -312,13 +302,13 @@ class PageFactory
 
             $finalHtml .= <<<EOT
 
-<$this->wrapperTag id='pfy-$this->wrapperTag-$inx0' class='pfy-$this->wrapperTag-wrapper pfy-$this->wrapperTag-$inx0 $this->wrapperClass$sectId'>
+<$this->wrapperTag id='pfy-$this->wrapperTag-$inx0' class='pfy-$this->wrapperTag-wrapper $sectClass'>
 $html
 </$this->wrapperTag>
 
 
 EOT;
-        }
+        } // loop over files
 
         return $finalHtml;
     } // loadMdFiles
