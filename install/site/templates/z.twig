@@ -6,6 +6,7 @@
 
   <meta name="viewport" content="width=device-width, user-scalable=yes, initial-scale=1">
   <meta name="generator" content="{{ page.generator }} (on PHP {{ page.phpVersion }})">
+{#  {{ snippet('favicon') }}  -> requires plugin https://getkirby.com/plugins/moritzebeling/kirby-favicon #}
 
   {{ page.headInjections|raw }}
 </head>
@@ -14,46 +15,64 @@
 
 <div class='pfy-page'>
 
-  <header class='pfy-header'>
-    {{ nav({ wrapperClass: 'pfy-primary-nav', type: 'top' }) }}
-  </header>
+  <div class="pfy-header-wrapper">
+
+    <header class='pfy-header'>
+      <div class="pfy-large-screen-only">{{ page.siteTitle | raw }}</div>
+    </header>
+
+    <aside class="pfy-nav-outer-wrapper">
+      {{ nav({ type: 'top', wrapperClass: 'pfy-nav-top-right-aligned pfy-nav-colored pfy-mobile-nav-colored' }) }}
+    </aside>
+
+  </div><!-- /pfy-header-wrapper -->
+
+
+
+  <div class="pfy-main-wrapper">
+
+    <!-- === page content =============== -->
+    <main id='main' class='pfy-main'>
+
+      {{ page.pageContent | raw }}
+
+    </main>
+    <!-- === /page content =============== -->
+
+
+
+    <footer class="pfy-footer">
+      <div class="pfy-footer-left">
+        {{ page.langSelection|raw }}
+      </div>
+
+      <div class="pfy-footer-center">
+        <div>{{ page.adminPanelLink|raw }}</div>
+{#  for debugging:
+        <div>
+          [{{ link({ url: '~page/?debug=reset', text: 'debug auto' }) }}
+          {{ link({ url: '~page/?debug=false', text: 'debug off' }) }}]
+        </div>
+#}
+      </div>
+
+      <div class='pfy-footer-right'>
+        {{ page.loggedIn|raw }}
+        {{ page.loginButton|raw }}
+      </div><!-- /pfy-footer-right -->
+    </footer>
 
 
 
 
-  <!-- === page content =============== -->
-  <main id='main' class='pfy-main'>
-
-    {{ page.pageContent | raw }}
-
-  </main>
-  <!-- === /page content =============== -->
+    <div class="pfy-small-screen-header pfy-small-screen-only" style='display: none;'>
+      {{ page.smallScreenHeader|raw }}
+    </div><!-- /pfy-small-screen-header -->
 
 
+    {{ prevnextlinks({'wrapperClass':'pfy-large-screen-only'}) }}
 
-  <footer class="pfy-footer">
-    <div class="pfy-footer-left">
-      {{ page.langSelection|raw }}
-    </div>
-
-    <div class="pfy-footer-center">
-    {{ page.adminPanelLink|raw }}
-    </div>
-
-    <div class='pfy-footer-right'>
-    {{ page.loginButton|raw }}
-    </div><!-- /pfy-footer-right -->
-  </footer>
-
-
-
-
-  <div class="pfy-small-screen-header pfy-small-screen-only" style='display: none;'>
-    {{ page.smallScreenHeader|raw }}
-  </div><!-- /pfy-small-screen-header -->
-
-
-  {{ prevnextlinks({'wrapperClass':'pfy-large-screen-only'}) }}
+  </div><!-- /pfy-main-wrapper -->
 
 </div><!-- /.pfy-page -->
 
