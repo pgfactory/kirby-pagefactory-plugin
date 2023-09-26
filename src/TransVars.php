@@ -41,6 +41,7 @@ class TransVars
                 self::$transVars[$key] = $field->value();
             }
         }
+        self::compileVars();
 
         self::loadMacros();
     } // init
@@ -105,8 +106,8 @@ class TransVars
             foreach ($files as $file) {
                 self::loadVariables($file);
             }
+            self::compileVars();
         }
-        self::compileVars();
     } // loadCustomVars
 
 
