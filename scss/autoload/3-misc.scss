@@ -280,6 +280,10 @@
     right: 0;
   }
 
+  &:not(.localhost) .pfy-localhost-only {
+    display: none!important;
+  }
+
 } // pfy-default-styling
 
 
