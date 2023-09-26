@@ -229,9 +229,9 @@ EOT;
         //if (kirby()->session()->get()) {
         //    $bodyTagClasses = trim("session $bodyTagClasses");
         //}
-        //if (PageFactory::$isLocalhost) {
-        //    $bodyTagClasses = trim("localhost $bodyTagClasses");
-        //}
+        if (PageFactory::$isLocalhost) {
+            $bodyTagClasses = trim("localhost $bodyTagClasses");
+        }
         if (PageFactory::$debug) {
             $bodyTagClasses = trim("debug $bodyTagClasses");
         }
