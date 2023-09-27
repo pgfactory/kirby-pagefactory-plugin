@@ -1142,7 +1142,7 @@ class DataSet
             $dlHash = createHash(8, false, true);
             file_put_contents($dlLinkFile, $dlHash);
         }
-        $file = DOWNLOAD_PATH."$dlHash/$downloadFilename.";
+        $file = TEMP_DOWNLOAD_PATH."$dlHash/$downloadFilename.";
         return $file;
     } // getDownloadFilename
 
