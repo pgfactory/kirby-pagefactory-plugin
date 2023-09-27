@@ -41,7 +41,7 @@ $in-page-indent-step:     1em;
 
 // === Colors ======================================
 
-// Base color:
+// Base color: "hue, saturation", e.g. "10, 80%":
 $base-col1: var(--nav-base-color1); // --nav-base-color1: 0, 0%;
 $base-col2: var(--nav-base-color2); // --nav-base-color2: 0, 0%;
 
@@ -180,6 +180,22 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
     background: #eff;
   }
 
+  .pfy-sitemap {
+    &.pfy-sitemap-horizontal {
+      nav > ol {
+        display: flex;
+        justify-content: space-between;
+        //gap: 10px;
+        li {
+          flex: 1 1 auto;
+        }
+        > li {
+          background: var(--pfy-nav-elem-bg-color);
+        }
+      }
+    }
+  }
+
 } // pfy-large-screen
 
 
@@ -284,8 +300,8 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
 
 
   // === collapsed / collapsible ========================
-  &.pfy-nav-collapsed,
-  &.pfy-nav-collapsible {
+  &.pfy-nav-collapsed, .pfy-nav-collapsed,
+  &.pfy-nav-collapsible, .pfy-nav-collapsible {
       .pfy-nav-arrow {
           display: block;
       }

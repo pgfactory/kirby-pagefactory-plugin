@@ -77,10 +77,12 @@ class Import
                     $str = $this->doHighlight($str, '```', postfix: '3');
                     $str = $this->doHighlight($str, '``', postfix: '2');
                     $str = $this->doHighlight($str, '`', postfix: '1');
-                } else {
+//                } else {
 //ToDo: explicit patterns
                 }
             }
+            $str = str_replace('/', '&#47;', $str);
+            $str = shieldStr($str);
         }
         if ($literal && !$wrapperTag) {
             $wrapperTag = 'pre';
@@ -89,12 +91,11 @@ class Import
         if ($wrapperTag) {
             $str = <<<EOT
 
-    <$wrapperTag class='pfy-imported pfy-imported-$inx $wrapperClass'>
+<$wrapperTag class='pfy-imported pfy-imported-$inx $wrapperClass'>
 $str</$wrapperTag>
 
 EOT;
         }
-
         return $str;
     } // render
 

@@ -48,6 +48,7 @@ EOT,
 
     if ($type[0] === 'v') {     // variables
         $str = TransVars::renderVariables();
+        $str = shieldStr($str);
         $class = 'pfy-variables';
 
     } elseif ($type[0] === 'm') {   // macros

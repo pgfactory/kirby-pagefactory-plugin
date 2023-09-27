@@ -150,6 +150,7 @@ class Dir
             $this->linkClass = " class='pfy-link pfy-newwin_link'";
         }
         $path = resolvePath($this->path);
+        preparePath($path);
         if ($this->deep) {
             $dir = getDirDeep($path . $pattern);
             sort($dir);

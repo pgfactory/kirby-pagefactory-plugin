@@ -12,10 +12,12 @@ function sitemap($argStr = '')
     $config =  [
         'options' => [
             'type' => ['[branches].', ''],
-            'wrapperClass' => ['Class applied to the Nav\'s wrapper.', ''],
+            'id' => ['Id applied to the Nav element.', ''],
             'class' => ['Class applied to the Nav element.', ''],
+            'wrapperClass' => ['Class applied to the Nav\'s wrapper.', ''],
             'options' => ['[collapsible,collapsed] Adds corresponding classes to the wrapper (for convenience).', ''],
-            ],
+            'listTag' => ['[ul,ol] The tag to be used in list of nav-elements.', 'ol'],
+        ],
         'summary' => <<<EOT
 # $funcName()
 
@@ -23,8 +25,7 @@ Renders a sitemap.
 
 Supported wrapperClasses:
 
-- ``horizontal`` or ``pfy-nav-horizontal``      18em>> horizontal navigation menu
-- ``vertical`` or ``pfy-nav-vertical``      18em>> vertical navigation menu
+- ``pfy-nav-horizontal``      18em>> horizontal navigation menu
 - ``pfy-nav-indented``       18em>>     sub-elements get hierarchically indented
 - ``pfy-nav-collapsed``       18em>>    sub-elements are initially collapsed and can be opened
 - ``pfy-nav-collapsible``       18em>>    sub-elements are initially open and can be collapsed
@@ -45,20 +46,25 @@ EOT,
 
     // assemble output:
 
-    $options['wrapperClass'] = 'pfy-sitemap pfy-nav-vertical pfy-nav-indented pfy-nav-animated'.$options['wrapperClass'];
-    if ($options['type'] = 'branches') {
+    $options['wrapperClass'] = ' pfy-sitemap pfy-nav-indented pfy-nav-animated '.$options['wrapperClass'];
+//    $options['wrapperClass'] = 'pfy-sitemap pfy-nav-vertical pfy-nav-indented pfy-nav-animated'.$options['wrapperClass'];
+    $options['isPrimary'] = false;
+    if (str_contains($options['type'], 'branches')) {
         $options['wrapperClass'] .= ' pfy-sitemap-branches';
     }
-    if ((strpos($options['options'], 'collapsed') !== false) &&
-        (strpos($options['wrapperClass'], 'pfy-nav-collapsed') === false)){
+    if (str_contains($options['type'], 'hori')) {
+        $options['wrapperClass'] .= ' pfy-sitemap-horizontal';
+    }
+    if ((str_contains($options['options'], 'collapsed')) &&
+        (!str_contains($options['wrapperClass'], 'pfy-nav-collapsed'))){
         $options['wrapperClass'] .= ' pfy-nav-collapsed';
     }
-    if ((strpos($options['options'], 'collapsible') !== false) &&
-        (strpos($options['wrapperClass'], 'pfy-nav-collapsible') === false)){
+    if ((str_contains($options['options'], 'collapsible')) &&
+        (!str_contains($options['wrapperClass'], 'pfy-nav-collapsible'))){
         $options['wrapperClass'] .= ' pfy-nav-collapsible';
     }
     $nav = new SiteNav();
-    $str = $nav->render($options);
+    $str .= $nav->render($options);
     return [$str];
 }
 
