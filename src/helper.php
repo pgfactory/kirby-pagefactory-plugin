@@ -710,18 +710,27 @@ function removeCStyleComments(string $str): string
 
 
  /**
+  * Removes Twig and Transvar style comments.
   * @param string $str
   * @return string
   * @throws Exception
   */
  function removeTwigStyleComments(string $str): string
 {
- list($p1, $p2) = strPosMatching($str, 0, '{#', '#}');
- while ($p1 !== false) {
-     $str = substr($str, 0, $p1) . substr($str, $p2+2);
-     list($p1, $p2) = strPosMatching($str, $p1, '{#', '#}');
- }
- return $str;
+    // first remove TransVar style comments: {{# }}
+     list($p1, $p2) = strPosMatching($str, 0, '{{#', '}}');
+     while ($p1 !== false) {
+         $str = substr($str, 0, $p1) . substr($str, $p2+2);
+         list($p1, $p2) = strPosMatching($str, $p1, '{{#', '}}');
+     }
+
+     // second remove Twig style comments: {# #}
+     list($p1, $p2) = strPosMatching($str, 0, '{#', '#}');
+     while ($p1 !== false) {
+         $str = substr($str, 0, $p1) . substr($str, $p2+2);
+         list($p1, $p2) = strPosMatching($str, $p1, '{#', '#}');
+     }
+     return $str;
 } // removeTwigStyleComments
 
 
