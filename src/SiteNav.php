@@ -115,7 +115,7 @@ EOT;
      * @param $subtree
      * @return string
      */
-    private function _render($subtree): string
+    private function _render($subtree, $indent = ''): string
     {
         $out = '';
         foreach ($subtree->listed() as $pg) {
@@ -124,7 +124,6 @@ EOT;
             if (self::$next === false && $hasContent) {
                 self::$next = $pg;
             }
-            $indent = '';
             $curr = $pg->isActive() ? ' aria-current="page"': '';
             if ($curr) {
                 self::$next = false;
@@ -144,15 +143,10 @@ EOT;
             }
 
             $class = '';
-            if (!$hasContent) {
-                // if a nav item has no content it is treated as a surrogate element,
-                // the link points to the next element with content:
-                $class = " class='pfy-surrogate-elem'";
-            }
             if ($this->deep && $hasChildren) {
                 $out .= "$indent<li$class><a href='$url'$curr>$title</a>";
-                $out .=  $this->_render($pg->children());
-                $out .= "$indent</li>";
+                $out .=  $this->_render($pg->children(), "$indent    ");
+                $out .= "$indent</li>\n";
             } else {
                 $out .= "$indent<li><a href='$url'$curr>$title</a></li>\n";
             }
@@ -161,7 +155,7 @@ EOT;
             return '';
         }
 
-        $out = "$indent<{$this->listTag}>\n$out$indent</{$this->listTag}>";
+        $out = "\n$indent<{$this->listTag}>\n$out$indent</{$this->listTag}>\n";
         return $out;
     } // _render
 
