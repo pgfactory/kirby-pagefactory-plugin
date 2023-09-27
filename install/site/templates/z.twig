@@ -48,12 +48,10 @@
 
       <div class="pfy-footer-center">
         <div>{{ page.adminPanelLink|raw }}</div>
-{#  for debugging:
-        <div>
+        <div class='pfy-localhost-only'>
           [{{ link({ url: '~page/?debug=reset', text: 'debug auto' }) }}
           {{ link({ url: '~page/?debug=false', text: 'debug off' }) }}]
         </div>
-#}
       </div>
 
       <div class='pfy-footer-right'>
