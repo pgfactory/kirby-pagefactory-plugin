@@ -24,6 +24,7 @@ if (!defined('PFY_CACHE_PATH')) { // available in extensions
 }
 define('LOGIN_LOG_FILE',           'logins.txt'); // available in extensions
 define('DOWNLOAD_PATH',            'download/');
+define('TEMP_DOWNLOAD_PATH',       DOWNLOAD_PATH.'temp/'); // for temp download of datasets (excel-format)
 
 const PFY_MKDIR_MASK =             0700; // permissions for file accesses by PageFactory
 const BLOCK_SHIELD =               'div shielded';
@@ -188,13 +189,34 @@ class PageFactory
 
 
     /**
+     * Wrapper for _renderPageContent(). Catches errors and redirects to error page while in productive mode.
+     * @return string
+     * @throws Kirby\Exception\LogicException
+     * @throws SassException
+     */
+    public function renderPageContent(): string
+    {
+        if (self::$debug) {
+            return $this->_renderPageContent();
+        } else {
+            try {
+                return $this->_renderPageContent();
+            } catch (\Exception $e) {
+                go('error');
+                return '';
+            }
+        }
+    } // renderPageContent
+
+
+    /**
      * Renders the actual content of the current page,
      *   i.e. what is invoked in template as {{ page.text.kirbytext | raw }}
      * @return string
      * @throws Kirby\Exception\LogicException
      * @throws SassException
      */
-    public function renderPageContent(): string
+    public function _renderPageContent(): string
     {
         Extensions::extensionsFinalCode(); //??? best position?
         Utils::prepareStandardVariables();
