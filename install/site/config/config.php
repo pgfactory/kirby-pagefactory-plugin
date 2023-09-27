@@ -21,10 +21,11 @@ return [
     ],
 
     'pgfactory.pagefactory.options' => [
-        // 'defaultLanguage'   => 'de',
-        // 'default-nav'   => false,   // omit automatic loading of NAV resources
+        // 'defaultLanguage'               => 'de',
+        // 'default-nav'                   => false,   // omit automatic loading of NAV resources
                 // Note: normally, nav() is used in Twig template, but that's too late for loading assets.
                 // Thus, Pfy loads NAV assets, unless option 'default-nav' is false
+        // 'robots'                        => true, // inject "robots" elem in HTML header
         // 'externalLinksToNewWindow'      => false,  // -> used by Link() -> whether to open external links in new window
         // 'imageAutoQuickview'            => false,  // -> default for Img() macro
         // 'imageAutoSrcset'               => false,  // -> default for Img() macro

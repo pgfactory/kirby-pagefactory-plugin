@@ -22,7 +22,7 @@ class Page
     public string $js = '';
     public string $jsWhenReady = '';
     public string $jq = '';
-    private string  $robots = 'false';
+    private string|bool  $robots = false;
     public array|null $assetFiles = [];
     public array|null $asset = [];
     private string|false $overrideContent = false;
@@ -126,11 +126,8 @@ class Page
      * @param bool|string $robots
      * @return void
      */
-    public function applyRobotsAttrib(bool|string $robots = 'true'): void
+    public function applyRobotsAttrib(bool|string $robots = true): void
     {
-        if (is_bool($robots)) {
-            $robots = $robots? 'true':'false';
-        }
         $this->robots = $robots;
     } // applyRobotsAttrib
 
@@ -571,11 +568,18 @@ EOT;
      */
     private function getRobotsElem()
     {
-        $val = $this->robots ?: (PageFactory::$page->robots()->value() ?? '');
-        if (is_bool($val) || $val === 'true' || $val === 'false') {
-            $val = 'noindex,nofollow,noarchive';
+        $robots = ($this->robots !== 'false') ? $this->robots: false;
+        $robots2 = (PageFactory::$page->robots()->value() ?? false);
+        $robots3 = (PageFactory::$config['robots'] ?? false);
+        if ($robots || $robots2 || $robots3) {
+            $val = is_string(($robots)) ? $robots : (is_string(($robots2)) ? $robots2 : (is_string(($robots3)) ? $robots3 : true));
+            if (is_bool($val) || $val === 'true' || $val === 'false') {
+                $val = 'noindex,nofollow,noarchive';
+            }
+            return "\t<meta name='robots' content='$val'>\n";
+        } else {
+            return '';
         }
-        return "\t<meta name='robots' content='$val'>\n";
     } // getRobotsElem
 
 } // Page
