@@ -6,70 +6,77 @@ Installation of Kirby/Pagefactory
 - This assumes you are working in a linux/unix environment.
 - Further, it assumes that you will install PageFactory in a subfolder of doc-root.
 - In other cases you'll need to slightly adapt the installation process.
+- git and composer must be available on your system.
 
 
 Installation Script
 -------------------
 
 1) Download installation script:
-      https://pagefactory.info/download/install.sh
-      (e.g. curl https://pagefactory.info/download/install.sh > install.sh )
-    → best store it in the parent folder of your new web-app
+    https://pagefactory.info/download/install-pagefactory.sh
+    (e.g. curl https://pagefactory.info/download/install-pagefactory.sh > install-pagefactory.sh )
+    → best to store it in the parent folder of your new web-app
 
-2) Run install.sh <path-to-webapp> (e.g. sh ./install.sh webapp)
+2) Run install-pagefactory.sh <path-to-webapp> (e.g. sh ./install-pagefactory.sh webapp)
 
 3) Open page in your browser, e.g. http://localhost:8888/webapp/
 
 
 If a Kirby installation already exists:
 1b) Download installation script:
-      https://pagefactory.info/download/install-pagefactory.sh
+    https://pagefactory.info/download/install-pagefactory-plugin.sh
     → to your webapp folder
 
-2b) Cd to webapp folder and run install-pagefactory.sh
-    (e.g. cd webapp; ./install-pagefactory.sh)
+2b) Cd to webapp folder and run install-pagefactory-plugin.sh
+    (e.g. cd webapp; ./install-pagefactory-plugin.sh)
 
 
 
 Manual Installation
 -------------------
 
-1) Cd to doc-root and create root folder of your new web-app, e.g. 'webapp/'
+1) Cd to doc-root and create root folder of your new web-app, e.g. 'webapp/':
 
     mkdir webapp
     cd webapp
 
 
-2) Clone Kirby's plainkit
+2) Clone Kirby's plainkit:
 
     git clone https://github.com/getkirby/plainkit.git .
 
 
-3) Clone PageFactory to folder 'site/plugins/pagefactory/'
+2b) Install Kirby-Twig (recommended):
+
+    git clone https://github.com/wearejust/kirby-twig.git site/plugins/kirby-twig
+    (cd site/plugins/kirby-twig; composer update)
+
+
+3) Clone MarkdownPlus to folder 'site/plugins/pagefactory/markdownplus':
+
+    git clone https://github.com/pgfactory/markdownplus.git site/plugins/markdownplus
+
+
+
+4) Clone PageFactory to folder 'site/plugins/pagefactory/':
 
     git clone https://github.com/pgfactory/kirby-pagefactory-plugin.git  site/plugins/pagefactory
 
 
-4) Copy files to final location
+5) Copy some files to final location:
 
     cp -R site/plugins/pagefactory/install/content/  content
     cp -R site/plugins/pagefactory/install/site/     site
 
-5) Rename text files in page folders (aka meta-files) to 'z.txt' (resp. 'z.en.txt' etc.)
+6) Rename text files in page folders (aka meta-files) to 'z.txt' (resp. 'z.en.txt' etc.)
 
 	mv content/home/home.txt content/home/z.txt
 
 
+7) Open page in your browser, e.g. http://localhost:8888//webapp/
 
-5) Open page in your browser, e.g. http://localhost:8888//webapp/
 
 
-Note: How PageFactory becomes active
-------------------------------------
-For PageFactory to become active and render pages, meta-files MUST be called  'z.txt' (resp. 'z.en.txt' etc.).
-For example:
-    'site/home/z.txt' or
-    'site/2_my-page/z.en.txt'   (-> published page and multiple languages active)
+# Documentation
 
-This instructs Kirby to trigger PageFactory's template 'site/templates/z.twig'.
-Any other meta-file names will let Kirby run its normal page rendering mechanism.
+-> see [PageFactory.info](https://pagefactory.info)

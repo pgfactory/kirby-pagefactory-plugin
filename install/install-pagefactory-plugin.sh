@@ -8,11 +8,7 @@
 # -> script assumes you already cd'ed into your Kirby-app folder.
 #
 ## select the branch you want to check out:
-if [[ -z "$1" ]]; then
-	branch=''
-else
-	branch="-b $1"
-fi
+
 
 ## Check Kirby plainkit:
 if [[ ! -e kirby/ ]]; then
@@ -29,10 +25,13 @@ fi
 
 echo Now installing Pagefactory
 
+## Clone Kirby-Twig:
+/usr/local/bin/git submodule add https://github.com/wearejust/kirby-twig.git site/plugins/kirby-twig
+(cd site/plugins/kirby-twig; composer update)
+
 ## Clone PageFactory:
-/usr/local/bin/git clone https://github.com/amteich/kirby-twig.git site/plugins/kirby-twig
 /usr/local/bin/git clone https://github.com/pgfactory/markdownplus.git site/plugins/markdownplus
-/usr/local/bin/git clone $branch https://github.com/pgfactory/kirby-pagefactory-plugin.git site/plugins/pagefactory
+/usr/local/bin/git clone https://github.com/pgfactory/kirby-pagefactory-plugin.git site/plugins/pagefactory
 echo PageFactory installed
 
 

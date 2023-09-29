@@ -65,7 +65,8 @@ echo Now installing Pagefactory
 
 echo
 echo Kirby-Twig:
-/usr/local/bin/git submodule add https://github.com/amteich/kirby-twig.git site/plugins/kirby-twig
+/usr/local/bin/git submodule add https://github.com/wearejust/kirby-twig.git site/plugins/kirby-twig
+(cd site/plugins/kirby-twig; composer update)
 
 echo
 echo MarkdownPlus:
