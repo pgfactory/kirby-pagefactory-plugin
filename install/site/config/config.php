@@ -13,8 +13,7 @@ return [
     'smartypants' => true,
     'languages' => true, // enables language option in Panel
 
-    'amteich.twig.env.functions' => $functions, // register pagefactory's twig-functions
-    //'amteich.twig.cache' => false,            // disable if necessary
+    'wearejust.twig.env.functions' => $functions, // register pagefactory's twig-functions
 
     'pgfactory.markdownplus.options' => [
         // 'divblockChars'		=> '@%:', // chars identifying DIV-Blocks, default is '@%'
