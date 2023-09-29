@@ -1,6 +1,6 @@
 <?php
 
-namespace Usility\PageFactory;
+namespace PgFactory\PageFactory;
 
 use Kirby\Data\Yaml;
 use Kirby\Exception\InvalidArgumentException;
@@ -380,8 +380,8 @@ class TransVars
                 if (str_contains(',list,', $macroName)) {
                     $macroName = "_$macroName";
                 }
-                if (function_exists("Usility\\PageFactory\\$macroName")) {
-                    $value = "Usility\\PageFactory\\$macroName"($argStr);
+                if (function_exists("PgFactory\\PageFactory\\$macroName")) {
+                    $value = "PgFactory\\PageFactory\\$macroName"($argStr);
                     if (is_array($value)) {
                         $value = shieldStr($value[0], 'inline');
                     }
@@ -595,7 +595,7 @@ EOT;
                 if ($actualName[0] !== '#') {
                     if ($forRegistering) {
                         $name = ltrim($actualName, '_');
-                        $functions["*$name"] = "Usility\\PageFactory\\$actualName";
+                        $functions["*$name"] = "PgFactory\\PageFactory\\$actualName";
                     } else {
                         if ($includePaths) {
                             $functions[] = $file;

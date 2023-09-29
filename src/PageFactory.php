@@ -1,11 +1,11 @@
 <?php
 
-namespace Usility\PageFactory;
+namespace PgFactory\PageFactory;
 
 use Kirby;
 use Kirby\Data\Yaml;
 use ScssPhp\ScssPhp\Exception\SassException;
-use Usility\MarkdownPlus\Permission;
+use PgFactory\MarkdownPlus\Permission;
 
  // filesystem paths:
 const PFY_BASE_PATH =              'site/plugins/pagefactory/';

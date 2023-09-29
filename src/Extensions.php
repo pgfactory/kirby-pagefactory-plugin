@@ -1,6 +1,6 @@
 <?php
 
-namespace Usility\PageFactory;
+namespace PgFactory\PageFactory;
 
 class Extensions
 {
@@ -39,7 +39,7 @@ class Extensions
                 self::$loadedExtensions[$extensionClassName] = $extPath;
 
                 // instantiate extension object:
-                $extensionClass = "Usility\\PageFactoryElements\\$extensionClassName";
+                $extensionClass = "PgFactory\\PageFactoryElements\\$extensionClassName";
                 if (!class_exists($extensionClass)) {
                     return;
                 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Usility\PageFactory;
+namespace PgFactory\PageFactory;
 
 use Kirby\Filesystem\F;
 use Kirby\Data\Yaml as Yaml;
@@ -230,13 +230,13 @@ class DataSet
             }
 
         // Payload is already of type DataSet -> just replace :
-        } elseif (is_a($arg1, '\Usility\PageFactory\DataSet')) {
+        } elseif (is_a($arg1, '\PgFactory\PageFactory\DataSet')) {
             foreach ($arg1 as $key => $value) {
                 $this->set($key, $value);
             }
 
         // Payload is already of type DataRec -> just store:
-        } elseif (is_a($arg1, '\Usility\PageFactory\DataRec')) {
+        } elseif (is_a($arg1, '\PgFactory\PageFactory\DataRec')) {
             $this->data = $arg1;
 
         // key is scalar, arg2 is payload:
@@ -252,7 +252,7 @@ class DataSet
 
             //
             } elseif (is_string($arg1)) {
-                if (is_a($rec, '\Usility\PageFactory\DataRec')) {
+                if (is_a($rec, '\PgFactory\PageFactory\DataRec')) {
                     $this->data[$arg1] = $rec;
                 } elseif ($arg1) {
                     $inx = $this->findRecKeyOf($arg1);
@@ -340,7 +340,7 @@ class DataSet
         if (!$this->readWriteMode) {
             throw new \Exception("Datasource '$this->name' is in read-only mode, unable to update data");
         }
-        if (is_a($key, '\Usility\PageFactory\DataRec')) {
+        if (is_a($key, '\PgFactory\PageFactory\DataRec')) {
             $inx = $key->dataRecKey();
             $this->data[$inx] = $key;
         } else {
@@ -361,7 +361,7 @@ class DataSet
                 // rec doesn't exist, create new one:
                 return $this->addRec($rec, flush: $flush);
 
-            } elseif (is_a($rec, '\Usility\PageFactory\DataRec')) {
+            } elseif (is_a($rec, '\PgFactory\PageFactory\DataRec')) {
                 $this->data[$inx] = $rec;
 
             } else {
@@ -1463,7 +1463,7 @@ class DataSet
         $session = kirby()->session();
         $tableRecKeyTab = $session->get('obfuscatedKeys');
         if (!$tableRecKeyTab || !($obfuscatedKey = array_search($key, $tableRecKeyTab))) {
-            $obfuscatedKey = \Usility\PageFactory\createHash();
+            $obfuscatedKey = \PgFactory\PageFactory\createHash();
         }
         $tableRecKeyTab[$obfuscatedKey] = $key;
         $session->set('obfuscatedKeys', $tableRecKeyTab);

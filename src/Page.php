@@ -5,7 +5,7 @@
  * The final step of assembling those components is done by PageFactory->assembleHtml().
  */
 
-namespace Usility\PageFactory;
+namespace PgFactory\PageFactory;
 
 
 use ScssPhp\ScssPhp\Exception\SassException;
@@ -153,7 +153,7 @@ class Page
     public function setOverlay(string $str, bool $mdCompile = true): void
     {
         if (isset(Extensions::$availableExtensions['pageelements'])) {
-            $pe = new \Usility\PageFactoryElements\Overlay($this->pfy);
+            $pe = new \PgFactory\PageFactoryElements\Overlay($this->pfy);
             $pe->set($str, $mdCompile);
 
         // if PageElements are not loaded, we need to create bare page and exit immediately:
@@ -188,7 +188,7 @@ EOT;
     public function setMessage(string $str, bool $mdCompile = true): void
     {
         if (isset(Extensions::$availableExtensions['pageelements'])) {
-            $pe = new \Usility\PageFactoryElements\Message($this->pfy);
+            $pe = new \PgFactory\PageFactoryElements\Message($this->pfy);
             $pe->set($str, $mdCompile);
 
         // if PageElements are not loaded, we need to create bare page and exit immediately:
@@ -210,7 +210,7 @@ EOT;
     public function setPopup(string $str, $mdCompile = true): void
     {
         if (isset(Extensions::$availableExtensions['pageelements'])) {
-            $pe = new \Usility\PageFactoryElements\Popup($this->pfy);
+            $pe = new \PgFactory\PageFactoryElements\Popup($this->pfy);
             $pe->set($str, $mdCompile);
 
         // if PageElements are not loaded, we need to create bare page and exit immediately:

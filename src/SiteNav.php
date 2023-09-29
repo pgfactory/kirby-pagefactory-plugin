@@ -1,6 +1,6 @@
 <?php
 
-namespace Usility\PageFactory;
+namespace PgFactory\PageFactory;
 
 
 define('DEFAULT_NAV_LIST_TAG',  'ol');          // the list tag to be used

@@ -1,5 +1,5 @@
 <?php
-namespace Usility\PageFactory;
+namespace PgFactory\PageFactory;
 
 
 require_once __DIR__.'/../src/SiteNav.php';

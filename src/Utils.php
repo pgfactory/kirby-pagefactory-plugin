@@ -1,12 +1,12 @@
 <?php
 
-namespace Usility\PageFactory;
+namespace PgFactory\PageFactory;
 
 use Kirby;
 use Kirby\Data\Yaml;
 use Kirby\Email\PHPMailer;
 use Exception;
-
+use PgFactory\MarkdownPlus\Permission;
 
 
 class Utils
@@ -133,7 +133,7 @@ EOT;
             $loginLink = PageFactory::$appUrl.'panel/login/';
         }
 
-        $user = \Usility\MarkdownPlus\Permission::checkPageAccessCode();
+        $user = Permission::checkPageAccessCode();
         if (is_object($user)) {
             $loginIcon = svg('site/plugins/pagefactory/assets/icons/logout.svg');
             $username = (string)$user->nameOrEmail();

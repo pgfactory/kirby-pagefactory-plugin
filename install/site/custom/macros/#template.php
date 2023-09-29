@@ -1,5 +1,5 @@
 <?php
-namespace Usility\PageFactory;
+namespace PgFactory\PageFactory;
 
 /*
  * PageFactory Macro (and Twig Function)

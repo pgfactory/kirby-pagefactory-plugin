@@ -1,6 +1,6 @@
 <?php
 
-namespace Usility\PageFactory;
+namespace PgFactory\PageFactory;
 
 use Kirby\Exception\Exception;
 
@@ -101,7 +101,7 @@ class Assets
         if (!($this->assetGroups = PageFactory::$config['assetGroups']??false)) {
             $this->assetGroups = DEFAULT_ASSET_GROUPS;
         }
-        if (class_exists('Usility\MarkdownPlus\MarkdownPlus')) {
+        if (class_exists('PgFactory\MarkdownPlus\MarkdownPlus')) {
             $this->assetGroups['site/plugins/pagefactory/assets/css/-pagefactory.css'][] = 'site/plugins/markdownplus/assets/css/*';
         }
         $this->prepareAssets();

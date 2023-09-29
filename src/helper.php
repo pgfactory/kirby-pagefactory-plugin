@@ -1,14 +1,14 @@
 <?php
-namespace Usility\PageFactory;
+namespace PgFactory\PageFactory;
 
- // Use helper functions with prefix '\Usility\PageFactory\'
+ // Use helper functions with prefix '\PgFactory\PageFactory\'
 use Kirby\Data\Yaml as Yaml;
 use Kirby\Data\Json as Json;
 use Kirby\Data\Data;
 use Kirby\Exception\InvalidArgumentException;
 use Kirby\Filesystem\F;
 use Exception;
-use Usility\MarkdownPlus\MarkdownPlus;
+use PgFactory\MarkdownPlus\MarkdownPlus;
 
 
 const FILE_BLOCKING_MAX_TIME = 500; //ms
@@ -2266,7 +2266,7 @@ function compileMarkdown(string $mdStr, bool $omitPWrapperTag = false): string
  function markdown(string $mdStr, bool $omitPWrapperTag = false, $sectionIdentifier = '', $removeComments = false): string
 {
     if ($mdStr) {
-        if (class_exists('Usility\MarkdownPlus\MarkdownPlus')) {
+        if (class_exists('PgFactory\MarkdownPlus\MarkdownPlus')) {
             $md = new MarkdownPlus();
             return $md->compile($mdStr, $omitPWrapperTag, $sectionIdentifier, $removeComments);
         } else {
@@ -2287,7 +2287,7 @@ function compileMarkdown(string $mdStr, bool $omitPWrapperTag = false): string
  function markdownParagrah(string $mdStr, bool $omitPWrapperTag = false): string
 {
     if ($mdStr) {
-        if (class_exists('Usility\MarkdownPlus\MarkdownPlus')) {
+        if (class_exists('PgFactory\MarkdownPlus\MarkdownPlus')) {
             $md = new MarkdownPlus();
             return $md->compileParagraph($mdStr, $omitPWrapperTag);
         } else {
@@ -2520,7 +2520,7 @@ function var_r($var, string $varName = '', bool $flat = false, bool $toHtml = fa
         $out = "$varName$var";
 
     } else {
-        if (is_object($var) && is_a($var, '\Usility\PageFactory\DataSet')) {
+        if (is_object($var) && is_a($var, '\PgFactory\PageFactory\DataSet')) {
             $var = removeSelfReferences($var);
         }
 

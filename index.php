@@ -14,8 +14,8 @@
 const TWIG_FUNCTIONS_FOLDER = __DIR__.'/twig-functions/';
 require_once __DIR__ . '/vendor/autoload.php';
 
-use Usility\PageFactory\PageFactory as PageFactory;
-use Usility\PageFactory\TransVars;
+use PgFactory\PageFactory\PageFactory as PageFactory;
+use PgFactory\PageFactory\TransVars;
 
 loadTwigFunctions();
 
@@ -46,8 +46,8 @@ Kirby::plugin('pgfactory/pagefactory', [
         },
 
         'page.render:after' => function (string $contentType, array $data, string $html, Kirby\Cms\Page $page) {
-            $html = Usility\PageFactory\Utils::resolveUrl($html);
-            return Usility\PageFactory\unshieldStr($html, true);
+            $html = PgFactory\PageFactory\Utils::resolveUrl($html);
+            return PgFactory\PageFactory\unshieldStr($html, true);
         },
 
         // create initial .md content file for newly created pages:

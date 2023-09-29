@@ -1,6 +1,6 @@
 <?php
 
-namespace Usility\PageFactory;
+namespace PgFactory\PageFactory;
 use Kirby\Exception\InvalidArgumentException;
 use ScssPhp\ScssPhp\Compiler;
 

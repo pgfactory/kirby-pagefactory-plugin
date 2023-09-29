@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Usility\PageFactory;
+namespace PgFactory\PageFactory;
 
 const REC_LOCK_AWAIT_CYCLE_TIME = 20000; // 20ms
 
