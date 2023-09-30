@@ -6,7 +6,7 @@
         "psr-4": {
             "PgFactory\\PageFactory\\": "src/",
             "PgFactory\\MarkdownPlus\\": "../markdownplus/src/",
-            "PgFactory\\PageFactoryElements\\": "../pagefactory-pageelements/src/",
+            "PgFactory\\PageFactoryElements\\": "../pagefactory-pageelements/src/"
         }
     }
 }
