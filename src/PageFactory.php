@@ -202,6 +202,8 @@ class PageFactory
             try {
                 return $this->_renderPageContent();
             } catch (\Exception $e) {
+                mylog($e->getMessage());
+                Cache::flushAll();
                 go('error');
                 return '';
             }
