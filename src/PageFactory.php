@@ -22,7 +22,7 @@ define('PFY_LOGS_PATH',            'site/logs/');
 if (!defined('PFY_CACHE_PATH')) { // available in extensions
     define('PFY_CACHE_PATH', 'site/cache/pagefactory/'); // available in extensions
 }
-define('LOGIN_LOG_FILE',           'logins.txt'); // available in extensions
+define('LOGIN_LOG_FILE',           'login-log.txt'); // available in extensions
 define('DOWNLOAD_PATH',            'download/');
 define('TEMP_DOWNLOAD_PATH',       DOWNLOAD_PATH.'temp/'); // for temp download of datasets (excel-format)
 
