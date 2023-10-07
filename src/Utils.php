@@ -307,6 +307,12 @@ EOT;
                         mylog("User '$name' logged out.", LOGIN_LOG_FILE);
                         reloadAgent(); // get rid of url-command
                     }
+
+                    // check whether Permission has an accessCode user registered, remove if so:
+                    $session = kirby()->session();
+                    if ($session->get('pfy.accessCodeUser')) {
+                        $session->remove('pfy.accessCodeUser');
+                    }
                     break;
                 case 'reset': // ?reset (as non-admin): harmless reset => just undo previous '?debug' commands
                     self::resetDebugState();
