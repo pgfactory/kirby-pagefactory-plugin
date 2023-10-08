@@ -17,6 +17,7 @@ return [
 
     'pgfactory.markdownplus.options' => [
         // 'divblockChars'		=> '@%:', // chars identifying DIV-Blocks, default is '@%'
+        // 'accessCodes' => ['a_member@domain.net' => 'ABCDEFGH'], // Access Codes for privileged accesses
     ],
 
     'pgfactory.pagefactory.options' => [
