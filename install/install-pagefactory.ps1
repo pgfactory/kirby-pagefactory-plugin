@@ -72,7 +72,7 @@ git submodule add "https://github.com/pgfactory/markdownplus.git" "site/plugins/
 Write-Host ""
 Write-Host "PageFactory:"
 git submodule add $Branch "https://github.com/pgfactory/kirby-pagefactory-plugin.git" "site/plugins/pagefactory"
-Set-Location "$($CurrentDirectory)\sites\plugins\pagefactory"
+Set-Location "$($CurrentDirectory)\site\plugins\pagefactory"
 composer update
 
 Set-Location $CurrentDirectory
