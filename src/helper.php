@@ -2651,17 +2651,6 @@ function convertToPx(string $str): float
 
 
  /**
-  * Returns the time since PageFactory started its execution.
-  * @param bool $verbose
-  * @return float
-  */
- function readTimer(): float
- {
-     return round(((microtime(true) - PageFactory::$timer)*1000000) / 1000 - 0.005, 1);
- } // readTimer
-
-
- /**
   * Just forwards to Exception - better to use "throw new Exception($str)" directly
   * @param string $str
   * @return void

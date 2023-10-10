@@ -255,7 +255,7 @@ EOT;
         }
 
         self::execAsAnon('printview,printpreview,print,logout,reset,flush,flushcache');
-        self::execAsAdmin('help,localhost,timer,reset,notranslate');
+        self::execAsAdmin('help,reset,notranslate');
     } // handleAgentRequests
 
 

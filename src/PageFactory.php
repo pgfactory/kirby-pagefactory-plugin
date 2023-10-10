@@ -104,7 +104,6 @@ class PageFactory
     public static string $timezone;
     public static string $locale;
     public static $isLocalhost;
-    public static $timer;
     public static $user;
     public static string $slug = '';
     public static $pageId;
@@ -125,8 +124,6 @@ class PageFactory
 
     public function __construct($data)
     {
-        self::$timer = microtime(true);
-
         self::$kirby = $data['kirby'];
         self::$pages = $data['pages'];
         self::$page = $data['page'];
@@ -257,7 +254,7 @@ class PageFactory
         self::$renderingClosed = true;
         Cache::superviseKirbyCache();
         return $html;
-    } // renderPageContent
+    } // _renderPageContent
 
 
     /**
