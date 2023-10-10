@@ -75,6 +75,7 @@ echo MarkdownPlus:
 echo
 echo PageFactory:
 /usr/local/bin/git submodule add $branch https://github.com/pgfactory/kirby-pagefactory-plugin.git site/plugins/pagefactory
+(cd site/plugins/pagefactory; composer update)
 
 echo
 echo PageFactory installed
