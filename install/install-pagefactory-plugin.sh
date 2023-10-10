@@ -32,6 +32,7 @@ echo Now installing Pagefactory
 ## Clone PageFactory:
 /usr/local/bin/git clone https://github.com/pgfactory/markdownplus.git site/plugins/markdownplus
 /usr/local/bin/git clone https://github.com/pgfactory/kirby-pagefactory-plugin.git site/plugins/pagefactory
+(cd site/plugins/pagefactory; composer update)
 echo PageFactory installed
 
 
