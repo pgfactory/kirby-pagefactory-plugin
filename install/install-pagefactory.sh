@@ -37,7 +37,7 @@ fi
 ## Check/clone Kirby plainkit:
 if [[ ! -e kirby/ ]]; then
 	echo "Now installing Kirby to folder -> `pwd`"
-	/usr/local/bin/git clone https://github.com/getkirby/plainkit.git .
+	/usr/bin/env git clone https://github.com/getkirby/plainkit.git .
 	echo Kirby installed
 else
 	echo Kirby already installed
@@ -65,16 +65,16 @@ echo Now installing Pagefactory
 
 echo
 echo Kirby-Twig:
-/usr/local/bin/git submodule add https://github.com/wearejust/kirby-twig.git site/plugins/kirby-twig
+/usr/bin/env git submodule add https://github.com/wearejust/kirby-twig.git site/plugins/kirby-twig
 (cd site/plugins/kirby-twig; composer update)
 
 echo
 echo MarkdownPlus:
-/usr/local/bin/git submodule add https://github.com/pgfactory/markdownplus.git site/plugins/markdownplus
+/usr/bin/env git submodule add https://github.com/pgfactory/markdownplus.git site/plugins/markdownplus
 
 echo
 echo PageFactory:
-/usr/local/bin/git submodule add $branch https://github.com/pgfactory/kirby-pagefactory-plugin.git site/plugins/pagefactory
+/usr/bin/env git submodule add $branch https://github.com/pgfactory/kirby-pagefactory-plugin.git site/plugins/pagefactory
 (cd site/plugins/pagefactory; composer update)
 
 echo
