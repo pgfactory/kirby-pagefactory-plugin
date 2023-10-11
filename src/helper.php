@@ -1698,6 +1698,7 @@ function parseArgumentStr(string $str, string $delim = ',', mixed $superBrackets
     }
 
     $json = rtrim($json, ',');
+    $json = str_replace('\\', '\\\\', $json);
     $json = '{'.$json.'}';
     $options = json_decode($json, true);
     if ($options === null) {
