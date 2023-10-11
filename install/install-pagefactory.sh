@@ -9,8 +9,8 @@ if [[ -z "$1" ]]; then
 	echo "Installation script for Kirby and Pagefactory-plugin"
 	echo "----------------------------------------------------"
 	echo "Usage:"
-	echo "  install.sh  path-to-webapp-folder  {branch}"
-	echo "     path-to-webapp-folder='.' for current folder"
+	echo "  install.sh  path-to-myapp-folder  {branch}"
+	echo "     path-to-myapp-folder='.' for current folder"
 	echo "     branch is optional"
 	echo 
 	exit
@@ -25,8 +25,13 @@ if [[ "$1" != "." ]]; then
 		echo
 		exit
 	fi
+	
+	## cd to app-root folder:
 	cd $1
 fi
+
+appRoot="$cwd/$1"
+
 
 if [[ -n "$(ls -A)" &&  ! -d kirby/ ]]; then
    echo "Not empty - to install Kirby, folder must be empty"
@@ -66,16 +71,17 @@ echo Now installing Pagefactory
 echo
 echo Kirby-Twig:
 /usr/bin/env git submodule add https://github.com/wearejust/kirby-twig.git site/plugins/kirby-twig
-(cd site/plugins/kirby-twig; composer update)
+/usr/bin/env composer update --working-dir=$appRoot/site/plugins/kirby-twig
 
 echo
 echo MarkdownPlus:
 /usr/bin/env git submodule add https://github.com/pgfactory/markdownplus.git site/plugins/markdownplus
+/usr/bin/env composer update --working-dir=$appRoot/site/plugins/markdownplus
 
 echo
 echo PageFactory:
 /usr/bin/env git submodule add $branch https://github.com/pgfactory/kirby-pagefactory-plugin.git site/plugins/pagefactory
-(cd site/plugins/pagefactory; composer update)
+/usr/bin/env composer update --working-dir=$appRoot/site/plugins/pagefactory
 
 echo
 echo PageFactory installed
@@ -91,5 +97,5 @@ if [ ! -e site/templates/page_template.html ]; then
 fi
 
 echo
-echo ==> Now open this website in your browser.
+echo => Now open this website in your browser.
 echo 
