@@ -173,7 +173,7 @@ class PageFactory
         self::$pageUrl = substr(self::$absPageUrl, strlen(self::$hostUrl) - 1);
 
         self::$user = Permission::checkPageAccessCode();
-        self::$userName = self::$user ? (string)self::$user->name()->nameOrEmail() : '';
+        self::$userName = is_object(self::$user) ? (string)self::$user->name()->nameOrEmail() : (self::$user ?: '');
 
         $this->autoSplitSections = self::$config['autoSplitSectionsOnH1'] ?? false;
 
