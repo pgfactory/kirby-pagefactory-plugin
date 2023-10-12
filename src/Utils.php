@@ -138,7 +138,6 @@ EOT;
         $user = PageFactory::$user;
         if ($user) {
             // user is already logged in, so inform and offer logout:
-            $loginIcon = svg('site/plugins/pagefactory/assets/icons/logout.svg');
             $username = PageFactory::$userName;
             $logout = TransVars::getVariable('pfy-logout');
             TransVars::setVariable('LoginLink', "<a href='$logoutLink'>$logout</a>");
@@ -148,11 +147,11 @@ EOT;
 
             TransVars::setVariable('username', $username);
 
+            $logoutIcon = svg('site/plugins/pagefactory/assets/icons/logout.svg');
             $pfyLoginButtonLabel = TransVars::getVariable('pfy-logout-button-title');
-            TransVars::setVariable('loginButton', "<div class='pfy-login-button'><a href='$logoutLink' class='pfy-login-button' title='$pfyLoginButtonLabel'>$loginIcon</a></div>");
+            TransVars::setVariable('loginButton', "<span class='pfy-login-button'><a href='$logoutLink' class='pfy-login-button' title='$pfyLoginButtonLabel'>$logoutIcon</a></span>");
 
         } else {
-            $loginIcon = svg('site/plugins/pagefactory/assets/icons/user.svg');
             $login = TransVars::getVariable('pfy-login');
             TransVars::setVariable('LoginLink', "<a href='$loginLink'>$login</a>");
 
@@ -161,8 +160,9 @@ EOT;
 
             TransVars::setVariable('username', '');
 
+            $loginIcon = svg('site/plugins/pagefactory/assets/icons/user.svg');
             $pfyLoginButtonLabel = TransVars::getVariable('pfy-login-button-title');
-            TransVars::setVariable('loginButton', "<div class='pfy-login-button'><a href='$loginLink' class='pfy-login-button' title='$pfyLoginButtonLabel'>$loginIcon</a></div>");
+            TransVars::setVariable('loginButton', "<span class='pfy-login-button'><a href='$loginLink' class='pfy-login-button' title='$pfyLoginButtonLabel'>$loginIcon</a></span>");
         }
 
         $pfyAdminPanelLinkText = TransVars::getVariable('pfy-admin-panel-link-text');
