@@ -1698,7 +1698,6 @@ function parseArgumentStr(string $str, string $delim = ',', mixed $superBrackets
     }
 
     $json = rtrim($json, ',');
-    $json = str_replace('\\', '\\\\', $json);
     $json = '{'.$json.'}';
     $options = json_decode($json, true);
     if ($options === null) {
@@ -1742,7 +1741,7 @@ function parseArgKey(string &$rest, string $delim): string
             }
         }
     }
-    $key = preg_replace('/(?<!\\\)"/', '\\"', $key);
+    $key = str_replace(['\\', '"', "\t", "\n", "\r", "\f"], ['\\\\', '\\"', '\\t', '\\n', '\\r', '\\f'], $key);
     return "\"$key\"";
 } // parseArgKey
 
@@ -1789,7 +1788,7 @@ function parseArgValue(string &$rest, string $delim): mixed
         if (str_contains($value, '{{')) {
             $value = TransVars::translate($value);
         }
-        $value = preg_replace('/(?<!\\\)"/', '\\"', $value);
+        $value = str_replace(['\\', '"', "\t", "\n", "\r", "\f"], ['\\\\', '\\"', '\\t', '\\n', '\\r', '\\f'], $value);
         $value = '"' . trim($value) . '"';
     } elseif (is_bool($value)) {
         $value = $value? 'true': 'false';
