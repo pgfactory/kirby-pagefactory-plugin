@@ -21,6 +21,15 @@ pfy-logout-button-title:
 pfy-admin-panel-link-text:
     _: 'Admin'
 
+pfy-logged-in-now:
+    de: Sie sind jetzt angemeldet
+    de2: Du bist jetzt angemeldet
+    _:   You are logged in now
+
+pfy-logged-out-now:
+    de: Sie sind jetzt abgemeldet
+    de2: Du bist jetzt abgemeldet
+    _:   You are logged out now
 
 
 #--- Page Switcher Links ------------------------

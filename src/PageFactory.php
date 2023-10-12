@@ -22,7 +22,7 @@ define('PFY_LOGS_PATH',            'site/logs/');
 if (!defined('PFY_CACHE_PATH')) { // available in extensions
     define('PFY_CACHE_PATH', 'site/cache/pagefactory/'); // available in extensions
 }
-define('LOGIN_LOG_FILE',           'logins.txt'); // available in extensions
+define('LOGIN_LOG_FILE',           'login-log.txt'); // available in extensions
 define('DOWNLOAD_PATH',            'download/');
 define('TEMP_DOWNLOAD_PATH',       DOWNLOAD_PATH.'temp/'); // for temp download of datasets (excel-format)
 
@@ -104,8 +104,8 @@ class PageFactory
     public static string $timezone;
     public static string $locale;
     public static $isLocalhost;
-    public static $timer;
     public static $user;
+    public static $userName;
     public static string $slug = '';
     public static $pageId;
     public static $urlToken; // the hash code extracted from HTTP request (e.g. home/ABCDEF)
@@ -125,8 +125,6 @@ class PageFactory
 
     public function __construct($data)
     {
-        self::$timer = microtime(true);
-
         self::$kirby = $data['kirby'];
         self::$pages = $data['pages'];
         self::$page = $data['page'];
@@ -173,9 +171,10 @@ class PageFactory
         self::$absPageRoot = self::$page->root() . '/';
         self::$absPageUrl = (string)self::$page->url() . '/';
         self::$pageUrl = substr(self::$absPageUrl, strlen(self::$hostUrl) - 1);
-        if ($user = self::$kirby->user()) {
-            self::$user = (string)$user->name();
-        }
+
+        self::$user = Permission::checkPageAccessCode();
+        self::$userName = is_object(self::$user) ? (string)self::$user->name()->nameOrEmail() : (self::$user ?: '');
+
         $this->autoSplitSections = self::$config['autoSplitSectionsOnH1'] ?? false;
 
         Extensions::loadExtensions();
@@ -202,6 +201,8 @@ class PageFactory
             try {
                 return $this->_renderPageContent();
             } catch (\Exception $e) {
+                mylog($e->getMessage());
+                Cache::flushAll();
                 go('error');
                 return '';
             }
@@ -255,7 +256,7 @@ class PageFactory
         self::$renderingClosed = true;
         Cache::superviseKirbyCache();
         return $html;
-    } // renderPageContent
+    } // _renderPageContent
 
 
     /**

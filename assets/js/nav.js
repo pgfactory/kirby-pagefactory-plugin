@@ -781,7 +781,7 @@ const PfyNav = {
     if (typeof navWrapper === 'undefined') {
       navWrapper = document.querySelector('.pfy-primary-nav');
     }
-    if (navWrapper.classList.contains('pfy-primary-nav')) {
+    if (navWrapper && navWrapper.classList.contains('pfy-primary-nav')) {
       if (this.prevScreenMode !== this.isSmallScreen) {
           this.prevScreenMode = this.isSmallScreen;
           if (this.isSmallScreen) {

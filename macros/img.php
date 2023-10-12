@@ -150,7 +150,7 @@ class Img
             $str = $this->applyLinkWrapper($str);
         }
 
-        if ($args['wrapperTag'] || $args['wrapperClass']) {
+        if ($this->args['caption'] || $args['wrapperTag'] || $args['wrapperClass']) {
             $str = $this->applyFigureWrapper($str);
         }
         return $str;

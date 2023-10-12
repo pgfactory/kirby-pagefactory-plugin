@@ -6,39 +6,40 @@ Installation of Kirby/Pagefactory
 - This assumes you are working in a linux/unix environment.
 - Further, it assumes that you will install PageFactory in a subfolder of doc-root.
 - In other cases you'll need to slightly adapt the installation process.
-- git and composer must be available on your system.
+- Apache2, git and composer must be available on your system.
+
+If you are working on a Windows computer, see comments towards the end of this file.
 
 
 Installation Script
 -------------------
 
-1) Download installation script:
+1) Download the installation script by opening this URL in a browser:
     https://pagefactory.info/download/install-pagefactory.sh
-    (e.g. curl https://pagefactory.info/download/install-pagefactory.sh > install-pagefactory.sh )
-    → best to store it in the parent folder of your new web-app
+    → copy the script to the parent folder of your new web-app
 
-2) Run install-pagefactory.sh <path-to-webapp> (e.g. sh ./install-pagefactory.sh webapp)
-
-3) Open page in your browser, e.g. http://localhost:8888/webapp/
+1a) Alternatively, you can do the same in a terminal:
+    curl https://pagefactory.info/download/install-pagefactory.sh > install-pagefactory.sh
 
 
-If a Kirby installation already exists:
-1b) Download installation script:
-    https://pagefactory.info/download/install-pagefactory-plugin.sh
-    → to your webapp folder
+2) Open a terminal and cd to the parent folder of your new web-app
 
-2b) Cd to webapp folder and run install-pagefactory-plugin.sh
-    (e.g. cd webapp; ./install-pagefactory-plugin.sh)
+
+3) Run "install-pagefactory.sh <path-to-myapp> ":
+    sh ./install-pagefactory.sh myapp
+
+
+4) Open the webapp in your browser, e.g. http://localhost:8888/myapp/
 
 
 
 Manual Installation
 -------------------
 
-1) Cd to doc-root and create root folder of your new web-app, e.g. 'webapp/':
+1) Cd to doc-root and create root folder of your new web-app, e.g. 'myapp/':
 
-    mkdir webapp
-    cd webapp
+    mkdir myapp
+    cd myapp
 
 
 2) Clone Kirby's plainkit:
@@ -49,18 +50,22 @@ Manual Installation
 2b) Install Kirby-Twig (recommended):
 
     git clone https://github.com/wearejust/kirby-twig.git site/plugins/kirby-twig
-    (cd site/plugins/kirby-twig; composer update)
+    composer update --working-dir=$appRoot/site/plugins/kirby-twig
+
+    Note: instead of "git clone"  you can use "git submodule add", if you like. Same further down.
 
 
 3) Clone MarkdownPlus to folder 'site/plugins/pagefactory/markdownplus':
 
     git clone https://github.com/pgfactory/markdownplus.git site/plugins/markdownplus
+    composer update --working-dir=$appRoot/site/plugins/markdownplus
 
 
 
 4) Clone PageFactory to folder 'site/plugins/pagefactory/':
 
     git clone https://github.com/pgfactory/kirby-pagefactory-plugin.git  site/plugins/pagefactory
+    composer update --working-dir=$appRoot/site/plugins/pagefactory
 
 
 5) Copy some files to final location:
@@ -68,15 +73,28 @@ Manual Installation
     cp -R site/plugins/pagefactory/install/content/  content
     cp -R site/plugins/pagefactory/install/site/     site
 
+
 6) Rename text files in page folders (aka meta-files) to 'z.txt' (resp. 'z.en.txt' etc.)
 
 	mv content/home/home.txt content/home/z.txt
 
 
-7) Open page in your browser, e.g. http://localhost:8888//webapp/
+7) Open page in your browser, e.g. http://localhost:8888//myapp/
 
 
 
 # Documentation
 
 -> see [PageFactory.info](https://pagefactory.info)
+
+
+
+Windows
+-------
+- there is a PowerShell script:
+    https://pagefactory.info/download/install-pagefactory.ps1
+
+- it's best to run it in an unrestricted account
+
+- if you have a restricted account, run the script with the following command:
+    powershell -executionpolicy bypass -File .\install-pagefactory.ps1 myapp

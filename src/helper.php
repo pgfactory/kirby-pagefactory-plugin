@@ -1741,7 +1741,7 @@ function parseArgKey(string &$rest, string $delim): string
             }
         }
     }
-    $key = preg_replace('/(?<!\\\)"/', '\\"', $key);
+    $key = str_replace(['\\', '"', "\t", "\n", "\r", "\f"], ['\\\\', '\\"', '\\t', '\\n', '\\r', '\\f'], $key);
     return "\"$key\"";
 } // parseArgKey
 
@@ -1788,7 +1788,7 @@ function parseArgValue(string &$rest, string $delim): mixed
         if (str_contains($value, '{{')) {
             $value = TransVars::translate($value);
         }
-        $value = preg_replace('/(?<!\\\)"/', '\\"', $value);
+        $value = str_replace(['\\', '"', "\t", "\n", "\r", "\f"], ['\\\\', '\\"', '\\t', '\\n', '\\r', '\\f'], $value);
         $value = '"' . trim($value) . '"';
     } elseif (is_bool($value)) {
         $value = $value? 'true': 'false';
@@ -2646,19 +2646,8 @@ function convertToPx(string $str): float
          (is_dir("$dir/$file") &&
              !is_link($dir)) ? rrmdir("$dir/$file") : unlink("$dir/$file");
      }
-     return rmdir($dir);
+     return @rmdir($dir);
 } // rrmdir
-
-
- /**
-  * Returns the time since PageFactory started its execution.
-  * @param bool $verbose
-  * @return float
-  */
- function readTimer(): float
- {
-     return round(((microtime(true) - PageFactory::$timer)*1000000) / 1000 - 0.005, 1);
- } // readTimer
 
 
  /**
