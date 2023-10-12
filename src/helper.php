@@ -2646,7 +2646,7 @@ function convertToPx(string $str): float
          (is_dir("$dir/$file") &&
              !is_link($dir)) ? rrmdir("$dir/$file") : unlink("$dir/$file");
      }
-     return rmdir($dir);
+     return @rmdir($dir);
 } // rrmdir
 
 
