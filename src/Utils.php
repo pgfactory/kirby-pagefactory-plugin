@@ -129,16 +129,19 @@ EOT;
         $pageUrl = PageFactory::$pageUrl;
         if (Extensions::$loadedExtensions['PageElements']??false) {
             $loginLink = "$pageUrl?login";
+            $logoutLink = "$pageUrl?login";
         } else {
             $loginLink = PageFactory::$appUrl.'panel/login/';
+            $logoutLink = "$pageUrl?logout";
         }
 
-        $user = Permission::checkPageAccessCode();
-        if (is_object($user)) {
+        $user = PageFactory::$user;
+        if ($user) {
+            // user is already logged in, so inform and offer logout:
             $loginIcon = svg('site/plugins/pagefactory/assets/icons/logout.svg');
-            $username = (string)$user->nameOrEmail();
+            $username = PageFactory::$userName;
             $logout = TransVars::getVariable('pfy-logout');
-            TransVars::setVariable('LoginLink', "<a href='$pageUrl?logout'>$logout</a>");
+            TransVars::setVariable('LoginLink', "<a href='$logoutLink'>$logout</a>");
 
             $label = TransVars::getVariable('pfy-logged-in-label');
             TransVars::setVariable('loggedIn', $label.$username);
@@ -146,19 +149,7 @@ EOT;
             TransVars::setVariable('username', $username);
 
             $pfyLoginButtonLabel = TransVars::getVariable('pfy-logout-button-title');
-            TransVars::setVariable('loginButton', "<div class='pfy-login-button'><a href='$pageUrl?logout' class='pfy-login-button' title='$pfyLoginButtonLabel'>$loginIcon</a></div>");
-
-        } elseif (is_string($user)) {
-            $username = $user;
-            $loginIcon = svg('site/plugins/pagefactory/assets/icons/user.svg');
-
-            $label = TransVars::getVariable('pfy-logged-in-label');
-            TransVars::setVariable('loggedIn', $label.$username);
-
-            TransVars::setVariable('username', $username);
-
-            $pfyLoginButtonLabel = TransVars::getVariable('pfy-login-button-title');
-            TransVars::setVariable('loginButton', "<div class='pfy-login-button'><a href='$loginLink' class='pfy-login-button' title='$pfyLoginButtonLabel'>$loginIcon</a></div>");
+            TransVars::setVariable('loginButton', "<div class='pfy-login-button'><a href='$logoutLink' class='pfy-login-button' title='$pfyLoginButtonLabel'>$loginIcon</a></div>");
 
         } else {
             $loginIcon = svg('site/plugins/pagefactory/assets/icons/user.svg');
@@ -300,19 +291,24 @@ EOT;
                         Cache::flush();
                     }
                     break;
-                case 'logout':
-                    if ($user = kirby()->user()) {
-                        $name = $user->nameOrEmail();
-                        $user->logout();
-                        mylog("User '$name' logged out.", LOGIN_LOG_FILE);
-                        reloadAgent(); // get rid of url-command
-                    }
-
+                case 'logout':  // ?logout
+                    $name = 'anon';
                     // check whether Permission has an accessCode user registered, remove if so:
                     $session = kirby()->session();
-                    if ($session->get('pfy.accessCodeUser')) {
+                    if ($user = $session->get('pfy.accessCodeUser')) {
+                        if (is_object($user)) {
+                            $name = (string)$user->nameOrEmail();
+                        } else {
+                            $name = (string)$user;
+                        }
                         $session->remove('pfy.accessCodeUser');
                     }
+                    if ($user = kirby()->user()) {
+                        $name = (string)$user->nameOrEmail();
+                        $user->logout();
+                    }
+                    mylog("User '$name' logged out.", LOGIN_LOG_FILE);
+                    reloadAgent(message: '{{ pfy-logged-out-now }}'); // get rid of url-command
                     break;
                 case 'reset': // ?reset (as non-admin): harmless reset => just undo previous '?debug' commands
                     self::resetDebugState();

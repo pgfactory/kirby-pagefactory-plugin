@@ -475,7 +475,7 @@ EOT;
         $js = "var screenSizeBreakpoint = $screenSizeBreakpoint\n";
         $js .= "const hostUrl = '" .        PageFactory::$appRoot . "';\n";
         $js .= "const pageUrl = '" .        PageFactory::$pageUrl . "';\n";
-        $js .= "const loggedinUser = '" .   PageFactory::$user . "';\n";
+        $js .= "const loggedinUser = '" .   PageFactory::$userName . "';\n";
         $js .= "const currLang = '" .       PageFactory::$langCode . "';\n";
         $js .= "const pageLoaded =          Math.floor(Date.now()/1000);\n";
         $js .= $this->js ? "$this->js\n": '';

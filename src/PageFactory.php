@@ -105,6 +105,7 @@ class PageFactory
     public static string $locale;
     public static $isLocalhost;
     public static $user;
+    public static $userName;
     public static string $slug = '';
     public static $pageId;
     public static $urlToken; // the hash code extracted from HTTP request (e.g. home/ABCDEF)
@@ -170,9 +171,10 @@ class PageFactory
         self::$absPageRoot = self::$page->root() . '/';
         self::$absPageUrl = (string)self::$page->url() . '/';
         self::$pageUrl = substr(self::$absPageUrl, strlen(self::$hostUrl) - 1);
-        if ($user = self::$kirby->user()) {
-            self::$user = (string)$user->name();
-        }
+
+        self::$user = Permission::checkPageAccessCode();
+        self::$userName = self::$user ? (string)self::$user->name()->nameOrEmail() : '';
+
         $this->autoSplitSections = self::$config['autoSplitSectionsOnH1'] ?? false;
 
         Extensions::loadExtensions();
