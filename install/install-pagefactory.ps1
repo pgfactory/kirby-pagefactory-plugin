@@ -43,8 +43,8 @@ If (-not (Test-Path "$($CurrentDirectory)\kirby")) {
 }
 
 ## select the branch you want to check out:
-If (-not ($Branch.Equals(""))) {
-    $Branch = "-b " + $Branch
+If ($Branch.Equals("")) {
+    $Branch = "main"
 }
 
 ## Check pagefactory:
@@ -71,7 +71,7 @@ git submodule add "https://github.com/pgfactory/markdownplus.git" "site/plugins/
 
 Write-Host ""
 Write-Host "PageFactory:"
-git submodule add $Branch "https://github.com/pgfactory/kirby-pagefactory-plugin.git" "site/plugins/pagefactory"
+git submodule add -b $Branch "https://github.com/pgfactory/kirby-pagefactory-plugin.git" "site/plugins/pagefactory"
 Set-Location "$($CurrentDirectory)\site\plugins\pagefactory"
 composer update
 
