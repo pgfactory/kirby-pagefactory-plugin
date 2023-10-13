@@ -267,7 +267,7 @@ EOT;
 
 
     /**
-     * Execute those URL-commands that require no privileges: e.g. ?login, ?printpreview etc.
+     * Execute those URL-commands that require no privileges: e.g. ?logout, ?printpreview etc.
      * @param $cmds
      * @return void
      */

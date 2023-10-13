@@ -265,6 +265,12 @@ class PageFactory
      */
     private function loadMdFiles(): string
     {
+        // check page access restriction:
+        if (!$this->checkAccessRestriction()) {
+            // insufficient privilege -> show login form instead (via $pg->overrideContent)
+            return '';
+        }
+
         $this->wrapperTag = self::$config['sourceWrapperTag'];
         $this->wrapperClass = self::$config['sourceWrapperClass'];
         $path = self::$page->root();
@@ -416,4 +422,30 @@ EOT;
         return $continue;
     } // extractFrontmatter
 
+
+    /**
+     * @return bool
+     * @throws \Exception
+     */
+    private function checkAccessRestriction(): bool
+    {
+        if ($accessRestriction = page()->accessrestriction()->value()) {
+            $accessGranted = Permission::evaluate($accessRestriction);
+            if (!$accessGranted) {
+                if (Extensions::$loadedExtensions['PageElements']??false) {
+                    \PgFactory\PageFactoryElements\Login::init(['as-popup' => true]);
+                    $html = \PgFactory\PageFactoryElements\Login::render('{{ pfy-restricted-page }}');
+                    if ($html) {
+                        PageFactory::$pg->overrideContent($html);
+                    }
+                    return false;
+
+                } else {
+                    $loginLink = PageFactory::$appUrl.'panel/login/';
+                    reloadAgent($loginLink);
+                }
+            }
+        }
+        return true;
+    } // checkAccessRestriction
 } // PageFactory
