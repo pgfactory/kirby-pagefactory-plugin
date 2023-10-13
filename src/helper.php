@@ -1002,21 +1002,17 @@ function resolvePaths(mixed $paths): string
 
 
  /**
-  * Returns the current git-tag of PageFactory (requires shell_exec permission)
-  * @param bool $shortForm
+  * Returns the current git-tag of PageFactory
   * @return string
   */
-function getGitTag(bool $shortForm = true): string
+function getGitTag(): string
 {
-    $str = shell_exec('cd site/plugins/pagefactory/; /usr/local/bin/git describe --tags --abbrev=0; git log --pretty="%ci" -n1 HEAD');
-    if ($str) {
-        $str = trim($str, "\n");
+    $v = '';
+    $s = @file_get_contents(dirname(__DIR__, 1) . '/.git/packed-refs');
+    if (preg_match('|refs/tags/(\S*)[^/]+$|', $s, $m)) {
+        $v = $m[1];
     }
-    if ($shortForm) {
-        return preg_replace("/\n.*/", '', $str);
-    } else {
-        return str_replace("\n", ' ', $str);
-    }
+    return $v;
 } // getGitTag
 
 

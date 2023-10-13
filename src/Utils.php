@@ -48,13 +48,7 @@ class Utils
         }
         TransVars::setVariable('headTitle', $headTitle);
 
-        // 'generator': we cache the gitTag, so, if that changes you need to remember to clear site/cache/pagefactory
-        $gitTag = fileGetContents(PFY_CACHE_PATH.'gitTag.txt');
-        if (!$gitTag) {
-            $gitTag = getGitTag();
-            file_put_contents(PFY_CACHE_PATH.'gitTag.txt', $gitTag);
-        }
-        TransVars::setVariable('generator', 'Kirby v'. kirby()::version(). " + PageFactory $gitTag");
+        TransVars::setVariable('generator', 'Kirby v'. kirby()::version(). " + PageFactory ".getGitTag());
 
 
         $appUrl = PageFactory::$appUrl;
