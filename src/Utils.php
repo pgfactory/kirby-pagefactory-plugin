@@ -206,7 +206,7 @@ EOT;
 
         $bodyTagClasses   = PageFactory::$pg->bodyTagClasses ?: 'pfy-large-screen';
         if (isAdmin()) {
-            $bodyTagClasses .= ' pfy-admin';
+            $bodyTagClasses .= ' pfy-admin pfy-loggedin';
         } elseif (kirby()->user()) {
             $bodyTagClasses .= ' pfy-loggedin';
         }
