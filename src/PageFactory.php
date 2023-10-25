@@ -202,9 +202,12 @@ class PageFactory
                 return $this->_renderPageContent();
             } catch (\Exception $e) {
                 mylog($e->getMessage());
-                Cache::flushAll();
-                go('error');
-                return '';
+                if (!self::$debug) {
+                    // on productive systems, forward to error page:
+                    Cache::flushAll();
+                    go('error');
+                }
+                exit($e->getMessage());
             }
         }
     } // renderPageContent
