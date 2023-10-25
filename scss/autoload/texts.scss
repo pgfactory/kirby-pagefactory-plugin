@@ -85,20 +85,6 @@
   }
 
 
-  // === PageFactory's tabulator:
-  .pfy-tabulator-wrapper span.c1,
-  .pfy-tabulator-wrapper span.c2,
-  .pfy-tabulator-wrapper span.c3,
-  .pfy-tabulator-wrapper span.c4 {
-    display: inline-block;
-    line-height: 1.3em;
-    vertical-align: top;
-  }
-
-  .pfy-tabulator-wrapper > span:not(:last-child) {
-    width: 6em;
-  }
-
   .pfy-vgap {
     height: 0;
   }

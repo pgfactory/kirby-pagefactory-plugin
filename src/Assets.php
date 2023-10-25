@@ -572,9 +572,8 @@ class Assets
      */
     private function aggregate(string $dest, array $sources): void
     {
-        $lastModifiedFile = 0;
         $tempSrcFiles = [];
-        $this->scssModified = false;
+        $modified = false;
         foreach ($sources as $sourceFolder) {
             $files = getDir($sourceFolder);
             foreach ($files as $srcFile) {
@@ -586,15 +585,21 @@ class Assets
                 if (fileExt($srcFile) === 'scss') {
                     $targetFile = PFY_CACHE_PATH . "compiledScss/".basename($dest).'/-'.base_name($filename, false).'.css';
                     $this->compileScss($srcFile, $targetFile);
-                    $tempSrcFiles[] = $targetFile;
+                    $tempSrcFiles[] = [$filename, $targetFile];
+                    $modified |= $this->scssModified;
+                } else {
+                    $filename = basename($srcFile);
+                    $tempSrcFiles[] = [$filename, $srcFile];
+                    $modified |= (fileTime($dest) < fileTime($srcFile));
                 }
             }
         }
-        if ($this->scssModified) {
+        
+        if ($modified) {
             $out = '';
-            foreach ($tempSrcFiles as $srcFile) {
-                $out .= "/* @@@@@@@@ Imported from $filename @@@@@@@@ */\n\n";
-                $out .= getFile($srcFile, !PageFactory::$config['debug_compileScssWithSrcRef']);
+            foreach ($tempSrcFiles as $tempSrcFile) {
+                $out .= "/* @@@@@@@@ Imported from {$tempSrcFile[0]} @@@@@@@@ */\n\n";
+                $out .= getFile($tempSrcFile[1], !PageFactory::$config['debug_compileScssWithSrcRef']);
                 $out .= "\n\n";
             }
             preparePath($dest);
