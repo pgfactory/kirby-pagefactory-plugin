@@ -3,6 +3,8 @@
 namespace PgFactory\PageFactory;
 
 
+use PgFactory\MarkdownPlus\Permission;
+
 define('DEFAULT_NAV_LIST_TAG',  'ol');          // the list tag to be used
 
 class SiteNav
@@ -119,6 +121,14 @@ EOT;
     {
         $out = '';
         foreach ($subtree->listed() as $pg) {
+            // check and handle visibility-restriction on page:
+            if ($visibility = $pg->visible()->value()) {
+                $visible = Permission::evaluate($visibility);
+                if (!$visible) {
+                    continue;
+                }
+            }
+
             $hasContent = $this->hasMdContent($pg);
             // set $next once $curr was passed and the next page with content has been reached:
             if (self::$next === false && $hasContent) {
