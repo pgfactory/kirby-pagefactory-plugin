@@ -367,16 +367,6 @@ class Assets
                 $this->frameworkFiles[$i] = PageFactory::$appUrl . $file;
             }
         }
-
-        if (PageFactory::$debug || PageFactory::$isLocalhost) {
-            // compile any SCSS files in content/assets/css/scss/:
-            if ($scssFiles = getDir(PFY_CONTENT_ASSETS_PATH . 'css/scss/*.scss')) {
-                foreach ($scssFiles as $file) {
-                    $targetFile = PFY_CONTENT_ASSETS_PATH . 'css/' . basename($file);
-                    $this->compileScss($file, $targetFile);
-                }
-            }
-        }
         return $this->scssModified;
     } // prepareAssets
 
@@ -562,7 +552,7 @@ class Assets
                     if ($fileExt !== 'scss' || $sourceFileName[0] === '_' || $sourceFileName[0] === '-') {
                         continue;
                     }
-                    $targetFile = $dest.$sourceFileName;
+                    $targetFile = $dest.'-'.base_name($sourceFileName, false).'.css';
                     $this->compileScss($sourceFile, $targetFile);
                 }
             }
@@ -582,8 +572,9 @@ class Assets
      */
     private function aggregate(string $dest, array $sources): void
     {
-        $out = '';
         $lastModifiedFile = 0;
+        $tempSrcFiles = [];
+        $this->scssModified = false;
         foreach ($sources as $sourceFolder) {
             $files = getDir($sourceFolder);
             foreach ($files as $srcFile) {
@@ -591,33 +582,23 @@ class Assets
                 if ($ext === 'txt') { // skip readme.txt
                     continue;
                 }
-                $tSrc = filemtime($srcFile);
                 $filename = basename($srcFile);
                 if (fileExt($srcFile) === 'scss') {
-                    $targetFile = PFY_CACHE_PATH . "compiledScss/".basename($dest).'/'.$filename;
-                    $targetFile = fileExt($targetFile, true).'.css';
-                    $tTarg = fileTime($targetFile);
-                    if ($tTarg < $tSrc) {
-                        preparePath($targetFile);
-                        $srcFile = $this->compileScss($srcFile, $targetFile);
-                        $tSrc = time();
-                    } else {
-                        $srcFile = $targetFile;
-                    }
+                    $targetFile = PFY_CACHE_PATH . "compiledScss/".basename($dest).'/-'.base_name($filename, false).'.css';
+                    $this->compileScss($srcFile, $targetFile);
+                    $tempSrcFiles[] = $targetFile;
                 }
-                $lastModifiedFile = max($lastModifiedFile, $tSrc);
+            }
+        }
+        if ($this->scssModified) {
+            $out = '';
+            foreach ($tempSrcFiles as $srcFile) {
                 $out .= "/* @@@@@@@@ Imported from $filename @@@@@@@@ */\n\n";
                 $out .= getFile($srcFile, !PageFactory::$config['debug_compileScssWithSrcRef']);
                 $out .= "\n\n";
             }
-        }
-
-        $destLastModified = fileTime($dest);
-        if ($destLastModified < $lastModifiedFile) {
             preparePath($dest);
             file_put_contents($dest, $out);
-        } else {
-            $x = false;
         }
     } // aggregate
 
@@ -631,8 +612,9 @@ class Assets
      */
     private function compileScss(string $srcFile, string $targetFile): string
     {
-        $targetFile = fileExt($targetFile, true).'.css';
-        $targetFile = dirname($targetFile).'/-'.basename($targetFile); // mark compiled assets with '-'
+        if (fileExt($targetFile) !== 'css') { // skip any non-scss files
+            $targetFile = fileExt($targetFile, true).'.css';
+        }
         $tTarget = lastModified($targetFile, false);
         $tSrc = lastModified($srcFile, false);
         if ($tTarget < $tSrc) {

@@ -69,6 +69,7 @@ class Scss
         self::$scssphp->setImportPaths(dir_name($srcFile));
         $css = self::compileStr($srcStr);
         $css = "/* === Automatically created from ".basename($srcFile)." - do not modify! === */\n\n$css";
+        preparePath($targetFile);
         file_put_contents($targetFile, $css);
     } // compileFile
 
