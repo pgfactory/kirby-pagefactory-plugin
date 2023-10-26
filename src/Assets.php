@@ -384,7 +384,8 @@ class Assets
         $pageFolderAssets = $this->getAssetsFromPageFolder($jsOrCss);
 
         // if required, get framework-files (e.g. jQuery):
-        if ($this->jsFrameworkRequired) {
+        $requireFrameworkOption = kirby()->option('pgfactory.pagefactory.options.requireFramework');
+        if ($this->jsFrameworkRequired || $requireFrameworkOption) {
             if ($frameworkFiles = $this->frameworkFiles[$jsOrCss]??false) {
                 if (is_string($frameworkFiles)) {
                     $frameworkFiles = explodeTrim(',', $frameworkFiles);
