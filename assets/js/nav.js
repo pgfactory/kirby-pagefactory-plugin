@@ -56,7 +56,7 @@ const PfyNav = {
 
   // === desktop mode =====================================
   initDesktopMode: function () {
-    mylog('initDesktopMode()');
+    // mylog('initDesktopMode()');
     const navWrapper = document.querySelector('.pfy-primary-nav');
     this.setMobileMode(navWrapper, false);
     if (this.isTopNav) {

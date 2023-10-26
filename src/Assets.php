@@ -594,7 +594,7 @@ class Assets
                 }
             }
         }
-        
+
         if ($modified) {
             $out = '';
             foreach ($tempSrcFiles as $tempSrcFile) {
