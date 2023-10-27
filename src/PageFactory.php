@@ -200,14 +200,25 @@ class PageFactory
         } else {
             try {
                 return $this->_renderPageContent();
+
             } catch (\Exception $e) {
                 mylog($e->getMessage());
                 if (!self::$debug) {
-                    // on productive systems, forward to error page:
-                    Cache::flushAll();
-                    go('error');
+                    // in productive mode: try flush-cache-and-reload once, then give up and return error msg:
+                    //  -> in particular after first upload this can fix problems.
+                    $session = kirby()->session();
+                    if ($session->get('pfy.secondErrorRun')) {
+                        $session->remove('pfy.secondErrorRun');
+                        return 'An error occurred on the server - please try again later';
+                    } else {
+                        $session->set('pfy.secondErrorRun', true);
+                        Cache::flushAll();
+                        mylog("=== reloading after first attempt to flush cache. ===");
+                        reloadAgent();
+                    }
+                } else {
+                    return $e->getMessage();
                 }
-                exit($e->getMessage());
             }
         }
     } // renderPageContent
