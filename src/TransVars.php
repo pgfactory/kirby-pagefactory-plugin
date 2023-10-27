@@ -683,7 +683,8 @@ EOT;
             // remove some highlighting in args:
             $args = preg_replace('/\*\*(.*?)\*\*/', "$1", $args);
             $args = preg_replace('/\*(.*?)\*/', "$1", $args);
-            
+            $args = preg_replace('|\\\//.*|', '', $args);
+
             if ($reveal) {
                 PageFactory::$pg->addAssets('REVEAL');
                 $src = <<<EOT
