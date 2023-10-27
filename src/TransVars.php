@@ -522,15 +522,22 @@ class TransVars
             $text = $elem[0];
             $text = markdown($text, true);
             $text = trim($text);
-            $default = $elem[1]??'false';
-            if (is_bool($default)) {
-                $default = $default? 'true': 'false';
-            } elseif (is_array($default)) {
-                $default = json_encode($default);
+
+            // omit '(default: xy)' if default is null:
+            if (($elem[1]??null) === null) {
+                $default = '';
+            } else {
+                $default = $elem[1]??'false';
+                if (is_bool($default)) {
+                    $default = $default? 'true': 'false';
+                } elseif (is_array($default)) {
+                    $default = json_encode($default);
+                }
+                $default = " (default: $default)";
             }
             $str .= <<<EOT
 <dt>$key</dt>
-<dd>$text (default: $default)</dd>
+<dd>$text$default</dd>
 
 EOT;
         }
