@@ -15,6 +15,7 @@ class SiteNav
     private $args;
     private $listTag;
     private $site;
+    public static int $pageNr = 1;
     public static $prev = false;
     public static $next = null;
 
@@ -78,6 +79,7 @@ class SiteNav
 
         // === render: ========
         $out = false;
+        $dataPageNr = '';
         // type=branch:
         if (str_contains($args['type']??'', 'branch')) {
             $out = $this->renderBranch($wrapperClass);
@@ -91,6 +93,8 @@ class SiteNav
             } else {
                 $wrapperClass .= ' pfy-nav-empty';
             }
+            $pageNr = self::$pageNr;
+            $dataPageNr = " data-currpagenr='$pageNr'";
         }
 
         if ($out !== false) {
@@ -98,8 +102,7 @@ class SiteNav
             $id = ($args['id']) ? " id='{$args['id']}'" : '';
             $out = <<<EOT
 
-<div id='pfy-nav-$inx' class='pfy-nav-wrapper $wrapperClass'>
-<!--  <nav$id class='pfy-nav $class'>-->
+<div id='pfy-nav-$inx' class='pfy-nav-wrapper $wrapperClass'$dataPageNr>
   <nav$id class='pfy-nav $class' style="display: none;">
 $out
   </nav>
@@ -140,6 +143,7 @@ EOT;
             } elseif (!self::$next && $hasContent) {
                 // drag $prev along until $curr has been reached (but skipping pages without content):
                 self::$prev = $pg;
+                self::$pageNr++;
             }
             $url = $pg->url();
             $title = $pg->title()->html();
