@@ -47,7 +47,6 @@ EOT,
     // assemble output:
 
     $options['wrapperClass'] = ' pfy-sitemap pfy-nav-indented pfy-nav-animated '.$options['wrapperClass'];
-//    $options['wrapperClass'] = 'pfy-sitemap pfy-nav-vertical pfy-nav-indented pfy-nav-animated'.$options['wrapperClass'];
     $options['isPrimary'] = false;
     if (str_contains($options['type'], 'branches')) {
         $options['wrapperClass'] .= ' pfy-sitemap-branches';
@@ -63,8 +62,7 @@ EOT,
         (!str_contains($options['wrapperClass'], 'pfy-nav-collapsible'))){
         $options['wrapperClass'] .= ' pfy-nav-collapsible';
     }
-    $nav = new SiteNav();
-    $str .= $nav->render($options);
+    $str .= SiteNav::render($options);
     return [$str];
 }
 

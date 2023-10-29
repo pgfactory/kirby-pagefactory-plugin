@@ -72,8 +72,7 @@ EOT,
         $options['isPrimary'] = true;
     }
 
-    $nav = new SiteNav();
-    $str = $nav->render($options);
+    $str = SiteNav::render($options);
     $str = shieldStr($str);
     return $sourceCode.$str;
 } // nav
