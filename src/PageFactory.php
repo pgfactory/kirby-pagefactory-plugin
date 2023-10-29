@@ -115,8 +115,9 @@ class PageFactory
     public static $config;
     public        $pageOptions;
     public        $utils;
-    private string $wrapperTag;
-    private string $wrapperClass;
+    public static $mdFileProcessor = false;
+    public static string $wrapperTag = '';
+    public static string $wrapperClass = '';
     private string $sectionsCss;
     private string $sectionsScss;
 
@@ -221,6 +222,7 @@ class PageFactory
                 }
             }
         }
+        return '';
     } // renderPageContent
 
 
@@ -285,8 +287,8 @@ class PageFactory
             return '';
         }
 
-        $this->wrapperTag = self::$config['sourceWrapperTag'];
-        $this->wrapperClass = self::$config['sourceWrapperClass'];
+        $wrapperTag = PageFactory::$wrapperTag;
+        $customWrapperClass = PageFactory::$wrapperClass;
         $path = self::$page->root();
         $dir = getDir("$path/*.md");
         $inx = 0;
@@ -296,62 +298,46 @@ class PageFactory
                 continue;
             }
             $inx++;
-            $inx0 = $inx;
             $mdStr = getFile($file, 'cstyle,emptylines,twig');
-            $this->sectionsCss = '';
-            $this->sectionsScss = '';
             if (!$this->extractFrontmatter($mdStr)) {
                 continue;
             }
-            $sectClass = '';
 
-            if ($this->autoSplitSections) {
-                $sections = preg_split("/(\n|)#(?!#)/ms", $mdStr, 0, PREG_SPLIT_NO_EMPTY);
-                $html = '';
-                foreach ($sections as $i => $md) {
-                    $md = "#$md";
-                    $html1 = TransVars::compile($md, $inx, removeComments: false);
+            $wrapperId = "pfy-part-$inx";
+            $fileId = translateToClassName(base_name($file, false), false);
+            $fileId = 'pfy-src-'.preg_replace('/^\d+[_\s]?/', '', $fileId);
+            $wrapperClass = "pfy-$wrapperTag-wrapper $wrapperId $fileId $customWrapperClass";
 
-                    if ($i === 0) {
-                        $html = $html1;
-                    } else {
-                        $section = "\n</$this->wrapperTag>\n\n\n<$this->wrapperTag id='pfy-$this->wrapperTag-$inx' class='pfy-$this->wrapperTag-wrapper $this->wrapperClass'>\n";
-                        $html .= $section.$html1;
-                    }
-
-                    $inx++;
-                }
+            if (self::$mdFileProcessor) {
+                $html = (self::$mdFileProcessor)($mdStr, $inx, $wrapperTag, $wrapperId, $wrapperClass);
 
             } else {
-                if ($this->sectionsCss || $this->sectionsScss) {
-                    $sectId = "pfy-$this->wrapperTag-$inx";
-
-                    $this->sectionsCss = str_replace(['#this','.this'], ["#$sectId", ".$sectId"], $this->sectionsCss);
-                    $this->sectionsScss = str_replace(['#this','.this'], ["#$sectId", ".$sectId"], $this->sectionsScss);
-                    $sectClass = "$sectId pfy-$this->wrapperTag-" . translateToClassName(base_name($file, false), false);
-                }
-
                 $html = TransVars::compile($mdStr, $inx, removeComments: false);
-            }
-            $html = Utils::resolveUrls($html);
+                $html = <<<EOT
 
-            // if some CSS/SCSS found in frontmatter, request rendering it now:
-            if ($this->sectionsCss) {
-                self::$pg->addCss($this->sectionsCss);
-            }
-            if ($this->sectionsScss) {
-                self::$pg->addScss($this->sectionsScss);
-            }
+<$wrapperTag id='$wrapperId' class='$wrapperClass'>
 
-            $finalHtml .= <<<EOT
-
-<$this->wrapperTag id='pfy-$this->wrapperTag-$inx0' class='pfy-$this->wrapperTag-wrapper $sectClass'>
 $html
-</$this->wrapperTag>
+</$wrapperTag>
 
 
 EOT;
+            }
+
+            // if some CSS/SCSS found in frontmatter, request rendering it now:
+            if ($this->sectionsCss) {
+                $this->sectionsCss = str_replace(['#this','.this'], ["#$wrapperId", ".$wrapperId"], $this->sectionsCss);
+                self::$pg->addCss($this->sectionsCss);
+            }
+            if ($this->sectionsScss) {
+                $this->sectionsScss = str_replace(['#this','.this'], ["#$wrapperId", ".$wrapperId"], $this->sectionsScss);
+                self::$pg->addScss($this->sectionsScss);
+            }
+
+            $finalHtml .= $html;
         } // loop over files
+
+        $finalHtml = Utils::resolveUrls($finalHtml);
 
         return $finalHtml;
     } // loadMdFiles
@@ -364,6 +350,8 @@ EOT;
      */
     private function extractFrontmatter(&$mdStr): bool
     {
+        $this->sectionsCss = '';
+        $this->sectionsScss = '';
         $fields = preg_split('!\n-{4}\n!', $mdStr);
         $n = sizeof($fields)-1;
         $mdStr = $fields[$n];
@@ -462,4 +450,10 @@ EOT;
         }
         return true;
     } // checkAccessRestriction
+
+
+    public static function registerSrcFileProcessor(string $functionName): void
+    {
+        self::$mdFileProcessor = $functionName;
+    } // registerSrcFileProcessor
 } // PageFactory
