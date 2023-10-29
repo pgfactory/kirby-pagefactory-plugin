@@ -54,7 +54,6 @@ define('OPTIONS_DEFAULTS', [
     'sourceWrapperClass'            => '',    // class applied to sourceWrapperTag
     'webmaster_email'               => '',    // email address of webmaster
     'maxCacheAge'                   => 86400, // [s] max time after which Kirby's file cache is automatically flushed
-    'autoSplitSectionsOnH1'         => false, // -> used by PE presentation_support, splits MD by H1 and wraps each in <section>
     // 'timezone' => 'Europe/Zurich', // PageFactory tries to guess the timezone - you can override this manually
 
     // optionally define files to be used as css/js framework (e.g. jQuery or bootstrap etc):
@@ -121,7 +120,6 @@ class PageFactory
     private string $sectionsCss;
     private string $sectionsScss;
 
-    private bool $autoSplitSections;
     public static bool $renderingClosed = false;
 
     public function __construct($data)
@@ -176,7 +174,7 @@ class PageFactory
         self::$user = Permission::checkPageAccessCode();
         self::$userName = is_object(self::$user) ? (string)self::$user->nameOrEmail() : (self::$user ?: '');
 
-        $this->autoSplitSections = self::$config['autoSplitSectionsOnH1'] ?? false;
+        SiteNav::render();
 
         Extensions::loadExtensions();
 
