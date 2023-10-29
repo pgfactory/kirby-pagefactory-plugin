@@ -745,6 +745,9 @@ EOT;
         if ($s = $site->keywords()->value()) {
             PageFactory::$config['keywords'] = $s;
         }
+        PageFactory::$wrapperTag = PageFactory::$config['sourceWrapperTag'];
+        PageFactory::$wrapperClass = PageFactory::$config['sourceWrapperClass'];
+
     } // loadPfyConfig
 
 
@@ -935,6 +938,5 @@ EOT;
         //            new PHPMailer($props);
         //        }
     } // sendMail
-
 
 } // Utils
