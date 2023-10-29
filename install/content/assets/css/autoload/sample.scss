@@ -21,3 +21,9 @@
 	justify-content: space-between;
 }
 
+.pfy-site-title {
+	float: left;
+	padding-top:      calc( (var(--pfy-nav-elem-height, 2em) - 1.2em) / 2);
+	padding-bottom:   calc( (var(--pfy-nav-elem-height, 2em) - 1.2em) / 2);
+	font-size:        var(--pfy-nav-txt-size,  12pt);
+}
