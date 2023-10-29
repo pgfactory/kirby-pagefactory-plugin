@@ -45,4 +45,10 @@ $box-width: 300px;
         border: none;
     }
 
+  &.pfy-large-screen {
+    .pfy-main-wrapper {
+      clear: both;
+    }
+  }
+
 } // pfy-default-styling
