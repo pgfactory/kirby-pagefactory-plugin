@@ -75,3 +75,13 @@ $max-font-size: 24;
     0 0 0 2px var(--pfy-focus-frame-color2, #{$focus-frame-color2}),
     inset 0 0 0 1px var(--pfy-focus-frame-color1, #{$focus-frame-color1}) !important;
 }
+
+
+@mixin _scroll-hints {
+  background: linear-gradient(var(--pfy-page-bg-color, white) 15px, hsla(0,0%,100%,0)) 0 0 / 100% 50px,
+  radial-gradient(at top, var(--pfy-hint-shadow-color, rgba(0,0,0,.4)), transparent 70%) 0 0 / 100% 15px,
+  linear-gradient(to top, var(--pfy-page-bg-color, white) 15px, hsla(0,0%,100%,0)) bottom / 100% 50px,
+  radial-gradient(at bottom, var(--pfy-hint-shadow-color, rgba(0,0,0,.4)), transparent 70%) bottom / 100% 15px;
+  background-repeat: no-repeat;
+  background-attachment: local, scroll, local, scroll;
+}
