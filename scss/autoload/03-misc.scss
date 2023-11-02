@@ -8,6 +8,8 @@
  *  --pfy-pre-code-color
  */
 
+@import '~/site/plugins/pagefactory/scss/_scss-variables.scss';
+
 #pfy.pfy-default-styling .pfy-encapsulated,
 .pfy-default-styling {
 
@@ -77,12 +79,7 @@
 
   // credit to Lea Verou
   .pfy-scroll-hints {
-    background: linear-gradient(white 15px, hsla(0,0%,100%,0)) 0 0 / 100% 50px,
-    radial-gradient(at top, rgba(0,0,0,.4), transparent 70%) 0 0 / 100% 15px,
-    linear-gradient(to top, white 15px, hsla(0,0%,100%,0)) bottom / 100% 50px,
-    radial-gradient(at bottom, rgba(0,0,0,.4), transparent 70%) bottom / 100% 15px;
-    background-repeat: no-repeat;
-    background-attachment: local, scroll, local, scroll;
+    @include _scroll-hints;
   }
 
 

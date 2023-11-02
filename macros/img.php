@@ -18,8 +18,8 @@ function img($argStr = '')
             'class' => ['Class-name that will be applied to the image.', ''],
             'wrapperTag' => ['If false, image is rendered without a wrapper. Otherwise, defines the tag of the wrapping element', null],
             'wrapperClass' => ['Class to be applied to the wrapper tag.', ''],
-            'caption' => ['Optional caption. If set, Lizzy will wrap the image into a &lt;figure> tag and wrap the ".
-                "caption itself in &lt;figcaption> tag.', false],
+            'caption' => ['Optional caption. If set, PageFactory will wrap the image into a &lt;figure> tag '.
+                'and wrap the caption itself in a &lt;figcaption> tag.', false],
             'srcset' => ["Let's you override the automatic srcset mechanism.", null],
             'attributes' => ["Supplied string is put into the &lt;img> tag as is. This way you can apply advanced ".
                 "attributes, such as 'sizes' or 'crossorigin', etc.", false],

@@ -98,6 +98,8 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
 .pfy-default-styling .pfy-nav-wrapper {
   position: relative;
 
+  //--pfy-nav-bg-color: var(--pfy-page-bg-color);
+
   // nav placeholder to avoid flicker:
   .pfy-top-nav-placeholder {
     line-height: $line-height;

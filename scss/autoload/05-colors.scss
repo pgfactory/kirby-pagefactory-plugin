@@ -1,0 +1,20 @@
+
+
+#pfy.pfy-default-styling .pfy-encapsulated,
+.pfy-default-styling {
+
+  &.pfy-large-screen {
+    .pfy-page {
+      background: var(--pfy-page-bg-color);
+      color:      var(--pfy-page-txt-color);
+    }
+  } // .pfy-large-screen
+
+  &.pfy-small-screen {
+    .pfy-page {
+      background: var(--pfy-mobile-page-bg-color);
+      color:      var(--pfy-mobile-page-txt-color);
+    }
+  } // .pfy-small-screen
+
+} // .pfy-default-styling
