@@ -340,7 +340,7 @@ class Link
     {
         if ($this->isExternalLink) {
             $this->addClass('pfy-link-https pfy-external-link pfy-print-url');
-            $this->target = PageFactory::$config['defaultTargetForExternalLinks']??'';
+            $this->target = PageFactory::$config['externalLinksToNewWindow']??'';
         }
     } // processRegularLink
 
