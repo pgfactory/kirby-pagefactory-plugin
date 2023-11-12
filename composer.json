@@ -1,7 +1,8 @@
 {
     "require": {
       "scssphp/scssphp": "^1.8",
-      "ext-curl": "*"
+      "ext-curl": "*",
+      "ext-gd": "*"
     },
     "autoload": {
         "psr-4": {
