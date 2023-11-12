@@ -34,6 +34,8 @@ function galery($args = ''): string
             'height'        => ['[int] Synonyme for "thumbHeight".', null],
             'maxWidth'      => ['[int] Maximum width of images (i.e. in overlay).', IMG_MAX_WIDTH],
             'maxHeight'     => ['[int] Maximum height of images', IMG_MAX_HEIGHT],
+            'fullscreen'    => ['[bool] If true, galery covers the entire screen when opened.', false],
+            'background'    => ['[color] Color of the overlay background.', '#212121f2'],
             'config'        => ['Various options, see table above.', []],
             'imageCaptions' => ['(optional) Yaml-file containing image descriptions. Also defines image order. '.
                 '(file-path relative to galery-path or absolute like "\~/xy/z.yaml") ', 'captions.yaml'],
@@ -82,11 +84,20 @@ EOT,
         $str = $sourceCode;
     }
 
+    // synonymes:
     if ($options['width']) {
         $options['thumbWidth'] = $options['width'];
     }
     if ($options['height']) {
         $options['thumbHeight'] = $options['height'];
+    }
+
+    // galery config options:
+    if ($options['background']) {
+        $options['config']['overlayBackgroundColor'] = $options['background'];
+    }
+    if ($options['fullscreen']) {
+        $options['config']['fullScreen'] = $options['fullscreen'];
     }
 
     // assemble output:
@@ -157,11 +168,13 @@ EOT;
  */
 function loadAssets(array $config, int $inx): void
 {
-    PageFactory::$pg->addAssets([
-        'media/plugins/pgfactory/pagefactory/css/baguetteBox.min.css',
-        'media/plugins/pgfactory/pagefactory/css/-galery.css',
-        'media/plugins/pgfactory/pagefactory/js/baguetteBox.min.js'
-    ]);
+    if ($inx === 1) {
+        PageFactory::$pg->addAssets([
+            'media/plugins/pgfactory/pagefactory/css/baguetteBox.min.css',
+            'media/plugins/pgfactory/pagefactory/css/-galery.css',
+            'media/plugins/pgfactory/pagefactory/js/baguetteBox.min.js'
+        ]);
+    }
     $js = "baguetteBox.run('.pfy-galery-$inx', {\n";
 
     if ($config && is_array($config)) {
