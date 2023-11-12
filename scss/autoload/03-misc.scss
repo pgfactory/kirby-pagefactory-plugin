@@ -281,6 +281,12 @@
     display: none!important;
   }
 
+  .pfy-galery {
+    a, a:hover {
+      border-bottom: none;
+    }
+  }
+
 } // pfy-default-styling
 
 

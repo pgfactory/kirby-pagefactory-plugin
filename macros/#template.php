@@ -36,6 +36,7 @@ EOT,
 
     //PageFactory::$pg->requireFramework();
     //PageFactory::$pg->addAssets('XY');
+    //$str = shieldStr($str);
 
     return $str; // return [$str]; if result needs to be shielded
 }

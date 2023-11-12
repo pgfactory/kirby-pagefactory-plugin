@@ -2380,15 +2380,18 @@ function reloadAgent(mixed $target = '', string $message = ''): void
 
  /**
   * Converts string to a pixel value, e.g. '1em' -> 12[px]
-  * @param string $str
-  * @return float
+  * @param mixed $str
+  * @return float|int|false
   */
-function convertToPx(string $str): float
+function convertToPx(string $str, bool $toInt = false): float|int|false
 {
      $px = 0;
      if (preg_match('/([\d.]+)(\w*)/', $str, $m)) {
          $unit = $m[2];
          $value = floatval($m[1]);
+         if (!$unit) {
+             return intval($value);
+         }
          switch ($unit) {
              case 'in':
                 $px = 96 * $value; break;
@@ -2396,18 +2399,28 @@ function convertToPx(string $str): float
                 $px = 37.7952755906 * $value; break;
              case 'mm':
                 $px = 3.779527559 * $value; break;
-             case 'em':
-                $px = 12 * $value; break;
-             case 'ch':
-                $px = 6 * $value; break;
              case 'pt':
                 $px = 1.3333333333 * $value; break;
+             case 'pc':
+                $px = 16 * $value; break;
              case 'px':
                 $px = $value; break;
+             default:
+                 return false; // must be relative unit -> can't be converted
          }
+     }
+     if ($toInt) {
+         $px = intval($px);
      }
     return $px;
 } // convertToPx
+
+
+
+function isRelativeUnit(string $str): bool
+{
+    return $str && !str_contains(',px,cm,mm,in,pt,pc,', ",$str,");
+} // isRelativeUnit
 
 
  /**
