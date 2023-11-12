@@ -398,3 +398,15 @@ pfy-email-change-successful:
     _:  'Your new e-mail address has been stored successfully'
 
 
+
+
+#--- Error Page -------------------------
+
+pfy-error-page-heading:
+    _: Error
+
+
+pfy-error-page-text:
+    _: Sorry, an error occured or the requested page could not be found.
+
+
