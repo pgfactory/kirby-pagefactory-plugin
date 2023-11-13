@@ -37,8 +37,8 @@ function galery($args = ''): string
             'fullscreen'    => ['[bool] If true, galery covers the entire screen when opened.', false],
             'background'    => ['[color] Color of the overlay background.', '#212121f2'],
             'config'        => ['Various options, see table above.', []],
-            'imageCaptions' => ['(optional) Yaml-file containing image descriptions. Also defines image order. '.
-                '(file-path relative to galery-path or absolute like "\~/xy/z.yaml") ', 'captions.yaml'],
+            'imageCaptions' => ['(optional) .txt-file containing image descriptions. Also defines image order. '.
+                '(file-path relative to galery-path or absolute like "\~/xy/z.yaml") ', 'index.txt'],
         ],
         'summary' => <<<EOT
 
@@ -139,11 +139,11 @@ EOT;
 function renderImage(string $file, array $options, string $caption = ''): string
 {
     // create thiumbnail and size-variants if necessary:
-    list($thumb, $srcSet) = prepareImage($file, $options);
+    list($imgUrl, $thumb, $srcSet) = prepareImage($file, $options);
 
     $style = "style='width:{$options['thumbWidth']}px;height:{$options['thumbHeight']}px;object-fit:cover;'";
     $html = <<<EOT
-<a href="~/$file" title="$caption" \n$srcSet>
+<a href="$imgUrl" title="$caption" \n$srcSet>
 <img src="$thumb" alt="$caption" $style>
 </a>
 
@@ -189,25 +189,27 @@ function loadAssets(array $config, int $inx): void
  * @param string $imageCaptionsFile
  * @return array
  */
-function getImages(string $path, string $imageCaptionsFile = ''): array
+function getImages(string $path, string $imageCaptionsFile0 = ''): array
 {
     if ($path[0] !== '~') {
         $path = "~page/$path";
     }
     $images = [];
-    if ($imageCaptionsFile) {
-        if ($imageCaptionsFile[0] === '~') {
-            $imageCaptionsFile = resolvePath($imageCaptionsFile);
-        } else {
-            $imageCaptionsFile = $path . $imageCaptionsFile;
+
+    if ($imageCaptionsFile0) {
+        $imageCaptionsFile = resolvePath($imageCaptionsFile0, relativeToPage: true);
+        if (!file_exists($imageCaptionsFile)) {
+            $imageCaptionsFile = resolvePath($path.$imageCaptionsFile0);
         }
         if (file_exists($imageCaptionsFile)) {
-            $imageCaptions = Data::read($imageCaptionsFile);
-            $images = array_keys($imageCaptions);
-            $images = array_map(function ($f) use ($path) {
-                return "$path$f";
-            }, $images);
-            $images = array_combine($images, array_values($imageCaptions));
+            $imageCaptions = explodeTrim("\n", getFile($imageCaptionsFile));
+            if (is_array($imageCaptions)) {
+                foreach ($imageCaptions as $line) {
+                    if (preg_match('/^(.*?):\s*(.*)/', $line, $m)) {
+                        $images[$path.$m[1]] = $m[2];
+                    }
+                }
+            }
         }
     }
 
@@ -256,6 +258,7 @@ function prepareImage(string $file, array $options): array|false
             $srcSet .= "  data-at-{$m[2]}=\"{$m[1]}\"\n";
         }
     }
-    return [$thumb, $srcSet];
+    $imgUrl = $img->url();
+    return [$imgUrl, $thumb, $srcSet];
 } // prepareImage
 
