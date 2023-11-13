@@ -103,23 +103,15 @@ EOT,
     // assemble output:
     $html = '';
     $path = fixPath($options['path']);
-    $options['path'] = $path = resolvePath($path);
-    $thumb = $path.'_/';
-    preparePath($thumb);
+    if (!$path) { // no path means all images in page folder
+        $path = "~page/";
+    } elseif ($path[0] !== '~') {
+        $path = "~page/$path";
+    }
 
     $images = getImages($path, $options['imageCaptions']);
     if (is_array($images)) {
         foreach ($images as $file => $caption) {
-            // skip subfolders:
-            if (is_dir($file)) {
-                continue;
-            }
-            // skip non-images:
-            $ext = fileExt($file);
-            if (!str_contains('jpg,jpeg,png,gif,bmp', $ext) || !is_file($file)) {
-                continue;
-            }
-
             $html .= renderImage($file, $options, $caption);
         }
     }
@@ -151,7 +143,7 @@ function renderImage(string $file, array $options, string $caption = ''): string
 
     $style = "style='width:{$options['thumbWidth']}px;height:{$options['thumbHeight']}px;object-fit:cover;'";
     $html = <<<EOT
-<a href="~/$file" title="$caption" $srcSet>
+<a href="~/$file" title="$caption" \n$srcSet>
 <img src="$thumb" alt="$caption" $style>
 </a>
 
@@ -199,6 +191,9 @@ function loadAssets(array $config, int $inx): void
  */
 function getImages(string $path, string $imageCaptionsFile = ''): array
 {
+    if ($path[0] !== '~') {
+        $path = "~page/$path";
+    }
     $images = [];
     if ($imageCaptionsFile) {
         if ($imageCaptionsFile[0] === '~') {
@@ -215,13 +210,18 @@ function getImages(string $path, string $imageCaptionsFile = ''): array
             $images = array_combine($images, array_values($imageCaptions));
         }
     }
+
     if (!$images) {
-        $images = getDir("$path*");
-        $images = array_combine($images,array_fill(0, sizeof($images), ''));
+        $galeryPath = resolvePath($path);
+        $pagePath = 'content/'.PageFactory::$pagePath;
+        $files = getDir("$galeryPath*");
+        foreach ($files as $image) {
+            if (is_file($image) && str_contains('jpg,jpeg,png,gif,bmp', fileExt($image))) {
+                $image = str_replace(['content/assets/', $pagePath], ['~assets/', '~page/'], $image);
+                $images[$image] = '';
+            }
+        }
     }
-    $images = array_filter($images, function ($v, $k) {
-        return is_file($k);
-    }, ARRAY_FILTER_USE_BOTH);
     return $images;
 } // getImages
 
@@ -234,14 +234,8 @@ function getImages(string $path, string $imageCaptionsFile = ''): array
  */
 function prepareImage(string $file, array $options): array|false
 {
-    if (!str_contains('jpg,jpeg,png,gif,bmp', fileExt($file)) || !is_file($file)) {
-        return false;
-    }
-    checkMaxSize($file, $options['maxWidth'], $options['maxHeight']);
-    $dst = Image::mediaPath($file, 'thumb');
     $imgOptions = [
-        'src' => "~/$file",
-        'dst' => "~/$dst",
+        'src' => $file,
         'width' => $options['thumbWidth'],
         'height' => $options['thumbHeight'],
         'maxWidth' => $options['maxWidth'],
@@ -265,26 +259,3 @@ function prepareImage(string $file, array $options): array|false
     return [$thumb, $srcSet];
 } // prepareImage
 
-
-function checkMaxSize($file, $maxWidth, $maxHeight)
-{
-    if (file_exists($file)) {
-        list($width, $height) = getimagesize($file);
-        if (($width > $maxWidth) || $height > $maxHeight) {
-            $dst = $file;
-            $file = dir_name($file).'#orig/'.basename($file);
-            preparePath($file);
-            rename($dst, $file);
-            $imgOptions = [
-                'src' => "~/$file",
-                'dst' => "~/$dst",
-                'width' => $maxWidth,
-                'height' => $maxHeight,
-                'quickview' => false,
-            ];
-            $img = new Image($imgOptions);
-            $thumb = $img->resizeImage();
-        }
-    }
-
-} // checkMaxSize

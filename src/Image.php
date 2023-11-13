@@ -4,8 +4,8 @@ namespace PgFactory\PageFactory;
 
 const DEFAULT_MAX_IMAGE_WIDTH = 1920;
 const DEFAULT_MAX_IMAGE_HEIGHT = 1440;
-const SRCSET_START_SIZE = 250;
-const SRCSET_DEFAULT_STEP_SIZE = 250;
+const SRCSET_START_SIZE = 384;
+const SRCSET_DEFAULT_STEP_SIZE = 384;
 
 class Image
 {
@@ -65,11 +65,21 @@ class Image
         // determine whether file is managed by Kirby:
         if (str_starts_with($srcFilePath, '~page/')) {
             $file = substr($srcFilePath, 6);
-            $this->kirbyFileObj = page()->find($file);
-            $srcFilePath = $this->getPathFromKirby();
+            if (str_contains($file, '/')) {
+                $this->kirbyFileObj = page()->children()->images()->find($file);
+            } else {
+                $this->kirbyFileObj = page()->images()->find($file);
+            }
 
-        } elseif (str_starts_with($srcFilePath, '~')) {
-            $srcFilePath = resolvePath($srcFilePath);
+        } elseif (str_starts_with($srcFilePath, '~assets/')) {
+            $file = substr($srcFilePath, 1);
+            if (!$obj = page(dirname($file))) {
+                throw new \Exception("Image file not found: '$srcFilePath'");
+            }
+            $images = $obj->images();
+            if (!$this->kirbyFileObj = $images->find(basename($file))) {
+                throw new \Exception("Image file not found: '$srcFilePath'");
+            }
 
         } else {
             if (str_contains($srcFilePath, '/')) {
@@ -77,12 +87,11 @@ class Image
             } else {
                 $this->kirbyFileObj = page()->images()->find($srcFilePath);
             }
-            if (!$this->kirbyFileObj) {
-                $srcFilePath = resolvePath($srcFilePath, relativeToPage: true);
-            } else {
-                $srcFilePath = $this->getPathFromKirby();
-            }
         }
+        if (!$this->kirbyFileObj) {
+            throw new \Exception("Image file not found: '{$options['src']}'");
+        }
+        $srcFilePath = $this->getPathFromKirby();
 
         // check image-info file for arguments:
         $this->getImgAttribFileInfo();
@@ -118,13 +127,11 @@ class Image
         }
 
         $srcSet = $this->renderSrcset();
-        if ($this->resizingRequired) {
-            $this->srcFileUrl = $this->resizeImage([
-                'src' => $this->srcFilePath,
-                'width' => $this->width,
-                'height' => $this->height,
-            ]);
-        }
+        $this->srcFileUrl = $this->resizeImage([
+            'src' => $this->srcFilePath,
+            'width' => $this->width,
+            'height' => $this->height,
+        ]);
 
         if ($options['alt']??false) {
             $alt = str_replace("'", '&#39;', $options['alt']);
@@ -190,24 +197,11 @@ class Image
     private function determineImageSize(): void
     {
         $srcFilePath = &$this->srcFilePath;
-        if ($this->kirbyFileObj) {
-            $this->srcFileUrl = self::fixUrl($this->kirbyFileObj->url());
-            $srcFilePath = $this->getPathFromKirby();
-            $dim = $this->kirbyFileObj->dimensions();
-            $this->origWidth = $dim->width;
-            $this->origHeight = $dim->height;
-
-        } else {
-            if (!file_exists($srcFilePath)) {
-                throw new \Exception("File '$srcFilePath' not found.");
-            }
-            try {
-                list($this->origWidth, $this->origHeight) = getimagesize($srcFilePath);
-            } catch (\Exception $e) {
-                throw new \Exception($e);
-            }
-            $this->srcFileUrl = self::fixUrl(PageFactory::$appUrl.$srcFilePath);
-        }
+        $this->srcFileUrl = $this->getUrl();
+        $srcFilePath = $this->getPathFromKirby();
+        $dim = $this->kirbyFileObj->dimensions();
+        $this->origWidth = $dim->width;
+        $this->origHeight = $dim->height;
         $this->ratio = $this->origWidth / $this->origHeight;
 
         // determine max values:
@@ -267,7 +261,7 @@ class Image
 
         if ($requestedWidth) {
             $width = min($requestedWidth, $width);
-            if ($this->resizingRequired = ($width !== $this->origWidth)) {
+            if ($width !== $this->maxWidth) {
                 if ($this->showQuickView !== false) {
                     $this->showQuickView = true;
                 }
@@ -275,7 +269,7 @@ class Image
         }
         if ($requestedHeight) {
             $height = min($requestedHeight, $height);
-            if ($this->resizingRequired = ($height !== $this->origHeight)) {
+            if ($height !== $this->maxHeight) {
                 if ($this->showQuickView !== false) {
                     $this->showQuickView = true;
                 }
@@ -409,25 +403,17 @@ EOT;
         if (!$force && !$this->isRelativeSize) {
             return '';
         }
-        $html = '';
-
-        $w1 = SRCSET_START_SIZE;
-        $tmpOptions = [];
-        while (($w1 < $this->origWidth) && ($w1 < $this->maxWidth)) {
-            $tmpOptions['src'] = $this->srcFilePath;
-            $tmpOptions['width'] = $w1;
-            $tmpOptions['height'] = intval($w1 / $this->ratio);
-            $f = $this->resizeImage($tmpOptions);
-            $html .= "\t  $f {$w1}w,\n";
-            $w1 += $this->srcsetDefaultStepSize;
+        $maxWidth = min($this->origWidth, $this->maxWidth);
+        $sizes = [];
+        for ($w=SRCSET_START_SIZE; $w <= $maxWidth; $w += SRCSET_DEFAULT_STEP_SIZE) {
+            $sizes[] = $w;
         }
-        $html = rtrim($html, ",\n");
-        $html = "\n\tsrcset='\n$html'";
-
-        // Add 'sizes' attribute:
+        $srcset = $this->kirbyFileObj->srcset($sizes);
+        $srcset = $this->fixUrls($srcset);
+        $srcset = str_replace(', ', ",\n", $srcset);
+        $html = "\n\tsrcset='\n$srcset'";
         $html .= "\n\tsizes='$this->widthStr'";
         $this->imgStyle .= " width:$this->widthStr";
-
         $html = rtrim($html, ",\n");
         return $html;
     } // renderSrcset
@@ -479,20 +465,8 @@ EOT;
             }
         }
 
-        if ($this->kirbyFileObj) {
-            // file inside content/ -> resize by Kirby:
-            $imgUrl = $this->resizeImageByKirby($width, $height);
-
-        } else {
-            // file outside content/ -> resize by PHP:
-            if (!$dst) {
-                $dst = self::mediaPath($src, $width);
-            } else {
-                $dst = resolvePath($dst);
-            }
-            $imgUrl = PageFactory::$appUrl.$this->resizeImageNatively($src, $dst, $width, $height);
-        }
-        return $imgUrl;
+        $resizedImg = $this->kirbyFileObj->resize($width, $height);
+        return  $this->getUrl($resizedImg);
     } // resizeImage
 
 
@@ -504,73 +478,19 @@ EOT;
     private function resizeImageByKirby(int $width, int $height): string
     {
         $resizedImg = $this->kirbyFileObj->resize($width, $height);
-        return self::fixUrl($resizedImg);
+        return  $this->getUrl($resizedImg);
     } // resizeImageByKirby
-
-
-    /**
-     * @param string $src
-     * @param string $dst
-     * @param int $width
-     * @param int $height
-     * @return string
-     * @throws \Exception
-     */
-    private function resizeImageNatively(string $src, string $dst, int $width, int $height): string
-    {
-        if (file_exists($dst)) {
-            return $dst;
-        }
-        $ext = strtolower(fileExt($src));
-        if ($ext === 'svg') {
-            return $src;
-        }
-        preparePath($dst);
-
-        if ($ext === 'jpeg') {
-            $ext = 'jpg';
-        }
-        switch($ext){
-            case 'bmp': $img = imagecreatefromwbmp($src); break;
-            case 'gif': $img = imagecreatefromgif($src); break;
-            case 'jpg': $img = imagecreatefromjpeg($src); break;
-            case 'png': $img = imagecreatefrompng($src); break;
-            default : return "Unsupported picture type!";
-        }
-
-        $new = imagecreatetruecolor((int)$width, (int)$height);
-
-        // preserve transparency
-        if ($ext === "gif" or $ext === "png") {
-            imagecolortransparent($new, imagecolorallocatealpha($new, 0, 0, 0, 127));
-            imagealphablending($new, false);
-            imagesavealpha($new, true);
-        }
-
-        imagecopyresampled($new, $img, 0, 0, (int)0, 0, (int)$width, (int)$height,
-            (int)$this->origWidth, (int)$this->origHeight);
-
-        switch($ext){
-            case 'bmp': imagewbmp($new, $dst); break;
-            case 'gif': imagegif($new, $dst); break;
-            case 'jpg':
-                imageinterlace($new, true);
-                imagejpeg($new, $dst);
-                break;
-            case 'png': imagepng($new, $dst); break;
-        }
-        imagedestroy($new);
-        return $dst;
-    } // resizeImageNatively
 
 
     /**
      * @param string|object $url
      * @return string
      */
-    public static function fixUrl(string|object $url): string
+    private function getUrl(mixed $url = false): string
     {
-        if (is_object($url)) {
+        if (!$url) {
+            $url = $this->kirbyFileObj->url();
+        } elseif (is_object($url)) {
             $url = $url->url();
         }
         if (str_starts_with($url, PageFactory::$hostUrl)) {
@@ -579,13 +499,22 @@ EOT;
             $url = '';
         }
         return $url;
-    } // fixUrl
+    } // getUrl
 
 
-    /**
-     * @param string|object $path
-     * @return string
-     */
+    public static function fixUrls(string $url): string
+    {
+        $patt = substr(PageFactory::$hostUrl, 0, -1);
+        return str_replace($patt, '', $url);
+    } // fixUrls
+
+
+    public static function fixPaths(string $path): string
+    {
+        return str_replace(PageFactory::$absAppRoot, '', $path);
+    } // fixPath
+
+
     public static function fixPath(string|object $path): string
     {
         if (is_object($path)) {

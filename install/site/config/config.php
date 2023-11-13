@@ -13,6 +13,10 @@ return [
     'smartypants' => true,
     'languages' => true, // enables language option in Panel
 
+    'thumbs' => [
+        'interlace' => true,
+    ],
+
     'wearejust.twig.env.functions' => $functions, // register pagefactory's twig-functions
 
     'pgfactory.markdownplus.options' => [
