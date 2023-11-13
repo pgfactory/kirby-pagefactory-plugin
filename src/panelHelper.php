@@ -109,7 +109,7 @@ function checkMetaFiles(): void
                     rename($primaryMetaFilename0, $primaryMetaFilename);
                 }
             } else {
-                throw new Exception("Meta-file missing in page folder (i.e. $primaryMetaFilename)");
+                continue;
             }
         }
         foreach ($languages as $lang) {
