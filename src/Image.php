@@ -6,6 +6,7 @@ const DEFAULT_MAX_IMAGE_WIDTH = 1920;
 const DEFAULT_MAX_IMAGE_HEIGHT = 1440;
 const SRCSET_START_SIZE = 384;
 const SRCSET_DEFAULT_STEP_SIZE = 384;
+const SRCSET_REQUIRED_BREAKPOINT = 500;
 
 class Image
 {
@@ -13,14 +14,12 @@ class Image
     public int $inx = 0;
     private $options;
     private bool $isRelativeSize = false;
-    private bool $resizingRequired = false;
     private bool|null $showQuickView = false;
     private object|null $kirbyFileObj = null;
     private string $srcFilePath = '';
     private string $srcFileUrl = '';
     private int $maxWidth = DEFAULT_MAX_IMAGE_WIDTH;
     private int $maxHeight = DEFAULT_MAX_IMAGE_HEIGHT;
-    private int $srcsetDefaultStepSize = SRCSET_DEFAULT_STEP_SIZE;
     private int $width = 0;
     private int $origWidth = 0;
     private int $height = 0;
@@ -28,7 +27,6 @@ class Image
     private float $ratio = 0.0;
     private string $sizeHint = '';
     private string $widthStr = '';
-    private string $heightStr = '';
     private string $imgStyle = '';
     private string $imgClass = '';
     private static bool $quickViewInitialized = false;
@@ -91,7 +89,7 @@ class Image
         if (!$this->kirbyFileObj) {
             throw new \Exception("Image file not found: '{$options['src']}'");
         }
-        $srcFilePath = $this->getPathFromKirby();
+        $srcFilePath = $this->getPath();
 
         // check image-info file for arguments:
         $this->getImgAttribFileInfo();
@@ -198,7 +196,7 @@ class Image
     {
         $srcFilePath = &$this->srcFilePath;
         $this->srcFileUrl = $this->getUrl();
-        $srcFilePath = $this->getPathFromKirby();
+        $srcFilePath = $this->getPath();
         $dim = $this->kirbyFileObj->dimensions();
         $this->origWidth = $dim->width;
         $this->origHeight = $dim->height;
@@ -234,8 +232,13 @@ class Image
                 $this->showQuickView = true;
                 $requestedWidth = false;
             } else {
+                // absolute size:
                 $requestedWidth = convertToPx($requestedWidth);
+                $this->maxWidth = $requestedWidth;
+                $this->widthStr = $requestedWidth.'px';
             }
+        } else {
+            $this->widthStr = $width.'px';
         }
         // parse $requestedHeight:
         if (preg_match('/([\d.]+)([\w%]*)/', $requestedHeight, $m)) {
@@ -246,7 +249,10 @@ class Image
                 $this->showQuickView = true;
                 $requestedHeight = false;
             } else {
+                // absolute size:
                 $requestedHeight = convertToPx($requestedHeight);
+                $this->maxHeight = $requestedHeight;
+                $this->widthStr = $requestedWidth.'px';
             }
         }
 
@@ -307,8 +313,7 @@ class Image
     private function renderQuickview()
     {
         // skip quickview, if image source is small:
-        if (!$this->showQuickView && ($this->width >= $this->origWidth || $this->width >= $this->maxWidth ||
-            $this->height >= $this->origHeight || $this->height >= $this->maxHeight)) {
+        if (!$this->showQuickView && ($this->width >= $this->maxWidth || $this->height >= $this->maxHeight)) {
            return '';
         }
 
@@ -400,20 +405,25 @@ EOT;
      */
     public function renderSrcset($force = false)
     {
-        if (!$force && !$this->isRelativeSize) {
-            return '';
-        }
-        $maxWidth = min($this->origWidth, $this->maxWidth);
+        // determine whether srcset is required:
+        $maxWidth = $this->maxWidth;
         $sizes = [];
         for ($w=SRCSET_START_SIZE; $w <= $maxWidth; $w += SRCSET_DEFAULT_STEP_SIZE) {
             $sizes[] = $w;
+        }
+        if (!$sizes) {
+            $this->imgStyle .= " max-width: min(100%, $this->widthStr);";
+            return '';
         }
         $srcset = $this->kirbyFileObj->srcset($sizes);
         $srcset = $this->fixUrls($srcset);
         $srcset = str_replace(', ', ",\n", $srcset);
         $html = "\n\tsrcset='\n$srcset'";
         $html .= "\n\tsizes='$this->widthStr'";
-        $this->imgStyle .= " width:$this->widthStr";
+        if ($this->isRelativeSize) {
+            $this->imgStyle .= " width: $this->widthStr;";
+        }
+        $this->imgStyle .= " max-width: min(100%, $this->widthStr);";
         $html = rtrim($html, ",\n");
         return $html;
     } // renderSrcset
@@ -428,14 +438,12 @@ EOT;
     {
         if (!$options) {
             $src =          $this->srcFilePath;
-            $dst =          $this->options['dst']?? false;
             $width =        $this->width;
             $height =       $this->height;
             $maxWidth =     $this->maxWidth;
             $maxHeight =    $this->maxHeight;
         } else {
             $src = $options['src'] ?? false;
-            $dst = $options['dst'] ?? false;
             $width = $options['width'] ?? false;
             $height = $options['height'] ?? false;
             $maxWidth = $options['maxWidth'] ?? IMG_MAX_WIDTH;
@@ -471,15 +479,15 @@ EOT;
 
 
     /**
-     * @param int $width
-     * @param int $height
      * @return string
      */
-    private function resizeImageByKirby(int $width, int $height): string
-    {
-        $resizedImg = $this->kirbyFileObj->resize($width, $height);
-        return  $this->getUrl($resizedImg);
-    } // resizeImageByKirby
+    private function getPath(): string{
+        $path = $this->kirbyFileObj->root();
+        if (str_starts_with($path, PageFactory::$absAppRoot)) {
+            $path = substr($path, strlen(PageFactory::$absAppRoot));
+        }
+        return $path;
+    } // getPath
 
 
     /**
@@ -502,58 +510,15 @@ EOT;
     } // getUrl
 
 
+    /**
+     * @param string $url
+     * @return string
+     */
     public static function fixUrls(string $url): string
     {
         $patt = substr(PageFactory::$hostUrl, 0, -1);
         return str_replace($patt, '', $url);
     } // fixUrls
-
-
-    public static function fixPaths(string $path): string
-    {
-        return str_replace(PageFactory::$absAppRoot, '', $path);
-    } // fixPath
-
-
-    public static function fixPath(string|object $path): string
-    {
-        if (is_object($path)) {
-            return $path->getPathFromKirby();
-        }
-        if (str_starts_with($path, PageFactory::$absAppRoot)) {
-            $path = substr($path, strlen(PageFactory::$absAppRoot));
-        }
-        return $path;
-    } // fixPath
-
-
-    /**
-     * @return string
-     */
-    private function getPathFromKirby(): string{
-        if ($this->kirbyFileObj) {
-            $path = $this->kirbyFileObj->root();
-            if (str_starts_with($path, PageFactory::$absAppRoot)) {
-                $path = substr($path, strlen(PageFactory::$absAppRoot));
-            }
-            return $path;
-        }
-        return false;
-    } // getPathFromKirby
-
-    /**
-     * @param string $srcFilePath
-     * @param string|int $width
-     * @return string
-     */
-    public static function mediaPath(string $srcFilePath, string|int $width): string
-    {
-        $ext = strtolower(fileExt($srcFilePath));
-        $path = dirname($srcFilePath).'/';
-        $file = base_name($srcFilePath, false);
-        $dst = "{$path}_/$file($width).$ext";
-        return $dst;
-    } // mediaPath
 
 
     /**
