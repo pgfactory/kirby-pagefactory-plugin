@@ -27,6 +27,7 @@ class Image
     private float $ratio = 0.0;
     private string $sizeHint = '';
     private string $widthStr = '';
+    private string $heightStr = '';
     private string $imgStyle = '';
     private string $imgClass = '';
     private static bool $quickViewInitialized = false;
@@ -233,7 +234,7 @@ class Image
                 $requestedWidth = false;
             } else {
                 // absolute size:
-                $requestedWidth = convertToPx($requestedWidth);
+                $requestedWidth = convertToPx($requestedWidth.$unit, true);
                 $this->maxWidth = $requestedWidth;
                 $this->widthStr = $requestedWidth.'px';
             }
@@ -245,14 +246,15 @@ class Image
             $requestedHeight = $m[1];
             $unit = $m[2];
             if (isRelativeUnit($unit)) {
+                $this->heightStr = $m[0];
                 $this->isRelativeSize = true;
                 $this->showQuickView = true;
                 $requestedHeight = false;
             } else {
                 // absolute size:
-                $requestedHeight = convertToPx($requestedHeight);
+                $requestedHeight = convertToPx($requestedHeight.$unit, true);
                 $this->maxHeight = $requestedHeight;
-                $this->widthStr = $requestedWidth.'px';
+                $this->heightStr = $requestedHeight.'px';
             }
         }
 
@@ -412,7 +414,12 @@ EOT;
             $sizes[] = $w;
         }
         if (!$sizes) {
-            $this->imgStyle .= " max-width: min(100%, $this->widthStr);";
+            if ($this->widthStr) {
+                $this->imgStyle .= " max-width: min(100%, $this->widthStr);";
+            }
+            if ($this->heightStr) {
+                $this->imgStyle .= " max-height: min(100%, $this->heightStr);";
+            }
             return '';
         }
         $srcset = $this->kirbyFileObj->srcset($sizes);
@@ -423,7 +430,11 @@ EOT;
         if ($this->isRelativeSize) {
             $this->imgStyle .= " width: $this->widthStr;";
         }
-        $this->imgStyle .= " max-width: min(100%, $this->widthStr);";
+        if ($this->heightStr) {
+            $this->imgStyle .= " height: $this->heightStr;";
+        } elseif ($this->widthStr) {
+            $this->imgStyle .= " max-width: min(100%, $this->widthStr);";
+        }
         $html = rtrim($html, ",\n");
         return $html;
     } // renderSrcset
