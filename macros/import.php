@@ -10,6 +10,7 @@ function import($argStr = '')
             'file' => ['[filename] Loads given file and injects its content into the page. '.
             'If "file" contains glob-style wildcards, then all matching files will be loaded. '.
             'If file-extension is ".md", loaded content will be markdown-compiled automatically.', false],
+            'subfolder' => ['Looks for file(s) in given sub-folders, e.g. ``subfolder:*``.', false],
             'literal' => ['If true, file content will be rendered as is - i.e. in \<pre> tags.', false],
             'highlight' => ['(true|list-of-markers) If true, patters ``&#96;``, ``&#96;&#96;`` and ``&#96;&#96;&#96;` are used. '.
                 'These patterns will be detected and wrapped in "&lt;span class=\'hl{n}\'> elements".', false],
@@ -58,6 +59,7 @@ class Import
         $inx = self::$inx++;
 
         $file = $args['file'];
+        $subfolder = $args['subfolder'];
         $literal = $args['literal'];
         $highlight = $args['highlight'];
         $wrapperTag = $args['wrapperTag'];
@@ -65,8 +67,26 @@ class Import
         $this->mdCompile = $args['mdCompile'];
 
         $str = '';
-        // handle 'file':
-        if ($file) {
+
+        // handle subfolder:
+        if ($subfolder) {
+            $compileMd = $this->mdCompile;
+            $this->mdCompile = null;
+            $src = resolvePath($subfolder, relativeToPage: true);
+            $folders = getDir($src, true);
+            $keys = array_keys($folders);
+            natsort($keys);
+            foreach ($keys as $key) {
+                $folder = $folders[$key];
+                if (is_dir($folder)) {
+                    $str .= $this->importFile("~/$folder$file")."\n\n";
+                }
+            }
+            if ($compileMd) {
+                $str = compileMarkdown($str);
+            }
+            // handle 'file':
+        } elseif ($file) {
             $str = $this->importFile($file);
         }
 
@@ -141,7 +161,7 @@ EOT;
             }
             $file = resolvePath($file);
             $s = @file_get_contents($file);
-            if ($this->mdCompile || (fileExt($file) === 'md')) {
+            if ($this->mdCompile || (fileExt($file) === 'md' && $this->mdCompile !== null)) {
                 $s = compileMarkdown($s);
             }
             $str .= $s;
