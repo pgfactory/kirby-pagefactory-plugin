@@ -92,6 +92,7 @@ EOT;
         $lnk = new Link();
         $webmasterLink = $lnk->render([
             'url' => "mailto:$webmasterEmail",
+            'text' => 'Webmaster',
         ]);
         TransVars::setVariable('webmaster_link', $webmasterLink);
 

@@ -101,6 +101,10 @@ pfy-opens-mail:
     de: Öffnet die Mail-App
     en: opens your mail app
 
+pfy-opens-mailto:
+    de: Öffnet die Mail-App
+    en: opens your mail app
+
 pfy-opens-sms:
     de: Öffnet die Messaging App
     en: Opens your default messaging app
