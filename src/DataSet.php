@@ -380,7 +380,7 @@ class DataSet
      * @return void
      * @throws \Exception
      */
-    public function purge()
+    public function purge(): void
     {
         $this->data = [];
         $this->flush();
