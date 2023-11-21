@@ -79,7 +79,7 @@ class Import
             foreach ($keys as $key) {
                 $folder = $folders[$key];
                 if (is_dir($folder)) {
-                    $str .= $this->importFile("~/$folder$file")."\n\n";
+                    $str .= $this->importFile("~/$folder$file", $literal)."\n\n";
                 }
             }
             if ($compileMd) {
@@ -87,7 +87,7 @@ class Import
             }
             // handle 'file':
         } elseif ($file) {
-            $str = $this->importFile($file);
+            $str = $this->importFile($file, $literal);
         }
 
         if ($literal) {
@@ -140,7 +140,7 @@ EOT;
      * @param string $file
      * @return string
      */
-    private function importFile(string $file): string
+    private function importFile(string $file, bool $literal = false): string
     {
         $str = '';
         if ($file && (((strpbrk($file, '*{') !== false)) || ($file[strlen($file)-1] === '/'))) {
@@ -160,7 +160,11 @@ EOT;
                 $file = "~page/$file";
             }
             $file = resolvePath($file);
-            $s = @file_get_contents($file);
+            if ($literal) {
+                $s = @file_get_contents($file);
+            } else {
+                $s = getFile($file);
+            }
             if ($this->mdCompile || (fileExt($file) === 'md' && $this->mdCompile !== null)) {
                 $s = compileMarkdown($s);
             }
