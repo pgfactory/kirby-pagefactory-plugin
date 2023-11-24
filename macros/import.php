@@ -14,9 +14,12 @@ function import($argStr = '')
             'literal' => ['If true, file content will be rendered as is - i.e. in \<pre> tags.', false],
             'highlight' => ['(true|list-of-markers) If true, patters ``&#96;``, ``&#96;&#96;`` and ``&#96;&#96;&#96;` are used. '.
                 'These patterns will be detected and wrapped in "&lt;span class=\'hl{n}\'> elements".', false],
+            'translate' => ['If true, variables and macros inside imported files will be translated resp. executed.', false],
             'mdCompile' => ['If true, file content will be markdown-compiled before rendering.', false],
             'wrapperTag' => ['If defined, output will be wrapped in given tag.', false],
             'wrapperClass' => ['If defined, given class will be applied to the wrapper tag.', ''],
+            'elemHeader' => ['If defined, given text is prepended to the imported content.', ''],
+            'elemFooter' => ['If defined, given text is appended to the imported content.', ''],
         ],
         'summary' => <<<EOT
 # import()
@@ -65,6 +68,8 @@ class Import
         $wrapperTag = $args['wrapperTag'];
         $wrapperClass = $args['wrapperClass'];
         $this->mdCompile = $args['mdCompile'];
+        $elemHeader = $args['elemHeader'] ? $args['elemHeader']."\n" : '';
+        $elemFooter = $args['elemFooter'] ? "\n".$args['elemHeader'] : '';
 
         $str = '';
 
@@ -76,10 +81,25 @@ class Import
             $folders = getDir($src, true);
             $keys = array_keys($folders);
             natsort($keys);
+            $j = 0;
             foreach ($keys as $key) {
                 $folder = $folders[$key];
                 if (is_dir($folder)) {
-                    $str .= $this->importFile("~/$folder$file", $literal)."\n\n";
+                    $s = $elemHeader.$this->importFile("~/$folder$file", $literal)."$elemFooter\n\n";
+
+                    if ($wrapperTag) {
+                        $j++;
+                        $str .= <<<EOT
+
+<$wrapperTag class='pfy-imported-elem pfy-imported-elem-$j $wrapperClass'>
+$s
+</$wrapperTag><!-- /pfy-imported-elem-$j -->
+
+EOT;
+
+                    } else {
+                        $str .= $s;
+                    }
                 }
             }
             if ($compileMd) {
@@ -106,6 +126,9 @@ class Import
         }
         if ($literal && !$wrapperTag) {
             $wrapperTag = 'pre';
+        }
+        if ($args['translate']) {
+            $str = TransVars::compile($str);
         }
 
         if ($wrapperTag) {
