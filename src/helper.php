@@ -2035,7 +2035,7 @@ function explodeTrimAssoc(string $sep, string $str, bool $excludeEmptyElems = fa
     foreach ($array as $elem) {
         if (str_contains($elem, ':')) {
             $m = explodeTrim(':', $elem);
-            $out[$m[0]] = $m[1];
+            $out[$m[0]] = trim($m[1], "'");
         } else {
             $out[$elem] = $elem;
         }
