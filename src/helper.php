@@ -1645,7 +1645,7 @@ function indentLines(string $str, int $width = 4): string
   * @return array
   * @throws InvalidArgumentException
   */
-function parseArgumentStr(string $str, string $delim = ',', mixed $superBrackets = false): array
+function parseArgumentStr(string $str, string $delim = ','): array
 {
     // terminate if string empty:
     if (!($str = trim($str))) {
@@ -2026,6 +2026,22 @@ function explodeTrim(string $sep, string $str, bool $excludeEmptyElems = false):
     }
     return $out;
 } // explodeTrim
+
+
+function explodeTrimAssoc(string $sep, string $str, bool $excludeEmptyElems = false): array
+{
+    $array = explodeTrim($sep, $str, $excludeEmptyElems);
+    $out = [];
+    foreach ($array as $elem) {
+        if (str_contains($elem, ':')) {
+            $m = explodeTrim(':', $elem);
+            $out[$m[0]] = $m[1];
+        } else {
+            $out[$elem] = $elem;
+        }
+    }
+    return $out;
+} // explodeTrimAssoc
 
 
 /**
