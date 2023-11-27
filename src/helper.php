@@ -2028,14 +2028,15 @@ function explodeTrim(string $sep, string $str, bool $excludeEmptyElems = false):
 } // explodeTrim
 
 
-function explodeTrimAssoc(string $sep, string $str, bool $excludeEmptyElems = false): array
+function explodeTrimAssoc(string $sep, string $str, bool $excludeEmptyElems = false, bool $splitOnLastMatch = false): array
 {
     $array = explodeTrim($sep, $str, $excludeEmptyElems);
     $out = [];
     foreach ($array as $elem) {
-        if (str_contains($elem, ':')) {
-            $m = explodeTrim(':', $elem);
-            $out[$m[0]] = trim($m[1], "'");
+        if ($splitOnLastMatch && preg_match('/(.*):(.*)/', $elem, $m)) {
+            $out[$m[1]] = trim($m[2], "'");
+        } elseif (preg_match('/(.*?):(.*)/', $elem, $m)) {
+            $out[$m[1]] = trim($m[2], "'");
         } else {
             $out[$elem] = $elem;
         }
