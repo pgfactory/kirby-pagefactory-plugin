@@ -290,7 +290,8 @@ EOT;
                     $name = 'anon';
                     // check whether Permission has an accessCode user registered, remove if so:
                     $session = kirby()->session();
-                    if ($user = $session->get('pfy.accessCodeUser')) {
+                    if ($email = $session->get('pfy.accessCodeUser')) {
+                        $user = kirby()->user($email);
                         if (is_object($user)) {
                             $name = (string)$user->nameOrEmail();
                         } else {
