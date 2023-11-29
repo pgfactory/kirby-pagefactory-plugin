@@ -50,6 +50,19 @@ class Utils
 
         TransVars::setVariable('generator', 'Kirby v'. kirby()::version(). " + PageFactory ".getGitTag());
 
+        // homeLink:
+        $lnk = new Link();
+        if (PageFactory::$pageUrl !== PageFactory::$appUrl) {
+            $homeLink = $lnk->render([
+                'url' => PageFactory::$appUrl,
+                'text' => $kirbySiteTitle,
+                'title' => 'Homepage',
+                'class' => 'pfy-home-link',
+            ]);
+        } else {
+            $homeLink = $kirbySiteTitle;
+        }
+        TransVars::setVariable('homeLink', $homeLink);
 
         $appUrl = PageFactory::$appUrl;
         $menuIcon         = svg('site/plugins/pagefactory/assets/icons/menu.svg');
