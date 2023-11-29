@@ -1043,7 +1043,7 @@ class DataSet
         if ($toFile === $this->file) {
             throw new \Exception("Export to original data file '$toFile' is not allowed.");
         }
-        preparePath($toFile);
+        preparePath($toFile, 0755);
         try {
             if ($fileType === 'office') {
                 $toFile .= 'xlsx';
