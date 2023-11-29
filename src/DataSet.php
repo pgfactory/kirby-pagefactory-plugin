@@ -34,7 +34,7 @@ class DataSet
     protected $data2DNormalized;
     protected $masterFileRecKeyType;    // rec key type as to appear externally (e.g. in Yaml file)
     protected $recKeyType;              // rec key type used internally, default: hash
-    protected $officeFormatAvailable;
+    public static $officeFormatAvailable;
     protected $officeDoc = false;
     protected $downloadFilename;
     protected $nCols;
@@ -120,7 +120,7 @@ class DataSet
             $this->initData();
         }
 
-        $this->officeFormatAvailable = (class_exists('PhpOffice\PhpSpreadsheet\Spreadsheet'));
+        self::$officeFormatAvailable = (class_exists('PhpOffice\PhpSpreadsheet\Spreadsheet'));
     } // __construct
 
 
@@ -1027,7 +1027,7 @@ class DataSet
                            mixed $fileType = false): string
     {
         if ($fileType === true || $fileType === 'office') {
-            if ($this->officeFormatAvailable) {
+            if (self::$officeFormatAvailable) {
                 $fileType = 'office';
             } else {
                 $fileType = 'csv';
@@ -1099,7 +1099,7 @@ class DataSet
                                       bool   $includeMeta = false,
                                       bool   $includeHeader = true): string
     {
-        if (!$this->officeFormatAvailable) {
+        if (!self::$officeFormatAvailable) {
             throw new \Exception("Support for Office Formats not available in this installation.");
         }
         $data2D = $this->get2DNormalizedData($includeHeader, $includeMeta);
@@ -1359,7 +1359,7 @@ class DataSet
         $obj->options = $this->options;
         if (is_object($obj)) {
             foreach ($obj as $key => $value) {
-                if (!str_contains('sess', $key)) {
+                if (!str_contains('sess,officeFormatAvailable', $key)) {
                     $this->$key = $value;
                 }
             }
