@@ -253,7 +253,7 @@ EOT;
             return;
         }
 
-        self::execAsAnon('printview,printpreview,print,logout,reset,flush,flushcache');
+        self::execAsAnon('printview,printpreview,print,logout,reset,flush,flushcache,iframe');
         self::execAsAdmin('help,reset,notranslate');
     } // handleAgentRequests
 
@@ -321,6 +321,15 @@ EOT;
                     break;
                 case 'reset': // ?reset (as non-admin): harmless reset => just undo previous '?debug' commands
                     self::resetDebugState();
+                    break;
+                case 'iframe':
+                    if ($a = kirby()->option('pgfactory.pagefactory.options.supportExportAsIframe')) {
+                        if ($a === true) {
+                            $a = '*';
+                        }
+                        PageFactory::$pg->addBodyTagClass('pfy-export-as-iframe');
+                        header("Access-Control-Allow-Origin: $a");
+                    }
                     break;
             }
         }

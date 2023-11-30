@@ -40,6 +40,7 @@ return [
         // 'sourceWrapperClass'            => '',     // class applied to sourceWrapperTag
         // 'webmaster_email'               => '',     // email address of webmaster
         // 'maxCacheAge'                   => 86400,  // [s] max time after which Kirby's file cache is automatically flushed
+        // 'supportExportAsIframe'           => '*',  // Enables Access-Control-Allow-Origin support, to activate use ?iframe
 
       // Options for dev phase:
         // 'debug_checkMetaFiles'          => true,   // if true, Pagefactory will skip checks for presence of metafiles
