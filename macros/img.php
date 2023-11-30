@@ -40,6 +40,7 @@ function img($argStr = '')
             'linkTitle' => ["Title-attribute applied to &lt;a> tag, e.g. linkTitle:'opens new window'", false],
             'linkTarget' => ["Target-attribute applied to &lt;a> tag, e.g. linkTarget:_blank", false],
             'linkAttributes' => ["Attributes applied to the \<a> tag, e.g. 'download'.", false],
+            'ignoreMissing' => ["If true, an empty string is rendered in case the image file is missing.", false],
             ],
         'summary' => <<<EOT
 # img()

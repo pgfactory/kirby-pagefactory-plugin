@@ -30,6 +30,8 @@ class Image
     private string $heightStr = '';
     private string $imgStyle = '';
     private string $imgClass = '';
+    private bool   $ignoreMissing = false;
+    private bool   $imageMissing = false;
     private static bool $quickViewInitialized = false;
 
 
@@ -61,6 +63,8 @@ class Image
             $this->sizeHint = $m[2];
         }
 
+        $this->ignoreMissing = $options['ignoreMissing']??false;
+
         // determine whether file is managed by Kirby:
         if (str_starts_with($srcFilePath, '~page/')) {
             $file = substr($srcFilePath, 6);
@@ -73,11 +77,19 @@ class Image
         } elseif (str_starts_with($srcFilePath, '~assets/')) {
             $file = substr($srcFilePath, 1);
             if (!$obj = page(dirname($file))) {
-                throw new \Exception("Image file not found: '$srcFilePath'");
+                if ($this->ignoreMissing) {
+                    $this->imageMissing = true;
+                } else {
+                    throw new \Exception("Image file not found: '$srcFilePath'");
+                }
             }
             $images = $obj->images();
             if (!$this->kirbyFileObj = $images->find(basename($file))) {
-                throw new \Exception("Image file not found: '$srcFilePath'");
+                if ($this->ignoreMissing) {
+                    $this->imageMissing = true;
+                } else {
+                    throw new \Exception("Image file not found: '$srcFilePath'");
+                }
             }
 
         } else {
@@ -88,7 +100,15 @@ class Image
             }
         }
         if (!$this->kirbyFileObj) {
-            throw new \Exception("Image file not found: '{$options['src']}'");
+            if ($this->ignoreMissing) {
+                $this->imageMissing = true;
+            } else {
+                throw new \Exception("Image file not found: '{$options['src']}'");
+            }
+        }
+
+        if ($this->imageMissing) {
+            return;
         }
         $srcFilePath = $this->getPath();
 
@@ -117,6 +137,10 @@ class Image
      */
     public function html()
     {
+        if ($this->imageMissing) {
+            return '';
+        }
+
         $attributes = '';
         $options = $this->options;
         if ($options['id']) {
