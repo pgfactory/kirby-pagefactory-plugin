@@ -360,6 +360,7 @@ EOT;
             $field = trim($fields[$i]);
             $pos = strpos($field, ':');
             $key = camelCase(trim(substr($field, 0, $pos)));
+            $key = strtolower($key);
 
             // Don't add fields with empty keys
             if (empty($key) === true) {
@@ -380,10 +381,10 @@ EOT;
             } elseif ($key === 'robots') {
                 self::$pg->applyRobotsAttrib($value);
 
-            } elseif ($key === 'wrapperTag') {
+            } elseif ($key === 'wrappertag') {
                 $this->wrapperTag = $value;
 
-            } elseif ($key === 'wrapperClass') {
+            } elseif ($key === 'wrapperclass') {
                 $this->wrapperClass = $value;
 
             } elseif ($key === 'css') {

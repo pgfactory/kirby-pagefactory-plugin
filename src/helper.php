@@ -2294,6 +2294,9 @@ function translateToClassName(string $str, bool $handleLeadingNonChar = true): s
   */
  function camelCase(string $str): string
 {
+    if (!strpbrk($str, ' -')) {
+        return $str;
+    }
     $str = str_replace('-', '', ucwords(str_replace(' ','-', $str), '-'));
     return lcfirst($str);
 }    // camelCase
