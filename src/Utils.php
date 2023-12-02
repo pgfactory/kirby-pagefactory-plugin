@@ -323,8 +323,11 @@ EOT;
                     self::resetDebugState();
                     break;
                 case 'iframe':
-                    if ($a = kirby()->option('pgfactory.pagefactory.options.supportExportAsIframe')) {
-                        if ($a === true) {
+                    if (!($a = page()->supportExportAsIframe()->value())) {
+                        $a = kirby()->option('pgfactory.pagefactory.options.supportExportAsIframe');
+                    }
+                    if ($a) {
+                        if ($a === true || $a === 'true') {
                             $a = '*';
                         }
                         PageFactory::$pg->addBodyTagClass('pfy-export-as-iframe');
