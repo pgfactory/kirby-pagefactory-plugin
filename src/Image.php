@@ -117,7 +117,11 @@ class Image
 
         $this->imgClass = $options['class']??'';
 
-        $this->showQuickView = $options['quickview']??null;
+        if ($options['quickview'] !== null) {
+            $this->showQuickView = $options['quickview'];
+        } else {
+            $this->showQuickView = PageFactory::$config['imageAutoQuickview']??false;
+        }
 
 
         foreach ($options as $key => $value) {
@@ -169,8 +173,7 @@ class Image
         if ($options['imgTagAttributes']) {
             $attributes .= " {$options['imgTagAttributes']}";
         }
-        if ($options['quickview'] ||
-            (($options['quickview'] === null) && (PageFactory::$config['imageAutoQuickview']??false))) {
+        if ($this->showQuickView) {
             $attributes .= $this->renderQuickview();
         }
         $attributes = "class='pfy-img pfy-img-$this->inx $this->imgClass' $attributes$srcSet";
