@@ -34,6 +34,7 @@ function galery($args = ''): string
             'height'        => ['[int] Synonyme for "thumbHeight".', null],
             'maxWidth'      => ['[int] Maximum width of images (i.e. in overlay).', IMG_MAX_WIDTH],
             'maxHeight'     => ['[int] Maximum height of images', IMG_MAX_HEIGHT],
+            'class'         => ['[string] .', false],
             'fullscreen'    => ['[bool] If true, galery covers the entire screen when opened.', false],
             'background'    => ['[color] Color of the overlay background.', '#212121f2'],
             'config'        => ['Various options, see table above.', []],
@@ -91,6 +92,7 @@ EOT,
     if ($options['height']) {
         $options['thumbHeight'] = $options['height'];
     }
+    $class = $options['class']??'';
 
     // galery config options:
     if ($options['background']) {
@@ -117,7 +119,7 @@ EOT,
     }
 
     $html = <<<EOT
-<div class='pfy-galery pfy-galery-$inx'>
+<div class='pfy-galery pfy-galery-$inx $class'>
 $html
 </div><!-- /pfy-galery -->
 EOT;
