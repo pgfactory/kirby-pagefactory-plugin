@@ -1657,7 +1657,8 @@ function parseArgumentStr(string $str, string $delim = ','): array
         return [ $str ];
     }
 
-    if (preg_match('/^\s* { .* } \s* $/x', $str, $m)) {
+    // for Twig compatibility: handle enclosing '{ ... }':
+    if (preg_match('/^\s* { (.*) } ,? \s* $/x', $str, $m)) {
         $str = $m[1];
     }
 
