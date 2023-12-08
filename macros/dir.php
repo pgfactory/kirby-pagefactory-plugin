@@ -180,9 +180,6 @@ class Dir
         if (!$dir) {
             return TransVars::getVariable("nothing to display");
         }
-        if (strpos($this->order, 'revers') !== false) {
-            $dir = array_reverse($dir);
-        }
         $str = '';
         $maxAge = 0;
         if ($this->maxAge) {
@@ -200,6 +197,10 @@ class Dir
         }
         $dir = array_combine($keys, $dir);
         ksort($dir);
+        if ($this->order === true || strpos($this->order, 'revers') !== false) {
+            $dir = array_reverse($dir);
+        }
+
         foreach ($dir as $name => $file) {
             if (filemtime($file) < $maxAge) {
                 continue;
@@ -226,9 +227,11 @@ class Dir
                     }
                     $file = strtolower($file);
                 }
-                $url = $this->parseUrlFile($file); // check whether it's a link file (.url or .webloc)
+                $url = $this->parseUrlFile($file); // check whether it's a link file (.url or .webloc or .lnk)
                 if ($url) {
-                    $str .= "<li class='pfy-dir-file'><a href='$url'{$this->targetAttr}{$this->linkClass}{$this->download}>$url</a></li>\n";
+                    $filename = base_name($filename, false);
+                    $str .= "<li class='pfy-dir-file'><a href='$url'{$this->targetAttr}{$this->linkClass}{$this->download}>$filename</a></li>\n";
+
                 } else {    // it's regular local file:
                     if (str_starts_with($file, '~')) {
                         $url = $file;
@@ -299,7 +302,7 @@ EOT;
     private function parseUrlFile($file)
     {
         $ext = fileExt($file);
-        if (!file_exists($file) || (strpos('webloc,lnk', $ext) === false)) {
+        if (!file_exists($file) || (strpos('webloc,lnk,url', $ext) === false)) {
             return false;
         }
         $str = file_get_contents($file);
@@ -308,7 +311,7 @@ EOT;
         } elseif (preg_match('|<string>(.*)</string>|ixm', $str, $m)) { // Mac link
             $url = $m[1];
         } else {
-            $url = false;
+            $url = trim($str);
         }
         return $url;
     } // parseUrlFile
