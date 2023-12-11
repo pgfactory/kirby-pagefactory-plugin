@@ -233,6 +233,8 @@ class PageFactory
      */
     public function _renderPageContent(): string
     {
+        Cache::superviseKirbyCache();
+
         Extensions::extensionsFinalCode(); //??? best position?
         Utils::prepareStandardVariables();
 
@@ -268,7 +270,6 @@ class PageFactory
         Utils::prepareTemplateVariables();
         $html = self::$pg->renderBody($html);
         self::$renderingClosed = true;
-        Cache::superviseKirbyCache();
         return $html;
     } // _renderPageContent
 

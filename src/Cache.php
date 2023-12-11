@@ -9,6 +9,7 @@ const LAST_CACHE_UPDATE_FILE = PFY_CACHE_PATH . 'last-cache-update.txt';
 
 class Cache
 {
+    public static bool $cacheUpdateNecessary = false;
     /**
      * Clears entire cache folder, alse clears media/ folder
      * @return void
@@ -93,6 +94,7 @@ class Cache
             $t = time();
         }
         touch(LAST_CACHE_UPDATE_FILE, $t);
+        self::$cacheUpdateNecessary = true;
     } // updateCacheFlag
 
 } // Cache
