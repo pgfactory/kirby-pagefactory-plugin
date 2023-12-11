@@ -1035,6 +1035,33 @@ function writeFile(string $file, string $content, int $flags = 0): void
 
 
  /**
+  * Accepts array-input, appends it to specified file
+  * @param string $file
+  * @param mixed $content
+  * @param string $type
+  * @return void
+  */
+ function appendFile(string $file, mixed $content, string $type = ''): void
+ {
+     if (!$type) {
+         $type = strtolower(fileExt($file));
+     }
+     // encode data:
+     if (str_contains('yml,yaml', $type)) {
+         $content = shieldNewlines($content);
+         $content = Data::encode($content, $type);
+         $content = prettifyYaml($content);
+
+     } elseif ($type === 'json') {
+         $content = Data::encode($content, $type);
+
+     }
+    file_put_contents($file, $content, FILE_APPEND);
+ } // appendFile
+
+
+
+ /**
   * Writes to file locking it during file system access.
   * Converts data to type of file, i.e. yaml, json, csv if necessary.
   * @param string $file
@@ -1795,64 +1822,36 @@ function parseArgValue(string &$rest, string $delim): mixed
     return $value;
 } // parseArgValue
 
- 
-function handleDataImportPattern(string $str): string
-{
-    if (preg_match('/(?<!\\\) \$ (\[|{) (.*?) (\]|}) /x', $str, $m)) {
-        $file = resolvePath($m[2]);
-        $cachFile = str_replace('/','_',dirname($file)).'_'.base_name($file,false).'.txt';
-        $cachFile = resolvePath('~cache/data/'.$cachFile);
-        $tFile = fileTime($file);
-        $tCache = fileTime($cachFile);
-        if ($tCache > $tFile) {
-            // get cached value:
-            $s = file_get_contents($cachFile);
-        } else {
-            // determine value:
-            $mode = $m[1];
-            $s = extractPlainArray($file, $mode);
 
-            // save value in cache:
-            preparePath($cachFile);
-            file_put_contents($cachFile, $s);
+ /**
+  * DataImportPattern: $[file] or $[users] or $[users:role]
+  * @param string $str
+  * @return string
+  * @throws Exception
+  */
+ function handleDataImportPattern(string $str, string $template = '%firstname% %lastname%:%short%'): string
+{
+    if (preg_match('/(?<!\\\) \$\[ (.*?) ] /x', $str, $m)) {
+        $arg = $m[1];
+
+        if (preg_match('/^users:?(.*)/', $arg, $mm)) {
+            $role = $mm[1];
+            $s = Utils::getUsers([
+                'role' => $role,
+                'template' => $template,
+                'wrapperTag' => false,
+                'separator' => ',',
+            ]);
+
+        // get data from file:
+        } else {
+            $file = resolvePath($arg);
+            $s = getFile($file);
         }
         $str = str_replace($m[0], $s, $str);
     }
     return $str;
 } // handleDataImportPattern
-
-
-function extractPlainArray($file, $mode)
-{
-    $s = getFile($file);
-    if (str_starts_with($s, '[{')) {
-        if (file_exists($file)) {
-            $data = Data::read($file);
-            if ($mode === '[') {            // pattern $[file]
-                $rec0 = reset($data);
-                if ($rec0) {
-                    $k = array_keys($rec0)[0];
-                    $arr = array_map(function ($e) use ($k) {
-                        return $e[$k] ?? '';
-                    }, $data);
-                    $s = json_encode($arr);
-                }
-
-            } else {                        // pattern ${file}
-                $arr = [];
-                foreach ($data as $e) {
-                    if (isset($e['key'])) {
-                        $arr[$e['key']] = $e['value'] ?? '';
-                    }
-                }
-                $s = json_encode($arr);
-            }
-        }
-    }
-    $s = str_replace('"', '\'', $s);
-    $s = trim($s, '[]{}');
-    return $s;
-} // extractPlainArray
 
 
  /**
@@ -2029,7 +2028,14 @@ function explodeTrim(string $sep, string $str, bool $excludeEmptyElems = false):
 } // explodeTrim
 
 
-function explodeTrimAssoc(string $sep, string $str, bool $excludeEmptyElems = false, bool $splitOnLastMatch = false): array
+ /**
+  * @param string $sep
+  * @param string $str
+  * @param bool $excludeEmptyElems
+  * @param bool $splitOnLastMatch
+  * @return array
+  */
+ function explodeTrimAssoc(string $sep, string $str, bool $excludeEmptyElems = false, bool $splitOnLastMatch = false): array
 {
     $array = explodeTrim($sep, $str, $excludeEmptyElems);
     $out = [];
@@ -2437,8 +2443,11 @@ function convertToPx(string $str, bool $toInt = false): float|int|false
 } // convertToPx
 
 
-
-function isRelativeUnit(string $str): bool
+ /**
+  * @param string $str
+  * @return bool
+  */
+ function isRelativeUnit(string $str): bool
 {
     return $str && !str_contains(',px,cm,mm,in,pt,pc,', ",$str,");
 } // isRelativeUnit
