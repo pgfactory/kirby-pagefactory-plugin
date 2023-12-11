@@ -44,6 +44,7 @@ class DataSet
     protected $maxRecBlockingTime;
     protected $avoidDuplicates;
     protected $debug;
+    protected static int $keepDataThreshold = 0; // unix-time
     protected static $sessionId = false;
 
 
@@ -60,6 +61,7 @@ class DataSet
      *     'recKeySortOnElement'
      *     'recKeyExcludeUid'
      *     'masterFileRecKeys'
+     *     'keepDataDuration'
      * @throws \Exception
      */
     public function __construct(string $file, array $options = [])
@@ -75,6 +77,10 @@ class DataSet
         $this->avoidDuplicates =        $options['avoidDuplicates'] ?? true;
         $this->recKeyType =             $options['recKeyType'] ?? 'hash';
         $this->masterFileRecKeyType =   $options['masterFileRecKeyType'] ?? 'hash';
+
+        if ($options['keepDataDuration']??false) {
+            self::$keepDataThreshold = strtotime("- {$options['keepDataDuration']} months");
+        }
 
         if (isset($options['blocking'])) {
             if (is_int($options['blocking'])) {
@@ -1203,7 +1209,6 @@ class DataSet
     {
         if (file_exists($this->file)) {
             $textEncoding = $this->options['textEncoding'] ?? false;
-            $modified = false;
             try {
                 // get raw data:
                 $data = readFileLocking($this->file, $this->type, textEncoding: $textEncoding);
@@ -1247,7 +1252,6 @@ class DataSet
                 }
                 $recKeyToUse = $rec['_reckey'];
             }
-
             $this->addRec($rec, flush: false, recKeyToUse: $recKeyToUse);
         }
         return $modified;
@@ -1293,6 +1297,9 @@ class DataSet
             $masterFileRecKeyType = 'index';
         }
 
+        // remove old data records, move them to archive file:
+        $this->archiveOldData();
+
         $includeMeta = ($this->includeMeta !== null) ? $this->includeMeta :'_reckey';
         try {
             // sort:
@@ -1316,6 +1323,35 @@ class DataSet
             throw new \Exception($e->getMessage());
         }
     } // exportToMasterFile
+
+
+    /**
+     * based on 'keepDataDuration' argument, extracts old records and moves them to an archive file
+     *      -> path/file_(archived).ext
+     * @return void
+     */
+    private function archiveOldData(): void
+    {
+        if (!self::$keepDataThreshold) {
+            return; // nothing to do
+        }
+        $keepDataThreshold = self::$keepDataThreshold;
+        $archive = [];
+        foreach ($this->data as $i => $rec) {
+            if ($rec->_timestamp < $keepDataThreshold) {
+                unset($this->data[$i]);
+                $archive[] = $rec->data(true);
+            }
+        }
+
+        if (!$archive) {
+            return; // nothing to do
+        }
+
+        // append new recs to (possibly) existing archive:
+        $archiveFile = fileExt($this->file, true) . '_(archived).'.fileExt($this->file);
+        appendFile($archiveFile, $archive);
+    } // archiveOldData
 
 
     /**
@@ -1359,7 +1395,8 @@ class DataSet
         $obj->options = $this->options;
         if (is_object($obj)) {
             foreach ($obj as $key => $value) {
-                if (!str_contains('sess,officeFormatAvailable', $key)) {
+//ToDo: check for further exceptions:
+                if (!str_contains('sess,officeFormatAvailable,includeMeta', $key)) {
                     $this->$key = $value;
                 }
             }
