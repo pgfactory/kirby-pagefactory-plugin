@@ -966,4 +966,60 @@ EOT;
         //        }
     } // sendMail
 
+
+    /**
+     * Obtains list of users from Kirby, filters, sorts and converts by template.
+     * @param array $options
+     * @return string
+     */
+    public static function getUsers(array $options = []): string
+    {
+        $groupFilter = $options['role']??false;
+        $template = $options['template']??'%username% &lt;%email%&gt;';
+        if (preg_match_all('/%(\w+)%/', $template, $m)) {
+            $replaces = $m[1];
+        } else {
+            $replaces = [];
+        }
+        $separator = $options['separator']??'';
+        $listWrapperTag = $options['listWrapperTag']??'ul';
+        $prefix = $options['prefix']??'';
+        $suffix = $options['suffix']??'';
+        if ($listWrapperTag && str_contains(',ul,ol,', ",$listWrapperTag,")) {
+            $prefix = "<li>$prefix";
+            $suffix .= "</li>\n";
+        }
+
+        $str = '';
+        $users = kirby()->users();
+        if ($groupFilter) {
+            $users = $users->filterBy('role', $groupFilter);
+        }
+        $users = $users->sortBy('name');
+        foreach ($users as $user) {
+            $username = (string)$user->name();
+            $email = (string)$user->email();
+            $content = $user->content();
+            $s = $template;
+            $s = str_replace('%username%', $username, $s);
+            $s = str_replace('%email%', $email, $s);
+            foreach ($replaces as $varname) {
+                $value = (string)$content->$varname();
+                $s = str_replace("%$varname%", $value, $s);
+            }
+            $str .= "$prefix$s$suffix$separator";
+        }
+
+        $str = rtrim($str, $separator);
+        if (!$str) {
+            $text = TransVars::getVariable('pfy-list-empty', true);
+            $str = "<div class='pfy-list-empty'>$text</div>";
+        } else {
+            if ($listWrapperTag) {
+                $str = "<$listWrapperTag>$str</$listWrapperTag>\n";
+            }
+        }
+        return $str;
+    } // getUsers
+
 } // Utils

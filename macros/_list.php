@@ -17,7 +17,9 @@ function _list($argStr = '')
         'options' => [
             'type' => ['[users,variables,functions,subpages] Selects the objects to be listed.', false],
             'page' => ['Defines the page of which to list subpages.', '\~page/'],
-            'options' => ['[AS_LINKS] Specifies how to render the list.', false],
+            'asLinks' => ['If true and type=subpages, listed elements are wrapped in &lt;a> tags.', false],
+            'wrapperTag' => ['Defines the wrapper tag. If false, no wrapper is applied.', 'div'],
+            'options' => ['{template,prefix,suffix,separator,listWrapperTag} Specifies how to render the list.', false],
         ],
         'summary' => <<<EOT
 # list()
@@ -26,10 +28,18 @@ Renders a list of requested type.
 
 Available ``types``:
 
-- ``variables``     >> lists all variables
-- ``macros``     >> lists all macros including their help text
-- ``users``     >> lists all users
-- ``subpages``     >> lists all sub-pages
+- ``variables``     10em>> lists all variables
+- ``macros``        10em>> lists all macros including their help text
+- ``users``         10em>> lists all users
+- ``subpages``      10em>> lists all sub-pages
+
+Available ``options`` for  type **users**:
+
+- ``template``      10em>> should contain placeholders like '%name%' and '%email%' or any fields defined in Kirby's user admin
+- ``prefix``        10em>> string to prepend to each element
+- ``suffix``        10em>>  string to append to each element
+- ``separator``     10em>>  string placed between elements
+- ``listWrapperTag``    10em>> 'ul' or 'ol' or tag or false (for no wrapper) 
 
 EOT,
     ];
@@ -41,9 +51,14 @@ EOT,
         list($args, $sourceCode, $inx) = $str;
     }
 
+    $options = $args['options'];
+    if (is_string($options)) {
+        $options = [$options];
+    }
+
     // assemble output:
     $type = $args['type'].' ';
-    $asLinks = str_contains(strtoupper($args['options']), 'AS_LINKS');
+    $asLinks = $args['asLinks']??false;
     $class = '';
 
     if ($type[0] === 'v') {     // variables
@@ -56,21 +71,23 @@ EOT,
         $class = 'pfy-macros';
 
     } elseif ($type[0] === 'u') {   // users
-        $str = renderUserList();
+        $str = renderUserList($args);
         $class = 'pfy-users';
 
     } elseif ($type[0] === 's') {   // sub-pages
         $str = renderSubpages($args['page'], $asLinks);
         $class = 'pfy-subpages';
     }
-    $str = <<<EOT
-$sourceCode
-<div class='pfy-list pfy-list-$inx $class'>
-$str
-</div>
-EOT;
 
-    return $str;
+    if ($tag = $args['wrapperTag']) {
+        $str = <<<EOT
+<$tag class='pfy-list pfy-list-$inx $class'>
+$str
+</$tag>
+EOT;
+    }
+
+    return $sourceCode.$str;
 }
 
 
@@ -111,20 +128,20 @@ function renderSubpages($page1, bool $asLinks): string
 /**
  * @return string
  */
-function renderUserList(): string
+function renderUserList($args): string
 {
-    $users = kirby()->users();
-    $str = '';
-    foreach ($users->data() as $user) {
-        $username = (string)$user->name();
-        $email = (string)$user->email();
-        $str .= "<li>$username &lt;$email&gt;</li>\n";
-    }
-    if ($str) {
-        $str = "<ul>\n$str</ul>\n";
-    } else {
+    $options = (array)$args['options']??[];
+
+    $str = Utils::getUsers($options);
+
+    if (!$str) {
         $text = TransVars::getVariable('pfy-list-empty', true);
         $str = "<div class='pfy-list-empty'>$text</div>";
+    } else {
+        $wrapperTag = $options['wrapperTag']??'ul';
+        if ($wrapperTag) {
+            $str = "<$wrapperTag>$str</$wrapperTag>\n";
+        }
     }
     return $str;
 } // renderUserList
