@@ -971,6 +971,7 @@ function resolvePath(string $path, bool $returnAbsPath = false, bool $relativeTo
             '~media/' => $appRoot . 'media/',
             '~assets/' => $appRoot . 'content/assets/',
             '~config/' => $appRoot . 'site/config/',
+            '~custom/' => $appRoot . 'site/custom/',
             '~cache/' => $appRoot . 'site/cache/pagefactory/',
             '~data/' => $appRoot . 'site/custom/data/',
             '~page/' => $pageRoot,
