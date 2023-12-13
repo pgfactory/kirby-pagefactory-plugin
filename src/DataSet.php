@@ -44,7 +44,8 @@ class DataSet
     protected $maxRecBlockingTime;
     protected $avoidDuplicates;
     protected $debug;
-    protected static int $keepDataThreshold = 0; // unix-time
+    protected int $keepDataThreshold = 0; // unix-time
+    protected string|false $keepDataOnField; // field-name
     protected static $sessionId = false;
 
 
@@ -79,8 +80,9 @@ class DataSet
         $this->masterFileRecKeyType =   $options['masterFileRecKeyType'] ?? 'hash';
 
         if ($options['keepDataDuration']??false) {
-            self::$keepDataThreshold = strtotime("- {$options['keepDataDuration']} months");
+            $this->keepDataThreshold = strtotime("- {$options['keepDataDuration']} months");
         }
+        $this->keepDataOnField =   $options['keepDataOnField'] ?? false;
 
         if (isset($options['blocking'])) {
             if (is_int($options['blocking'])) {
@@ -1332,13 +1334,18 @@ class DataSet
      */
     private function archiveOldData(): void
     {
-        if (!self::$keepDataThreshold) {
+        if (!$this->keepDataThreshold) {
             return; // nothing to do
         }
-        $keepDataThreshold = self::$keepDataThreshold;
+        $keepDataThreshold = $this->keepDataThreshold;
         $archive = [];
         foreach ($this->data as $i => $rec) {
-            if ($rec->_timestamp < $keepDataThreshold) {
+            if ($this->keepDataOnField) {
+                $t = strtotime($rec->recData[$this->keepDataOnField]??'');
+            } else {
+                $t = $rec->_timestamp;
+            }
+            if ($t < $keepDataThreshold) {
                 unset($this->data[$i]);
                 $archive[] = $rec->data(true);
             }
@@ -1395,8 +1402,7 @@ class DataSet
         $obj->options = $this->options;
         if (is_object($obj)) {
             foreach ($obj as $key => $value) {
-//ToDo: check for further exceptions:
-                if (!str_contains('sess,officeFormatAvailable,includeMeta', $key)) {
+                if (!str_contains('sess,officeFormatAvailable,includeMeta,keepDataOnField,keepDataThreshold', $key)) {
                     $this->$key = $value;
                 }
             }
