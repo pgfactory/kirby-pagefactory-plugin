@@ -1841,6 +1841,7 @@ function parseArgValue(string &$rest, string $delim): mixed
                 'role' => $role,
                 'template' => $template,
                 'wrapperTag' => false,
+                'listWrapperTag' => false,
                 'separator' => ',',
             ]);
 
