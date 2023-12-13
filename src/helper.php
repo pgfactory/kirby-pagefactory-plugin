@@ -1825,7 +1825,7 @@ function parseArgValue(string &$rest, string $delim): mixed
 
 
  /**
-  * DataImportPattern: $[file] or $[users] or $[users:role]
+  * DataImportPattern: $[file] or $[users] or $[users:role] or $[users:role {%username%...}]
   * @param string $str
   * @return string
   * @throws Exception
@@ -1837,8 +1837,12 @@ function parseArgValue(string &$rest, string $delim): mixed
 
         if (preg_match('/^users:?(.*)/', $arg, $mm)) {
             $role = $mm[1];
+            if (preg_match('/\{(.*?)}/', $role, $mm)) {
+                $template = $mm[1];
+                $role = str_replace($mm[0], '', $role);
+            }
             $s = Utils::getUsers([
-                'role' => $role,
+                'role' => trim($role),
                 'template' => $template,
                 'wrapperTag' => false,
                 'listWrapperTag' => false,
