@@ -290,6 +290,22 @@ class PageFactory
         $customWrapperClass = PageFactory::$wrapperClass;
         $path = self::$page->root();
         $dir = getDir("$path/*.md");
+
+        // first find _meta.md files (only containing frontmatter but no content):
+        foreach ($dir as $i => $file) {
+            if (str_contains('#-_', basename($file)[0])) {
+                continue;
+            }
+            if (str_ends_with($file, '_meta.md')) {
+                $mdStr = getFile($file, 'cstyle,emptylines,twig');
+                $this->extractFrontmatter($mdStr);
+                // if some CSS/SCSS found in frontmatter, request rendering it now:
+                $this->propagateFrontmatterStyles('pfy-main');
+                unset($dir[$i]);
+            }
+        }
+
+        // process remaining .md files:
         $inx = 0;
         $finalHtml = '';
         foreach ($dir as $file) {
@@ -324,14 +340,7 @@ EOT;
             }
 
             // if some CSS/SCSS found in frontmatter, request rendering it now:
-            if ($this->sectionsCss) {
-                $this->sectionsCss = str_replace(['#this','.this'], ["#$wrapperId", ".$wrapperId"], $this->sectionsCss);
-                self::$pg->addCss($this->sectionsCss);
-            }
-            if ($this->sectionsScss) {
-                $this->sectionsScss = str_replace(['#this','.this'], ["#$wrapperId", ".$wrapperId"], $this->sectionsScss);
-                self::$pg->addScss($this->sectionsScss);
-            }
+            $this->propagateFrontmatterStyles($wrapperId);
 
             $finalHtml .= $html;
         } // loop over files
@@ -456,4 +465,16 @@ EOT;
     {
         self::$mdFileProcessor = $functionName;
     } // registerSrcFileProcessor
+
+    private function propagateFrontmatterStyles(string $wrapperId): void
+    {
+        if ($this->sectionsCss) {
+            $this->sectionsCss = str_replace(['#this', '.this'], ["#$wrapperId", ".$wrapperId"], $this->sectionsCss);
+            self::$pg->addCss($this->sectionsCss);
+        }
+        if ($this->sectionsScss) {
+            $this->sectionsScss = str_replace(['#this', '.this'], ["#$wrapperId", ".$wrapperId"], $this->sectionsScss);
+            self::$pg->addScss($this->sectionsScss);
+        }
+    }
 } // PageFactory
