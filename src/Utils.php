@@ -565,7 +565,7 @@ EOT;
     public static function resolveUrl(string $url): string
     {
         $patterns = [
-            '~/'        => '',
+            '~/'        => PageFactory::$appUrl,
             '~media/'   => 'media/',
             '~assets/'  => 'content/assets/',
             '~page/'    => PageFactory::$pageUrl,
