@@ -17,6 +17,11 @@ return [
         'interlace' => true,
     ],
 
+    // define Kirby's login mode, e.g. allow login by mailed access-code:
+    // 'auth' => [
+    //     'methods' => ['code','password']
+    // ],
+
     'wearejust.twig.env.functions' => $functions, // register pagefactory's twig-functions
 
     'pgfactory.markdownplus.options' => [
@@ -48,7 +53,7 @@ return [
         // 'debug_logIP'                   => true,   // if true, serverLog() includes agent's IP address
     ],
 
-/* -> Uncomment to activate PageFactory's cache support
+/* Cache support:
     'cache' => [
         'pages' => [
             'active' => true,
