@@ -74,8 +74,9 @@ class Link
         $this->text = $this->getText();
 
         $this->addIcon();
+        $url = str_replace(' ', '', $this->url);
 
-        $str = "<a href='$this->proto$this->url' $attributes>$this->text</a>";
+        $str = "<a href='$this->proto$url' $attributes>$this->text</a>";
         $str = TransVars::resolveVariables($str);
         return $str;
     } // render
@@ -159,7 +160,7 @@ class Link
                 $this->isExternalLink = true;
 
                 // link with some other proto, e.g. 'tel:':
-            } elseif (stripos($this->url, 'pdf') === 0) {
+            } elseif (str_starts_with($this->url, 'pdf')) {
                 $this->proto = '';
                 $this->url = $m[2];
                 $this->type = 'pdf';
@@ -170,7 +171,7 @@ class Link
                 $this->type = str_replace(':','', $this->proto);
                 $this->linkCat = 'special';
             }
-        } elseif (stripos($this->url, 'www.') === 0) {
+        } elseif (str_starts_with($this->url, 'www.')) {
             $this->proto = 'https://';
             $this->type = 'link';
             $this->linkCat = 'link';
