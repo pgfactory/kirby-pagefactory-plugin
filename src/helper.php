@@ -2247,7 +2247,6 @@ function translateToFilename(string $str, mixed $appendExt = true): string
     return $str;
 } // translateToFilename
 
-
  /**
   * Translates a given string to a legal identifier
   * @param string $str
@@ -2256,28 +2255,27 @@ function translateToFilename(string $str, mixed $appendExt = true): string
   * @param bool $toLowerCase
   * @return string
   */
-function translateToIdentifier(string $str, bool $toCamelCase = false, bool $removeNonAlpha = false,
-                                bool   $toLowerCase = true): string
+function translateToIdentifier(string $str, bool $toCamelCase = false, bool $toLowerCase = false): string
 {
     // translates special characters (such as , , ) into identifier which contains but safe characters:
-    if ($toLowerCase) {
+    if ($toLowerCase || $toCamelCase) {
         $str = mb_strtolower($str);        // all lowercase
     }
-    $str = strToASCII($str);		// replace umlaute etc.
-    $str = strip_tags($str);							// strip any html tags
-    if ($removeNonAlpha) {
-        $str = preg_replace('/[^a-zA-Z-_\s]/ms', '', $str);
+    if (strpbrk($str, '<&')) {
+    $str = html_entity_decode($str);                                        // replace umlaute etc.
+        $str = strip_tags($str);                                            // strip any html tags
+    }
+    $str = strToASCII($str);		                                        // replace umlaute etc.
+    $str = preg_replace('/\s+/', '_', $str);	            // replace blanks with _
+    $str = str_replace('-', '_', $str);                      // convert '-' to '_'
 
-    } elseif (preg_match('/^ \W* (\w .*?) \W* $/x', $str, $m)) { // cut leading/trailing non-chars;
-        $str = trim($m[1]);
-    }
-    $str = preg_replace('/\s+/', '_', $str);			// replace blanks with _
-    $str = preg_replace("/[^[:alnum:]_-]/m", '', $str);	// remove any non-letters, except _ and -
+    $str = preg_replace("/[^[:alnum:]_]/m", '', $str);	// remove any non-letters, except _ and -
     if ($toCamelCase) {
-        $str = str_replace(['-','_'], '', ucwords($str, '-'));
+        $str = str_replace('_', '', ucwords($str, '_'));
         $str = lcfirst($str);
+    } else {
+        $str = rtrim($str, '_');
     }
-    $str = trim($str, '_');
     return $str;
 } // translateToIdentifier
 
