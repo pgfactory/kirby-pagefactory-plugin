@@ -85,3 +85,14 @@ $max-font-size: 24;
   background-repeat: no-repeat;
   background-attachment: local, scroll, local, scroll;
 }
+
+
+@mixin  _striped($baseColH,$baseColS) {
+    background: repeating-linear-gradient(
+        -45deg,
+        hsl($baseColH, $baseColS, 97%),
+        hsl($baseColH, $baseColS, 97%) 10px,
+        hsl($baseColH, $baseColS, 95%) 10px,
+        hsl($baseColH, $baseColS, 95%) 20px
+    );
+}
