@@ -309,14 +309,10 @@ class Link
             $this->text = trim(compileMarkdown($this->args['text'], true));
 
         } elseif (!$this->text) {
-            $url = $this->url;
+            $url = preg_replace('|^~/|', '',  $this->url);
 
             // check whether url points to a page within this site:
-            if ($url[0] === '~') {
-                $url = Utils::resolveUrl($url);
-            }
-            $pg = page($url);
-            if ($pg) {
+            if ( $pg = page($url)) {
                 $this->text = (string)$pg->title();
             } else {
                 // page not found -> use url instead:
