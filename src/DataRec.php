@@ -42,7 +42,7 @@ class DataRec
             $elemKeyNormalized = translateToIdentifier((string)$k);
 
             // add key to list of elementKeys (unless it starts with _)
-            if ($k[0] !== '_') {
+            if (is_string($k) && ($k[0] !== '_')) {
                 $parent->elementKeys[$elemKeyNormalized] = $k;
                 // if key and normalized key differ, swap:
                 if ($k !== $elemKeyNormalized) {
