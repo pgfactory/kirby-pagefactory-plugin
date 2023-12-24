@@ -156,16 +156,19 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
     }
 
 
+    .pfy-has-surrogate-elem {
+      > a {
+                cursor: s-resize;
+      }
+    }
     // pfy-surrogate-elem:
     .pfy-surrogate-elem {
       > a {
         color:      $surrogate-txt-color;
         background: $surrogate-bg-color;
-        cursor: s-resize;
       }
       &.pfy-open > a .pfy-nav-arrow,
       &.pfy-open > a {
-        cursor: n-resize;
       }
     }
   } // .pfy-nav
