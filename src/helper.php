@@ -973,7 +973,7 @@ function resolvePath(string $path, bool $returnAbsPath = false, bool $relativeTo
             '~config/' => $appRoot . 'site/config/',
             '~custom/' => $appRoot . 'site/custom/',
             '~cache/' => $appRoot . 'site/cache/pagefactory/',
-            '~data/' => $appRoot . 'site/custom/data/',
+            '~data/' => $appRoot . PageFactory::$dataPath,
             '~page/' => $pageRoot,
             '~pagefactory/' => $appRoot . 'site/plugins/pagefactory/assets/',
         ];

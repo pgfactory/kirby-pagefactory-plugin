@@ -17,6 +17,7 @@ const PFY_CONFIG_FILE =            'site/config/config.php';
 const PFY_CUSTOM_PATH =            'site/custom/';
 const PFY_USER_CODE_PATH =         PFY_CUSTOM_PATH.'macros/';
 const PFY_CUSTOM_CODE_PATH =       PFY_CUSTOM_PATH.'autoexecute/';
+const PFY_CUSTOM_DATA_PATH =       PFY_CUSTOM_PATH.'data/';
 const PFY_MACROS_PATH =            PFY_BASE_PATH.'macros/';
 define('PFY_LOGS_PATH',            'site/logs/');
 if (!defined('PFY_CACHE_PATH')) { // available in extensions
@@ -112,6 +113,7 @@ class PageFactory
     public static $phpSessionId;
     public static $assets;
     public static $config;
+    public static $dataPath = PFY_CUSTOM_DATA_PATH;
     public        $pageOptions;
     public        $utils;
     public static $mdFileProcessor = false;
