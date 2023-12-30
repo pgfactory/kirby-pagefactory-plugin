@@ -230,10 +230,7 @@ class DataSet
         // payload is array -> convert to DataRecs
         if ($type === 'array') {
             $this->data = [];
-            foreach ($arg1 as $key => $rec) {
-                if (is_int($key)) {
-                    $key = false;
-                }
+            foreach ($arg1 as $rec) {
                 $this->addRec($rec);
             }
 
