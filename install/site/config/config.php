@@ -53,6 +53,8 @@ return [
         // 'debug_logIP'                   => true,   // if true, serverLog() includes agent's IP address
     ],
 
+// pgfactory.pagefactory-elements.options
+
 /* Cache support:
     'cache' => [
         'pages' => [
