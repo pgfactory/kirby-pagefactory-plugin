@@ -157,6 +157,12 @@ class DataRec
     } // remove
 
 
+    public function flush(): void
+    {
+        $this->parent->flush();
+    } // flush
+
+
     /**
      * @param bool $byMeIncluded
      * @return bool
