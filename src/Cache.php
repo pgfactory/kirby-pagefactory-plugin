@@ -47,35 +47,7 @@ class Cache
     /**
      * @return void
      */
-    public static function superviseKirbyCache(): void
-    {
-        // In debug mode: inhibit rendering from cache. Moreover, force Kirby to rebuild cache:
-        if (PageFactory::$debug) {
-            // ToDo: optimize, i.e. clear KirbyCache for current page only.
-            self::clearKirbyCache(); // clears entire cache, good enough for now...
-            self::updateCacheFlag(0);
-            return;
-        }
-
-        // If not in debug mode: monitor caching time
-        // -> force rebuild at beginning of each caching period, e.g. on first request in the morning:
-        self::preparePath();
-        $lastCacheRefresh = file_exists(LAST_CACHE_UPDATE_FILE) ? filemtime(LAST_CACHE_UPDATE_FILE) : 0;
-        $maxCacheAge = PageFactory::$config['maxCacheAge']??86400;
-        $t1 = intval($lastCacheRefresh / $maxCacheAge);
-        $t2 = intval(time() / $maxCacheAge);
-        $resetKirbyCache = ($t1 !== $t2);
-        if ($resetKirbyCache) {
-            self::clearKirbyCache(); // clear entire cache
-        }
-        self::updateCacheFlag();
-    } // superviseKirbyCache
-
-
-    /**
-     * @return void
-     */
-    private static function preparePath()
+    public static function preparePath()
     {
         if (!is_dir(PFY_CACHE_PATH)) {
             mkdir(PFY_CACHE_PATH, recursive: true);
@@ -87,7 +59,7 @@ class Cache
      * @param $t
      * @return void
      */
-    private static function updateCacheFlag($t = null)
+    public static function updateCacheFlag($t = null)
     {
         self::preparePath();
         if ($t === null) {
