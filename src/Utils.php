@@ -86,22 +86,29 @@ EOT;
         TransVars::setVariable('langActive', PageFactory::$lang); // can be lang-variant, e.g. de2
         TransVars::setVariable('phpVersion', phpversion());
 
-        if (!($webmasterEmail = PageFactory::$config['webmaster_email']??false)) {
-            $webmasterEmail = TransVars::getVariable('webmaster_email');
-        }
-        if ($webmasterEmail) {
-            PageFactory::$webmasterEmail = $webmasterEmail;
+        if (file_exists(PFY_WEBMASTER_EMAIL_CACHE)) {
+            $webmasterEmail = file_get_contents(PFY_WEBMASTER_EMAIL_CACHE);
         } else {
-            // default webmaster email derived from current domain:
-            $domain = preg_replace('|^https?://([\w.-]+)(.*)|', "$1", site()->url());
-
-            // for localhost: create pseudo
-            if (str_contains($domain, 'localhost')) {
-                $domain .= '.net';
+            if (!($webmasterEmail = PageFactory::$config['webmaster_email'] ?? false)) {
+                $webmasterEmail = TransVars::getVariable('webmaster_email');
             }
-            PageFactory::$webmasterEmail = $webmasterEmail = 'webmaster@' . $domain;
-            TransVars::setVariable('webmaster_email', $webmasterEmail);
+            if ($webmasterEmail) {
+                PageFactory::$webmasterEmail = $webmasterEmail;
+            } else {
+                // default webmaster email derived from current domain:
+                $domain = preg_replace('|^https?://([\w.-]+)(.*)|', "$1", site()->url());
+
+                // for localhost: create pseudo
+                if (str_contains($domain, 'localhost')) {
+                    $domain .= '.net';
+                }
+                PageFactory::$webmasterEmail = $webmasterEmail = 'webmaster@' . $domain;
+            }
+            preparePath(PFY_WEBMASTER_EMAIL_CACHE);
+            file_put_contents(PFY_WEBMASTER_EMAIL_CACHE, $webmasterEmail);
         }
+        TransVars::setVariable('webmaster_email', $webmasterEmail);
+        
         $lnk = new Link();
         $webmasterLink = $lnk->render([
             'url' => "mailto:$webmasterEmail",
