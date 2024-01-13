@@ -207,11 +207,11 @@ EOT;
      * @param $mdCompile
      * @return void
      */
-    public function setPopup(string $str, $mdCompile = true): void
+    public function setPopup(string $str, string $header, $mdCompile = true): void
     {
         if (isset(Extensions::$availableExtensions['pageelements'])) {
             $pe = new \PgFactory\PageFactoryElements\Popup($this->pfy);
-            $pe->set($str, $mdCompile);
+            $pe->set($str, $header, $mdCompile);
 
         // if PageElements are not loaded, we need to create bare page and exit immediately:
         } else {
