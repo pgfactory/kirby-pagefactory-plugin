@@ -9,9 +9,10 @@ use Kirby\Exception\InvalidArgumentException;
 use Kirby\Filesystem\F;
 use Exception;
 use PgFactory\MarkdownPlus\MarkdownPlus;
+ use PgFactory\MarkdownPlus\Permission;
 
 
-const FILE_BLOCKING_MAX_TIME = 500; //ms
+ const FILE_BLOCKING_MAX_TIME = 500; //ms
 const FILE_BLOCKING_CYCLE_TIME = 50; //ms
 
 const UNAMBIGUOUS_CHARACTERS = '3479ACDEFHJKLMNPQRTUVWXY'; // -> excludes '0O2Z1I5S6G8B'
@@ -21,17 +22,12 @@ define('KIRBY_ROOT_PATTERNS',   ','.implode(',', array_keys(KIRBY_ROOTS)).',');
 
 
  /**
-  * Checks whether agent is in the same subnet as IP 192.x.x.x
+  * Checks whether agent is in the same subnet
   * @return bool
   */
 function isLocalhost(): bool
 {
-    // url-arg ?localhost=false let's you mimick a remote host:
-    if (($_GET['localhost']??'') === 'false') {
-        return false;
-    }
-    $ip = kirby()->visitor()->ip();
-    return ((str_starts_with($ip, '192.')) || ($ip === '::1'));
+    return Permission::isLocalhost();
 } // isLocalhost
 
 
