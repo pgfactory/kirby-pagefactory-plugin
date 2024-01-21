@@ -28,18 +28,21 @@ function galery($args = ''): string
     $config =  [
         'options' => [
             'path'          => ['[path] Path of folder containing images.', false],
-            'thumbWidth'    => ['[int] Width of thumbnails/preview images.', DEFAULT_THUMB_WIDTH],
+            'thumbWidth'    => ['[int] Width of thumbnails/preview images. '.
+                'Supported units: in,cm,mm,pt,pc,px', DEFAULT_THUMB_WIDTH],
             'thumbHeight'   => ['[int] Height of thumbnails/preview images.', DEFAULT_THUMB_HEIGHT],
             'width'         => ['[int] Synonyme for "thumbWidth".', null],
             'height'        => ['[int] Synonyme for "thumbHeight".', null],
             'maxWidth'      => ['[int] Maximum width of images (i.e. in overlay).', IMG_MAX_WIDTH],
             'maxHeight'     => ['[int] Maximum height of images', IMG_MAX_HEIGHT],
-            'class'         => ['[string] .', false],
+            'class'         => ['[string] Class to be applied to the wrapper tag.', false],
             'fullscreen'    => ['[bool] If true, galery covers the entire screen when opened.', false],
             'background'    => ['[color] Color of the overlay background.', '#212121f2'],
             'config'        => ['Various options, see table above.', []],
             'imageCaptions' => ['(optional) .txt-file containing image descriptions. Also defines image order. '.
                 '(file-path relative to galery-path or absolute like "\~/xy/z.yaml") ', 'index.txt'],
+            'thumbCaptions' => ['[bool] If true, captions from `imageCaptions` are rendered in thumbnail-preview '.
+                'as well.', false],
         ],
         'summary' => <<<EOT
 
@@ -92,6 +95,19 @@ EOT,
     if ($options['height']) {
         $options['thumbHeight'] = $options['height'];
     }
+
+    // fix img dimensions -> support any type of absolute values:
+    if (preg_match('/[\d.]+\w+/', $options['thumbWidth'])) {
+        $options['thumbWidthPx'] = convertToPx($options['thumbWidth'], true).'px';
+    } else {
+        $options['thumbWidthPx'] = $options['thumbWidth'].'px';
+    }
+    if (preg_match('/[\d.]+\w+/', $options['thumbHeight'])) {
+        $options['thumbHeightPx'] = convertToPx($options['thumbHeight'], true).'px';
+    } else {
+        $options['thumbHeightPx'] = $options['thumbHeight'].'px';
+    }
+
     $class = $options['class']??'';
 
     // galery config options:
@@ -143,10 +159,16 @@ function renderImage(string $file, array $options, string $caption = ''): string
     // create thiumbnail and size-variants if necessary:
     list($imgUrl, $thumb, $srcSet) = prepareImage($file, $options);
 
-    $style = "style='width:{$options['thumbWidth']}px;height:{$options['thumbHeight']}px;object-fit:cover;'";
+    $thumbCaption = '';
+    if (($options['thumbCaptions']??false) === '') {
+        $thumbCaption = "\n<div class='pfy-galery-thumb-caption'></div>";
+    } elseif ($options['thumbCaptions']??false) {
+        $thumbCaption = "\n<div class='pfy-galery-thumb-caption'>$caption</div>";
+    }
+    $style = "style='width:{$options['thumbWidthPx']};height:{$options['thumbHeightPx']};object-fit:cover;'";
     $html = <<<EOT
 <a href="$imgUrl" title="$caption" \n$srcSet>
-<img src="$thumb" alt="$caption" $style>
+<img src="$thumb" alt="$caption" $style>$thumbCaption
 </a>
 
 EOT;
@@ -239,11 +261,11 @@ function getImages(string $path, string $imageCaptionsFile0 = ''): array
 function prepareImage(string $file, array $options): array|false
 {
     $imgOptions = [
-        'src' => $file,
-        'width' => $options['thumbWidth'],
-        'height' => $options['thumbHeight'],
-        'maxWidth' => $options['maxWidth'],
-        'maxHeight' => $options['maxHeight'],
+        'src'       => $file,
+        'width'     => $options['thumbWidth'],
+        'height'    => $options['thumbHeight'],
+        'maxWidth'  => convertToPx($options['maxWidth'], true),
+        'maxHeight' => convertToPx($options['maxHeight'], true),
         'quickview' => false,
     ];
     $img = new Image($imgOptions);
