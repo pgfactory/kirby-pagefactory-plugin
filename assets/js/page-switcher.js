@@ -84,7 +84,7 @@ function isProtectedTarget() {
   return !!(activeElement.closest('form') || // Focus within form field
     activeElement.closest('input') || // Focus within input field
     document.querySelector('.inhibitPageSwitch') || // class .inhibitPageSwitch found
-    document.querySelector('.pfy-presentation-support') || // class .pfy-presentation-support found
+    document.querySelector('.pfy-presentation-active') || // class .pfy-presentation-active found
     document.querySelector('.baguetteBox-open') || // galery img open
     (document.querySelector('.ug-lightbox') &&
       window.getComputedStyle(document.querySelector('.ug-lightbox')).display !== 'none') || // special case: ug-album in full screen mode
