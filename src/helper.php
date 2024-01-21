@@ -2407,6 +2407,7 @@ function reloadAgent(mixed $target = '', string $message = ''): void
 
  /**
   * Converts string to a pixel value, e.g. '1em' -> 12[px]
+  *   Supported units: in,cm,mm,pt,pc,px
   * @param mixed $str
   * @return float|int|false
   */
