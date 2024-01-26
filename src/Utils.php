@@ -114,7 +114,7 @@ EOT;
             'url' => "mailto:$webmasterEmail",
             'text' => 'Webmaster',
         ]);
-        TransVars::setVariable('webmaster_link', $webmasterLink);
+        TransVars::setVariable('pfy-webmaster-link', $webmasterLink);
 
 
         // Copy site field values to transvars:
