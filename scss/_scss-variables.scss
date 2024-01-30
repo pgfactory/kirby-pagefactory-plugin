@@ -87,6 +87,7 @@ $max-font-size: 24;
 }
 
 
+// Usage: @include _striped(251, 50%);
 @mixin  _striped($baseColH,$baseColS) {
     background: repeating-linear-gradient(
         -45deg,
