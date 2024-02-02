@@ -65,8 +65,10 @@ class TransVars
         }
 
         $mdStr = str_replace(['\\{{', '\\}}', '\\('], ['{!!{', '}!!}', '⟮'], $mdStr);
-        $mdStr = TransVars::resolveVariables($mdStr);
-        $mdStr = TransVars::executeMacros($mdStr);
+
+        $mdStr = self::resolveVariables($mdStr);
+
+        $mdStr = self::executeMacros($mdStr);
 
         $html = markdown($mdStr, sectionIdentifier: "pfy-section-$inx", removeComments: false);
 
@@ -234,6 +236,40 @@ class TransVars
     } // translateVariable
 
 
+    /**
+     * Short-form: '%varname%'
+     * @param string $str
+     * @return string
+     */
+    private static function resolveShortFormVariables(string $str): string
+    {
+        if (str_contains($str, '%')) {
+            $p1 = strpos($str, '%');
+            while ($p1 !== false) {
+                $p2 = strpos($str, '%',$p1 + 1);
+                if ($p2 === false) {
+                    break;
+                }
+                $shield = $str[$p1-1]??false;
+                if (($shield === '\\') || ($p2-$p1 > 16)) {
+                    $p1 = strpos($str, '%', $p1+1);
+                    continue;
+                } else {
+                    $varName = substr($str, $p1+1, $p2-$p1-1);
+                    $value = self::getVariable($varName);
+                    $str = substr($str, 0, $p1).$value.substr($str, $p2+1);
+
+                }
+                $p1 = strpos($str, '%', $p1+1);
+            }
+            // remove \ from shielded vars:
+            if (str_contains($str, '\\%')) {
+                $str = str_replace('\\%', '%', $str);
+            }
+        }
+        return $str;
+    } // resolveShortFormVariables
+
 
     /**
      * Returns list of all variables as presentable HTML
@@ -383,8 +419,12 @@ class TransVars
                 if (function_exists("PgFactory\\PageFactory\\$macroName")) {
                     $value = "PgFactory\\PageFactory\\$macroName"($argStr);
                     if (is_array($value)) {
-                        $value = shieldStr($value[0], 'inline');
+                        $value = $value[0]??'';
+                    } else {
+                        $value = self::resolveShortFormVariables($value);
+                        $value = shieldStr($value, 'inline');
                     }
+
                 } elseif ($hideIfUnknown) {
                     $value = '';
                 } else {
@@ -462,7 +502,7 @@ class TransVars
             return self::renderMacroHelp($config);
 
             // render as unprocessed (?notranslate):
-        } elseif (TransVars::$noTranslate) {
+        } elseif (self::$noTranslate) {
             $macroName1 = ltrim($macroName, '_');
             if (is_array($args)) {
                 $args = implode(',', $args);
@@ -471,8 +511,8 @@ class TransVars
         }
 
         // get index:
-        $inx = TransVars::$funcIndexes[$macroName] = (TransVars::$funcIndexes[$macroName]??false) ?
-            TransVars::$funcIndexes[$macroName]+1: 1;
+        $inx = self::$funcIndexes[$macroName] = (self::$funcIndexes[$macroName]??false) ?
+            self::$funcIndexes[$macroName]+1: 1;
 
         $src = '';
         if (is_string($args)) {

@@ -39,8 +39,6 @@ EOT,
     $imp = new Import();
     $str = $imp->render($args);
 
-    $str = shieldStr($str);
-
     return $source.$str;
 }
 

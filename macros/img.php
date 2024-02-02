@@ -74,6 +74,6 @@ EOT,
     $img = new Image($options);
     $str .= $img->html();
 
-    return shieldStr($str);
+    return $str;
 }
 

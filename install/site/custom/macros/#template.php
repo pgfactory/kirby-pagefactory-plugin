@@ -32,9 +32,6 @@ EOT,
     // assemble output:
     $str .= '';
 
-    //$str = markdown($str); // markdown-compile
-    //$str = shieldStr($str, 'inline'); // shield from further processing if necessary
-
     //PageFactory::$pg->requireFramework();
     //PageFactory::$pg->addAssets('XY');
 

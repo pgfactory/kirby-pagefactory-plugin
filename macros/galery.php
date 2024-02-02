@@ -142,7 +142,6 @@ EOT;
 
     loadAssets($options['config'], $inx);
 
-    $html = shieldStr($html);
     return $str.$html; // return [$str]; if result needs to be shielded
 } // galery
 

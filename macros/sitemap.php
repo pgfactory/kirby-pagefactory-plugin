@@ -63,6 +63,6 @@ EOT,
         $options['wrapperClass'] .= ' pfy-nav-collapsible';
     }
     $str .= SiteNav::render($options);
-    return [$str];
+    return $str;
 }
 

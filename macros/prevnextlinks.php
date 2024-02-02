@@ -48,7 +48,7 @@ EOT,
 
     $str .= $obj->render($options);
 
-    return shieldStr($str);
+    return $str;
 }
 
 

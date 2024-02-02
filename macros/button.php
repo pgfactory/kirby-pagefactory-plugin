@@ -59,6 +59,6 @@ EOT;
         PageFactory::$pg->addJsReady($jq);
     }
 
-    return [$str];
+    return $str;
 }
 
