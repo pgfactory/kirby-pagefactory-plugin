@@ -9,7 +9,7 @@ use Kirby\Exception\InvalidArgumentException;
 use Kirby\Filesystem\F;
 use Exception;
 use PgFactory\MarkdownPlus\MarkdownPlus;
- use PgFactory\MarkdownPlus\Permission;
+use PgFactory\MarkdownPlus\Permission;
 
 
  const FILE_BLOCKING_MAX_TIME = 500; //ms

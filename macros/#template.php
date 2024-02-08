@@ -9,7 +9,7 @@ function NAME($args = '')
 {
     $funcName = basename(__FILE__, '.php');
     // Definition of arguments and help-text:
-    $config =  [
+    $config = [
         'options' => [
 //            '' => ['', false],
         ],
@@ -36,4 +36,4 @@ EOT,
     //PageFactory::$pg->addAssets('XY');
 
     return $str;
-
+}
