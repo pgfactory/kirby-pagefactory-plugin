@@ -277,6 +277,8 @@
     right: 0;
   }
 
+
+  // === admin styles =======
   &:not(.localhost) .pfy-localhost-only {
     display: none!important;
   }
@@ -285,6 +287,28 @@
     display: none!important;
   }
 
+  .pfy-loggedin-or-localhost-only {
+    display: none;
+  }
+  &.localhost .pfy-loggedin-or-localhost-only {
+    display: initial;
+    font-family: monospace;
+    font-style: italic;
+  }
+  &.pfy-loggedin .pfy-loggedin-or-localhost-only {
+    display: initial;
+    font-family: monospace;
+    font-style: italic;
+  }
+
+
+  // === footer =======
+  .pfy-footer-center {
+    text-align: center;
+  }
+
+
+  // === galery =======
   .pfy-galery {
     a, a:hover {
       border-bottom: none;
