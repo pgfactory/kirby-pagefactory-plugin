@@ -169,7 +169,7 @@ class PageFactory
         if (!self::$slug) {
             self::$slug = page()->slug();
         }
-        self::$pageId = page()->id();
+        self::$pageId = str_replace('/', '_', page()->id()); // Caution: not identical to Kirby's page ID
         self::$pageRoot = 'content/' . self::$pagePath;
         self::$absPageRoot = self::$page->root() . '/';
         self::$absPageUrl = (string)self::$page->url() . '/';
