@@ -538,6 +538,11 @@ class TransVars
             }
         }
 
+        // apply robots attribte on request:
+        if ($options['rejectRobots']??false) {
+            PageFactory::$pg->applyRobotsAttrib();
+        }
+
         $options['inx'] = $inx;
         return [$options, $src, $inx, $macroName, $auxOptions];
     } // initMacro
