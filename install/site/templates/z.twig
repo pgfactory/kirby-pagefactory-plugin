@@ -46,7 +46,7 @@
         {{ page.langSelection|raw }}
       </div>
 
-      <div class="pfy-footer-center">
+      <div class="pfy-footer-center pfy-loggedin-or-localhost-only">
         <div>{{ page.adminPanelLink|raw }}</div>
         <div class='pfy-localhost-only'>
           [{{ link({ url: '~page/?debug=reset', text: 'debug auto' }) }}
