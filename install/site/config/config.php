@@ -42,7 +42,7 @@ return [
         // 'screenSizeBreakpoint'          => 480,    // Value used by JS to switch body classes ('pfy-large-screen' and 'pfy-small-screen')
         // 'sourceWrapperTag'              => 'section', // tag used to wrap .md content
         // 'sourceWrapperClass'            => '',     // class applied to sourceWrapperTag
-        // 'webmaster_email'               => '',     // email address of webmaster
+        // 'webmaster_email'               => '',     // email address of webmaster (-> reset cache if modified!)
         // 'maxCacheAge'                   => 86400,  // [s] max time after which Kirby's file cache is automatically flushed
         // 'supportExportAsIframe'           => '*',  // Enables Access-Control-Allow-Origin support, to activate use ?iframe
 
