@@ -13,7 +13,8 @@ const PFY_CONTENT_ASSETS_PATH =    'content/assets/';
 const PFY_ASSETS_PATH =            'site/plugins/pagefactory/assets/';
 const PFY_ICONS_PATH =             'site/plugins/pagefactory/assets/icons/';
 const PFY_SVG_ICONS_PATH =         'site/plugins/markdownplus/assets/svg-icons/';
-const PFY_CONFIG_FILE =            'site/config/config.php';
+const PFY_CONFIG_PATH =            'site/config/';
+const PFY_CONFIG_FILE =            PFY_CONFIG_PATH.'config.php';
 const PFY_CUSTOM_PATH =            'site/custom/';
 const PFY_USER_CODE_PATH =         PFY_CUSTOM_PATH.'macros/';
 const PFY_CUSTOM_CODE_PATH =       PFY_CUSTOM_PATH.'autoexecute/';
@@ -115,6 +116,7 @@ class PageFactory
     public static $phpSessionId;
     public static $assets;
     public static $config;
+    public static $customConfigPath = PFY_CONFIG_PATH;
     public static $dataPath = PFY_CUSTOM_DATA_PATH;
     public        $pageOptions;
     public        $utils;
@@ -400,6 +402,9 @@ EOT;
 
             } elseif ($key === 'robots') {
                 self::$pg->applyRobotsAttrib($value);
+
+            } elseif ($key === 'head') {
+                self::$pg->addHead($value);
 
             } elseif ($key === 'wrappertag') {
                 $this->wrapperTag = $value;
