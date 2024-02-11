@@ -16,6 +16,7 @@ function prevnextlinks($argStr = '')
             'type' => ['[links,head-elem] "links" returns a DIV to be placed inside page body. '.
                 '"head-elem" returns two &lt;link> elements for the head section. ', 'links'],
             'option' => ['[top,bottom] Defines which default class to apply.', 'bottom'],
+            'center' => ['[str] Defines text that is rendered between the preveous and next links.', null],
         ],
         'summary' => <<<EOT
 # $funcName()
@@ -79,6 +80,17 @@ class PrevNextLinks
         } else {
             $out = "\n<div class='pfy-page-switcher-wrapper {$args['wrapperClass']}'>\n";
             $out .= $this->renderPrevLink();
+
+            if ($args['center']??false) {
+                $center = $args['center'];
+                while (preg_match('/%(\w{2,16})%/', $center, $m)) {
+                    $value = TransVars::getVariable($m[1]);
+                    $center = str_replace($m[0], $value, $center);
+                }
+
+                $out .= "<div class='pfy-page-switcher-center'>$center</div>\n";
+            }
+
             $out .= $this->renderNextLink();
 
             if (self::$inx === 1) {
