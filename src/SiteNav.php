@@ -73,7 +73,7 @@ class SiteNav
 
         // else, e.g. sitemap:
         } else {
-            $wrapperClass .= ' pfy-nav-plain pfy-nav-indented';
+            $wrapperClass .= ' pfy-nav-plain';
         }
 
         // add pfy-nav-collapsible if pfy-nav-collapsed:
@@ -103,7 +103,7 @@ class SiteNav
         }
 
         if ($out !== false) {
-            $placeholder = ($type === 'top')? '<div class="pfy-top-nav-placeholder">placeholder</div>': '';
+            $placeholder = ($type === 'top')? '<div class="pfy-top-nav-placeholder" style="color:transparent">placeholder</div>': '';
             $id = ($args['id']) ? " id='{$args['id']}'" : '';
             $out = <<<EOT
 

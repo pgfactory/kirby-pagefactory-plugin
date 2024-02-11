@@ -385,44 +385,56 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
     }
 
     // remove extra space below:
-    .pfy-lvl-1 li:first-child a {
-      padding-top: 0;
-    }
+//    .pfy-lvl-1 li:first-child a {
+//      padding-top: 0;
+//    }
 
-    .pfy-lvl-1 > a {
-      padding-left: $indent1;
-      .pfy-nav-arrow {
-        left: calc(#{$indent1} - #{$nav-arrow-left} );
+    &.pfy-nav-indented {
+      .pfy-lvl-1 > a {
+        padding-left: $indent1;
+        .pfy-nav-arrow {
+          left: calc(#{$indent1} - #{$nav-arrow-left});
+        }
       }
-    }
-    .pfy-lvl-2 > a {
-      padding-left: $indent2;
-      .pfy-nav-arrow {
-        left: calc(#{$indent2} - #{$nav-arrow-left} );
+
+      .pfy-lvl-2 > a {
+        padding-left: $indent2;
+
+        .pfy-nav-arrow {
+          left: calc(#{$indent2} - #{$nav-arrow-left});
+        }
       }
-    }
-    .pfy-lvl-3 > a {
-      padding-left: $indent3;
-      .pfy-nav-arrow {
-        left: calc(#{$indent3} - #{$nav-arrow-left} );
+
+      .pfy-lvl-3 > a {
+        padding-left: $indent3;
+
+        .pfy-nav-arrow {
+          left: calc(#{$indent3} - #{$nav-arrow-left});
+        }
       }
-    }
-    .pfy-lvl-4 > a {
-      padding-left: $indent4;
-      .pfy-nav-arrow {
-        left: calc(#{$indent4} - #{$nav-arrow-left} );
+
+      .pfy-lvl-4 > a {
+        padding-left: $indent4;
+
+        .pfy-nav-arrow {
+          left: calc(#{$indent4} - #{$nav-arrow-left});
+        }
       }
-    }
-    .pfy-lvl-5 > a {
-      padding-left: $indent5;
-      .pfy-nav-arrow {
-        left: calc(#{$indent5} - #{$nav-arrow-left} );
+
+      .pfy-lvl-5 > a {
+        padding-left: $indent5;
+
+        .pfy-nav-arrow {
+          left: calc(#{$indent5} - #{$nav-arrow-left});
+        }
       }
-    }
-    .pfy-lvl-6 > a {
-      padding-left: $indent6;
-      .pfy-nav-arrow {
-        left: calc(#{$indent6} - #{$nav-arrow-left} );
+
+      .pfy-lvl-6 > a {
+        padding-left: $indent6;
+
+        .pfy-nav-arrow {
+          left: calc(#{$indent6} - #{$nav-arrow-left});
+        }
       }
     }
 
@@ -508,7 +520,7 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
                   top: 100%; // push below top level elem
                   left: 0;
                   width: $sub-width;
-                  z-index: 102;
+                  z-index: 9999;
                   overflow: hidden;
               }
           }
