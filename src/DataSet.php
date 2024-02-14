@@ -94,8 +94,11 @@ class DataSet
         $this->options = $options;
         $this->debug = PageFactory::$debug ?? Utils::determineDebugState();
 
+        if (!$file) {
+            $this->lockFile = '';
+            return;
+        } else {
         // access data file:
-        if ($file) {
             if (!file_exists(PFY_CACHE_PATH . 'data')) {
                 preparePath(PFY_CACHE_PATH . 'data/');
             }
