@@ -407,6 +407,7 @@ EOT;
     {
         if ($this->overrideContent) {
             $html = $this->overrideContent;
+            $html = TransVars::resolveVariables($html);
         }
         return $html;
     } // renderBody
