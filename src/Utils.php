@@ -839,6 +839,11 @@ EOT;
      */
     public static function getCurrentLocale(): string
     {
+        // check config setting:
+        if ($l = kirby()->option('pgfactory.pagefactory.options.locale')) {
+            return $l;
+        }
+        // get locale from agent:
         return \Locale::acceptFromHttp($_SERVER['HTTP_ACCEPT_LANGUAGE']);
     } // getCurrentLocale
 
