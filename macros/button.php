@@ -11,16 +11,27 @@ function button($args = '')
     // Definition of arguments and help-text:
     $config =  [
         'options' => [
-            'label' => ['', false],
-            'id' => ['', false],
-            'class' => ['', false],
-            'callback' => ['', false],
+            'label' => ['Text on the button.', null],
+            'id' => ['ID to apply to button', null],
+            'class' => ['Class  to apply to button (class "`pfy-button`" is always applied).', null],
+            'callback' => ['Optional callback function (either name or closure)', null],
+            'title' => ['(optional) Text to be placed in `title=""` attribute of button. ', null],
         ],
         'summary' => <<<EOT
 
 # $funcName()
 
 Renders a button.
+### Example
+
+    js:
+    function myCallback() {mylog('button clicked');}
+    -\--\-
+    \{{ button(
+        label: My Button
+        callback: myCallback
+    ) }}
+
 EOT,
     ];
 
@@ -36,8 +47,9 @@ EOT,
     $id = $options['id']?: "pfy-button-$inx";
     $class = rtrim('pfy-button '.$options['class']);
     $label = $options['label'] ?: 'BUTTON';
+    $title = $options['title'] ? " title='{$options['title']}'" : '';
 
-    $str .= "<button id='$id' class='$class'>$label</button>";
+    $str .= "<button id='$id' class='$class'$title>$label</button>";
 
     if ($options['callback']) {
         $callback = trim($options['callback']);
