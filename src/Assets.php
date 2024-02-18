@@ -41,6 +41,7 @@ const DEFAULT_ASSET_GROUPS = [
 ];
 
 const ASSET_URL_DEFINITIONS = [
+    'JQUERY' => JQUERY, // defined in PageFactory.php
     'NAV' => [
         'site/plugins/pagefactory/assets/js/nav.js',
         'site/plugins/pagefactory/assets/css/-nav.css',
@@ -188,7 +189,7 @@ class Assets
             } elseif ($type === 'js' && $treatAsJq) {
                 $this->jsFrameworkRequired = true;
             }
-            $this->extractPriorityHint($asset);
+            $asset = $this->extractPriorityHint($asset);
             $this->assetQueue[$type][] = $asset;
         }
     } // addAssets
@@ -215,8 +216,8 @@ class Assets
      */
     private function extractPriorityHints(array $queue, int $default = 50): array
     {
-        foreach ($queue as $elem) {
-            $this->extractPriorityHint($elem, $default);
+        foreach ($queue as $key => $elem) {
+            $queue[$key] = $this->extractPriorityHint($elem, $default);
         }
         return $queue;
     } // extractPriorityHints
@@ -226,19 +227,21 @@ class Assets
      * Extracts priority-hint from a file/url:
      * @param string $file
      * @param int $default
-     * @return mixed
+     * @return string
      */
-    private function extractPriorityHint(string $file, int $default = 50): mixed
+    private function extractPriorityHint(string $file, int $default = 50): string
     {
+        if (isset($this->filePriority[basename($file)])) {
+            return $file;
+        }
         if (preg_match('|(.*) \((.*)\) (.*)|x', $file, $m)) {
-            $this->filePriority[basename($file)] = intval($m[2]);
             $file = $m[1].$m[3];
             $this->filePriority[basename($file)] = intval($m[2]);
             return $file;
         } else {
             $this->filePriority[basename($file)] = $default;
         }
-        return false;
+        return $file;
     } // extractPriorityHint
 
 
@@ -344,7 +347,8 @@ class Assets
         $assetGroups = $this->assetGroups;
         if ($assetGroups && is_array($assetGroups)) {
             foreach ($assetGroups as $dest => $sources) {
-                if ($dest1 = $this->extractPriorityHint($dest)) {
+                $dest1 = $this->extractPriorityHint($dest);
+                if ($dest1 !== $dest) {
                     $assetGroups[$dest1] = $assetGroups[$dest];
                     unset($assetGroups[$dest]);
                     $dest = $dest1;
@@ -356,15 +360,17 @@ class Assets
         }
 
         // get framework assets:
-        if ($frontendFrameworkUrls = PageFactory::$config['frontendFrameworkUrls']??false) {
-            $this->frameworkFiles = $frontendFrameworkUrls;
-        } else {
-            $this->frameworkFiles = DEFAULT_FRONTEND_FRAMEWORK_URLS;
-        }
-        foreach ($this->frameworkFiles as $i => $file) {
-            $this->filePriority[basename($file)] = 10;
-            if (!str_starts_with($file, 'http')) {
-                $this->frameworkFiles[$i] = PageFactory::$appUrl . $file;
+        if ($frontendFrameworkUrls = (PageFactory::$config['frontendFrameworkUrls']??false)) {
+            if ($frontendFrameworkUrls === true) {
+                $this->frameworkFiles = DEFAULT_FRONTEND_FRAMEWORK_URLS;
+            } else {
+                $this->frameworkFiles = $frontendFrameworkUrls;
+            }
+            foreach ($this->frameworkFiles as $i => $file) {
+                $this->filePriority[basename($file)] = 10;
+                if (!str_starts_with($file, 'http')) {
+                    $this->frameworkFiles[$i] = PageFactory::$appUrl . $file;
+                }
             }
         }
         return $this->scssModified;
@@ -496,7 +502,7 @@ class Assets
 
         $assets = [];
         foreach ($this->pageFolderfiles as $file => $url) {
-            $this->extractPriorityHint($file, 60);
+            $file = $this->extractPriorityHint($file, 60);
             $ext = fileExt($file);
             if ($ext !== $jsOrCss) {
                 continue;
