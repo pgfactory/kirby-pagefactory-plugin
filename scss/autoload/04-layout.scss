@@ -56,4 +56,14 @@ $box-width: 300px;
     display: none;
   }
 
+  // === header ==================
+  // for default template: put site-title and nav on same height:
+  .pfy-header-wrapper {
+    display: flex;
+    justify-content: space-between;
+    .pfy-header {
+      padding-top: calc((var(--pfy-nav-elem-height, 2em) - 1.2em) / 2);
+    }
+  }
+
 } // pfy-default-styling
