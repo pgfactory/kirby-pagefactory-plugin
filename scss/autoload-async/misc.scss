@@ -51,6 +51,59 @@
         z-index: 999;
     }
 
+  // === Copy-button =======================
+  // requires initCopyButton() in helper.js
+  .pfy-has-copy-btn {
+    position: relative;
+  }
+  .pfy-copy-btn.pfy-button {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 1em;
+    height: 1em;
+    padding: 0;
+    font-size: 1.8em;
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    @at-root .pfy-has-copy-btn:hover .pfy-copy-btn.pfy-button {
+      opacity: 0.4;
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+
+  .pfy-flash-copied .pfy-button {
+    background: #aaa;
+  }
+  .pfy-flash-copied,
+  .pfy-flash-copied div:not(.pfy-button):not(.pfy-button > div),
+  .pfy-flash-copied textarea {
+    background: #fafaa0;
+    transition: background 0.3s;
+  }
+
+  .pfy-flash-copied::before {
+    content: "Copied";
+    position: absolute;
+    inset: 8px;
+    font-size: 28pt;
+    color: black;
+    text-align: center;
+    margin-top: 2%;
+    font-family: arial, sans-serif;
+    font-weight: bold;
+    -webkit-text-stroke-width: 1px;
+    -webkit-text-stroke-color: white;
+    letter-spacing: 2px;
+    z-index: 999;
+  }
+
 } // pfy-default-styling
 
 
