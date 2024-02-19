@@ -607,6 +607,7 @@ EOT;
         }
         $patterns = [
             '~/'        => PageFactory::$appUrl,
+            '~download/'=> PageFactory::$appUrl.'download/',
             '~media/'   => PageFactory::$appRootUrl.'media/',
             '~page/'    => PageFactory::$pageUrl,
         ];
