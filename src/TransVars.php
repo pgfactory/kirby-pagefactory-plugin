@@ -413,6 +413,9 @@ class TransVars
                     continue;
                 }
                 $argStr = $m[2];
+                if (str_contains($argStr, '{{')) {
+                    $argStr = self::resolveVariables($argStr);
+                }
                 if (str_contains(',list,', $macroName)) {
                     $macroName = "_$macroName";
                 }
