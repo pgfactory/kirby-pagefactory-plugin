@@ -1083,6 +1083,13 @@ function writeFileLocking(string $file, mixed $content, string $type = '', bool 
     } elseif ($type === 'json') {
         $content = Data::encode($content, $type);
 
+    } elseif ($type === 'txt') {
+        $tmp = '';
+        foreach ($content as $rec) {
+            $tmp .= ($rec[0]??'')."\n";
+        }
+        $content = $tmp;
+
     } elseif (is_object($content)) {
         $content = serialize($content);
     }

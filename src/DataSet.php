@@ -7,7 +7,8 @@ use Kirby\Data\Yaml as Yaml;
 
  // meta keys:
 const DATAREC_TIMESTAMP = '_timestamp';
-const SUPPORTED_FILE_TYPES = 'yaml,json,csv';
+const SUPPORTED_FILE_TYPES = 'yaml,json,csv,txt';
+//const SUPPORTED_FILE_TYPES = 'yaml,json,csv';
 
  // timings:
 const DEFAULT_MAX_DB_LOCK_TIME      = 60; // sec
@@ -1216,6 +1217,12 @@ class DataSet
                 $data = readFileLocking($this->file, $this->type, textEncoding: $textEncoding);
                 if (!$data) {
                     return;
+                }
+                if ($this->type === 'txt') {
+                    $data = explode("\n", $data);
+                    $data = array_map(function ($e) {
+                        return [$e];
+                    }, $data);
                 }
                 $modified = $this->importData($data);
                 if ($modified) {
