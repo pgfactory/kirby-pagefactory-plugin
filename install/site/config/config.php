@@ -30,11 +30,12 @@ return [
 
     'pgfactory.pagefactory.options' => [
         // 'defaultLanguage'               => 'de',   // multilang -> configure in panel instead! (Opt. use 'Code: de2' and 'PHP locale string: de_DE')
+        // 'robots'                        => true,   // inject "robots" elem in HTML header
+        // 'excludeFilesRegex'             => '\.old\.md$',// regex pattern to exclude certain .md files from rendering
         // 'locale'                        => 'fr_FR',// if not defined, locale is derived from agent request
         // 'default-nav'                   => false,  // omit automatic loading of NAV resources
                 // Note: normally, nav() is used in Twig template, but that's too late for loading assets.
                 // Thus, Pfy loads NAV assets, unless option 'default-nav' is false
-        // 'robots'                        => true,   // inject "robots" elem in HTML header
         // 'externalLinksToNewWindow'      => false,  // -> used by Link() -> whether to open external links in new window
         // 'imageAutoQuickview'            => false,  // -> default for Img() macro
         // 'imageAutoSrcset'               => false,  // -> default for Img() macro

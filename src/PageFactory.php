@@ -296,6 +296,7 @@ class PageFactory
             return '';
         }
 
+        $excludePattern = kirby()->option('pgfactory.pagefactory.options.excludeFilesRegex');
         $wrapperTag = PageFactory::$wrapperTag;
         $customWrapperClass = PageFactory::$wrapperClass;
         $path = self::$page->root();
@@ -312,6 +313,11 @@ class PageFactory
                 // if some CSS/SCSS found in frontmatter, request rendering it now:
                 $this->propagateFrontmatterStyles('pfy-main');
                 unset($dir[$i]);
+
+                // optionally exclude certain files from the rendering process:
+                if ($excludePattern && preg_match("/$excludePattern/", $file)) {
+                    unset($dir[$i]);
+                }
             }
         }
 
