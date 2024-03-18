@@ -12,22 +12,21 @@ clear: '<div style="clear:both;"></div>'
 pfy-login-icon: "<span class='pfy-icon -user_male_circle'></span>"
 
 pfy-login-button-title:
-    de: Anmelden
     _: Log in
 pfy-logout-button-title:
     de: Abmelden
-    _: Log out
+    _:  Log out
 
 pfy-admin-panel-link-text:
     _: 'Admin'
 
 pfy-logged-in-now:
-    de: Sie sind jetzt angemeldet
+    de:  Sie sind jetzt angemeldet
     de2: Du bist jetzt angemeldet
     _:   You are logged in now
 
 pfy-logged-out-now:
-    de: Sie sind jetzt abgemeldet
+    de:  Sie sind jetzt abgemeldet
     de2: Du bist jetzt abgemeldet
     _:   You are logged out now
 
