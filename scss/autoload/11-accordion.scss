@@ -1,0 +1,61 @@
+
+
+// https://www.sitepoint.com/style-html-details-element/
+
+/*
+ * CSS-Variables:
+// --mdp-accordion-summary-txt-color: yellow;
+// --mdp-accordion-summary-bg-color: navy;
+// --mdp-accordion-summary-indent: 1rem;
+// --mdp-accordion-body-txt-color: navy;
+// --mdp-accordion-bodyy-bg-color: yellow;
+// --mdp-accordion-body-padding: 1rem;
+// --mdp-accordion-frame: 3px dashed magenta;
+
+*/
+
+#pfy.pfy-default-styling .pfy-encapsulated,
+.pfy-default-styling .mdp-accordion {
+
+  summary {
+    outline: none;
+    padding: 1rem;
+    display: block;
+    background: var(--mdp-accordion-summary-bg-color);
+    color: var(--mdp-accordion-summary-txt-color);
+    padding-left: calc(1.6rem + var(--mdp-accordion-summary-indent, 0rem));
+    position: relative;
+    cursor: pointer;
+    border: var(--mdp-accordion-frame);
+  }
+  details {
+    box-sizing: border-box;
+    margin-top: 5px;
+    color: var(--mdp-accordion-body-txt-color);
+    background: var(--mdp-accordion-bodyy-bg-color);
+  }
+  details summary::-webkit-details-marker {
+    display:none;
+  }
+  details[open] > summary:before {
+    transform: rotate(90deg);
+  }
+  summary:before {
+    content: '▷';
+    position: absolute;
+    left: var(--mdp-accordion-summary-indent, 0);
+    transform: rotate(0);
+    transform-origin: .5rem 50%;
+    transition: .2s transform ease;
+  }
+  details[open] > summary {
+    border-bottom: none;
+  }
+  .mdp-accordion-body {
+    padding: var(--mdp-accordion-body-padding, 0);
+    border: var(--mdp-accordion-frame);
+    border-top: none;
+  }
+
+} // mdp-accordion
+
