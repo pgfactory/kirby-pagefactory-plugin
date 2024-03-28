@@ -2645,6 +2645,17 @@ function iconExists(string $iconName): bool
 
 
  /**
+  * @param string $key
+  * @param mixed $value
+  * @return void
+  */
+ function setStaticUrlArg(string $key, mixed $value): void
+{
+    kirby()->session()->set("pfy.$key", $value);
+} // setStaticUrlArg
+
+
+ /**
   * @param string $value
   * @return mixed
   */
