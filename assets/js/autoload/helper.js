@@ -195,6 +195,18 @@ function initCopyButton() {
 } // initCopyButton
 
 
+function createHash(size = 8) {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let n = Math.random()*26;
+  let hash = chars.substring(n, n+1);
+  for (let i=0; i<size-1; i++) {
+    n = Math.random()*36;
+    hash += chars.substring(n, n+1);
+  }
+  return hash;
+} // createHash
+
+
 document.addEventListener('DOMContentLoaded', function() {
   initCopyButton();
 });
