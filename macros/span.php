@@ -16,6 +16,7 @@ function span($argStr = ''): array|string
     $config =  [
         'options' => [
             'text' => ['Text to be wrapped into a &lt;span> element.', ''],
+            'id' =>    ['Id to be applied to the \<span> element.', ''],
             'class' => ['Class to be applied to the \<span> element.', ''],
             'style' => ['Styling instructions, e.g. "border: 1px solid red;".', ''],
             'attr' => ['Other attributes, e.g. "aria-hidden=\'true\'".', ''],
@@ -35,7 +36,7 @@ EOT,
     }
 
     $attr = '';
-    $class = "pfy-span-$inx";
+    $class = "pfy-span pfy-span-$inx";
     if ($options['class']) {
         $class .= ' '.$options['class'];
     }
@@ -45,6 +46,9 @@ EOT,
     }
     if ($options['attr']) {
         $attr .= " {$options['attr']}";
+    }
+    if ($options['id']) {
+        $attr .= " id='{$options['id']}'";
     }
 
     // assemble output:
