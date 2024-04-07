@@ -22,6 +22,9 @@ class Page
     public string $js = '';
     public string $jsWhenReady = '';
     public string $jq = '';
+
+    public array $override = [];
+
     private string|bool  $robots = false;
     public array|null $assetFiles = [];
     public array|null $asset = [];
@@ -142,6 +145,13 @@ class Page
             $str = TransVars::compile($str, forTwig: false);
         }
         $this->overrideContent = $str;
+
+        // save states of in-text assets:
+        $this->override['css'] = $this->css; $this->css = '';
+        $this->override['scss'] = $this->scss; $this->scss = '';
+        $this->override['js'] = $this->js; $this->js = '';
+        $this->override['jsWhenReady'] = $this->jsWhenReady; $this->jsWhenReady = '';
+        $this->override['jq'] = $this->jq; $this->jq = '';
     } // overrideContent
 
 
@@ -467,6 +477,15 @@ EOT;
      */
     public function renderBodyEndInjections(): string
     {
+        // case override: restore assets to time of override-invokation:
+        if ($this->overrideContent) {
+            $this->css = $this->override['css'];
+            $this->scss = $this->override['scss'];
+            $this->js = $this->override['js'];
+            $this->jsWhenReady = $this->override['jsWhenReady'];
+            $this->jq = $this->override['jq'];
+        }
+
         $jsInjection = '';
         $jqInjection = '';
         $miscInjection = "\n$this->bodyEndInjections";
