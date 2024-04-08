@@ -314,10 +314,9 @@ class PageFactory
                 $this->propagateFrontmatterStyles('pfy-main');
                 unset($dir[$i]);
 
-                // optionally exclude certain files from the rendering process:
-                if ($excludePattern && preg_match("/$excludePattern/", $file)) {
-                    unset($dir[$i]);
-                }
+            // optionally exclude certain files from the rendering process:
+            } elseif ($excludePattern && preg_match("/$excludePattern/", $file)) {
+                unset($dir[$i]);
             }
         }
 
