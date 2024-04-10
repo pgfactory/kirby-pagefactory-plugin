@@ -347,9 +347,11 @@ EOT;
      * Like setJs, but does not overwrite previous injection requests
      * @param string $str
      */
-    public function addJs(string $str):void
+    public function addJs(string $str, bool $once = true):void
     {
-        $this->js .= trim($str, "\t\n ")."\n";
+        if ($once && !str_contains($this->js, $str)) {
+            $this->js .= trim($str, "\t\n ") . "\n";
+        }
     }
 
 
@@ -367,9 +369,11 @@ EOT;
      * Like setJq, but does not overwrite previous injection requests
      * @param string $str
      */
-    public function addJq(string $str):void
+    public function addJq(string $str, bool $once = true):void
     {
-        $this->jq .= trim($str, "\t\n ")."\n";
+        if ($once && !str_contains($this->jq, $str)) {
+            $this->jq .= trim($str, "\t\n ") . "\n";
+        }
     }
 
 
@@ -387,9 +391,11 @@ EOT;
      * Like setJsReady, but does not overwrite previous injection requests
      * @param string $str
      */
-    public function addJsReady(string $str):void
+    public function addJsReady(string $str, bool $once = true):void
     {
-        $this->jsWhenReady .= trim($str, "\t\n ")."\n";
+        if ($once && !str_contains($this->jsWhenReady, $str)) {
+            $this->jsWhenReady .= trim($str, "\t\n ") . "\n";
+        }
     }
 
 
