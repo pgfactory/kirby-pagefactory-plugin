@@ -147,7 +147,7 @@ class Image
 
         $attributes = '';
         $options = $this->options;
-        if ($options['id']) {
+        if ($options['id']??false) {
             $attributes .= " id='{$options['id']}'";
         } else {
             $attributes .= " id='pfy-img-$this->inx'";
@@ -167,10 +167,10 @@ class Image
         }
         $attributes .= " alt='$alt'";
 
-        if ($options['attributes']) {
+        if ($options['attributes']??false) {
             $attributes .= " {$options['attributes']}";
         }
-        if ($options['imgTagAttributes']) {
+        if ($options['imgTagAttributes']??false) {
             $attributes .= " {$options['imgTagAttributes']}";
         }
         if ($this->showQuickView) {
@@ -187,11 +187,11 @@ class Image
 
         $html = "<img $attributes >";
 
-        if ($options['link']) {
+        if ($options['link']??false) {
             $html = $this->applyLinkWrapper($html);
         }
 
-        if ($options['wrapperTag'] !== false) {
+        if (($options['wrapperTag']??false) !== false) {
             $html = $this->applyWrapper($html);
         }
         return $html;
@@ -565,7 +565,7 @@ EOT;
      */
     private function prepareQuickview(): void
     {
-        if (!self::$quickViewInitialized && ($options['quickview']??true)) {
+        if (!self::$quickViewInitialized && ($this->options['quickview']??true)) {
             self::$quickViewInitialized = true;
             PageFactory::$pg->addAssets('media/plugins/pgfactory/pagefactory/js/medium-zoom.min.js');
             $js = <<<EOT
