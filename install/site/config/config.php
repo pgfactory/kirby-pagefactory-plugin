@@ -26,6 +26,7 @@ return [
 
     'pgfactory.markdownplus.options' => [
         // 'divblockChars'		=> '@%:', // chars identifying DIV-Blocks, default is '@%'
+        // 'accessCodeKey'      => 'acesscode', // URL-key to submit AccessCode, default: ?a=ABCDEF
     ],
 
     'pgfactory.pagefactory.options' => [
