@@ -15,7 +15,8 @@ use PgFactory\MarkdownPlus\Permission;
  const FILE_BLOCKING_MAX_TIME = 500; //ms
 const FILE_BLOCKING_CYCLE_TIME = 50; //ms
 
-const UNAMBIGUOUS_CHARACTERS = '3479ACDEFHJKLMNPQRTUVWXY'; // -> excludes '0O2Z1I5S6G8B'
+const UNAMBIGUOUS_CHARACTERS = 'ACDEFHJKLMNPQRTUVWXYabcdefghijkmnpqrstuvwxy3479'; // -> excludes '0O2Z1I5S6G8B'
+const HASH_CODE_CHARACTERS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-_';
 
 define('KIRBY_ROOTS',           kirby()->roots()->toArray());
 define('KIRBY_ROOT_PATTERNS',   ','.implode(',', array_keys(KIRBY_ROOTS)).',');
@@ -2536,7 +2537,6 @@ function iconExists(string $iconName): bool
     return true;
 } // iconExists
 
-
  /**
   * Creates a new hash string of given length. First character always a letter.
   * @param int $hashSize
@@ -2545,23 +2545,30 @@ function iconExists(string $iconName): bool
   * @return string
   * @throws Exception
   */
- function createHash(int $hashSize = 8, bool $unambiguous = false, bool $lowerCase = false ): string
+ function createHash(int $hashSize = 8, bool $unambiguous = false, string $type = ' ' ): string
  {
      if ($unambiguous) {
          $chars = UNAMBIGUOUS_CHARACTERS;
-         $max = strlen(UNAMBIGUOUS_CHARACTERS) - 1;
-         $hash = $chars[ random_int(4, $max) ];  // first always a letter
-         for ($i=1; $i<$hashSize; $i++) {
-             $hash .= $chars[ random_int(0, $max) ];
-         }
-
+         $nDigits = 4;
      } else {
-         $hash = chr(random_int(65, 90));  // first always a letter
-         $hash .= strtoupper(substr(sha1(random_int(0, PHP_INT_MAX)), 0, $hashSize - 1));  // letters and digits
+         $chars = HASH_CODE_CHARACTERS;
+         $nDigits = 10;
      }
-     if ($lowerCase) {
-         $hash = strtolower( $hash );
+
+     switch (($type[0]??'')) {
+        case 'l': // special case: exclude uppercase and special characters
+            $chars = preg_replace('/[A-Z._-]/', '', $chars);
+            break;
+         case 'u':
+            $chars = preg_replace('/[a-z]/', '', $chars);
      }
+
+     $max = strlen($chars) - 1;
+     $hash = $chars[ random_int(0, $max - $nDigits - 3) ];  // first always a letter
+     for ($i=1; $i<$hashSize-1; $i++) {
+         $hash .= $chars[ random_int(0, $max) ];
+     }
+     $hash .= $chars[ random_int(0, $max-3) ]; // last not a special char
      return $hash;
  } // createHash
 

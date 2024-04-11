@@ -196,13 +196,17 @@ function initCopyButton() {
 
 
 function createHash(size = 8) {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let n = Math.random()*26;
+  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-_';
+  // first char: exclude digits and special chars
+  let n = Math.random()*52;
   let hash = chars.substring(n, n+1);
-  for (let i=0; i<size-1; i++) {
-    n = Math.random()*36;
+  for (let i=0; i<size-2; i++) {
+    n = Math.random()*65;
     hash += chars.substring(n, n+1);
   }
+  // last letter: exclude special chars
+  n = Math.random()*62;
+  hash += chars.substring(n, n+1);
   return hash;
 } // createHash
 

@@ -1144,11 +1144,11 @@ class DataSet
         if (file_exists($dlLinkFile)) {
             $dlHash = file_get_contents($dlLinkFile);
             if (filemtime($dlLinkFile) < (time() - 600)) { // max file age: 10 min
-                $dlHash = createHash(8, false, true);
+                $dlHash = createHash(8, type:'l');
                 file_put_contents($dlLinkFile, $dlHash);
             }
         } else {
-            $dlHash = createHash(8, false, true);
+            $dlHash = createHash(8, type:'l');
             file_put_contents($dlLinkFile, $dlHash);
         }
         $file = TEMP_DOWNLOAD_PATH."$dlHash/$downloadFilename.";
