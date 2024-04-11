@@ -535,7 +535,51 @@ class TransVars
             if (is_string($value)) {
                 $options[$key] = self::resolveVariables($value);
             }
-            if (!in_array($key, $supportedKeys)) {
+            // check whether arg has optional TYPE specified, check it:
+            $treatAsOption = true;
+            if (isset($config['options'][$key][2])) {
+                $type = $config['options'][$key][2];
+                switch ($type) {
+                    case 'bool':
+                        if (!is_bool($value)) {
+                            $treatAsOption = false;
+                        }
+                        break;
+                    case 'int':
+                    case 'integer':
+                        if (!is_int($value)) {
+                            $treatAsOption = false;
+                        }
+                        break;
+                    case 'number':
+                    case 'numeric':
+                        if (!is_numeric($value)) {
+                            $treatAsOption = false;
+                        }
+                        break;
+                    case 'float':
+                        if (!is_float($value)) {
+                            $treatAsOption = false;
+                        }
+                        break;
+                    case 'string':
+                        if (!is_string($value)) {
+                            $treatAsOption = false;
+                        }
+                        break;
+                    case 'scalar':
+                        if (!is_scalar($value)) {
+                            $treatAsOption = false;
+                        }
+                        break;
+                    case 'array':
+                        if (!is_array($value)) {
+                            $treatAsOption = false;
+                        }
+                        break;
+                }
+            }
+            if (!in_array($key, $supportedKeys) || !$treatAsOption) {
                 $auxOptions[$key] = $value;
                 unset($options[$key]);
             }
