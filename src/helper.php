@@ -38,7 +38,7 @@ function isLocalhost(): bool
   */
 function isLoggedIn(): bool
 {
-    return (kirby()->user() !== null);
+    return Permission::isLoggedIn();
 } // isLoggedin
 
 
