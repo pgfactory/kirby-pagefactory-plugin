@@ -375,6 +375,7 @@ EOT;
     {
         $this->sectionsCss = '';
         $this->sectionsScss = '';
+        $mdStr .= "\n";
         $fields = preg_split('!\n-{4}\n!', $mdStr);
         $n = sizeof($fields)-1;
         $mdStr = $fields[$n];
