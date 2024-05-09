@@ -242,7 +242,7 @@ class PageFactory
     {
         Maintenance::trigger(1); // first run -> superviseKirbyCache()
 
-        Extensions::extensionsFinalCode(); //??? best position?
+        Extensions::extensionsFinalCode();
         Utils::prepareStandardVariables();
 
         Utils::handleAgentRequestsOnRenderedPage();
