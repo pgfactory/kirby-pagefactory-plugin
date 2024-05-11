@@ -2125,12 +2125,14 @@ function compileMarkdown(string $mdStr, bool $omitPWrapperTag = false): string
 */
  function shieldStr(string $str, mixed $options = false): string
  {
-     if (($options[0]??'') === 'm') {
-         return '<'.MD_SHIELD.'>' . base64_encode($str) . '</'.MD_SHIELD.'>';
-     } elseif (($options[0]??'') === 'i') {
-         return '<'.INLINE_SHIELD.'>' . base64_encode($str) . '</'.INLINE_SHIELD.'>';
+     $ch1 = $options[0]??'';
+     $base64 = rtrim(base64_encode($str), '=');
+     if ($ch1 === 'm') {
+         return '<'.MD_SHIELD.">$base64</".MD_SHIELD.'>';
+     } elseif ($ch1 === 'i') {
+         return '<'.INLINE_SHIELD.">$base64</".INLINE_SHIELD.'>';
      } else {
-         return '<'.BLOCK_SHIELD.'>' . base64_encode($str) . '</'.BLOCK_SHIELD.'>';
+         return '<'.BLOCK_SHIELD.">$base64</".BLOCK_SHIELD.'>';
      }
  } // shieldStr
 
@@ -2143,6 +2145,10 @@ function compileMarkdown(string $mdStr, bool $omitPWrapperTag = false): string
 */
 function unshieldStr(string $str, bool $unshieldLiteral = null): string
 {
+    if (!str_contains($str, '<')) {
+        return $str;
+    }
+
     // pseudo-tags <INLINE_SHIELD>,<BLOCK_SHIELD> and <MD_SHIELD> may be (partially) translated, fix them:
     $str = preg_replace('#(&lt;|<)(/?('.INLINE_SHIELD.'|'.BLOCK_SHIELD.'|'.MD_SHIELD.'))(&gt;|>)#', "<$2>", $str);
 
