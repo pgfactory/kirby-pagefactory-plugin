@@ -61,7 +61,7 @@ $mobile-nav-bg-color:     var(--pfy-mobile-nav-bg-color, #{$mobile-nav-bg-color}
     height: $mobile-body-height;
     width: 100vw;
     overflow-y: auto;
-    padding: 1em 1em 8em;
+    padding: 1rem 1rem 8rem;
     background: $mobile-main-bg-color;
   } // pfy-main-wrapper
 
@@ -72,7 +72,7 @@ $mobile-nav-bg-color:     var(--pfy-mobile-nav-bg-color, #{$mobile-nav-bg-color}
 
   .pfy-small-screen-header {
     position: fixed;
-    display: block!important;
+    display: block;
     top: 0; right: 0; left: 0;
     z-index: 9;
     height: $mobile-header-height;
@@ -123,6 +123,31 @@ $mobile-nav-bg-color:     var(--pfy-mobile-nav-bg-color, #{$mobile-nav-bg-color}
       transition: left 0.3s;
     }
   }
+
+
+  // class 'pfy-auto-tabulator' enables automatic adaption of tabulators to small screen:
+  &.pfy-auto-tabulator .mdp-tabulator-outer-wrapper,
+  .pfy-auto-tabulator .mdp-tabulator-outer-wrapper,
+  .pfy-auto-tabulator.mdp-tabulator-outer-wrapper {
+    .mdp-tabulator-wrapper {
+      > div {
+        display: block;
+        margin-bottom: 0.3rem;
+        margin-left: 2rem;
+        width: calc(100% - 2rem);
+      }
+
+      .tt1 {
+        font-weight: var(--tt1-weight-vertical-view, bold);
+        color: var(--tt1-color-vertical-view, inherit);
+        margin-left: 0;
+      }
+      &:not(:first-child) .tt1 {
+        margin-top: 0.8em;
+      }
+    }
+  } // .pfy-auto-tabulator
+
 
 } // .pfy-small-screen
 
