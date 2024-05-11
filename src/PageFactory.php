@@ -398,7 +398,7 @@ EOT;
             if ($key === 'variables') {
                 $values = Yaml::decode($value);
                 foreach ($values as $k => $v) {
-                    if (str_contains($v, '{{')) {
+                    if (is_string($v) && str_contains($v, '{{')) {
                         $v = TransVars::compile($v);
                     }
                     TransVars::setVariable($k, $v);
