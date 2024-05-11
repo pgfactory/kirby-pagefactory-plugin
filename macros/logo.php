@@ -41,6 +41,7 @@ EOT,
 
     $url = ($options['url']??false) ?: '~/';
     $options['quickview'] = false;
+    $options['id'] = "pfy-logo-$inx";
 
     $img = new Image($options);
     $html = $img->html();
