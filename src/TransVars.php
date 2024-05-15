@@ -203,6 +203,14 @@ class TransVars
     } // getVariable
 
 
+    public static function removeVariable(string $varName): void
+    {
+        if (isset(self::$variables[$varName])) {
+            unset(self::$variables[$varName]);
+        }
+    } // removeVariable
+
+
     /**
      * From a variable definition, selects the value for the current (or requested) language
      * @param string $varName
@@ -416,7 +424,7 @@ class TransVars
                 if (str_contains($argStr, '{{')) {
                     $argStr = self::resolveVariables($argStr);
                 }
-                
+
                 // check for macro name with leading '_':
                 if (function_exists("PgFactory\\PageFactory\\_$macroName")) {
                     $macroName = "_$macroName";
