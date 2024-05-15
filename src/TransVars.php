@@ -416,7 +416,9 @@ class TransVars
                 if (str_contains($argStr, '{{')) {
                     $argStr = self::resolveVariables($argStr);
                 }
-                if (str_contains(',list,', $macroName)) {
+                
+                // check for macro name with leading '_':
+                if (function_exists("PgFactory\\PageFactory\\_$macroName")) {
                     $macroName = "_$macroName";
                 }
                 if (function_exists("PgFactory\\PageFactory\\$macroName")) {
