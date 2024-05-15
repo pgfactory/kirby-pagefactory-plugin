@@ -1,7 +1,7 @@
 // https://css-tricks.com/how-to-animate-the-details-element/
 
 class Accordion {
-    constructor(el) {
+    constructor(el, closeAll = false) {
       // Store the <details> element
       this.el = el;
       // Store the <summary> element
@@ -15,6 +15,11 @@ class Accordion {
       this.isClosing = false;
       // Store if the element is expanding
       this.isExpanding = false;
+      this.autoCloseAll = (el.closest('.mdp-accordion-auto-close') !== null);
+      if (closeAll) {
+        this.close();
+        return;
+      }
       // Detect user clicks on the summary element
       this.summary.addEventListener('click', (e) => this.onClick(e));
     }
@@ -22,6 +27,11 @@ class Accordion {
     onClick(e) {
       // Stop default behaviour from the browser
       e.preventDefault();
+
+      // handle autoClose feature:
+      if (this.autoCloseAll) {
+        closeAllAccordions();
+      }
       // Add an overflow on the <details> to avoid content overflowing
       this.el.style.overflow = 'hidden';
       // Check if the element is being closed or is already closed
@@ -29,11 +39,11 @@ class Accordion {
         this.open();
       // Check if the element is being openned or is already open
       } else if (this.isExpanding || this.el.open) {
-        this.shrink();
+        this.close();
       }
     }
 
-    shrink() {
+    close() {
       // Set the element as "being closed"
       this.isClosing = true;
 
@@ -118,3 +128,12 @@ class Accordion {
   document.querySelectorAll('details').forEach((el) => {
     new Accordion(el);
   });
+
+
+function closeAllAccordions() {
+  document.querySelectorAll('details').forEach((el) => {
+    if (el.closest('.mdp-accordion-auto-close') !== null) {
+      new Accordion(el, true);
+    }
+  });
+} // closeAllAccordions
