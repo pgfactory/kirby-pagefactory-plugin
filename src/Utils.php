@@ -998,6 +998,8 @@ EOT;
         $listWrapperTag = $options['listWrapperTag']??'ul';
         $prefix = $options['prefix']??'';
         $suffix = $options['suffix']??'';
+        $reversed = $options['reversed']??false;
+
         if ($listWrapperTag && str_contains(',ul,ol,', ",$listWrapperTag,")) {
             $prefix = "<li>$prefix";
             $suffix .= "</li>\n";
@@ -1009,6 +1011,9 @@ EOT;
             $users = $users->filterBy('role', $groupFilter);
         }
         $users = $users->sortBy('name');
+        if ($reversed) {
+            $users = $users->flip();
+        }
         foreach ($users as $user) {
             $username = (string)$user->name();
             $email = (string)$user->email();
