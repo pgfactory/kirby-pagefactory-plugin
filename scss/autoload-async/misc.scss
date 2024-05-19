@@ -104,6 +104,16 @@
     z-index: 999;
   }
 
+  & > .pfy-quickview.medium-zoom-image--opened {
+    z-index: 999;
+    margin: unset !important;
+    padding: unset !important;
+    top: unset !important;
+    left: unset !important;
+    bottom: unset !important;
+    right: unset !important;
+  }
+
 } // pfy-default-styling
 
 

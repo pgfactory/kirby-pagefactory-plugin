@@ -257,7 +257,9 @@ class Image
             if (isRelativeUnit($unit)) {
                 $this->widthStr = $m[0];
                 $this->isRelativeSize = true;
-                $this->showQuickView = true;
+                if ($this->options['quickview']) {
+                    $this->showQuickView = true;
+                }
                 $requestedWidth = false;
             } else {
                 // absolute size:
@@ -275,7 +277,9 @@ class Image
             if (isRelativeUnit($unit)) {
                 $this->heightStr = $m[0];
                 $this->isRelativeSize = true;
-                $this->showQuickView = true;
+                if ($this->options['quickview']) {
+                    $this->showQuickView = true;
+                }
                 $requestedHeight = false;
             } else {
                 // absolute size:
