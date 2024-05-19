@@ -9,7 +9,8 @@ use Kirby\Exception\InvalidArgumentException;
 use Kirby\Filesystem\F;
 use Exception;
 use PgFactory\MarkdownPlus\MarkdownPlus;
-use PgFactory\MarkdownPlus\Permission;
+ use PgFactory\MarkdownPlus\MdPlusHelper;
+ use PgFactory\MarkdownPlus\Permission;
 
 
  const FILE_BLOCKING_MAX_TIME = 500; //ms
@@ -2512,18 +2513,7 @@ function fatalError(string $str): void
   */
 function renderIcon(string $iconName, string $class = 'pfy-icon'): string
 {
-    $iconFile = PageFactory::$availableIcons[$iconName] ?? false;
-    if (!$iconFile || !file_exists($iconFile)) {
-        throw new \Exception("Error: icon '$iconName.svg' not found.");
-    }
-
-    if (fileExt($iconFile) === 'svg') {
-        $icon = "<span class='$class'>".svg($iconFile).'</span>';
-    } else {
-        $icon = "<span class='$class'><img src='$iconFile' alt=''></span>";
-    }
-    // remove all types of white spaces with blank -> avoid conflict with MDP tabulator:
-    $icon = preg_replace("/\s/ms", ' ', $icon); // remove \n etc.
+    $icon = MdPlusHelper::renderIcon($iconName);
     return $icon;
 } // renderIcon
 
@@ -2542,6 +2532,7 @@ function iconExists(string $iconName): bool
     }
     return true;
 } // iconExists
+
 
  /**
   * Creates a new hash string of given length. First character always a letter.
