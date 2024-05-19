@@ -258,7 +258,7 @@ EOT;
             return;
         }
 
-        self::execAsAnon('printview,printpreview,print,logout,reset,flush,flushcache,iframe');
+        self::execAsAnon('printview,printpreview,print-preview,print,logout,reset,flush,flushcache,iframe');
         self::execAsAdmin('help,reset,notranslate');
     } // handleAgentRequests
 
@@ -293,7 +293,8 @@ EOT;
             switch ($cmd) {
                 case 'printview':
                 case 'printpreview':
-                    self::printPreview();
+                case 'print-preview':
+                self::printPreview();
                     break;
                 case 'print':
                     self::print();
