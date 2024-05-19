@@ -50,8 +50,7 @@ EOT,
         $args['url'] = $args['href'];
     }
     // assemble output:
-    $lnk = new Link();
-    $str .= $lnk->render($args);
+    $str .= Link::render($args);
 
     return $str;
 } // link

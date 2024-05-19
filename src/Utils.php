@@ -51,9 +51,8 @@ class Utils
         TransVars::setVariable('generator', 'Kirby v'. kirby()::version(). " + PageFactory ".getGitTag());
 
         // homeLink:
-        $lnk = new Link();
         if (PageFactory::$pageUrl !== PageFactory::$appUrl) {
-            $homeLink = $lnk->render([
+            $homeLink = Link::render([
                 'url' => PageFactory::$appUrl,
                 'text' => $kirbySiteTitle,
                 'title' => 'Homepage',
@@ -109,8 +108,7 @@ EOT;
         }
         TransVars::setVariable('webmaster_email', $webmasterEmail);
         
-        $lnk = new Link();
-        $webmasterLink = $lnk->render([
+        $webmasterLink = Link::render([
             'url' => "mailto:$webmasterEmail",
             'text' => 'Webmaster',
         ]);

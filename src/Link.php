@@ -2,7 +2,6 @@
 
 namespace PgFactory\PageFactory;
 
-
 define('SUPPORTED_TYPES',   ',pdf,png,gif,jpg,jpeg,txt,doc,docx,xls,xlsx,ppt,pptx,odt,ods,odp,mail,mailto,file,'.
     'sms,tel,gsm,geo,slack,twitter,facebook,instagram,tiktok,');
 define('PROTO_TYPES',        ',mailto:,sms:,tel:,gsm:,geo:,slack:,twitter:,facebook:,instagram:,tiktok:,');
@@ -10,30 +9,28 @@ define('DOWNLOAD_TYPES',        ',txt,doc,docx,dotx,xls,xlsx,xltx,ppt,pptx,potx,
 
 class Link
 {
-    public static $instanceCounter = 1;
-    public $inx;
-    public $url;
-    private $args;
-    private $text;
-    private $title;
-    private $id;
-    private $class;
-    private $alt;
-    private $proto;
-    private $target;
-    private $type;
-    private $linkCat;
-    private $icon;
-    private $iconBefore;
-    private $attributes;
-    private $hiddenText;
-    private $isExternalLink;
-    private $download;
-    private $iconReplacements = [
+    private static $instanceCounter = 1;
+    private static $url;
+    private static $args;
+    private static $text;
+    private static $title;
+    private static $id;
+    private static $class;
+    private static $alt;
+    private static $proto;
+    private static $target;
+    private static $type;
+    private static $linkCat;
+    private static $icon;
+    private static $iconBefore;
+    private static $attributes;
+    private static $hiddenText;
+    private static $isExternalLink;
+    private static $download;
+    private static $iconReplacements = [
         'gsm' => 'mobile',
         'mailto' => 'mail',
     ];
-
 
     /**
      * Macro rendering method
@@ -41,70 +38,61 @@ class Link
      * @param string $argStr
      * @return string
      */
-    public function render(array $args): string
+    public static function render(array $args): string
     {
-        if (!$this->url = ($args['url']??false)) {
+        if (!self::$url = ($args['url'] ?? false)) {
             return '';
         }
 
-        $this->inx = self::$instanceCounter++;
-        $this->args = &$args;
-        $this->text = false;
-        $this->title = false;
-        $this->id = $args['id']??'';
-        $this->class = $args['class']??'';
-        $this->alt = $args['alt']??'';
-        $this->proto = '';
-        $this->target = false;
-        $this->type = false;
-        $this->linkCat = false;
-        $this->icon = false;
-        $this->iconBefore = !(($args['iconPosition']??false) && ($args['iconPosition'] === 'after'));
-        $this->attributes = $args['attr']??'';
-        $this->hiddenText = '';
-        $this->isExternalLink = false;
-        $this->download = $this->args['download']??'';
+        self::$args = $args;
+        self::$text = false;
+        self::$title = false;
+        self::$id = $args['id'] ?? '';
+        self::$class = $args['class'] ?? '';
+        self::$alt = $args['alt'] ?? '';
+        self::$proto = '';
+        self::$target = false;
+        self::$type = false;
+        self::$linkCat = false;
+        self::$icon = false;
+        self::$iconBefore = !(($args['iconPosition'] ?? false) && ($args['iconPosition'] === 'after'));
+        self::$attributes = $args['attr'] ?? '';
+        self::$hiddenText = '';
+        self::$isExternalLink = false;
+        self::$download = $args['download'] ?? '';
 
-        $this->fixUrl();
+        self::fixUrl();
+        self::determineLinkType();
+        $attributes = self::assembleAttributes();
+        self::$text = self::getText();
+        self::addIcon();
 
-        $this->determineLinkType();
-
-        $attributes = $this->assembleAttributes();
-
-        $this->text = $this->getText();
-
-        $this->addIcon();
-        $url = str_replace(' ', '', $this->url);
-
-        $str = "<a href='$this->proto$url' $attributes>$this->text</a>";
+        $url = dir_name(self::$url).rawurlencode(base_name(self::$url));
+        $str = "<a href='" . self::$proto . $url . "' $attributes>" . self::$text . "</a>";
         $str = TransVars::resolveVariables($str);
+
         return $str;
-    } // render
+    }
 
-
-    /**
-     * Attempts to determines the type of this link based on type-arg, proto, extension etc.
-     * @return void
-     */
-    private function determineLinkType()
+    private static function determineLinkType()
     {
-        $proto = $this->getProto();
+        $proto = self::getProto();
         if ($proto && (stripos(PROTO_TYPES, $proto))) {
             return;
         }
 
-        $type = $this->args['type']??'';
+        $type = self::$args['type'] ?? '';
         if ($type) {
-            $this->type = $type;
-            $this->icon = $type;
+            self::$type = $type;
+            self::$icon = $type;
             switch ($type) {
                 case 'pdf':
-                    $this->linkCat = 'pdf';
-                    $this->proto = '';
+                    self::$linkCat = 'pdf';
+                    self::$proto = '';
                     break;
                 case 'mail':
-                    $this->linkCat = 'mail';
-                    $this->proto = 'mailto:';
+                    self::$linkCat = 'mail';
+                    self::$proto = 'mailto:';
                     break;
                 case 'sms':
                 case 'tel':
@@ -115,337 +103,284 @@ class Link
                 case 'facebook':
                 case 'instagram':
                 case 'tiktok':
-                    $this->linkCat = 'special';
-                    $this->proto = "$type:";
+                    self::$linkCat = 'special';
+                    self::$proto = "$type:";
                     break;
             }
             return;
         }
 
-        // email:
-        if (filter_var($this->url, FILTER_VALIDATE_EMAIL)) {
-            $this->type = 'mail';
-            $this->linkCat = 'mail';
+        if (filter_var(self::$url, FILTER_VALIDATE_EMAIL)) {
+            self::$type = 'mail';
+            self::$linkCat = 'mail';
             return;
         }
 
-        $ext = strtolower(fileExt($this->url, false, true));
+        $ext = strtolower(fileExt(self::$url, false, true));
         if ($ext) {
             if ($ext === 'pdf') {
-                $this->type = 'pdf';
-                $this->linkCat = 'pdf';
+                self::$type = 'pdf';
+                self::$linkCat = 'pdf';
                 return;
             }
             if (stripos(DOWNLOAD_TYPES, $ext)) {
-                $this->type = 'download';
-                $this->linkCat = 'download';
+                self::$type = 'download';
+                self::$linkCat = 'download';
             }
         }
-    } // determineLinkType
+    }
 
-
-    /**
-     * Extracts the proto part of an url, presets category, type where possible
-     * @return mixed|string
-     */
-    private function getProto()
+    private static function getProto()
     {
-        if (preg_match('/^(\w+:)(.*)/', $this->url, $m)) {
-            // link with standard proto 'http' or 'https':
-            if (preg_match('|^(https?://)(.*)|', $this->url, $mm)) {
-                $this->proto = $mm[1];
-                $this->url = $mm[2];
-                $this->type = 'link';
-                $this->linkCat = 'link';
-                $this->isExternalLink = true;
-
-                // link with some other proto, e.g. 'tel:':
-            } elseif (str_starts_with($this->url, 'pdf')) {
-                $this->proto = '';
-                $this->url = $m[2];
-                $this->type = 'pdf';
-                $this->linkCat = 'pdf';
+        if (preg_match('/^(\w+:)(.*)/', self::$url, $m)) {
+            if (preg_match('|^(https?://)(.*)|', self::$url, $mm)) {
+                self::$proto = $mm[1];
+                self::$url = $mm[2];
+                self::$type = 'link';
+                self::$linkCat = 'link';
+                self::$isExternalLink = true;
+            } elseif (str_starts_with(self::$url, 'pdf')) {
+                self::$proto = '';
+                self::$url = $m[2];
+                self::$type = 'pdf';
+                self::$linkCat = 'pdf';
             } else {
-                $this->proto = $m[1];
-                $this->url = $m[2];
-                $this->type = str_replace(':','', $this->proto);
-                $this->linkCat = 'special';
+                self::$proto = $m[1];
+                self::$url = $m[2];
+                self::$type = str_replace(':', '', self::$proto);
+                self::$linkCat = 'special';
             }
-        } elseif (str_starts_with($this->url, 'www.')) {
-            $this->proto = 'https://';
-            $this->type = 'link';
-            $this->linkCat = 'link';
-            $this->isExternalLink = true;
+        } elseif (str_starts_with(self::$url, 'www.')) {
+            self::$proto = 'https://';
+            self::$type = 'link';
+            self::$linkCat = 'link';
+            self::$isExternalLink = true;
+
+        } else {
+            $ext = fileExt(self::$url);
+            switch ($ext) {
+                case 'pdf':
+                    self::$proto = '';
+                    self::$type = 'pdf';
+                    self::$linkCat = 'pdf';
+                    break;
+            }
         }
-        return $this->proto;
-    } // getProto
+        return self::$proto;
+    }
 
-
-    /**
-     * Assembles link tag attributes based on type, proto, text, class etc.
-     * @return string
-     */
-    private function assembleAttributes()
+    private static function assembleAttributes()
     {
         $attr = '';
-        // intercept special cases of type: internal / external:
-        if (stripos($this->type, 'exter') !== false) {
-            if (!$this->proto) {
-                $this->type = 'link';
-                if (!$this->proto) {
-                    $this->proto = 'https://';
+
+        if (stripos(self::$type, 'exter') !== false) {
+            if (!self::$proto) {
+                self::$type = 'link';
+                if (!self::$proto) {
+                    self::$proto = 'https://';
                 }
             }
-            $this->icon = 'external';
-        } elseif (stripos($this->type, 'inter') !== false) {
-            if (!$this->proto) {
-                $this->type = 'link';
+            self::$icon = 'external';
+        } elseif (stripos(self::$type, 'inter') !== false) {
+            if (!self::$proto) {
+                self::$type = 'link';
             }
-            $this->icon = '';
+            self::$icon = '';
         }
 
-        // handle link categories:
-        switch($this->linkCat) {
+        switch (self::$linkCat) {
             case 'download':
-                $this->class .= ' pfy-link-download';
-                $this->download = true;
-                if (!$this->icon) {
-                    $this->icon = 'download';
+                self::$class .= ' pfy-link-download';
+                self::$download = true;
+                if (!self::$icon) {
+                    self::$icon = 'download';
                 }
-                if (!$this->text) {
-                    $this->text = base_name($this->url);
+                if (!self::$text) {
+                    self::$text = base_name(self::$url);
                 }
-                $this->title .= "{{ pfy-opens-download }}";
+                self::$title .= "{{ pfy-opens-download }}";
                 break;
 
             case 'pdf':
-                $this->class .= ' pfy-link-pdf';
-                $this->icon = 'pdf';
-                $this->text = base_name($this->url);
-                $this->target = true;
+                self::$class .= ' pfy-link-pdf';
+                self::$icon = 'pdf';
+                self::$text = base_name(self::$url);
+                self::$target = true;
                 break;
 
             case 'image':
-                $this->download = true;
-                $this->icon = 'download';
+                self::$download = true;
+                self::$icon = 'download';
                 break;
 
             case 'special':
-                $this->class .= " pfy-link-$this->type";
-                $this->icon = $this->type;
-                $this->title .= "{{ pfy-opens-$this->type }}";
+                self::$class .= " pfy-link-" . self::$type;
+                self::$icon = self::$type;
+                self::$title .= "{{ pfy-opens-" . self::$type . " }}";
                 break;
 
             case 'mail':
-                $this->processMailLink();
+                self::processMailLink();
                 break;
 
             default:
-                $this->processRegularLink();
+                self::processRegularLink();
         }
 
-        // id:
-        if ($this->id) {
-            $attr .= " id='$this->id'";
+        if (self::$id) {
+            $attr .= " id='" . self::$id . "'";
         }
 
-        // icon:
-        if (!$this->iconBefore) {
-            $this->class .= ' pfy-icon-trailing';
+        if (!self::$iconBefore) {
+            self::$class .= ' pfy-icon-trailing';
         }
-        $class = trim("pfy-link $this->class");
-        $attr .= " class='$class'";
+        $class = trim("pfy-link " . self::$class);
+        $attr .= " class='" . $class . "'";
 
-        // alt:
-        if ($this->alt) {
-            $attr .= " alt='$this->alt'";
+        if (self::$alt) {
+            $attr .= " alt='" . self::$alt . "'";
         }
 
-        // target:
-        if (($this->args['target']??null) !== null) {
-            $this->target = $this->args['target'];
+        if ((self::$args['target'] ?? null) !== null) {
+            self::$target = self::$args['target'];
         }
-        if (($this->target === true) || ($this->target === 'newwin')) {
+        if ((self::$target === true) || (self::$target === 'newwin')) {
             $attr .= " target='_blank' rel='noreferrer'";
-            $this->title .= '{{ pfy-opens-in-new-win }}';
-            if (!$this->icon) {
-                $this->icon = 'external';
+            self::$title .= '{{ pfy-opens-in-new-win }}';
+            if (!self::$icon) {
+                self::$icon = 'external';
             }
-        } elseif ($this->target) {
-            $attr .= " target='{$this->target}' rel='noreferrer'";
-            $this->title .= '{{ pfy-opens-in-new-win }}';
-            if (!$this->icon) {
-                $this->icon = 'external';
+        } elseif (self::$target) {
+            $attr .= " target='" . self::$target . "' rel='noreferrer'";
+            self::$title .= '{{ pfy-opens-in-new-win }}';
+            if (!self::$icon) {
+                self::$icon = 'external';
             }
         }
 
-        // title:
-        if ($this->args['title']??false) {
-            $attr .= " title='{$this->args['title']}'";
-        } elseif ($this->title) {
-            $attr .= " title='$this->title'";
+        if (self::$args['title'] ?? false) {
+            $attr .= " title='" . self::$args['title'] . "'";
+        } elseif (self::$title) {
+            $attr .= " title='" . self::$title . "'";
         }
 
-        // download:
-        if ($this->download) {
+        if (self::$download) {
             $attr .= " download";
         }
 
-        // explicit attributes:
-        if ($this->attributes) {
-            $attr .= $this->attributes;
+        if (self::$attributes) {
+            $attr .= self::$attributes;
         }
         return $attr;
-    } // assembleAttributes
+    }
 
-
-    /**
-     * Determines the link text where not explicitly given
-     * @return mixed|string
-     */
-    private function getText()
+    private static function getText()
     {
-        if ($this->args['text']??false) {
-            $this->text = trim(compileMarkdown($this->args['text'], true));
-
-        } elseif (!$this->text) {
-            $url = preg_replace('|^~/|', '',  $this->url);
-
-            // check whether url points to a page within this site:
-            if ( $pg = page($url)) {
-                $this->text = (string)$pg->title();
+        if (self::$args['text'] ?? false) {
+            self::$text = trim(compileMarkdown(self::$args['text'], true));
+        } elseif (!self::$text) {
+            $url = preg_replace('|^~/|', '', self::$url);
+            if ($pg = page($url)) {
+                self::$text = (string)$pg->title();
             } else {
-                // page not found -> use url instead:
-                $this->text = $this->url;
+                self::$text = self::$url;
             }
         }
-        if ($this->args['hiddenText']??false) {
-            $this->hiddenText = trim("{$this->args['hiddenText']} $this->hiddenText");
+        if (self::$args['hiddenText'] ?? false) {
+            self::$hiddenText = trim(self::$args['hiddenText'] . " " . self::$hiddenText);
         }
-        if ($this->hiddenText) {
-            $this->text .= "<span class='pfy-invisible'>{$this->hiddenText}</span>";
+        if (self::$hiddenText) {
+            self::$text .= "<span class='pfy-invisible'>" . self::$hiddenText . "</span>";
         }
-        return $this->text;
-    } // getText
+        return self::$text;
+    }
 
-
-    /**
-     * Processes Regular Links
-     * @return void
-     */
-    private function processRegularLink()
+    private static function processRegularLink()
     {
-        if ($this->isExternalLink) {
-            $this->addClass('pfy-link-https pfy-external-link pfy-print-url');
-            $this->target = PageFactory::$config['externalLinksToNewWindow']??'';
+        if (self::$isExternalLink) {
+            self::addClass('pfy-link-https pfy-external-link pfy-print-url');
+            self::$target = PageFactory::$config['externalLinksToNewWindow'] ?? '';
         }
-    } // processRegularLink
+    }
 
-
-    /**
-     * Processes E-Mail Links
-     * @return void
-     */
-    private function processMailLink()
+    private static function processMailLink()
     {
-        $this->class .= ' pfy-link-mail';
-        $this->icon = 'mail';
-        $this->proto = 'mailto:';
-        if (!$this->text) {
-            $this->text = $this->url;
+        self::$class .= ' pfy-link-mail';
+        self::$icon = 'mail';
+        self::$proto = 'mailto:';
+        if (!self::$text) {
+            self::$text = self::$url;
         }
 
-        // handle subject and body arguments:
-        if ($this->args['subject']) {
-            $subject = urlencode($this->args['subject']);
-            $this->url .= "?subject=$subject";
+        if (self::$args['subject']) {
+            $subject = urlencode(self::$args['subject']);
+            self::$url .= "?subject=$subject";
         }
-        if ($this->args['body']) {
-            $body = $this->args['body'];
-            // body arg can contain spec. cars, e.g. line-breaks, so it may be shielded by the user:
+        if (self::$args['body']) {
+            $body = self::$args['body'];
             $body = unshieldStr($body, true);
-            // handle line-breaks:
             $body = str_replace(["\\n", '&#92;n', ' BR '], "\n", $body);
             $body = rawurlencode($body);
             if ($subject) {
-                $this->url .= "&body=$body";
+                self::$url .= "&body=$body";
             } else {
-                $this->url .= "?body=$body";
+                self::$url .= "?body=$body";
             }
         }
-    } // processMailLink
+    }
 
-
-    /**
-     * Adds the link icon
-     * @return void
-     * @throws \Exception
-     */
-    private function addIcon()
+    private static function addIcon()
     {
         $icon = '';
-        if (isset($this->args['icon']) && ($this->args['icon'] === false)) {
+        if (isset(self::$args['icon']) && (self::$args['icon'] === false)) {
             return;
         }
-        if ($this->args['icon']??false) {
-            $icon = $this->args['icon'];
-        } elseif ($this->icon) {
-            $icon = $this->icon;
-        } elseif ($this->isExternalLink && (PageFactory::$config['externalLinksToNewWindow']??false)) {
+        if (self::$args['icon'] ?? false) {
+            $icon = self::$args['icon'];
+        } elseif (self::$icon) {
+            $icon = self::$icon;
+        } elseif (self::$isExternalLink && (PageFactory::$config['externalLinksToNewWindow'] ?? false)) {
             $icon = 'external';
         }
 
         if ($icon) {
-            $iconName = str_replace(array_keys($this->iconReplacements), array_values($this->iconReplacements), $icon);
+            $iconName = str_replace(array_keys(self::$iconReplacements), array_values(self::$iconReplacements), $icon);
             if (iconExists($iconName)) {
                 $icon = renderIcon($iconName, 'pfy-link-icon');
             } else {
                 $icon = '';
             }
-            if ($this->iconBefore) {
-                $this->text = "$icon<span class='pfy-link-text'>$this->text</span>";
+            if (self::$iconBefore) {
+                self::$text = "$icon<span class='pfy-link-text'>" . self::$text . "</span>";
             } else {
-                $this->text = "<span class='pfy-link-text'>$this->text</span>$icon";
+                self::$text = "<span class='pfy-link-text'>" . self::$text . "</span>$icon";
             }
         }
-    } // addIcon
+    }
 
-
-    /**
-     * Adds a class, unless already added
-     * @param $class
-     * @return void
-     */
-    private function addClass($class)
+    private static function addClass($class)
     {
         $classes = explodeTrim(', ', $class);
         foreach ($classes as $class) {
-            if (strpos($this->class, $class) === false) {
-                $this->class .= " $class";
+            if (strpos(self::$class, $class) === false) {
+                self::$class .= " $class";
             }
         }
-    } // addClass
+    }
 
-
-    /**
-     * Fixes special case where some wierd pattern in the path has triggered MD-compilation
-     * @return void
-     */
-    private function fixUrl()
+    private static function fixUrl()
     {
-        if (strpbrk($this->url, '<')) {
-            $this->url = str_replace(['<em>','</em>'], '_', $this->url);
-            $this->url = str_replace(['<sub>','</sub>'], '~', $this->url);
-            $this->url = str_replace(['<sup>','</sup>'], '^', $this->url);
-            $this->url = str_replace(['<mark>','</mark>'], '==', $this->url);
-            $this->url = str_replace(['<ins>','</ins>'], '++', $this->url);
-            $this->url = str_replace(['<del>','</del>'], '~~', $this->url);
-            $this->url = str_replace(['<code>','</code>'], '`', $this->url);
-            $this->url = str_replace(['<samp>','</samp>'], '``', $this->url);
-            $this->url = str_replace(['<span class="underline">','</span>'], '__', $this->url);
+        if (strpbrk(self::$url, '<')) {
+            self::$url = str_replace(['<em>', '</em>'], '_', self::$url);
+            self::$url = str_replace(['<sub>', '</sub>'], '~', self::$url);
+            self::$url = str_replace(['<sup>', '</sup>'], '^', self::$url);
+            self::$url = str_replace(['<mark>', '</mark>'], '==', self::$url);
+            self::$url = str_replace(['<ins>', '</ins>'], '++', self::$url);
+            self::$url = str_replace(['<del>', '</del>'], '~~', self::$url);
+            self::$url = str_replace(['<code>', '</code>'], '`', self::$url);
+            self::$url = str_replace(['<samp>', '</samp>'], '``', self::$url);
+            self::$url = str_replace(['<span class="underline">', '</span>'], '__', self::$url);
         }
-    } // fixUrl
-
-} // Link
-
+    }
+}
 
