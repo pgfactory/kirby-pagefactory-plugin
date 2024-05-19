@@ -1,6 +1,8 @@
 <?php
 namespace PgFactory\PageFactory;
 
+use PgFactory\PageFactory\Link;
+
 function dir($argStr = '')
 {
     // Definition of arguments and help-text:
@@ -197,7 +199,7 @@ class Dir
         }
         $dir = array_combine($keys, $dir);
         ksort($dir);
-        if ($this->order === true || strpos($this->order, 'revers') !== false) {
+        if ($this->order === true || str_contains($this->order, 'revers')) {
             $dir = array_reverse($dir);
         }
 
@@ -233,10 +235,9 @@ class Dir
                     $str .= "<li class='pfy-dir-file'><a href='$url'{$this->targetAttr}{$this->linkClass}{$this->download}>$filename</a></li>\n";
 
                 } else {    // it's regular local file:
-                    if (str_starts_with($file, '~')) {
-                        $url = $file;
-                    } else {
-                        $url = '~/' . $file;
+                    $url = $this->path.$filename;
+                    if (!str_starts_with($url, '~')) {
+                        $url = '~/' . $url;
                     }
                     $str .= "<li class='pfy-dir-file'><a href='$url'{$this->targetAttr}{$this->linkClass}{$this->download}>$name</a></li>\n";
                 }
@@ -280,13 +281,25 @@ EOT;
      */
     private function _hierarchicalList($hierarchy, $level)
     {
+        if ($this->order === true || str_contains($this->order, 'revers')) {
+            krsort($hierarchy);
+        }
         $out = "<{$this->tag}>\n";
         $sub = '';
         foreach ($hierarchy as $name => $rec) {
             if (is_array($rec)) {
+                $sub .= "<li>$name\n";
                 $sub .= $this->_hierarchicalList($rec, $level+1);
+                $sub .= "</li>\n";
             } else {
-                $out .= "<li>$rec</li>\n";
+                if ($this->asLink) {
+                    $args['url'] = $this->path.$rec;
+                    $args['text'] = $name;
+                    $link = Link::render($args);
+                    $out .= "<li>$link</li>\n";
+                } else {
+                    $out .= "<li>$rec</li>\n";
+                }
             }
         }
         $out .= $sub;
