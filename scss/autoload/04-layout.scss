@@ -1,6 +1,8 @@
 $grid-gap: 10px;
 $box-width: 300px;
 
+$dl-as-table-dt-width: 6em;
+
 
 #pfy.pfy-default-styling .pfy-encapsulated,
 .pfy-default-styling {
@@ -63,6 +65,32 @@ $box-width: 300px;
     justify-content: space-between;
     .pfy-header {
       padding-top: calc((var(--pfy-nav-elem-height, 2em) - 1.2em) / 2);
+    }
+  }
+
+  // dl as table:
+  &.pfy-large-screen
+  .pfy-dl-as-table {
+    --inline-block: inline-block;
+    dl {
+      margin: 0;
+    }
+
+    dt, dd {
+      display: var(--inline-block); // hack to get round IE
+      vertical-align: top;
+      margin: 0 0 0.5em 0;
+    }
+
+    dt {
+      width: var(--pfy-dl-as-table-dt-width, $dl-as-table-dt-width);
+    }
+
+    dd {
+      width: calc(100% - var(--pfy-dl-as-table-dt-width, #{$dl-as-table-dt-width}) - 0.3em);
+    }
+    p {
+      margin: 0;
     }
   }
 
