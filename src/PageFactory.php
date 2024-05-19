@@ -396,10 +396,12 @@ EOT;
             $value = trim(substr($field, $pos + 1));
 
             if ($key === 'variables') {
+                $value = str_replace('{{', "'{=={'", $value);
                 $values = Yaml::decode($value);
                 foreach ($values as $k => $v) {
+                    $v = str_replace("'{=={'", '{{', $v);
                     if (is_string($v) && str_contains($v, '{{')) {
-                        $v = TransVars::compile($v);
+                        $v = TransVars::translate($v);
                     }
                     TransVars::setVariable($k, $v);
                 }
