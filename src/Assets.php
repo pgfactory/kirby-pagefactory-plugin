@@ -429,8 +429,7 @@ class Assets
     private function translateToUrls(array $queue, string $jsOrCss): array
     {
         // find assets in asset folder:
-        $assetFolderFiles = PageFactory::$pages->find("assets/$jsOrCss")->files()->data();
-    
+
         foreach ($queue as $i => $file) {
             if (!$file) { // skip empty items:
                 unset($queue[$i]);
@@ -453,25 +452,7 @@ class Assets
                 }
             }
 
-            if (str_starts_with($url, 'site/plugins/')) {       // filepath to asset in pluginXY/assets/
-                if (preg_match('|^site/plugins/(.+?)/.+?/(.*)|', $url, $m)) {
-                    $url = PageFactory::$appUrl . PFY_BASE_ASSETS_URL . "{$m[1]}/{$m[2]}";
-                } else {
-                    throw new \Exception("Internal Error: unexpected pattern '$url'");
-                }
-    
-            } elseif (str_starts_with($url, 'media/plugins/')) { // already a plugin-url
-                $url = PageFactory::$appUrl . $url;
-
-            } elseif (str_starts_with($url, 'content/assets/')) { // filepath to asset in content/assets/
-                $url = (string)($assetFolderFiles[substr($url, 8)] ?? '');
-            }
-    
-            // beautify urls, i.e. get rid of hostUrl part if present:
-            if (str_starts_with($url, $this->hostUrl)) {
-                $url = substr($url, $this->hostUrlLen);
-            }
-    
+            $url = self::translateToUrl($url, $jsOrCss);
             if (!$url) {
                 throw new \Exception("Unable to find requested asset '{$queue[$i]}'");
             }
@@ -479,6 +460,37 @@ class Assets
         }
         return $queue;
     } // translateToUrls
+
+
+    /**
+     * @param string $url
+     * @param string $jsOrCss
+     * @return string
+     * @throws \Exception
+     */
+    public static function translateToUrl(string $url, string $jsOrCss = 'css'): string
+    {
+        $assetFolderFiles = PageFactory::$pages->find("assets/$jsOrCss")->files()->data();
+        if (str_starts_with($url, 'site/plugins/')) {       // filepath to asset in pluginXY/assets/
+            if (preg_match('|^site/plugins/(.+?)/.+?/(.*)|', $url, $m)) {
+                $url = PageFactory::$appUrl . PFY_BASE_ASSETS_URL . "{$m[1]}/{$m[2]}";
+            } else {
+                throw new \Exception("Internal Error: unexpected pattern '$url'");
+            }
+
+        } elseif (str_starts_with($url, 'media/plugins/')) { // already a plugin-url
+            $url = PageFactory::$appUrl . $url;
+
+        } elseif (str_starts_with($url, 'content/assets/')) { // filepath to asset in content/assets/
+            $url = (string)($assetFolderFiles[substr($url, 8)] ?? '');
+        }
+
+        // beautify urls, i.e. get rid of hostUrl part if present:
+        if (str_starts_with($url, PageFactory::$hostUrl)) {
+            $url = '/'.substr($url, strlen(PageFactory::$hostUrl));
+        }
+        return $url;
+    } // translateToUrl
 
 
     /**
