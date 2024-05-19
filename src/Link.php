@@ -67,7 +67,11 @@ class Link
         self::$text = self::getText();
         self::addIcon();
 
-        $url = dir_name(self::$url).rawurlencode(base_name(self::$url));
+        if (self::$type === 'pdf') {
+            $url = dir_name(self::$url) . rawurlencode(base_name(self::$url));
+        } else {
+            $url = self::$url;
+        }
         $str = "<a href='" . self::$proto . $url . "' $attributes>" . self::$text . "</a>";
         $str = TransVars::resolveVariables($str);
 
