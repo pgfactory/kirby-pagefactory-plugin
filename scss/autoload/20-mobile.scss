@@ -126,9 +126,8 @@ $mobile-nav-bg-color:     var(--pfy-mobile-nav-bg-color, #{$mobile-nav-bg-color}
 
 
   // class 'pfy-auto-tabulator' enables automatic adaption of tabulators to small screen:
-  &.pfy-auto-tabulator .mdp-tabulator-outer-wrapper,
-  .pfy-auto-tabulator .mdp-tabulator-outer-wrapper,
-  .pfy-auto-tabulator.mdp-tabulator-outer-wrapper {
+  &.pfy-auto-tabulator,
+  .pfy-auto-tabulator {
     .mdp-tabulator-wrapper {
       > div {
         display: block;
