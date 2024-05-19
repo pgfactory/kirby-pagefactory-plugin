@@ -195,7 +195,7 @@ class TransVars
             }
         }
         if ($out === null) {
-            $out = $varNameIfNotFound ? $varName: '';
+            $out = $varNameIfNotFound ? $varName: false;
         } elseif (is_array($out)) {
             $out = reset($out);
         }
@@ -265,7 +265,9 @@ class TransVars
                 } else {
                     $varName = substr($str, $p1+1, $p2-$p1-1);
                     $value = self::getVariable($varName);
-                    $str = substr($str, 0, $p1).$value.substr($str, $p2+1);
+                    if ($value !== false) {
+                        $str = substr($str, 0, $p1).$value.substr($str, $p2+1);
+                    }
 
                 }
                 $p1 = strpos($str, '%', $p1+1);
@@ -316,9 +318,13 @@ class TransVars
      * @param $str
      * @return string
      */
-    public static function translate($str, string $lang = ''): string
+    public static function translate($str): string
     {
-        return self::resolveVariables($str, $lang);
+        $str = str_replace(['\\{{', '\\}}', '\\('], ['{!!{', '}!!}', '⟮'], $str);
+        $str = self::resolveVariables($str);
+        $str = self::executeMacros($str);
+        $str = str_replace(['\\{{', '\\}}', '\\('], ['{!!{', '}!!}', '⟮'], $str);
+        return $str;
     } // translate
 
 
@@ -422,7 +428,7 @@ class TransVars
                 }
                 $argStr = $m[2];
                 if (str_contains($argStr, '{{')) {
-                    $argStr = self::resolveVariables($argStr);
+                    $argStr = self::translate($argStr);
                 }
 
                 // check for macro name with leading '_':
