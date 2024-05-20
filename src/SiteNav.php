@@ -91,7 +91,7 @@ class SiteNav
         $dataPageNr = '';
         // type=branch:
         if (str_contains($args['type']??'', 'branch')) {
-            $out = self::renderBranch($wrapperClass);
+            $out = self::renderBranch($wrapperClass, $args);
 
         // default type:
         } elseif ($site->hasListedChildren()) {
@@ -135,7 +135,8 @@ EOT;
      * @param $subtree
      * @return string
      */
-    private static function _render($subtree, $indent = ''): string
+    private static function _render($subtree, $indent = '', $prefix = ''): string
+//    private static function _render($subtree, $indent = ''): string
     {
         $out = '';
         foreach ($subtree->listed() as $pg) {
@@ -185,7 +186,8 @@ EOT;
         }
 
         $listTag = self::$listTag;
-        $out = "\n$indent<{$listTag}>\n$out$indent</{$listTag}>\n";
+        $out = "\n$indent<{$listTag}>$prefix\n$out$indent</{$listTag}>\n";
+//        $out = "\n$indent<{$listTag}>\n$out$indent</{$listTag}>\n";
         return $out;
     } // _render
 
@@ -217,8 +219,13 @@ EOT;
     /**
      * @return string
      */
-    private static function renderBranch(string &$wrapperClass): string
+    private static function renderBranch(string &$wrapperClass, array $args): string
     {
+        $prefix = ($args['prefix'] ?? false) ?: '';
+        if ($prefix) {
+            $prefix = "<li class='pfy-nav-prefix'><a href='~/'>$prefix</a></li>";
+        }
+
         // find top-level parent:
         $page = page();
         while ($page->parent()) {
@@ -229,7 +236,8 @@ EOT;
             $label = (string)$page->title();
             $out = "<div class='pfy-nav-branch-title'>$label</div>\n";
             $subtree = $page->children();
-            $out .= self::_render($subtree);
+            $out .= self::_render($subtree, prefix: $prefix);
+            $out .= "</div>\n";
         } else {
             $out = '';
             $wrapperClass .= ' pfy-nav-empty';
