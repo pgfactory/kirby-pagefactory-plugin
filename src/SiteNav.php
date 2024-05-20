@@ -71,6 +71,10 @@ class SiteNav
         } elseif (str_contains($type, 'branch')) {
             $wrapperClass .= ' pfy-nav-indented pfy-nav-animated pfy-encapsulated pfy-nav-collapsible';
 
+        // 'sitemap' shorthand:
+        } elseif (str_contains($type, 'sitemap')) {
+            $wrapperClass .= ' pfy-encapsulated pfy-sitemap pfy-sitemap-horizontal';
+
         // else, e.g. sitemap:
         } else {
             $wrapperClass .= ' pfy-nav-plain';
