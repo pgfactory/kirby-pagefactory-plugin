@@ -117,12 +117,12 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
 
 
 // === large screen =======================================================
-#pfy.pfy-default-styling .pfy-encapsulated.pfy-large-screen,
+#pfy.pfy-default-styling.pfy-large-screen .pfy-encapsulated,
 .pfy-default-styling.pfy-large-screen {
 
   // nav not .pfy-nav-colored -> apply CSS-variables:
   .pfy-nav {
-    background: var(--pfy-nav-bg-color, transparent);
+    background: $nav-bg-color;
 
     a {
       color: $txt-color;
@@ -185,22 +185,24 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
     background: #eff;
   }
 
+  &.pfy-sitemap,
   .pfy-sitemap {
+    --pfy-nav-bg-color: transparent;
+
     &.pfy-sitemap-horizontal {
       nav > ol {
         display: flex;
         justify-content: space-between;
         //gap: 10px;
-        li {
+         > li {
           flex: 1 1 auto;
         }
-        > li {
-          background: var(--pfy-nav-elem-bg-color);
+        a {
+          font-size: 0.9rem;
         }
       }
     }
   }
-
 } // pfy-large-screen
 
 
