@@ -984,7 +984,41 @@ EOT;
      * @param array $options
      * @return string
      */
-    public static function getUsers(array $options = []): string
+    public static function getUsers(array $options = []): array
+    {
+        $groupFilter = $options['role']??false;
+        $reversed = $options['reversed']??false;
+
+        $users = kirby()->users();
+        if ($groupFilter) {
+            $users = $users->filterBy('role', $groupFilter);
+        }
+        $users = $users->sortBy('name');
+        if ($reversed) {
+            $users = $users->flip();
+        }
+
+        $usersArray = [];
+        foreach ($users as $user) {
+            $content = $user->content();
+            $rec = [
+                'username' =>  (string)$user->name(),
+                'email' =>  (string)$user->email(),
+                ];
+            if ($content) {
+                foreach ($content->data() as $k => $v) {
+                    if (is_string($v)) {
+                        $rec[$k] = $v;
+                    }
+                }
+            }
+            $usersArray[] = $rec;
+        }
+        return $usersArray;
+    } // getUsers
+
+
+    public static function getUsersCompiled(array $options = []): string
     {
         $groupFilter = $options['role']??false;
         $template = $options['template']??'%username% &lt;%email%&gt;';
@@ -1037,6 +1071,27 @@ EOT;
             }
         }
         return $str;
-    } // getUsers
+    } // getUsersCompiled
+
+
+    public static function compileTemplate(string $template, array $rec): string
+    {
+        $template = preg_replace('/ % ([\w-]{1,20}) % /msx', "{{ $1 }}", $template);
+        $html = self::twigCompile($template, $rec);
+        return $html;
+    } // compileTemplate
+
+
+    public static function twigCompile(string $template, array $vars = []): string
+    {
+        // compile templage with Twig:
+        $loader = new \Twig\Loader\ArrayLoader([
+            'index' => $template,
+        ]);
+        $twig = new \Twig\Environment($loader);
+        $twig->addFilter(new \Twig\TwigFilter('intlDate', 'PgFactory\PageFactoryElements\twigIntlDateFilter'));
+        $twig->addFilter(new \Twig\TwigFilter('intlDateFormat', 'PgFactory\PageFactoryElements\twigIntlDateFormatFilter'));
+        return $twig->render('index', $vars);
+    } // twigCompile
 
 } // Utils

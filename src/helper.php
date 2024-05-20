@@ -1847,7 +1847,7 @@ function parseArgValue(string &$rest, string $delim): mixed
                 $template = $mm[1];
                 $role = str_replace($mm[0], '', $role);
             }
-            $s = Utils::getUsers([
+            $s = Utils::getUsersCompiled([
                 'role' => trim($role),
                 'template' => $template,
                 'wrapperTag' => false,
