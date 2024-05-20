@@ -84,44 +84,29 @@ class Page
 
 
     /**
-     * Generic setter that appends
-     * @param string $key
-     * @param $value
-     */
-    public function add(string $key, $value): void
-    {
-        $this->$key .= $value;
-    }
-
-
-    /**
-     * Generic setter that appends (synonyme for add)
+     * Appends $value to property identified by $key.
+     * If renderingClosed (i.e. when rendering twig template), the $value is appended to the kirby field instead.
      * @param string $key
      * @param $value
      */
     public function append(string $key, $value): void
     {
-        $this->$key .= $value;
-    }
+        if (PageFactory::$renderingClosed && !str_contains(PageFactory::$page->$key()->value, $value)) {
+            PageFactory::$page->$key()->value .= $value;
+
+        } elseif (!str_contains($this->$key, $value)) {
+            $this->$key .= $value;
+        }
+    } // append
 
 
     /**
      * Accepts a string to be injected into the <head> element
      * @param $str
      */
-    public function setHead($str): void
-    {
-        $this->headInjections = $str;
-    }
-
-
-    /**
-     * Accepts a string to be appended to the <head> element
-     * @param $str
-     */
     public function addHead($str): void
     {
-        $this->headInjections .= $str;
+        $this->append('headInjections', $str);
     }
 
 
@@ -237,19 +222,9 @@ EOT;
      * Accepts classes to be injected into the body's class attribute
      * @param $str
      */
-    public function setBodyTagClass($str): void
-    {
-        $this->bodyTagClasses = "$str ";
-    }
-
-
-    /**
-     * Accepts classes to be added to the body's class attribute
-     * @param $str
-     */
     public function addBodyTagClass($str): void
     {
-        $this->bodyTagClasses .= "$str ";
+        $this->append('bodyTagClasses', "$str ");
     }
 
 
@@ -257,19 +232,9 @@ EOT;
      * Accepts attributes to be injected into the <body> tag
      * @param $str
      */
-    public function setBodyTagAttributes($str): void
-    {
-        $this->bodyTagAttributes = "$str ";
-    }
-
-
-    /**
-     * Accepts attributes to be added to the <body> tag
-     * @param $str
-     */
     public function addBodyTagAttributes($str): void
     {
-        $this->bodyTagAttributes .= "$str ";
+        $this->append('bodyTagAttributes', "$str ");
     }
 
 
@@ -277,49 +242,19 @@ EOT;
      * Accepts a string to be injected just before the </body> tag
      * @param $str
      */
-    public function setBodyEndInjections($str): void
-    {
-        $this->bodyEndInjections = trim($str, "\t\n ")."\n";
-    }
-
-
-    /**
-     * Accepts a string to be added to the body-end-injection
-     * @param $str
-     */
     public function addBodyEndInjections($str): void
     {
-        $this->bodyEndInjections .= trim($str, "\t\n ")."\n";
-    }
+        $this->append('bodyEndInjections', trim($str, "\t\n ")."\n");
+    } // addBodyEndInjections
 
 
     /**
      * Accepts styles to be injected into the <head> element
      * @param string $str
      */
-    public function setCss(string $str):void
-    {
-        $this->css = trim($str, "\t\n ")."\n";
-    } // setCss
-
-
-    /**
-     * Accepts styles to be added to the head injection
-     * @param string $str
-     */
     public function addCss(string $str):void
     {
-        $this->css .= trim($str, "\t\n ")."\n";
-    }
-
-
-    /**
-     * Same as setCss(), but compiles SCSS first
-     * @param string $str
-     */
-    public function setScss(string $str):void
-    {
-        $this->scss = trim($str, "\t\n ")."\n";
+        $this->append('css', trim($str, "\t\n ")."\n");
     }
 
 
@@ -329,7 +264,7 @@ EOT;
      */
     public function addScss(string $str):void
     {
-        $this->scss .= trim($str, "\t\n ")."\n";
+        $this->append('scss', trim($str, "\t\n ")."\n");
     }
 
 
@@ -337,21 +272,9 @@ EOT;
      * Accepts JS code to be injected at the end of the <body> element, but before js-files are loaded
      * @param string $str
      */
-    public function setJs(string $str):void
+    public function addJs(string $str):void
     {
-        $this->js = trim($str, "\t\n ")."\n";
-    }
-
-
-    /**
-     * Like setJs, but does not overwrite previous injection requests
-     * @param string $str
-     */
-    public function addJs(string $str, bool $once = true):void
-    {
-        if ($once && !str_contains($this->js, $str)) {
-            $this->js .= trim($str, "\t\n ") . "\n";
-        }
+        $this->append('js', trim($str, "\t\n ")."\n");
     }
 
 
@@ -359,21 +282,9 @@ EOT;
      * Accepts jsFramework code (without the ready-statement) and injects it after loading instructions of js/jq-files
      * @param string $str
      */
-    public function setJq(string $str):void
+    public function addJq(string $str):void
     {
-        $this->jq = trim($str, "\t\n ")."\n";
-    }
-
-
-    /**
-     * Like setJq, but does not overwrite previous injection requests
-     * @param string $str
-     */
-    public function addJq(string $str, bool $once = true):void
-    {
-        if ($once && !str_contains($this->jq, $str)) {
-            $this->jq .= trim($str, "\t\n ") . "\n";
-        }
+        $this->append('jq', trim($str, "\t\n ")."\n");
     }
 
 
@@ -381,21 +292,9 @@ EOT;
      * Accepts jsFramework code (without the ready-statement) and injects it after loading instructions of js/jq-files
      * @param string $str
      */
-    public function setJsReady(string $str):void
+    public function addJsReady(string $str):void
     {
-        $this->jsWhenReady = trim($str, "\t\n ")."\n";
-    }
-
-
-    /**
-     * Like setJsReady, but does not overwrite previous injection requests
-     * @param string $str
-     */
-    public function addJsReady(string $str, bool $once = true):void
-    {
-        if ($once && !str_contains($this->jsWhenReady, $str)) {
-            $this->jsWhenReady .= trim($str, "\t\n ") . "\n";
-        }
+        $this->append('jsWhenReady', trim($str, "\t\n ")."\n");
     }
 
 
