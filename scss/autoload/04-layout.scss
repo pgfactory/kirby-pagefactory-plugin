@@ -63,6 +63,7 @@ $dl-as-table-dt-width: 6em;
   .pfy-header-wrapper {
     display: flex;
     justify-content: space-between;
+    overflow-x: clip;
     .pfy-header {
       padding-top: calc((var(--pfy-nav-elem-height, 2em) - 1.2em) / 2);
     }

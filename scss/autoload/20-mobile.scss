@@ -60,6 +60,7 @@ $mobile-nav-bg-color:     var(--pfy-mobile-nav-bg-color, #{$mobile-nav-bg-color}
     transition: left 0.3s;
     height: $mobile-body-height;
     width: 100vw;
+    overflow-x: hidden;
     overflow-y: auto;
     padding: 1rem 1rem 8rem;
     background: $mobile-main-bg-color;
@@ -81,6 +82,7 @@ $mobile-nav-bg-color:     var(--pfy-mobile-nav-bg-color, #{$mobile-nav-bg-color}
 
     h1 {
       font-size: $mobile-header-txt-size;
+      color: $mobile-header-txt-color;
       text-align: center;
       margin: 0 $mobile-header-height;
       padding: 0;
