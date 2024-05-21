@@ -147,6 +147,16 @@ EOT;
                     continue;
                 }
             }
+            if ($showFrom = $pg->showfrom()->value()) {
+                if (strtotime($showFrom) > time()) {
+                    continue;
+                }
+            }
+            if ($showTill = $pg->showtill()->value()) {
+                if (strtotime($showTill) < time()) {
+                    continue;
+                }
+            }
 
             $hasContent = self::hasMdContent($pg);
             // set $next once $curr was passed and the next page with content has been reached:
