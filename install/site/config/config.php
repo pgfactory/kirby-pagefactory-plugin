@@ -25,8 +25,9 @@ return [
     'wearejust.twig.env.functions' => $functions, // register pagefactory's twig-functions
 
     'pgfactory.markdownplus.options' => [
-        // 'divblockChars'		=> '@%:', // chars identifying DIV-Blocks, default is '@%'
-        // 'accessCodeKey'      => 'acesscode', // URL-key to submit AccessCode, default: ?a=ABCDEF
+        // 'divblockChars'		=> '@%:',  // chars identifying DIV-Blocks, default is '@%'
+        // 'accessCodeKey'      => 'key' , // URL-key to submit AccessCode, default: 'a' (e.g. ?a=ABCDEF)
+        // 'autoConvertLinks'   => true,   // automatically convert URLs and email addresses to <link> tags
     ],
 
     'pgfactory.pagefactory.options' => [
