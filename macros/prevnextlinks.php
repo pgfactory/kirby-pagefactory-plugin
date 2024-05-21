@@ -133,8 +133,6 @@ class PrevNextLinks
      */
     private function renderPrevLink(): string
     {
-        $out = "\t<div></div>\n";
-
         $prev = SiteNav::$prev;
         if ($prev) {
             TransVars::setVariable('pfy-prev-page-title', (string)$prev->title());
@@ -143,13 +141,15 @@ class PrevNextLinks
             $text = '<span class="pfy-page-switcher-link-text">'.$prev->title()->value().'</span>';
             $text = TransVars::getVariable('pfy-previous-page-text').$text;
             $prevLink = "<a href='$url' title='$title' rel='prev'>\n\t\t$text\n\t\t</a>";
-            $out = <<<EOT
+        } else {
+            $prevLink = '&nbsp';
+        }
+        $out = <<<EOT
       <div class="pfy-page-switcher-links pfy-previous-page-link $this->class">
         $prevLink
       </div>
 
 EOT;
-        }
         return $out;
     } // renderPrevLink
 
@@ -160,7 +160,6 @@ EOT;
      */
     private function renderNextLink(): string
     {
-        $out = "\t<div></div>\n";
         $next = SiteNav::$next;
         if ($next) {
             $nextUrl = $next->url();
@@ -168,13 +167,15 @@ EOT;
             $text = '<span class="pfy-page-switcher-link-text">'.$next->title()->value().'</span>';
             $text = $text.TransVars::getVariable('pfy-next-page-text');
             $nextLink = "<a href='$nextUrl' title='$title' rel='next'>\n\t\t$text\n\t\t</a>";
-            $out = <<<EOT
+        } else {
+            $nextLink = '&nbsp;';
+        }
+        $out = <<<EOT
       <div class="pfy-page-switcher-links pfy-next-page-link $this->class">
         $nextLink
       </div>
 
 EOT;
-        }
         return $out;
     } // renderNextLink
 
