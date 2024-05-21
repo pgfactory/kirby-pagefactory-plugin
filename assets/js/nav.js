@@ -145,6 +145,14 @@ const PfyNav = {
   initNavHtml: function (navWrapper) {
     this._initNavHtml(navWrapper.querySelectorAll('.pfy-nav > ol > li'), 1);
     this.fixNavLayout(navWrapper);
+
+    if (this.isTopNav) {
+      const liElems = navWrapper.querySelectorAll('.pfy-has-children');
+      liElems.forEach(function (liElem) {
+        const subElem = liElem.querySelector('.pfy-nav-sub-wrapper');
+        subElem.style.display = 'none';
+      });
+    }
   }, // initNavHtml
 
 
@@ -285,22 +293,25 @@ const PfyNav = {
     if (!isTopNav || !this.hoveropen) {
       return;
     }
-    const l1LiElems = navWrapper.querySelectorAll('.pfy-lvl-1.pfy-has-children');
-    if (l1LiElems) {
-      l1LiElems.forEach(function (l1LiElem) {
-        l1LiElem.addEventListener('mouseenter', function (ev) {
-          const elem = ev.currentTarget;
+    const l1AElems = navWrapper.querySelectorAll('.pfy-lvl-1.pfy-has-children > a');
+    if (l1AElems) {
+      l1AElems.forEach(function (l1AElem) {
+        // set mouseenter-trigger on a elem:
+        l1AElem.addEventListener('mouseenter', function (ev) {
+          const elem = ev.currentTarget.parentElement;
           if (PfyNav.timer[elem.dataset.inx]) {
             clearTimeout(PfyNav.timer[elem.dataset.inx]);
           }
           PfyNav.openBranch(elem);
         });
-        l1LiElem.addEventListener('mouseleave', function (ev) {
+
+        // set mouseleave-trigger on li elem:
+        l1AElem.parentElement.addEventListener('mouseleave', function (ev) {
           const elem = ev.currentTarget;
           PfyNav.timer[elem.dataset.inx] = setTimeout(function () {
             PfyNav.closeBranch(elem);
             PfyNav.timer[elem.dataset.inx] = false;
-          }, 400);
+          }, PfyNav.transitionTimeMs);
         });
       })
     }
@@ -351,7 +362,35 @@ const PfyNav = {
             }
           }
 
+        } else if (ev.shiftKey && key === 'Tab') {
+          const liElem = ev.target.parentElement;
+          const aElem = liElem.querySelector('a');
+          const activeAElems = PfyNav.getCurrentlyActiveAElments(liElem);
+          if (aElem.innerText === activeAElems[0].innerText) {
+            // is last element, so continue with default action
+            return;
+          }
+          ev.preventDefault();
+          PfyNav.focusOnPrevous(liElem);
+
+        } else if (key === 'Tab') {
+          const liElem = ev.target.parentElement;
+          const aElem = liElem.querySelector('a');
+          const activeAElems = PfyNav.getCurrentlyActiveAElments(liElem);
+          if (aElem.innerText === activeAElems[activeAElems.length - 1].innerText) {
+            // is first element, so continue with default action
+            return;
+          }
+
+          if (liElem.closest('.pfy-open')) {
+            PfyNav.focusOnNext(liElem);
+          } else {
+            PfyNav.focusOnNextSibling(liElem);
+          }
+          ev.preventDefault();
+
         } else if (key === ' ') {
+          ev.preventDefault();
           if (isTopNav) {
             PfyNav.toggleBranch(liElem, true);
           } else {
@@ -453,7 +492,6 @@ const PfyNav = {
     let activeAElems = this.getCurrentlyActiveAElments(liElem);
     const currI = Array.from(activeAElems).indexOf(aElem);
     let nextI = currI + offset;
-    nextI = Math.max(0, Math.min(activeAElems.length - 1, nextI));
     return activeAElems[nextI];
   }, // getAElem
 
