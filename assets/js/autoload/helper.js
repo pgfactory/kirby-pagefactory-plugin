@@ -34,11 +34,24 @@ function adaptToWidth() {
   if (windowWidth < screenSizeBreakpoint) {
     document.body.classList.remove('pfy-large-screen');
     document.body.classList.add('pfy-small-screen');
+    const sitemap = document.querySelector('.pfy-sitemap');
+    if (sitemap) {
+      if (sitemap.classList.contains('pfy-nav-indented')) {
+        sitemap.dataset.keepIndented = true;
+      }
+      sitemap.classList.add('pfy-nav-indented');
+    }
   } else {
     document.body.classList.remove('pfy-small-screen');
     document.body.classList.add('pfy-large-screen');
+    const sitemap = document.querySelector('.pfy-sitemap');
+    if (sitemap) {
+      if (!sitemap.dataset.keepIndented) {
+        sitemap.classList.remove('pfy-nav-indented');
+      }
+    }
   }
-}
+} // adaptToWidth
 
 
 function mylog(str, showOnScreen) {
@@ -213,4 +226,5 @@ function createHash(size = 8) {
 
 document.addEventListener('DOMContentLoaded', function() {
   initCopyButton();
+  adaptToWidth();
 });
