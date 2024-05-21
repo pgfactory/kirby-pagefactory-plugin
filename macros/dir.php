@@ -15,6 +15,7 @@ function dir($argStr = '')
             'target' => ['"target" attribute to be applied to the a-tag.', false],
             'include' => ['[FILES,FOLDERS] Defines what to include in output', 'files'],
             'exclude' => ['Regex pattern by which to exclude specific elements.', false],
+            'asLinks' => ['Render elements as links.', false],
             'flags' => ['[REVERSE_ORDER, EXCLUDE_EXTENSION, INCLUDE_PATH, DEEP, HIERARCHICAL, ORDERED_LIST, DOWNLOAD, '.
                 'AS_LINK] Activates miscellaneous modes.', false],
             'prefix' => ['If defined, string will be placed before each element.', false],
@@ -108,7 +109,7 @@ class Dir
         $this->excludeExt = str_contains($this->flags, 'EXCLUDE_EXTENSION');
         $this->tag = str_contains($this->flags, 'ORDERED_LIST') ? 'ol' : 'ul';
         $this->download = str_contains($this->flags, 'DOWNLOAD');
-        $this->asLink = str_contains($this->flags, 'AS_LINK');
+        $this->asLink = str_contains($this->flags, 'AS_LINK') || $args['asLinks']??false;
 
         if ($this->download) {
             $this->download = ' download';
@@ -232,14 +233,14 @@ class Dir
                 $url = $this->parseUrlFile($file); // check whether it's a link file (.url or .webloc or .lnk)
                 if ($url) {
                     $filename = base_name($filename, false);
-                    $str .= "<li class='pfy-dir-file'><a href='$url'{$this->targetAttr}{$this->linkClass}{$this->download}>$filename</a></li>\n";
+                    $str .= "<li class='pfy-dir-file'><a href='$url'{$this->targetAttr}{$this->linkClass}{$this->download} target='_blank'>$filename</a></li>\n";
 
                 } else {    // it's regular local file:
                     $url = $this->path.$filename;
                     if (!str_starts_with($url, '~')) {
                         $url = '~/' . $url;
                     }
-                    $str .= "<li class='pfy-dir-file'><a href='$url'{$this->targetAttr}{$this->linkClass}{$this->download}>$name</a></li>\n";
+                    $str .= "<li class='pfy-dir-file'><a href='$url'{$this->targetAttr}{$this->linkClass}{$this->download} target='_blank'>$name</a></li>\n";
                 }
             } else {
                 $str .= "<li class='pfy-dir-file'>$name</li>\n";
