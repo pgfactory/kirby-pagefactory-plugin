@@ -15,6 +15,8 @@ const DEFAULT_MAX_DB_LOCK_TIME      = 60; // sec
 const DEFAULT_MAX_DB_BLOCKING_TIME  = 5; // ms
 const DEFAULT_MAX_REC_LOCK_TIME     = 600; // sec
 const DEFAULT_MAX_REC_BLOCKING_TIME = 2; // sec
+const DEFAULT_KEEP_DATA_DURATION    = 12; // month
+const MAX_DB_FILE_SIZE              = 10485760; // 10MB
 
 
 
@@ -80,10 +82,10 @@ class DataSet
         $this->recKeyType =             $options['recKeyType'] ?? 'hash';
         $this->masterFileRecKeyType =   $options['masterFileRecKeyType'] ?? 'hash';
 
-        if ($options['keepDataDuration']??false) {
-            $this->keepDataThreshold = strtotime("- {$options['keepDataDuration']} months");
+        if ($keepDataDuration = ($options['keepDataDuration'] ?? DEFAULT_KEEP_DATA_DURATION)) {
+            $this->keepDataThreshold = strtotime("- $keepDataDuration months");
         }
-        $this->keepDataOnField =   $options['keepDataOnField'] ?? false;
+        $this->keepDataOnField =   $options['keepDataOnField'] ?? false; // false means '_timestamp'
 
         if (isset($options['blocking'])) {
             if (is_int($options['blocking'])) {
@@ -1335,26 +1337,32 @@ class DataSet
 
 
     /**
-     * based on 'keepDataDuration' argument, extracts old records and moves them to an archive file
-     *      -> path/file_(archived).ext
+     * Manages size and age of data-source files.
+     * a) limits size of source-file as well as archive files to MAX_DB_FILE_SIZE
+     * b) based on 'keepDataDuration' argument, extracts old records and moves them to archive file
+     *      -> path/archive/file.ext
      * @return void
      */
     private function archiveOldData(): void
     {
-        if (!$this->keepDataThreshold) {
-            return; // nothing to do
-        }
-        $keepDataThreshold = $this->keepDataThreshold;
-        $archive = [];
-        foreach ($this->data as $i => $rec) {
-            if ($this->keepDataOnField) {
-                $t = strtotime($rec->recData[$this->keepDataOnField]??'');
-            } else {
-                $t = $rec->_timestamp;
+        if (filesize($this->file) > MAX_DB_FILE_SIZE) {
+            $archive = $this->reduceDbFileSize();
+        } else {
+            if (!$this->keepDataThreshold) {
+                return; // nothing to do
             }
-            if ($t < $keepDataThreshold) {
-                unset($this->data[$i]);
-                $archive[] = $rec->data(true);
+            $keepDataThreshold = $this->keepDataThreshold;
+            $archive = [];
+            foreach ($this->data as $i => $rec) {
+                if ($this->keepDataOnField) {
+                    $t = strtotime($rec->recData[$this->keepDataOnField] ?? '');
+                } else {
+                    $t = $rec->_timestamp;
+                }
+                if ($t < $keepDataThreshold) {
+                    unset($this->data[$i]);
+                    $archive[] = $rec->data(true);
+                }
             }
         }
 
@@ -1363,9 +1371,42 @@ class DataSet
         }
 
         // append new recs to (possibly) existing archive:
-        $archiveFile = fileExt($this->file, true) . '_(archived).'.fileExt($this->file);
+        $destPath = dir_name($this->file)."archive/";
+        $basename = basename($this->file);
+        $timestamp = '';
+        foreach (getDir($destPath) as $file) {
+            if ($timestamp < ($ts = substr(basename($file), 0,11))) {
+                $timestamp = $ts;
+            }
+        }
+        if (!$timestamp) {
+            $timestamp = date('Y-m-d_');
+        }
+        $archiveFile = "$destPath$timestamp$basename";
+        if (file_exists($archiveFile) && filesize($archiveFile) > MAX_DB_FILE_SIZE) {
+            $timestamp = date('Y-m-d_');
+            $archiveFile = "$destPath$timestamp$basename";
+        }
+
+        mylog("DataSet: extracting data to archive file '$archiveFile'");
+        preparePath($archiveFile);
         appendFile($archiveFile, $archive);
     } // archiveOldData
+
+
+    /**
+     * Extracts half of data records from $this->data, returns the extracted part.
+     * @return array
+     */
+    private function reduceDbFileSize(): array
+    {
+        $n = intval(sizeof($this->data)/2);
+        $tmp = array_splice($this->data, $n);
+        $archive = array_map(function ($rec) {
+            return $rec->data(true);
+        }, $tmp);
+        return array_values($archive);
+    } // reduceDbFileSize
 
 
     /**
