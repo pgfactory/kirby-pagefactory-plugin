@@ -988,15 +988,13 @@ EOT;
     {
         $groupFilter = $options['role']??false;
         $reversed = $options['reversed']??false;
+        $sort = $options['sort']??false;
 
         $users = kirby()->users();
         if ($groupFilter) {
             $users = $users->filterBy('role', $groupFilter);
         }
         $users = $users->sortBy('name');
-        if ($reversed) {
-            $users = $users->flip();
-        }
 
         $usersArray = [];
         foreach ($users as $user) {
@@ -1014,6 +1012,25 @@ EOT;
             }
             $usersArray[] = $rec;
         }
+
+        if ($sort) {
+            $sortElems = explodeTrim(',', $sort);
+
+            usort($usersArray, function($a, $b) use($sortElems) {
+                $aa = [];
+                $bb = [];
+                foreach ($sortElems as $e) {
+                    $aa[] = $a[$e];
+                    $bb[] = $b[$e];
+                }
+                return $aa <=> $bb;
+            });
+        }
+
+        if ($reversed) {
+            $usersArray = array_reverse($usersArray);
+        }
+
         return $usersArray;
     } // getUsers
 
