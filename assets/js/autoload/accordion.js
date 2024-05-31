@@ -25,6 +25,11 @@ class Accordion {
     }
 
     onClick(e) {
+      // operate accordion unless summary is a link:
+      if (e.target.tagName === 'A') {
+        return;
+      }
+
       // Stop default behaviour from the browser
       e.preventDefault();
 
@@ -125,7 +130,7 @@ class Accordion {
     }
   }
 
-  document.querySelectorAll('details').forEach((el) => {
+  document.querySelectorAll('.mdp-accordion details').forEach((el) => {
     new Accordion(el);
   });
 
