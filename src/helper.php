@@ -1859,13 +1859,13 @@ function parseArgValue(string &$rest, string $delim): mixed
                 $template = $mm[1];
                 $role = str_replace($mm[0], '', $role);
             }
-            $s = Utils::getUsersCompiled([
+            $users = Utils::getUsers([
                 'role' => trim($role),
-                'template' => $template,
-                'wrapperTag' => false,
-                'listWrapperTag' => false,
-                'separator' => ',',
             ]);
+            $users = array_map(function($rec) {
+                return $rec['username'] ?: $rec['email'];
+            }, $users);
+            $s = implode(',', $users);
 
         // get data from file:
         } elseif (str_starts_with($arg, 'file:')) {
