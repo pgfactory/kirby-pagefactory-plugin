@@ -48,7 +48,11 @@ class Utils
         }
         TransVars::setVariable('headTitle', $headTitle);
 
-        TransVars::setVariable('generator', 'Kirby v'. kirby()::version(). " + PageFactory ".getGitTag());
+        if (PageFactory::$debug) {
+            TransVars::setVariable('generator', 'Kirby v' . kirby()::version() . " + PageFactory " . getGitTag());
+        } else {
+            TransVars::setVariable('generator', '');
+        }
 
         // homeLink:
         if (PageFactory::$pageUrl !== PageFactory::$appUrl) {
@@ -64,7 +68,7 @@ class Utils
         TransVars::setVariable('homeLink', $homeLink);
 
         $appUrl = PageFactory::$appUrl;
-        $menuIcon         = svg('site/plugins/pagefactory/assets/icons/menu.svg');
+        $menuIcon         = svg('site/plugins/pagefactory/assets/icons/_menu.svg'); // icon variant without prolog
         TransVars::setVariable('menuIcon',$menuIcon);
         $smallScreenTitle = TransVars::$variables['smallScreenHeader']?? site()->title()->value();
         $smallScreenHeader = <<<EOT
@@ -160,7 +164,7 @@ EOT;
 
             TransVars::setVariable('username', $username);
 
-            $logoutIcon = svg('site/plugins/pagefactory/assets/icons/logout.svg');
+            $logoutIcon = svg('site/plugins/pagefactory/assets/icons/_logout.svg');
             $pfyLoginButtonLabel = TransVars::getVariable('pfy-logout-button-title');
             TransVars::setVariable('loginButton', "<span class='pfy-login-button'><a href='$logoutLink' class='pfy-login-button' title='$pfyLoginButtonLabel'>$logoutIcon</a></span>");
 
@@ -173,7 +177,7 @@ EOT;
 
             TransVars::setVariable('username', '');
 
-            $loginIcon = svg('site/plugins/pagefactory/assets/icons/user.svg');
+            $loginIcon = svg('site/plugins/pagefactory/assets/icons/_user.svg');
             $pfyLoginButtonLabel = TransVars::getVariable('pfy-login-button-title');
             TransVars::setVariable('loginButton', "<span class='pfy-login-button'><a href='$loginLink' class='pfy-login-button' title='$pfyLoginButtonLabel'>$loginIcon</a></span>");
         }
@@ -1033,82 +1037,5 @@ EOT;
 
         return $usersArray;
     } // getUsers
-
-
-    public static function getUsersCompiled(array $options = []): string
-    {
-        $groupFilter = $options['role']??false;
-        $template = $options['template']??'%username% &lt;%email%&gt;';
-        if (preg_match_all('/%(\w+)%/', $template, $m)) {
-            $replaces = $m[1];
-        } else {
-            $replaces = [];
-        }
-        $separator = $options['separator']??'';
-        $listWrapperTag = $options['listWrapperTag']??'ul';
-        $prefix = $options['prefix']??'';
-        $suffix = $options['suffix']??'';
-        $reversed = $options['reversed']??false;
-
-        if ($listWrapperTag && str_contains(',ul,ol,', ",$listWrapperTag,")) {
-            $prefix = "<li>$prefix";
-            $suffix .= "</li>\n";
-        }
-
-        $str = '';
-        $users = kirby()->users();
-        if ($groupFilter) {
-            $users = $users->filterBy('role', $groupFilter);
-        }
-        $users = $users->sortBy('name');
-        if ($reversed) {
-            $users = $users->flip();
-        }
-        foreach ($users as $user) {
-            $username = (string)$user->name();
-            $email = (string)$user->email();
-            $content = $user->content();
-            $s = $template;
-            $s = str_replace('%username%', $username, $s);
-            $s = str_replace('%email%', $email, $s);
-            foreach ($replaces as $varname) {
-                $value = (string)$content->$varname();
-                $s = str_replace("%$varname%", $value, $s);
-            }
-            $str .= "$prefix$s$suffix$separator";
-        }
-
-        $str = rtrim($str, $separator);
-        if (!$str) {
-            $text = TransVars::getVariable('pfy-list-empty', true);
-            $str = "<div class='pfy-list-empty'>$text</div>";
-        } else {
-            if ($listWrapperTag) {
-                $str = "<$listWrapperTag>$str</$listWrapperTag>\n";
-            }
-        }
-        return $str;
-    } // getUsersCompiled
-
-
-    public static function compileTemplate(string $template, array $rec): string
-    {
-        $template = preg_replace('/ % ([\w-]{1,20}) % /msx', "{{ $1 }}", $template);
-        $html = self::twigCompile($template, $rec);
-        return $html;
-    } // compileTemplate
-
-
-    public static function twigCompile(string $template, array $vars = []): string
-    {
-        // compile templage with Twig:
-        $loader = new \Twig\Loader\ArrayLoader([
-            'index' => $template,
-        ]);
-        $twig = new \Twig\Environment($loader);
-        $twig->addFilter(new \Twig\TwigFilter('intlDate', 'PgFactory\PageFactoryElements\twigIntlDateFilter'));
-        $twig->addFilter(new \Twig\TwigFilter('intlDateFormat', 'PgFactory\PageFactoryElements\twigIntlDateFormatFilter'));
-        return $twig->render('index', $vars);
-    } // twigCompile
 
 } // Utils
