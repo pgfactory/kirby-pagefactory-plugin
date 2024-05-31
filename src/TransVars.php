@@ -549,7 +549,8 @@ class TransVars
         $supportedKeys = array_keys($config['options']);
         foreach ($options as $key => $value) {
             if (is_string($value)) {
-                $options[$key] = self::resolveVariables($value);
+                $tmp = self::resolveVariables($value);
+                $options[$key] = str_replace(['{!!{', '}!!}'], ['{{', '}}'], $tmp);
             }
             // check whether arg has optional TYPE specified, check it:
             $treatAsOption = true;
@@ -608,6 +609,7 @@ class TransVars
         }
 
         $options['inx'] = $inx;
+        $options['macroName'] = ltrim($macroName, '_');
         return [$options, $src, $inx, $macroName, $auxOptions];
     } // initMacro
 
@@ -695,7 +697,7 @@ EOT;
      * Helper for renderMacros()
      * @return array
      */
-    public static function findAllMacros(bool $forRegistering = false, bool $includePaths = false, bool $buildInOnly = false): array
+    public static function findAllMacros(mixed $forRegistering = false, bool $includePaths = false, bool $buildInOnly = false): array
     {
         $functions = [];
         if ($buildInOnly) {
@@ -709,9 +711,12 @@ EOT;
             foreach ($dir as $file) {
                 $actualName = basename($file, '.php');
                 if ($actualName[0] !== '#') {
-                    if ($forRegistering) {
+                    if ($forRegistering === true) {
                         $name = ltrim($actualName, '_');
                         $functions["*$name"] = "PgFactory\\PageFactory\\$actualName";
+                    } elseif ($forRegistering) {
+                        $name = ltrim($actualName, '_');
+                        $functions[$name] = "PgFactory\\PageFactory\\$actualName";
                     } else {
                         if ($includePaths) {
                             $functions[] = $file;
@@ -773,7 +778,14 @@ EOT;
             } 
             $reveal = ($optArg === 'reveal');
             
-            $src = str_replace(["''", ',,', '->', '<'], ["\\''", "\\,,", "\\->", '&lt;'], $args);
+            $src = str_replace(["''", ',,', '->', '<', '[', '('], ["\\''", "\\,,", "\\->", '&lt;', '&#91;', '&#40;'], $args);
+            if (preg_match_all('/".*?"/ms', $src, $m)) {
+                foreach ($m[0] as $i => $rec) {
+                    $s = $m[0][$i];
+                    $s = str_replace(['\\', "\n", '-', '='], ['&#92;', '&#92;n', '&#45;', '&#61;'], $s);
+                    $src = str_replace($m[0][$i], $s, $src);
+                }
+            }
             $src = markdownParagrah($src);
 
             $multiline = str_contains($src, "\n") ? "\n    " : '';
