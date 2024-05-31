@@ -436,6 +436,18 @@ function extractKirbyFrontmatter(string $frontmatter): array
 
 
  /**
+  * Resolves path before file_exists()
+  * @param string $file
+  * @return bool
+  */
+ function fileExists(string $file): bool
+ {
+     $file = resolvePath($file);
+     return file_exists($file);
+ } // fileExists
+
+
+ /**
   * Returns file extension of a filename.
   * @param string $file0
   * @param bool $reverse       Returns path&filename without extension
@@ -1761,7 +1773,7 @@ function parseArgKey(string &$rest, string $delim): string
     // case naked key or value:
     } else {
         // case value without key:
-        if (preg_match('|^(https?://\S*)(.*)|', $rest, $m)) {
+        if (preg_match('|^(https?://[^,]*)(.*)|', $rest, $m)) {
             $key = $m[1];
             $rest = $m[2];
         } else {
@@ -1831,7 +1843,7 @@ function parseArgValue(string &$rest, string $delim): mixed
 
 
  /**
-  * DataImportPattern: $[file] or $[users] or $[users:role] or $[users:role {%username%...}]
+  * DataImportPattern: $[file:xy.txt] or $[users] or $[users:role] or $[users:role {%username%...}]
   * @param string $str
   * @return string
   * @throws Exception
@@ -1856,10 +1868,13 @@ function parseArgValue(string &$rest, string $delim): mixed
             ]);
 
         // get data from file:
-        } else {
+        } elseif (str_starts_with($arg, 'file:')) {
+            $arg = ltrim(substr($arg, 5));
             $file = resolvePath($arg);
             $s = getFile($file);
+
         }
+        $s = str_replace(['"', '{{', '}}'], ['\\"', '{!!{', '}!!}'], $s);
         $str = str_replace($m[0], $s, $str);
     }
     return $str;
