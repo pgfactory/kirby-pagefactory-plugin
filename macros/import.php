@@ -11,6 +11,7 @@ function import($argStr = '')
             'If "file" contains glob-style wildcards, then all matching files will be loaded. '.
             'If file-extension is ".md", loaded content will be markdown-compiled automatically.', false],
             'subfolder' => ['Looks for file(s) in given sub-folders, e.g. ``subfolder:*``.', false],
+            'template' => ['.', false],
             'literal' => ['If true, file content will be rendered as is - i.e. in \<pre> tags.', false],
             'highlight' => ['(true|list-of-markers) If true, patters ``&#96;``, ``&#96;&#96;`` and ``&#96;&#96;&#96;` are used. '.
                 'These patterns will be detected and wrapped in "&lt;span class=\'hl{n}\'> elements".', false],
@@ -36,8 +37,7 @@ EOT,
     }
 
     // assemble output:
-    $imp = new Import();
-    $str = $imp->render($args);
+    $str = Import::render($args);
 
     return $source.$str;
 }
@@ -47,7 +47,7 @@ EOT,
 class Import
 {
     public static $inx = 1;
-    private $mdCompile;
+    private static $mdCompile;
 
 
     /**
@@ -55,7 +55,7 @@ class Import
      * @param $args                     // array of arguments
      * @return string                   // HTML or Markdown
      */
-    public function render(array $args): string
+    public static function render(array $args): string
     {
         $inx = self::$inx++;
 
@@ -65,7 +65,7 @@ class Import
         $highlight = $args['highlight'];
         $wrapperTag = $args['wrapperTag'];
         $wrapperClass = $args['wrapperClass'];
-        $this->mdCompile = $args['mdCompile'];
+        self::$mdCompile = $args['mdCompile'];
         $elemHeader = $args['elemHeader'] ? $args['elemHeader']."\n" : '';
         $elemFooter = $args['elemFooter'] ? "\n".$args['elemHeader'] : '';
 
@@ -73,8 +73,8 @@ class Import
 
         // handle subfolder:
         if ($subfolder) {
-            $compileMd = $this->mdCompile;
-            $this->mdCompile = null;
+            $compileMd = self::$mdCompile;
+            self::$mdCompile = null;
             $src = resolvePath($subfolder, relativeToPage: true);
             $folders = getDir($src, true);
             $keys = array_keys($folders);
@@ -83,7 +83,7 @@ class Import
             foreach ($keys as $key) {
                 $folder = $folders[$key];
                 if (is_dir($folder)) {
-                    $s = $elemHeader.$this->importFile("~/$folder$file", $literal)."$elemFooter\n\n";
+                    $s = $elemHeader.self::importFile("~/$folder$file", $literal)."$elemFooter\n\n";
 
                     if ($wrapperTag) {
                         $j++;
@@ -105,16 +105,16 @@ EOT;
             }
             // handle 'file':
         } elseif ($file) {
-            $str = $this->importFile($file, $literal);
+            $str = self::importFile($file, $literal);
         }
 
         if ($literal) {
             $str = str_replace(['{{','<'], ['&#123;{', '&lt;'], $str);
             if ($highlight) {
                 if ($highlight === true) {
-                    $str = $this->doHighlight($str, '```', postfix: '3');
-                    $str = $this->doHighlight($str, '``', postfix: '2');
-                    $str = $this->doHighlight($str, '`', postfix: '1');
+                    $str = self::doHighlight($str, '```', postfix: '3');
+                    $str = self::doHighlight($str, '``', postfix: '2');
+                    $str = self::doHighlight($str, '`', postfix: '1');
 //                } else {
 //ToDo: explicit patterns
                 }
@@ -141,7 +141,7 @@ EOT;
     } // render
 
 
-    private function doHighlight($str, $pattern, $position = 0, $postfix = '')
+    private static function doHighlight($str, $pattern, $position = 0, $postfix = '')
     {
         list($p1, $p2) = strPosMatching($str, $position, $pattern, $pattern);
         $l = strlen($pattern);
@@ -161,7 +161,7 @@ EOT;
      * @param string $file
      * @return string
      */
-    private function importFile(string $file, bool $literal = false): string
+    private static function importFile(string $file, bool $literal = false): string
     {
         $str = '';
         if ($file && (((strpbrk($file, '*{') !== false)) || ($file[strlen($file)-1] === '/'))) {
@@ -186,7 +186,7 @@ EOT;
             } else {
                 $s = getFile($file);
             }
-            if ($this->mdCompile || (fileExt($file) === 'md' && $this->mdCompile !== null)) {
+            if (self::$mdCompile || (fileExt($file) === 'md' && self::$mdCompile !== null)) {
                 $s = compileMarkdown($s);
             }
             $str .= $s;
@@ -194,3 +194,4 @@ EOT;
         return $str;
     } // importFIle
 } // Import
+
