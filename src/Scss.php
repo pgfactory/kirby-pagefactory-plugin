@@ -42,7 +42,8 @@ class Scss
     public static function updateFile(string $srcFile, string $targetPath): string|false
     {
         $targetPath = self::dir_name($targetPath);
-        $targetFile = $targetPath.'-'.basename($srcFile, 'scss').'css'; // mark compiled assets with '-'
+        $basename = str_replace(' ', '-', basename($srcFile, '.scss'));
+        $targetFile = "$targetPath-$basename.css"; // mark compiled assets with '-' prefix
         $tTarget = fileTime($targetFile);
         $tSrc = fileTime($srcFile);
         if ($tTarget < $tSrc) {
