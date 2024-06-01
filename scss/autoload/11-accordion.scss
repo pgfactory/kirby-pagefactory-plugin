@@ -14,16 +14,17 @@
 
 */
 
-#pfy.pfy-default-styling .pfy-encapsulated,
+#pfy.pfy-default-styling .pfy-encapsulated .mdp-accordion,
 .pfy-default-styling .mdp-accordion {
 
   summary {
     outline: none;
-    padding: 1rem;
+    padding-top: var(--mdp-accordion-summary-padding, 1rem);
+    padding-bottom: var(--mdp-accordion-summary-padding, 1rem);
+    padding-left: calc(1.6rem + var(--mdp-accordion-summary-indent, 0rem));
     display: block;
     background: var(--mdp-accordion-summary-bg-color);
     color: var(--mdp-accordion-summary-txt-color);
-    padding-left: calc(1.6rem + var(--mdp-accordion-summary-indent, 0rem));
     position: relative;
     cursor: pointer;
     border: var(--mdp-accordion-frame);
