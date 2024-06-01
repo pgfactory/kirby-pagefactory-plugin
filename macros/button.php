@@ -57,9 +57,9 @@ EOT,
             $callback = "$callback();";
         }
         $jq = <<<EOT
-const button = document.querySelector('#$id');
-if (button) {
-    button.addEventListener('click', function(e) {
+pfyButton = document.querySelector('#$id');
+if (pfyButton) {
+    pfyButton.addEventListener('click', function(e) {
         try {
           $callback
         } catch (error) {
@@ -68,6 +68,7 @@ if (button) {
     });
 }
 EOT;
+        PageFactory::$pg->addJs('let pfyButton = null;');
         PageFactory::$pg->addJsReady($jq);
     }
 
