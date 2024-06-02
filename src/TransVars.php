@@ -786,7 +786,7 @@ EOT;
                     $src = str_replace($m[0][$i], $s, $src);
                 }
             }
-            $src = markdownParagrah($src);
+            $src = markdownParagraph($src);
 
             $multiline = str_contains($src, "\n") ? "\n    " : '';
             $multiline2 = $multiline ? "\n" : ' ';

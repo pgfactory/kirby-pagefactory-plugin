@@ -2158,7 +2158,7 @@ function compileMarkdown(string $mdStr, bool $omitPWrapperTag = false): string
   * @return string
   * @throws Exception
   */
- function markdownParagrah(string $mdStr, bool $omitPWrapperTag = false): string
+ function markdownParagraph(string $mdStr, bool $omitPWrapperTag = false): string
 {
     if ($mdStr) {
         if (class_exists('PgFactory\MarkdownPlus\MarkdownPlus')) {
