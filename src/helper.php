@@ -750,7 +750,7 @@ function removeCStyleComments(string $str): string
   * @param bool|string $associative  Return as associative array
   * @return array
   */
-function getDir(string $pat, mixed $associative = false): array
+function getDir(string $pat, mixed $associative = false, $type = false): array
 {
     if (strpos($pat, '{') === false) {
         if (strpos($pat, '*') !== false) {
@@ -767,6 +767,16 @@ function getDir(string $pat, mixed $associative = false): array
     $files = array_filter($files, function ($str) {
         return ($str && ($str[0] !== '#') && (strpos($str, '/#') === false));
     });
+    if ($type === 'folders') {
+        $files = array_filter($files, function ($str) {
+            return is_dir($str);
+        });
+
+    } elseif ($type === 'files') {
+        $files = array_filter($files, function ($str) {
+            return is_file($str);
+        });
+    }
     foreach ($files as $i => $item) {
         if (is_dir($item)) {
             $files[$i] = $item.'/';
@@ -829,7 +839,12 @@ function getDirDeep(string $path, bool $onlyDir = false, bool $assoc = false, bo
         $p = $fileRec->getPathname();
         if ($onlyDir) {
             if (($f === '.') && !preg_match('|/#|', $p)) {
-                $files[] = rtrim($p, '.');
+                if ($assoc) {
+                    $f = basename(rtrim($p, '/.'));
+                    $files[$f] = rtrim($p, '.');
+                } else {
+                    $files[] = rtrim($p, '.');
+                }
             }
             continue;
         }
@@ -852,6 +867,11 @@ function getDirDeep(string $path, bool $onlyDir = false, bool $assoc = false, bo
         } else {
             $files[] = $p;
         }
+    }
+    if ($assoc) {
+        ksort($files);
+    } else {
+        sort($files);
     }
     return $files;
 } // getDirDeep
@@ -1873,6 +1893,27 @@ function parseArgValue(string &$rest, string $delim): mixed
             $file = resolvePath($arg);
             $s = getFile($file);
 
+        // get dirnames in given folder:
+        } elseif (str_starts_with($arg, 'dir:')) {
+            $arg = ltrim(substr($arg, 4));
+            $path = resolvePath($arg);
+            $dir = getDir($path, type:'folders');
+            $len = strlen($path);
+            array_walk($dir, function(&$file) use($len) {
+                $file = substr($file, $len);
+            });
+            $s = implode(',', $dir);
+
+        // get subtree of given folder:
+        } elseif (str_starts_with($arg, 'tree:')) {
+            $arg = ltrim(substr($arg, 5));
+            $path = resolvePath($arg);
+            $dir = getDirDeep($path, onlyDir:true);
+            $len = strlen($path);
+            array_walk($dir, function(&$file) use($len) {
+                $file = substr($file, $len);
+            });
+            $s = implode(',', $dir);
         }
         $s = str_replace(['"', '{{', '}}'], ['\\"', '{!!{', '}!!}'], $s);
         $str = str_replace($m[0], $s, $str);
