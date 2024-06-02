@@ -281,7 +281,7 @@ class Link
     private static function getText()
     {
         if (self::$args['text'] ?? false) {
-            self::$text = trim(compileMarkdown(self::$args['text'], true));
+            self::$text = trim(markdownParagraph(self::$args['text'], true));
         } elseif (!self::$text) {
             $url = preg_replace('|^~/|', '', self::$url);
             if ($pg = page($url)) {
