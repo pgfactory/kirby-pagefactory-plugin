@@ -142,7 +142,7 @@ class PrevNextLinks
             $text = TransVars::getVariable('pfy-previous-page-text').$text;
             $prevLink = "<a href='$url' title='$title' rel='prev'>\n\t\t$text\n\t\t</a>";
         } else {
-            $prevLink = '&nbsp';
+            $prevLink = '&nbsp;';
         }
         $out = <<<EOT
       <div class="pfy-page-switcher-links pfy-previous-page-link $this->class">
