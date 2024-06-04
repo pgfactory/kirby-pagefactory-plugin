@@ -1,8 +1,17 @@
-
+/*
+ *  dom.js
+ *  Syntax:
+ *    sel1 ^closestSel sel2...
+ *    sel1 ^{closestSel1 ...} sel2...
+ *    sel1 ^{closestSel1 ...} sel2..., sel3...
+ *
+ *    > sel1      -> :scope > sel1
+ *      [+>|~]
+ */
 function domForEach(elem = document, pattern = null, fun = null) {
     let parentPattern, childPattern;
-    [elem, pattern, parentPattern, childPattern, fun] = ParseDomForArgs(elem, pattern, fun);
-    if (!pattern || !fun) {
+    [elem, pattern, parentPattern, childPattern, fun] = parseDomForArgs(elem, pattern, fun);
+    if (!fun) {
        console.log('domForEach(): nothing to do');
        return;
    }
@@ -11,57 +20,90 @@ function domForEach(elem = document, pattern = null, fun = null) {
    if (elems.length === 0) return;
    elems.forEach((el) => {
        if (parentPattern) el = el.closest(parentPattern);
-       if (el && childPattern) el = el.querySelector(childPattern);
-       if (el) fun(el);
+       if (el && childPattern) {
+         const els = el.querySelectorAll(childPattern);
+         if (els) {
+           els.forEach((el) => {
+             fun(el);
+           });
+         }
+       } else {
+         fun(el);
+       }
    });
 } // domForEach
 
 
-
 function domForOne(elem = document, pattern = null, fun = null) {
    let parentPattern, childPattern;
-   [elem, pattern, parentPattern, childPattern, fun] = ParseDomForArgs(elem, pattern, fun);
-     if (!pattern || !fun) {
+   [elem, pattern, parentPattern, childPattern, fun] = parseDomForArgs(elem, pattern, fun);
+     if (!fun) {
          console.log('domForEach(): nothing to do');
          return;
      }
 
-     elem = elem.querySelector(pattern);
+     if (elem && pattern) elem = elem.querySelector(pattern);
      if (elem && parentPattern) elem = elem.closest(parentPattern);
      if (elem && childPattern) elem = elem.querySelector(childPattern);
      if (elem) fun(elem);
 } // domForOne
 
 
-function ParseDomForArgs(elem, pattern, fun) {
-  // Parse and assign arguments based on their types
-  [elem, pattern, fun] = [
-    ...[elem, pattern, fun].filter(arg => typeof arg !== 'undefined' && arg !== null)
-  ].map(arg =>
-    typeof arg === 'object' && !(arg instanceof HTMLElement) ? null : arg
-  );
+function parseDomForArgs(elem, pattern, fun) {
 
-  if (typeof elem === 'string') [pattern, fun] = [elem, pattern, fun];
-  else if (typeof elem === 'function') [fun] = [elem, pattern];
+  if (typeof elem !== 'object') {
+    const tmp = elem;
+    fun = pattern;
+    pattern = tmp;
+    elem = document;
+  }
 
-  if (typeof pattern === 'function') [fun] = [pattern, fun];
+  let m;
+  let parentPattern = '';
+  let childPattern = '';
+  pattern = pattern.trim();
+  if (!pattern.includes('^')) {   // normal case, i.e. without parent selector syntax:
+    // check whether pattern contains multiple comma separated segments:
+    if (pattern.includes(',')) {
+      let subPatterns = pattern.split(',');
+      pattern = '';
+      subPatterns.forEach((pat) => {
+        if (pat.match(/[+>|~]/)) {
+          pat = ':scope ' + pat;
+        }
+        pattern += pat.trimEnd() + ',';
+      });
+      pattern = pattern.slice(0, -1);
 
-  let parentPattern = null;
-  let childPattern = null;
+    } else {
+      if (pattern.match(/[+>|~]/)) {
+        pattern = ':scope ' + pattern;
+      }
+    }
 
-  // Parse patterns for hierarchical selection
-  let m = pattern.match(/(.*?) \^ (.*)/);
-  if (m) {
-    pattern = m[1];
-    parentPattern = m[2];
-    m = parentPattern.match(/(.*?) \| (.*)/);
+  } else {
+    if (pattern.includes(',')) {
+      alert('Syntax error is argument: ' + pattern);
+      return;
+    }
+    m = pattern.match(/(.*)\^(.*)/);
     if (m) {
-      parentPattern = m[1];
-      childPattern = m[2];
+      pattern = m[1];
+      parentPattern = m[2];
+      m = parentPattern.match(/^\s*\{(.*?)}(.*)/);
+      if (m) {
+        parentPattern = m[1];
+        childPattern = m[2];
+
+      } else {
+        m = parentPattern.match(/(.*?)\s+(.*)/);
+        if (m) {
+          parentPattern = m[1];
+          childPattern = m[2];
+        }
+      }
     }
   }
-  elem = elem instanceof HTMLElement ? elem : document;
   return [elem, pattern, parentPattern, childPattern, fun];
-} // ParseDomForArgs
-
+} // parseDomForArgs
 
