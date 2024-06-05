@@ -98,6 +98,23 @@ EOT;
                     } else {
                         $str .= $s;
                     }
+                } elseif (is_file($folder)) {
+                    $s = $elemHeader.self::importFile("~/$folder", $literal)."$elemFooter\n\n";
+
+                    if ($wrapperTag) {
+                        $j++;
+                        $str .= <<<EOT
+
+<$wrapperTag class='pfy-imported-elem pfy-imported-elem-$j $wrapperClass'>
+$s
+</$wrapperTag><!-- /pfy-imported-elem-$j -->
+
+EOT;
+
+                    } else {
+                        $str .= $s;
+                    }
+
                 }
             }
             if ($compileMd) {
