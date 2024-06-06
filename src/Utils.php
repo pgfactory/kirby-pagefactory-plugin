@@ -47,6 +47,7 @@ class Utils
             $headTitle = TransVars::translate($headTitle);
         }
         TransVars::setVariable('headTitle', $headTitle);
+        TransVars::setVariable('pageTitle', $kirbyPageTitle);
 
         if (PageFactory::$debug) {
             TransVars::setVariable('generator', 'Kirby v' . kirby()::version() . " + PageFactory " . getGitTag());
@@ -79,6 +80,7 @@ class Utils
 </div>
 EOT;
 
+        $smallScreenHeader = TransVars::translate($smallScreenHeader);
         TransVars::setVariable('smallScreenHeader', $smallScreenHeader);
 
         TransVars::setVariable('langSelection', self::renderLanguageSelector());
