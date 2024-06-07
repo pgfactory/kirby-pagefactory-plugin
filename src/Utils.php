@@ -36,9 +36,10 @@ class Utils
      */
     public static function prepareStandardVariables(): void
     {
-        $kirbyPageTitle = TransVars::setVariable('title', PageFactory::$page->title());
+        $kirbyPageTitle = TransVars::$variables['pageTitle'] ?? PageFactory::$page->title();
         TransVars::setVariable('kirbyPageTitle', $kirbyPageTitle);
-        $kirbySiteTitle = TransVars::setVariable('siteTitle', site()->title());
+
+        $kirbySiteTitle = TransVars::$variables['siteTitle'] ?? site()->title();
         TransVars::setVariable('kirbySiteTitle', $kirbySiteTitle);
         $headTitle = TransVars::getVariable('headTitle');
         if (!$headTitle) {
