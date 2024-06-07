@@ -16,6 +16,7 @@ function button($args = '')
             'class' => ['Class  to apply to button (class "`pfy-button`" is always applied).', null],
             'callback' => ['Optional callback function (either name or closure)', null],
             'title' => ['(optional) Text to be placed in `title=""` attribute of button. ', null],
+            'attrib' => ['HTML attribute, e.g. "data-x=\'y\'" ', null],
         ],
         'summary' => <<<EOT
 
@@ -47,9 +48,10 @@ EOT,
     $id = $options['id']?: "pfy-button-$inx";
     $class = rtrim('pfy-button '.$options['class']);
     $label = $options['label'] ?: 'BUTTON';
+    $attrib = $options['attrib'] ? " {$options['attrib']}" : '';
     $title = $options['title'] ? " title='{$options['title']}'" : '';
 
-    $str .= "<button id='$id' class='$class'$title>$label</button>";
+    $str .= "<button id='$id' class='$class'$title$attrib>$label</button>";
 
     if ($options['callback']) {
         $callback = trim($options['callback']);
