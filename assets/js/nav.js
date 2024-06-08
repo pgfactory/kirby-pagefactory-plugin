@@ -80,6 +80,10 @@ const PfyNav = {
     this.preOpenElems(navWrapper, 99);
 
     const mobileMenuButton = document.getElementById('pfy-nav-menu-icon');
+    if (!mobileMenuButton) {
+      mylog('Error: mobileMenuButton not found.');
+      return;
+    }
     if (!mobileMenuButton.dataset.initialized) {
       mobileMenuButton.dataset.initialized = true;
       mobileMenuButton.setAttribute('aria-controls', 'pfy-primary-nav');
