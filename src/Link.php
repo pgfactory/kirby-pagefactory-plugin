@@ -349,10 +349,14 @@ class Link
 
         if ($icon) {
             $iconName = str_replace(array_keys(self::$iconReplacements), array_values(self::$iconReplacements), $icon);
-            if (iconExists($iconName)) {
-                $icon = renderIcon($iconName, 'pfy-link-icon');
+            if (str_contains(',mail,pdf,external,tel,sms,mobile,geo,', $iconName)) {
+                $icon = Utils::renderPfyIcon($iconName);
             } else {
-                $icon = '';
+                if (iconExists($iconName)) {
+                    $icon = renderIcon($iconName, 'pfy-link-icon');
+                } else {
+                    $icon = '';
+                }
             }
             if (self::$iconBefore) {
                 self::$text = "$icon<span class='pfy-link-text'>" . self::$text . "</span>";

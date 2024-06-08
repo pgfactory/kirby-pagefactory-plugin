@@ -70,7 +70,7 @@ class Utils
         TransVars::setVariable('homeLink', $homeLink);
 
         $appUrl = PageFactory::$appUrl;
-        $menuIcon         = svg('site/plugins/pagefactory/assets/icons/_menu.svg'); // icon variant without prolog
+        $menuIcon = self::renderPfyIcon('menu');
         TransVars::setVariable('menuIcon',$menuIcon);
         $smallScreenTitle = TransVars::$variables['smallScreenHeader']?? site()->title()->value();
         $smallScreenHeader = <<<EOT
@@ -167,7 +167,7 @@ EOT;
 
             TransVars::setVariable('username', $username);
 
-            $logoutIcon = svg('site/plugins/pagefactory/assets/icons/_logout.svg');
+            $logoutIcon = self::renderPfyIcon('logout');
             $pfyLoginButtonLabel = TransVars::getVariable('pfy-logout-button-title');
             TransVars::setVariable('loginButton', "<span class='pfy-login-button'><a href='$logoutLink' class='pfy-login-button' title='$pfyLoginButtonLabel'>$logoutIcon</a></span>");
 
@@ -180,7 +180,7 @@ EOT;
 
             TransVars::setVariable('username', '');
 
-            $loginIcon = svg('site/plugins/pagefactory/assets/icons/_user.svg');
+            $loginIcon = self::renderPfyIcon('user');
             $pfyLoginButtonLabel = TransVars::getVariable('pfy-login-button-title');
             TransVars::setVariable('loginButton', "<span class='pfy-login-button'><a href='$loginLink' class='pfy-login-button' title='$pfyLoginButtonLabel'>$loginIcon</a></span>");
         }
@@ -188,7 +188,26 @@ EOT;
         $pfyAdminPanelLinkText = TransVars::getVariable('pfy-admin-panel-link-text');
         TransVars::setVariable('adminPanelLink', "<a href='{$appUrl}panel' target='_blank'>$pfyAdminPanelLinkText</a>");
 
+        // site/plugins/pagefactory/assets/icons/_pfy-icons.svg
+        $pfyIcons = svg('site/plugins/pagefactory/assets/icons/_pfy-icons.svg');
+        PageFactory::$pg->addBodyEndInjections($pfyIcons);
+
     } // prepareStandardVariables
+
+
+    /**
+     * Appends the svg source to end of body, returns a svg reference (<use...>)
+     * @param string $iconName
+     * @param string $iconFile
+     * @return string
+     * @throws Exception
+     */
+    public static function renderPfyIcon(string $iconName): string
+    {
+        $iconId = "pfy-iconset-$iconName";
+        $icon = "<svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' viewBox='0 0 1000 1000' xml:space='preserve' width='1em'><use href='#$iconId' /></svg>";
+        return $icon;
+    } // renderSvgIcon
 
 
 
