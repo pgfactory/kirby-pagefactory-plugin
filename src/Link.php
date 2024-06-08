@@ -67,7 +67,9 @@ class Link
         self::$text = self::getText();
         self::addIcon();
 
-        if (self::$type === 'pdf') {
+        if (self::$type && str_contains('tel,gsm,sms,mobile', self::$type)) {
+            $url = str_replace(' ', '', self::$url);
+        } elseif (self::$type === 'pdf') {
             $url = dir_name(self::$url) . rawurlencode(base_name(self::$url));
         } else {
             $url = self::$url;
