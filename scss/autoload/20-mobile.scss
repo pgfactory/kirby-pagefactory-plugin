@@ -93,15 +93,23 @@ $mobile-nav-bg-color:     var(--pfy-mobile-nav-bg-color, #{$mobile-nav-bg-color}
       font-size: $mobile-header-txt-size;
       border: none;
       background: none;
-    }
-    svg {
       position: absolute;
-      width: unset;
-      top:    calc(#{$mobile-header-height} * 0.15);
-      height: calc(#{$mobile-header-height} * 0.6);
-      left:   calc(#{$mobile-header-height} * 0.15);
+      inset: 0;
+      top: calc(var(--pfy-mobile-header-height, 11vw) * 0.15);
+      width: calc(var(--pfy-mobile-header-height, 11vw) * 0.6);
+      height: calc(var(--pfy-mobile-header-height, 11vw) * 0.6);
+      left: calc(var(--pfy-mobile-header-height, 11vw) * 0.15);
       cursor: pointer;
-      color: $mobile-header-txt-color;
+      color: var(--pfy-mobile-header-txt-color, #ddd);
+      svg {
+        position: absolute;
+        inset: 0;
+        width: unset;
+        height: calc(#{$mobile-header-height} * 0.7);
+        margin-left: -0.6vw;
+        cursor: pointer;
+        color: $mobile-header-txt-color;
+      }
     }
 
   } // .pfy-small-screen-header
