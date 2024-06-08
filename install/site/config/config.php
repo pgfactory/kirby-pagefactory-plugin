@@ -59,6 +59,7 @@ return [
 // pgfactory.pagefactory-elements.options
 
 /* Cache support:
+    // note: caching always disabled while in debug mode.
     'cache' => [
         'pages' => [
             'active' => true,
