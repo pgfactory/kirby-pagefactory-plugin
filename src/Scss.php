@@ -119,7 +119,7 @@ class Scss
      */
     private static function getFile(string $file): string
     {
-        $compileScssWithLineNumbers = PageFactory::$config['debug_compileScssWithSrcRef'];
+        $compileScssWithLineNumbers = PageFactory::$config['debug_compileScssWithSrcRef'] && PageFactory::$debug;
         if ($compileScssWithLineNumbers) {
             if (!file_exists($file)) {
                 throw new \Exception("Error: file '$file' not found.");
