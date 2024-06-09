@@ -89,7 +89,7 @@ class Assets
     /**
      * @param $pfy
      */
-    public function __construct($pfy = null)
+    public function __construct()
     {
         new Scss();
 
