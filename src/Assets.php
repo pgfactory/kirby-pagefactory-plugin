@@ -353,7 +353,7 @@ class Assets
                     unset($assetGroups[$dest]);
                     $dest = $dest1;
                 }
-                if (PageFactory::$debug || PageFactory::$isLocalhost) {
+                if (PageFactory::$forceAssetsUpdate || PageFactory::$debug || PageFactory::$isLocalhost) {
                     $this->prepareAssetGroup($dest, $sources);
                 }
             }
@@ -639,11 +639,17 @@ class Assets
         if (fileExt($targetFile) !== 'css') { // skip any non-scss files
             $targetFile = fileExt($targetFile, true).'.css';
         }
-        $tTarget = lastModified($targetFile, false);
-        $tSrc = lastModified($srcFile, false);
-        if ($tTarget < $tSrc) {
+        if (PageFactory::$forceAssetsUpdate) {
             Scss::compileFile($srcFile, $targetFile);
             $this->scssModified = true;
+
+        } else {
+            $tTarget = lastModified($targetFile, false);
+            $tSrc = lastModified($srcFile, false);
+            if ($tTarget < $tSrc) {
+                Scss::compileFile($srcFile, $targetFile);
+                $this->scssModified = true;
+            }
         }
         return $targetFile;
     } // compileScss

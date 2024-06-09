@@ -72,6 +72,7 @@ class Scss
         $css = "/* === Automatically created from ".basename($srcFile)." - do not modify! === */\n\n$css";
         preparePath($targetFile);
         file_put_contents($targetFile, $css);
+        mylog("SCSS: '$targetFile' compiled");
     } // compileFile
 
 
@@ -119,7 +120,8 @@ class Scss
      */
     private static function getFile(string $file): string
     {
-        $compileScssWithLineNumbers = PageFactory::$config['debug_compileScssWithSrcRef'] && PageFactory::$debug;
+        $compileScssWithLineNumbers = PageFactory::$config['debug_compileScssWithSrcRef'] &&
+            (PageFactory::$debug || PageFactory::$isAdmin);
         if ($compileScssWithLineNumbers) {
             if (!file_exists($file)) {
                 throw new \Exception("Error: file '$file' not found.");

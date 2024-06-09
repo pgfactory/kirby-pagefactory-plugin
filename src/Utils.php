@@ -511,6 +511,8 @@ EOT;
         }
         session_write_close();
 
+        PageFactory::$forceAssetsUpdate = true;
+
         Cache::flushAll(); // -> deletes media/ and site/cache/
         Assets::reset(); // Deletes all files created by Assets
         PageFactory::$assets->prepareAssets(); // -> recompile scss files while still privileged

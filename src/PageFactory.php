@@ -105,6 +105,7 @@ class PageFactory
     public static $pg;
     public static $md;
     public static $debug;
+    public static $isAdmin;
     public static string $timezone;
     public static string $locale;
     public static $isLocalhost;
@@ -126,6 +127,7 @@ class PageFactory
     public static string $wrapperClass = '';
     private string $sectionsCss;
     private string $sectionsScss;
+    public static bool $forceAssetsUpdate = false;
 
     public static bool $renderingClosed = false;
 
@@ -153,7 +155,11 @@ class PageFactory
         TransVars::init();
 
         self::$debug = Utils::determineDebugState();
+        self::$isAdmin = isAdmin();
         self::$isLocalhost = isLocalhost();
+        if (!file_exists('site/plugins/pagefactory/assets/css/-pagefactory.css')) {
+            self::$forceAssetsUpdate = true;
+        }
 
         self::$assets = new Assets($this);
         self::$pg = new Page($this);
