@@ -1601,7 +1601,7 @@ function mylog(string $str, mixed $filename = false): void
         return;
     }
     $logFile = PFY_LOGS_PATH. $filename;
-    $logMaxWidth = 60;
+    $logMaxWidth = 80;
     logFileManager($logFile);
 
     if ((strlen($str) > $logMaxWidth) || (strpos($str, "\n") !== false)) {
