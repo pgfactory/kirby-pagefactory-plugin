@@ -285,7 +285,7 @@ EOT;
         }
 
         self::execAsAnon('printview,printpreview,print-preview,print,logout,reset,flush,flushcache,iframe');
-        self::execAsAdmin('help,reset,notranslate');
+        self::execAsAdmin('help,reset,notranslate,release');
     } // handleAgentRequests
 
 
@@ -484,6 +484,11 @@ EOT;
                 case 'reset': // ?reset
                     self::resetAll();
                     reloadAgent();
+
+                case 'release': // ?release
+                    PageFactory::$debug = false;
+                    self::resetAll();
+                    reloadAgent();
             }
         }
     } // execAsAdmin
@@ -495,7 +500,6 @@ EOT;
      */
     private static function resetAll(): void
     {
-        Assets::reset(); // Deletes all files created by Assets
         kirby()->session()->clear(); // Resets all Kirby sessions
 
         // deletes all PHP-session variables used by PageFactory:
@@ -508,6 +512,8 @@ EOT;
         session_write_close();
 
         Cache::flushAll(); // -> deletes media/ and site/cache/
+        Assets::reset(); // Deletes all files created by Assets
+        PageFactory::$assets->prepareAssets(); // -> recompile scss files while still privileged
     } // resetAll
 
 
@@ -536,6 +542,7 @@ EOT;
 [?print](./?print)		    	>> starts printing mode and launches the printing dialog
 [?printpreview](./?printpreview)  	>> presents the page in print-view mode    
 [?reset](./?reset)		    	>> resets all state-defining information: caches, tokens, session-vars.
+[?release](./?release)		    >> like reset, but recompiles SCSS files without line numbers.
 
 @@@
 EOT;
