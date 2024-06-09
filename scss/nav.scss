@@ -107,6 +107,11 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
     margin: 0;
   }
 
+  // hide surrogate elem if folder empty (i.e. fall through to child):
+  .pfy-nav-no-child .pfy-surrogate-elem {
+    display: none;
+  }
+
   .pfy-nav-empty,
   &.pfy-nav-empty {
     display: none;

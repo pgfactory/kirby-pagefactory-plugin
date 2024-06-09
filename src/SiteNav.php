@@ -136,7 +136,6 @@ EOT;
      * @return string
      */
     private static function _render($subtree, $indent = '', $prefix = ''): string
-//    private static function _render($subtree, $indent = ''): string
     {
         $out = '';
         foreach ($subtree->listed() as $pg) {
@@ -175,14 +174,16 @@ EOT;
             $title = $pg->title()->html();
             $hasChildren = !$pg->children()->listed()->isEmpty();
 
+            $class = '';
             // if folder contains no md-file, fall through to first child page:
             if ($hasChildren && !$hasContent) {
                 if ($pg1 = $pg->children()->listed()->first()) {
                     $url = $pg1->url();
+                    $class = 'pfy-nav-no-child';
                 }
             }
+            $class = $class ? " class='$class'" : '';
 
-            $class = '';
             if (self::$deep && $hasChildren) {
                 $out .= "$indent<li$class><a href='$url'$curr>$title</a>";
                 $out .=  self::_render($pg->children(), "$indent    ");
@@ -197,7 +198,6 @@ EOT;
 
         $listTag = self::$listTag;
         $out = "\n$indent<{$listTag}>$prefix\n$out$indent</{$listTag}>\n";
-//        $out = "\n$indent<{$listTag}>\n$out$indent</{$listTag}>\n";
         return $out;
     } // _render
 
