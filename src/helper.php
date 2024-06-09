@@ -1527,14 +1527,19 @@ function preparePath(string $path0, $accessRights = false): void
         $path0 = resolvePath($path0);
     }
 
-    // check for inappropriate path, e.g. one attempting to point to an ancestor directory:
-    if (strpos($path0, '../') !== false) {
-        $path0 = normalizePath($path0);
-        if (strpos($path0, '../') !== false) {
-            mylog("=== Warning: preparePath() trying to access inappropriate location: '$path0'");
-            return;
-        }
+    if (file_exists(dirname($path0))) {
+        return; // nothing to do
     }
+
+    //ToDo: security risk to skip this check?
+    // check for inappropriate path, e.g. one attempting to point to an ancestor directory:
+    //    if (strpos($path0, '../') !== false) {
+    //        $path0 = normalizePath($path0);
+    //        if (strpos($path0, '../') !== false) {
+    //            mylog("=== Warning: preparePath() trying to access inappropriate location: '$path0'");
+    //            return;
+    //        }
+    //    }
 
     // make folder(s) if necessary:
     $path = dirname($path0.'x');
