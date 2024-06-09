@@ -1329,11 +1329,39 @@ class DataSet
                 $data = $this->data($includeMeta, recKeyType: $masterFileRecKeyType);
             }
 
+            // handle option 'keepDbHistory' -> keep previous file state and limit max age of history:
+            if ($maxAge = kirby()->option('pgfactory.pagefactory.options.keepDbHistory', false)) {
+                $historyFile = dirname($this->file).'/.history/'.date('Y-m-d_H.i.s_').basename($this->file);
+                preparePath($historyFile);
+                writeFileLocking($historyFile, $data, false);
+                if ($maxAge !== true) {
+                    $this->historyFileManager($historyFile, intval($maxAge));
+                }
+            }
+
             writeFileLocking($this->file, $data, blocking: true);
         } catch (\Exception $e) {
             throw new \Exception($e->getMessage());
         }
     } // exportToMasterFile
+
+
+    /**
+     * @param $file
+     * @param $maxAgeInMonths
+     * @return void
+     */
+    private function historyFileManager(string $file, int $maxAgeInMonths): void
+    {
+        $maxAge = strtotime("-$maxAgeInMonths months");
+        if ($dir = getDir(dirname($file))) {
+            foreach ($dir as $file) {
+                if (filemtime($file) < $maxAge) {
+                    unlink($file);
+                }
+            }
+        }
+    } // historyFileManager
 
 
     /**
