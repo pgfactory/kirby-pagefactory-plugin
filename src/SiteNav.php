@@ -179,7 +179,7 @@ EOT;
             if ($hasChildren && !$hasContent) {
                 if ($pg1 = $pg->children()->listed()->first()) {
                     $url = $pg1->url();
-                    $class = 'pfy-nav-no-child';
+                    $class = 'pfy-nav-no-direct-child';
                 }
             }
             $class = $class ? " class='$class'" : '';

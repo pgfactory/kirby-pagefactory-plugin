@@ -184,7 +184,6 @@ const PfyNav = {
         // handle sub-branches:
         const subOlElem = liElem.querySelector('ol,ul');
         if (subOlElem) {
-          let isSurrogateELem = liElem.classList.contains('pfy-has-surrogate-elem');
           liElem.classList.add('pfy-has-children');
           let ariaExpanded = PfyNav.isTopNav? 'false' : 'true';
           if (!PfyNav.isTopNav) {
@@ -226,7 +225,7 @@ const PfyNav = {
           let olInnerHtml = subOlElem.innerHTML;
 
           // if liElem has children but is not yet a surrogate-elem, convert it into one now:
-          if (isCollapsible && !liElem.classList.contains('pfy-has-surrogate-elem')) {
+          if (isCollapsible && !liElem.classList.contains('pfy-has-surrogate-elem') && !liElem.classList.contains('pfy-nav-no-direct-child')) {
             const aHref = aElem.getAttribute('href');
             const aText = aElem.innerHTML;
             olInnerHtml = '<li class="pfy-lvl-' + (depth+1) + ` pfy-surrogate-elem"><a href="${aHref}">${aText}</a></li>` + olInnerHtml;
