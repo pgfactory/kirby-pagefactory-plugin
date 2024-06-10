@@ -114,6 +114,7 @@ EOT;
             file_put_contents(PFY_WEBMASTER_EMAIL_CACHE, $webmasterEmail);
         }
         TransVars::setVariable('webmaster_email', $webmasterEmail);
+        PageFactory::$webmasterEmail = $webmasterEmail;
         
         $webmasterLink = Link::render([
             'url' => "mailto:$webmasterEmail",
