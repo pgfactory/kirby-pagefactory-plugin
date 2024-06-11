@@ -10,7 +10,7 @@ use Kirby\Exception\InvalidArgumentException;
 /**
  * @throws InvalidArgumentException
  */
-function style($argStr = ''): array|string
+return function ($argStr = ''): array|string
 {
     // Definition of arguments and help-text:
     $config =  [
@@ -34,5 +34,5 @@ EOT,
 
     // assemble output:
     return "<span class='pfy-styled-$inx' style='{$options['style']}'>{$options['text']}</span>";
-}
+};
 

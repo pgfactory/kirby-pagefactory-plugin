@@ -7,7 +7,7 @@ namespace PgFactory\PageFactory;
 
 require_once __DIR__.'/../src/Link.php';
 
-function link($argStr = '')
+return function($argStr = '')
 {
     // Definition of arguments and help-text:
     $config =  [
@@ -53,5 +53,5 @@ EOT,
     $str .= Link::render($args);
 
     return $str;
-} // link
+}; // link
 

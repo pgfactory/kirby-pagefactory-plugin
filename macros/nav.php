@@ -4,7 +4,7 @@ namespace PgFactory\PageFactory;
 
 require_once __DIR__.'/../src/SiteNav.php';
 
-function nav($args = null)
+return function($args = null)
 {
     $funcName = basename(__FILE__, '.php');
     $config =  [
@@ -75,5 +75,5 @@ EOT,
 
     $str = SiteNav::render($options);
     return $sourceCode.$str;
-} // nav
+}; // nav
 

@@ -5,7 +5,7 @@ namespace PgFactory\PageFactory;
  * Twig function
  */
 
-function prevnextlinks($argStr = '')
+return function ($argStr = '')
 {
     $funcName = basename(__FILE__, '.php');
     // Definition of arguments and help-text:
@@ -50,7 +50,7 @@ EOT,
     $str .= $obj->render($options);
 
     return $str;
-}
+};
 
 
 

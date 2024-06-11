@@ -1,8 +1,9 @@
 <?php
 namespace PgFactory\PageFactory;
 
-function lorem($argStr = '')
+return function($argStr = '')
 {
+    $macroName = basename(__FILE__, '.php');
     $config =  [
         'options' => [
             'min' => ['If set, defines the minimum number of random words to be rendered.', false],
@@ -12,9 +13,9 @@ function lorem($argStr = '')
             'wrapperTag' => ['Allows to define the tag of the wrapper element', 'div'],
         ],
         'summary' => <<<EOT
-# lorem()
+# $macroName()
 
-Renders filler text "Lorem ipsum...". 
+Renders filler text "Lorem ipsum...".
 
 If you set min or max values, rendered words are selected at random.
 
@@ -29,11 +30,11 @@ EOT,
     }
 
     $lorem = <<<EOT
-Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore 
-et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. 
-Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, 
-consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, 
-sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no 
+Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore
+et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum.
+Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet,
+consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat,
+sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no
 sea takimata sanctus est Lorem ipsum dolor sit amet.
 EOT;
     if ($args['max'] === false) {
@@ -69,5 +70,5 @@ EOT;
     }
 
     return $sourceCode.$str;
-} // lorem
+}; // lorem
 

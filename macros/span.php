@@ -10,7 +10,7 @@ use Kirby\Exception\InvalidArgumentException;
 /**
  * @throws InvalidArgumentException
  */
-function span($argStr = ''): array|string
+return function ($argStr = ''): array|string
 {
     // Definition of arguments and help-text:
     $config =  [
@@ -55,5 +55,5 @@ EOT,
 
     // assemble output:
     return "$source<$tag$attr>{$options['text']}</$tag>";
-}
+};
 

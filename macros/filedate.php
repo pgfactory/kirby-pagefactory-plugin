@@ -7,7 +7,7 @@ namespace PgFactory\PageFactory;
 
 use function PgFactory\PageFactoryElements\intlDate;
 
-function filedate($args = '')
+return function($args = '')
 {
     $funcName = basename(__FILE__, '.php');
     // Definition of arguments and help-text:
@@ -61,4 +61,4 @@ EOT,
     }
 
     return $str;
-}
+};

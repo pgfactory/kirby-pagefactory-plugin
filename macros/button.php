@@ -5,7 +5,7 @@ namespace PgFactory\PageFactory;
  * PageFactory Macro (and Twig Function)
  */
 
-function button($args = '')
+return function($args = '')
 {
     $funcName = basename(__FILE__, '.php');
     // Definition of arguments and help-text:
@@ -75,5 +75,5 @@ EOT;
     }
 
     return $str;
-}
+};
 

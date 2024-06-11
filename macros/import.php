@@ -2,7 +2,7 @@
 namespace PgFactory\PageFactory;
 
 
-function import($argStr = '')
+return function($argStr = '')
 {
     // Definition of arguments and help-text:
     $config =  [
@@ -40,7 +40,7 @@ EOT,
     $str = Import::render($args);
 
     return $source.$str;
-}
+};
 
 
 

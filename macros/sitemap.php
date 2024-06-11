@@ -5,7 +5,7 @@ namespace PgFactory\PageFactory;
  * Twig function
  */
 
-function sitemap($argStr = '')
+return function ($argStr = '')
 {
     $funcName = basename(__FILE__, '.php');
     // Definition of arguments and help-text:
@@ -64,5 +64,5 @@ EOT,
     }
     $str .= SiteNav::render($options);
     return $str;
-}
+};
 

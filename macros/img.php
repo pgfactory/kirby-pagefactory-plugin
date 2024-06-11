@@ -7,7 +7,20 @@ namespace PgFactory\PageFactory;
 
 use Kirby\Exception\InvalidArgumentException;
 
-function img($argStr = '')
+if (!defined('IMG_MAX_WIDTH')) {
+    define('IMG_MAX_WIDTH', 1920);
+}
+if (!defined('IMG_MAX_HEIGHT')) {
+    define('IMG_MAX_HEIGHT', 1440);
+}
+if (!defined('DEFAULT_THUMB_WIDTH')) {
+    define('DEFAULT_THUMB_WIDTH', 200);
+}
+if (!defined('DEFAULT_THUMB_HEIGHT')) {
+    define('DEFAULT_THUMB_HEIGHT', 150);
+}
+
+return function($argStr = '')
 {
     // Definition of arguments and help-text:
     $config =  [
@@ -75,5 +88,5 @@ EOT,
     $str .= $img->html();
 
     return $str;
-}
+};
 

@@ -5,7 +5,7 @@ namespace PgFactory\PageFactory;
  * Twig function
  */
 
-function vgap($argStr = '')
+return function ($argStr = '')
 {
     // Definition of arguments and help-text:
     $config =  [
@@ -39,5 +39,5 @@ EOT,
     }
     $class = trim("pfy-vgap pfy-vgap-{$inx} $class");
     return "<div id='pfy-vgap-$inx' class='$class' style='margin:$gapSize 0;'>&nbsp;</div>";
-}
+};
 

@@ -1,11 +1,18 @@
 <?php
 namespace PgFactory\PageFactory;
 
-const IMG_MAX_WIDTH         = 1920;
-const IMG_MAX_HEIGHT        = 1440;
-const DEFAULT_THUMB_WIDTH   = 200;
-const DEFAULT_THUMB_HEIGHT  = 150;
-const SRCSET_MIN_WIDTH      = 300;
+if (!defined('IMG_MAX_WIDTH')) {
+    define('IMG_MAX_WIDTH', 1920);
+}
+if (!defined('IMG_MAX_HEIGHT')) {
+    define('IMG_MAX_HEIGHT', 1440);
+}
+if (!defined('DEFAULT_THUMB_WIDTH')) {
+    define('DEFAULT_THUMB_WIDTH', 200);
+}
+if (!defined('DEFAULT_THUMB_HEIGHT')) {
+    define('DEFAULT_THUMB_HEIGHT', 150);
+}
 
 /*
  * PageFactory Macro (and Twig Function)
@@ -21,7 +28,7 @@ use Kirby\Data\Data;
  * @return string
  * @throws \Kirby\Exception\InvalidArgumentException
  */
-function galery($args = ''): string
+return function($args = ''): string
 {
     $funcName = basename(__FILE__, '.php');
     // Definition of arguments and help-text:
@@ -143,7 +150,7 @@ EOT;
     loadAssets($options['config'], $inx);
 
     return $str.$html; // return [$str]; if result needs to be shielded
-} // galery
+}; // galery
 
 
 /**

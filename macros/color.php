@@ -5,7 +5,7 @@ namespace PgFactory\PageFactory;
  * Twig function
  */
 
-function color($argStr = '')
+return function($argStr = '')
 {
     // Definition of arguments and help-text:
     $config =  [
@@ -31,5 +31,5 @@ EOT,
     $str = "<span style='color:{$options['color']};'>{$options['text']}</span>";
 
     return $str;
-}
+};
 
