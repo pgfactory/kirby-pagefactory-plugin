@@ -11,11 +11,10 @@
  * @license   MIT <https://opensource.org/licenses/MIT>
  */
 
-const TWIG_FUNCTIONS_FOLDER = __DIR__.'/twig-functions/';
 require_once __DIR__ . '/vendor/autoload.php';
 
+use PgFactory\PageFactory\Macros;
 use PgFactory\PageFactory\PageFactory as PageFactory;
-use PgFactory\PageFactory\TransVars;
 
 loadTwigFunctions();
 
@@ -76,11 +75,42 @@ Kirby::plugin('pgfactory/pagefactory', [
  */
 function loadTwigFunctions(): void
 {
-    // load twig-functions:
-    $twigFunctions = TransVars::findAllMacros(includePaths: true);
-    foreach ($twigFunctions as $file) {
-        if (basename($file)[0] !== '#') {
-            require_once $file;
-        }
+    $twigFunctions = Macros::getMacros();
+    foreach ($twigFunctions as $funName => $file) {
+        $funName = basename($file, '.php');
+        instantiateMacroLoaders($funName, $file);
     }
+} // loadTwigFunctions
+
+
+/**
+ * @param $funName
+ * @param $file
+ * @return void
+ */
+function instantiateMacroLoaders($funName, $file)
+{
+    if (function_exists($funName)) {
+        return;
+    }
+
+    $s = file_get_contents($file);
+    if (!preg_match("/\nreturn function/", $s)) {
+        // legacy mode:
+        require_once $file;
+        return;
+    }
+
+    // normal mode: instatiate an include wrapper:
+    $createFun = <<<EOT
+namespace PgFactory\PageFactory;
+function $funName(\$args = [])
+{
+    \$fun = include '$file';
+    return \$fun(\$args);
 }
+
+EOT;
+    eval($createFun);
+} // instantiateMacroLoaders
+
