@@ -488,8 +488,8 @@ EOT;
             $src = $options['src'] ?? false;
             $width = $options['width'] ?? false;
             $height = $options['height'] ?? false;
-            $maxWidth = $options['maxWidth'] ?? IMG_MAX_WIDTH;
-            $maxHeight = $options['maxHeight'] ?? IMG_MAX_HEIGHT;
+            $maxWidth = $options['maxWidth'] ?? DEFAULT_MAX_IMAGE_WIDTH;
+            $maxHeight = $options['maxHeight'] ?? DEFAULT_MAX_IMAGE_HEIGHT;
         }
 
         if (!$src) {
