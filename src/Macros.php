@@ -40,25 +40,13 @@ class Macros
                     $argStr = TransVars::translate($argStr);
                 }
 
-                // check for macro name with leading '_':
-                if (function_exists("PgFactory\\PageFactory\\_$macroName")) {
-                    $macroName = "_$macroName";
-                }
-                if (function_exists("PgFactory\\PageFactory\\$macroName")) {
-                    // the actual macro call:
-                    $value = "PgFactory\\PageFactory\\$macroName"($argStr);
-
-                    if (is_array($value)) {
-                        $value = $value[0]??'';
+                $value = self::execute($macroName, $argStr);
+                if ($value === false) {
+                    if ($hideIfUnknown) {
+                        $value = '';
                     } else {
-                        $value = TransVars::resolveShortFormVariables($value);
-                        $value = shieldStr($value, 'inline');
+                        $value = "\\{{ $cand }}";
                     }
-
-                } elseif ($hideIfUnknown) {
-                    $value = '';
-                } else {
-                    $value = "\\{{ $cand }}";
                 }
             } elseif ($onlyMacros) {
                 list($p1, $p2) = strPosMatching($str, $p2);
@@ -75,6 +63,33 @@ class Macros
         }
         return $str;
     } // executeMacros
+
+
+    public static function exists(string $macroName): bool
+    {
+        return in_array($macroName, self::$macros);
+    } // exists
+
+
+    public static function execute(string $macroName, string $argStr): string|false
+    {
+        if (function_exists("PgFactory\\PageFactory\\_$macroName")) {
+            $macroName = "_$macroName";
+        } elseif (!function_exists("PgFactory\\PageFactory\\$macroName")) {
+            return false;
+        }
+
+        // the actual macro call:
+        $value = "PgFactory\\PageFactory\\$macroName"($argStr);
+
+        if (is_array($value)) {
+            $value = $value[0]??'';
+        } else {
+            $value = TransVars::resolveShortFormVariables($value);
+            $value = shieldStr($value, 'inline');
+        }
+        return $value;
+    } // execute
 
 
     /**
