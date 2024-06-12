@@ -16,7 +16,10 @@ require_once __DIR__ . '/vendor/autoload.php';
 use PgFactory\PageFactory\Macros;
 use PgFactory\PageFactory\PageFactory as PageFactory;
 
-loadTwigFunctions();
+// find all macros and preparate as functions to Twig:
+require_once 'site/plugins/pagefactory/src/Macros.php';
+Macros::loadTwigFunctions();
+
 
 Kirby::plugin('pgfactory/pagefactory', [
 
@@ -68,49 +71,4 @@ Kirby::plugin('pgfactory/pagefactory', [
     ], // hooks
 
 ]);
-
-
-/**
- * @return void
- */
-function loadTwigFunctions(): void
-{
-    $twigFunctions = Macros::getMacros();
-    foreach ($twigFunctions as $funName => $file) {
-        $funName = basename($file, '.php');
-        instantiateMacroLoaders($funName, $file);
-    }
-} // loadTwigFunctions
-
-
-/**
- * @param $funName
- * @param $file
- * @return void
- */
-function instantiateMacroLoaders($funName, $file)
-{
-    if (function_exists($funName)) {
-        return;
-    }
-
-    $s = file_get_contents($file);
-    if (!preg_match("/\nreturn function/", $s)) {
-        // legacy mode:
-        require_once $file;
-        return;
-    }
-
-    // normal mode: instatiate an include wrapper:
-    $createFun = <<<EOT
-namespace PgFactory\PageFactory;
-function $funName(\$args = [])
-{
-    \$fun = include '$file';
-    return \$fun(\$args);
-}
-
-EOT;
-    eval($createFun);
-} // instantiateMacroLoaders
 

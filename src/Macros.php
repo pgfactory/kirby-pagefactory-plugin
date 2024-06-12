@@ -413,5 +413,51 @@ EOT;
         return $auxOptions;
     } // extractedAuxOptions
 
+
+    /**
+     * @return void
+     */
+    public static function loadTwigFunctions(): void
+    {
+        $twigFunctions = self::getMacros();
+        foreach ($twigFunctions as $funName => $file) {
+            $funName = basename($file, '.php');
+            self::instantiateMacroLoaders($funName, $file);
+        }
+    } // loadTwigFunctions
+
+
+    /**
+     * For each Macro instantiate a caller function which upon request loads and executes the actual macro.
+     * @param $funName
+     * @param $file
+     * @return void
+     */
+    private static function instantiateMacroLoaders($funName, $file)
+    {
+        if (function_exists($funName)) {
+            return;
+        }
+
+        if (!preg_match("/\nreturn function/", file_get_contents($file))) {
+            // legacy mode -> preload entire macro:
+            require_once $file;
+            return;
+        }
+
+        // normal mode: instantiate a load-and-execute wrapper:
+        $createFun = <<<EOT
+namespace PgFactory\PageFactory;
+function $funName(\$args = [])
+{
+    \$fun = include '$file';
+    return \$fun(\$args);
+}
+
+EOT;
+        eval($createFun);
+    } // instantiateMacroLoaders
+
+
 } // Macros
 
