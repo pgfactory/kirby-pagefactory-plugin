@@ -224,6 +224,39 @@ function createHash(size = 8) {
 } // createHash
 
 
+function pullScript(url, callback){
+  pull(url, function loadReturn(data, status, xhr){
+    if(status === 200){
+      var script = document.createElement('script');
+      script.innerHTML = data; // Instead of setting .src set .innerHTML
+      document.querySelector('head').appendChild(script);
+    }
+    if (typeof callback != 'undefined'){
+      // If callback was given skip an execution frame and run callback passing relevant arguments
+      setTimeout(function runCallback(){callback(data, status, xhr)}, 0);
+    }
+  });
+}
+
+
+/*
+ * https://stackoverflow.com/questions/16839698/jquery-getscript-alternative-in-native-javascript#answer-74353637
+ * Usage: pullScript(URL);
+ */
+function pull(url, callback) {
+  var xhr = new XMLHttpRequest();
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState === XMLHttpRequest.DONE) {
+      callback(xhr.responseText, xhr.status, xhr);
+    }
+  };
+  xhr.open('GET', url, true);
+  xhr.setRequestHeader('accept', '*/*;q=0.5, text/javascript, application/javascript, application/ecmascript, application/x-ecmascript');
+  xhr.setRequestHeader('x-requested-with', 'XMLHttpRequest');
+  xhr.send();
+}
+
+
 document.addEventListener('DOMContentLoaded', function() {
   initCopyButton();
   adaptToWidth();
