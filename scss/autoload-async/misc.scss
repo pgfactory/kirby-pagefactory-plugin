@@ -114,6 +114,91 @@
     right: unset !important;
   }
 
+  // Macro -> showSource:
+  .pfy-source-code {
+    strong {
+      color: red;
+      font-weight: normal;
+    }
+    em {
+      color: blue;
+      font-style: normal;
+    }
+    pre {
+      padding: 5px 10px;
+      background: #f3f5e3;
+      outline: 1px solid #aaa;
+    }
+    code {
+      font-size: 8pt;
+      line-height: 1em;
+      font-family: "Input", "Menlo", monospace;
+      color: black;
+    }
+  }
+
+  // === Macro source code
+  .pfy-src-html-wrapper,
+  .pfy-src-code {
+    padding: 1em;
+    border: 1px solid #dbddcd;
+    background: #fdffee;
+    max-width: 40rem;
+    overflow-x: auto;
+    font-size: 10pt;
+  }
+
+  .pfy-src-html-wrapper,
+  .pfy-src-wrapper {
+    > div {
+      margin-bottom: 1em;
+
+      > h2 {
+        font-size: 14pt;
+        margin: 0 0 0.6em 0;
+      }
+    }
+
+    > h2 {
+      font-size: 14pt;
+      margin: 0 0 0.6em 0;
+    }
+  }
+
+  .pfy-src-html-wrapper {
+    code {
+      white-space: pre;
+    }
+  }
+
+  .pfy-src-code-popup {
+    position: relative;
+    border: 1px solid #dbddcd;
+    padding: 4px;
+
+    .pfy-src-output h2 {
+      display: none;
+    }
+  }
+
+  .pfy-show-source-btn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 0.3rem;
+    font-family: arial, sans-serif;
+    font-size: 10pt;
+  }
+
+
+  // === Misc ================================
+  .pfy-error {
+    display: inline-block;
+    border: 1px solid red;
+    padding: 5px;
+    background: #fee;
+  }
+
 } // pfy-default-styling
 
 
@@ -152,85 +237,6 @@
         padding: 1em;
         background: #fffce9;
     }
-}
-
-
-
-// Macro -> showSource:
-#pfy .pfy-source-code.pfy-encapsulated,
-.pfy-source-code {
-    strong {
-        color: red;
-        font-weight: normal;
-    }
-    em {
-        color: blue;
-        font-style: normal;
-    }
-    pre {
-        padding: 5px 10px;
-        background: #f3f5e3;
-        outline: 1px solid #aaa;
-    }
-    code {
-        font-size: 8pt;
-        line-height: 1em;
-        font-family: "Input", "Menlo", monospace;
-        color: black;
-    }
-}
-
-// === Macro source code
-.pfy-src-html-wrapper,
-.pfy-src-code {
-    padding: 1em;
-    border: 1px solid #dbddcd;
-    background: #fdffee;
-    max-width: 40rem;
-    overflow-x: auto;
-    font-size: 10pt;
-}
-
-.pfy-src-html-wrapper,
-.pfy-src-wrapper {
-    > div {
-        margin-bottom: 1em;
-
-        > h2 {
-            font-size: 14pt;
-            margin: 0 0 0.6em 0;
-        }
-    }
-
-    > h2 {
-        font-size: 14pt;
-        margin: 0 0 0.6em 0;
-    }
-}
-
-.pfy-src-html-wrapper {
-    code {
-        white-space: pre;
-    }
-}
-
-.pfy-src-code-popup {
-    position: relative;
-    border: 1px solid #dbddcd;
-    padding: 4px;
-
-    .pfy-src-output h2 {
-        display: none;
-    }
-}
-
-.pfy-show-source-btn {
-    position: absolute;
-    top: 0;
-    right: 0;
-    padding: 0.3rem;
-    font-family: arial, sans-serif;
-    font-size: 10pt;
-}
+} // pfy-help
 
 
