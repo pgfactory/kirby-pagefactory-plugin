@@ -31,6 +31,7 @@ define('TEMP_DOWNLOAD_PATH',       DOWNLOAD_PATH.'temp/'); // for temp download 
 define('PFY_WEBMASTER_EMAIL_CACHE',  PFY_CACHE_PATH.'webmaster-email.txt');
 
 const PFY_MKDIR_MASK =             0700; // permissions for file accesses by PageFactory
+const IMMUTABLE_SHIELD =           'span immutable';
 const BLOCK_SHIELD =               'div shielded';
 const INLINE_SHIELD =              'span shielded';
 const MD_SHIELD =                  'span mdshielded';

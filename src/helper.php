@@ -2185,11 +2185,13 @@ function compileMarkdown(string $mdStr, bool $omitPWrapperTag = false): string
 * @param bool $mdCompile
 * @return string
 */
- function shieldStr(string $str, mixed $options = false): string
+ function shieldStr(string $str, string $mode = 'block'): string
  {
-     $ch1 = $options[0]??'';
+     $ch1 = $mode[0]??'';
      $base64 = rtrim(base64_encode($str), '=');
-     if ($ch1 === 'm') {
+     if ($mode === 'immutable') {
+         return '<'.IMMUTABLE_SHIELD.">$base64</".IMMUTABLE_SHIELD.'>';
+     } elseif ($ch1 === 'm') {
          return '<'.MD_SHIELD.">$base64</".MD_SHIELD.'>';
      } elseif ($ch1 === 'i') {
          return '<'.INLINE_SHIELD.">$base64</".INLINE_SHIELD.'>';
@@ -2199,26 +2201,37 @@ function compileMarkdown(string $mdStr, bool $omitPWrapperTag = false): string
  } // shieldStr
 
 
-
-/**
-* Un-shields shielded strings, optionally running the result through the md-compiler
-* @param string $str
-* @return string
-*/
-function unshieldStr(string $str, bool $unshieldLiteral = null): string
+ /**
+  * Un-shields shielded strings, optionally running the result through the md-compiler
+  * Immutably shielded elements shall be unshielded at the very last moment, i.e. Pagefactory/index.php
+  * @param string $str
+  * @param bool|null $unshieldLiteral
+  * @param bool $immutable
+  * @return string
+  */
+function unshieldStr(string $str, bool $unshieldLiteral = null, bool $immutable = false): string
 {
     if (!str_contains($str, '<')) {
         return $str;
     }
 
-    // pseudo-tags <INLINE_SHIELD>,<BLOCK_SHIELD> and <MD_SHIELD> may be (partially) translated, fix them:
-    $str = preg_replace('#(&lt;|<)(/?('.INLINE_SHIELD.'|'.BLOCK_SHIELD.'|'.MD_SHIELD.'))(&gt;|>)#', "<$2>", $str);
+    // pseudo-tags <INLINE_SHIELD>,<BLOCK_SHIELD>,<MD_SHIELD> and <IMMUTABLE_SHIELD> may be (partially) translated, fix them:
+    $str = preg_replace('#(&lt;|<)(/?('.INLINE_SHIELD.'|'.BLOCK_SHIELD.'|'.MD_SHIELD.'|'.IMMUTABLE_SHIELD.'))(&gt;|>)#', "<$2>", $str);
 
     if ($unshieldLiteral !== false) {
         // patters <INLINE_SHIELD>,<BLOCK_SHIELD>
         if (preg_match_all('/<('.INLINE_SHIELD.'|'.BLOCK_SHIELD.')>(.*?)<\/('.INLINE_SHIELD.'|'.BLOCK_SHIELD.')>/m', $str, $m)) {
             foreach ($m[2] as $i => $item) {
                 $literal = base64_decode($m[2][$i]);
+                $str = str_replace($m[0][$i], $literal, $str);
+            }
+        }
+    }
+    if ($immutable) {
+        // patters <IMMUTABLE_SHIELD>
+        if (preg_match_all('/<'.IMMUTABLE_SHIELD.'>(.*?)<\/'.IMMUTABLE_SHIELD.'>/m', $str, $m)) {
+            foreach ($m[1] as $i => $item) {
+                $literal = base64_decode($m[1][$i]);
                 $str = str_replace($m[0][$i], $literal, $str);
             }
         }
