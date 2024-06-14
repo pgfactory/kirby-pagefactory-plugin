@@ -384,9 +384,7 @@ EOT;
         $jq = <<<EOT
 setTimeout(function() {
   console.log('now running paged.polyfill.js');
-  var script = document.createElement('script');
-  script.src = '$pagedPolyfillScript';
-  document.body.appendChild(script);
+  pullScript( '$pagedPolyfillScript' );
 }, 1000);
 
 setTimeout(function() {
@@ -411,14 +409,11 @@ EOT;
     private static function print()
     {
         $pagedPolyfillScript = PageFactory::$appUrl.PAGED_POLYFILL_SCRIPT_URL;
+
         $jq = <<<EOT
 setTimeout(function() {
-    console.log('now running paged.polyfill.js'); 
-    $.getScript( '$pagedPolyfillScript' );
-}, 1000);
-setTimeout(function() {
     window.print();
-}, 1200);
+}, 200);
 
 EOT;
         PageFactory::$pg->addJq($jq);
