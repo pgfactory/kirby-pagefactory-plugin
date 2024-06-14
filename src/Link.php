@@ -3,9 +3,9 @@
 namespace PgFactory\PageFactory;
 
 define('SUPPORTED_TYPES',   ',pdf,png,gif,jpg,jpeg,txt,doc,docx,xls,xlsx,ppt,pptx,odt,ods,odp,mail,mailto,file,'.
-    'sms,tel,gsm,geo,slack,twitter,facebook,instagram,tiktok,');
+    'sms,tel,gsm,geo,slack,twitter,facebook,instagram,tiktok,zip,');
 define('PROTO_TYPES',        ',mailto:,sms:,tel:,gsm:,geo:,slack:,twitter:,facebook:,instagram:,tiktok:,');
-define('DOWNLOAD_TYPES',        ',txt,doc,docx,dotx,xls,xlsx,xltx,ppt,pptx,potx,odt,ods,ots,ott,odp,otp,png,gif,jpg,jpeg,');
+define('DOWNLOAD_TYPES',        ',txt,doc,docx,dotx,xls,xlsx,xltx,ppt,pptx,potx,odt,ods,ots,ott,odp,otp,png,gif,jpg,jpeg,zip,');
 
 class Link
 {
@@ -20,6 +20,7 @@ class Link
     private static $proto;
     private static $target;
     private static $type;
+    private static $ext;
     private static $linkCat;
     private static $icon;
     private static $iconBefore;
@@ -53,6 +54,7 @@ class Link
         self::$proto = '';
         self::$target = false;
         self::$type = false;
+        self::$ext = fileExt(self::$url) ?: ($args['type']??'');
         self::$linkCat = false;
         self::$icon = false;
         self::$iconBefore = !(($args['iconPosition'] ?? false) && ($args['iconPosition'] === 'after'));
@@ -69,7 +71,7 @@ class Link
 
         if (self::$type && str_contains('tel,gsm,sms,mobile', self::$type)) {
             $url = str_replace(' ', '', self::$url);
-        } elseif (self::$type === 'pdf') {
+        } elseif (self::$type === 'pdf' && !str_starts_with(self::$url, '<span immutable')) {
             $url = dir_name(self::$url) . rawurlencode(base_name(self::$url));
         } else {
             $url = self::$url;
@@ -78,7 +80,7 @@ class Link
         $str = TransVars::resolveVariables($str);
 
         return $str;
-    }
+    } // render
 
     private static function determineLinkType()
     {
@@ -112,6 +114,12 @@ class Link
                     self::$linkCat = 'special';
                     self::$proto = "$type:";
                     break;
+                default:
+                    if (str_contains(DOWNLOAD_TYPES, $type)) {
+                        self::$icon = 'download';
+                        self::$type = 'download';
+                        self::$linkCat = 'download';
+                    }
             }
             return;
         }
@@ -127,9 +135,8 @@ class Link
             if ($ext === 'pdf') {
                 self::$type = 'pdf';
                 self::$linkCat = 'pdf';
-                return;
-            }
-            if (stripos(DOWNLOAD_TYPES, $ext)) {
+            } elseif (stripos(DOWNLOAD_TYPES, $ext)) {
+                self::$icon = 'download';
                 self::$type = 'download';
                 self::$linkCat = 'download';
             }
@@ -212,6 +219,13 @@ class Link
                 self::$icon = 'pdf';
                 self::$text = base_name(self::$url);
                 self::$target = true;
+                break;
+
+            case 'zip':
+                self::$class .= ' pfy-link-zip';
+                self::$icon = 'zip';
+                self::$text = base_name(self::$url);
+                self::$download = true;
                 break;
 
             case 'image':
@@ -351,7 +365,7 @@ class Link
 
         if ($icon) {
             $iconName = str_replace(array_keys(self::$iconReplacements), array_values(self::$iconReplacements), $icon);
-            if (str_contains(',mail,pdf,external,tel,sms,mobile,geo,', $iconName)) {
+            if (str_contains(',mail,pdf,external,tel,sms,mobile,geo,zip,download,doc,', $iconName)) {
                 $icon = Utils::renderPfyIcon($iconName);
             } else {
                 if (iconExists($iconName)) {
@@ -366,7 +380,7 @@ class Link
                 self::$text = "<span class='pfy-link-text'>" . self::$text . "</span>$icon";
             }
         }
-    }
+    } // addIcon
 
     private static function addClass($class)
     {
@@ -381,6 +395,8 @@ class Link
     private static function fixUrl()
     {
         if (strpbrk(self::$url, '<')) {
+            self::$url = str_replace('~/<span immutable', '<span immutable', self::$url); // remove '~/'
+
             self::$url = str_replace(['<em>', '</em>'], '_', self::$url);
             self::$url = str_replace(['<sub>', '</sub>'], '~', self::$url);
             self::$url = str_replace(['<sup>', '</sup>'], '^', self::$url);
