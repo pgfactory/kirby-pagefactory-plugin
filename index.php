@@ -49,7 +49,7 @@ Kirby::plugin('pgfactory/pagefactory', [
 
         'page.render:after' => function (string $contentType, array $data, string $html, Kirby\Cms\Page $page) {
             $html = PgFactory\PageFactory\Utils::resolveUrl($html);
-            return PgFactory\PageFactory\unshieldStr($html, true);
+            return PgFactory\PageFactory\unshieldStr($html, true, true);
         },
 
         // create initial .md content file for newly created pages:
