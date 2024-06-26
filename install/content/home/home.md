@@ -5,7 +5,7 @@ scss:
 
 # Congratulations!
 
-You successfully installed **[Kirby CMS](https://getkirby.com/)** and the **[PageFactory](https://pagefactory.info/)** plugin.
+You successfully installed **(link: https://getkirby.com/ text:Kirby CMS)** and the **[PageFactory](https://pagefactory.info/)** plugin.
 
 {{ vgap('2em') }}
 
