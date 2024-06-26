@@ -2,6 +2,8 @@
 
 namespace PgFactory\PageFactory;
 
+use mysql_xdevapi\Exception;
+
 define('SUPPORTED_TYPES',   ',pdf,png,gif,jpg,jpeg,txt,doc,docx,xls,xlsx,ppt,pptx,odt,ods,odp,mail,mailto,file,'.
     'sms,tel,gsm,geo,slack,twitter,facebook,instagram,tiktok,zip,');
 define('PROTO_TYPES',        ',mailto:,sms:,tel:,gsm:,geo:,slack:,twitter:,facebook:,instagram:,tiktok:,');
@@ -54,7 +56,7 @@ class Link
         self::$proto = '';
         self::$target = false;
         self::$type = false;
-        self::$ext = fileExt(self::$url) ?: ($args['type']??'');
+        self::$ext = strtolower(fileExt(self::$url, couldBeUrl: true));
         self::$linkCat = false;
         self::$icon = false;
         self::$iconBefore = !(($args['iconPosition'] ?? false) && ($args['iconPosition'] === 'after'));
@@ -89,7 +91,7 @@ class Link
             return;
         }
 
-        $type = self::$args['type'] ?? '';
+        $type = (self::$args['type']??false) ?: self::$ext;
         if ($type) {
             self::$type = $type;
             self::$icon = $type;
@@ -115,33 +117,21 @@ class Link
                     self::$proto = "$type:";
                     break;
                 default:
-                    if (str_contains(DOWNLOAD_TYPES, $type)) {
+                    if (filter_var(self::$url, FILTER_VALIDATE_EMAIL)) {
+                        self::$type = 'mail';
+                        self::$linkCat = 'mail';
+                        return;
+                    } elseif (str_contains(DOWNLOAD_TYPES, $type)) {
                         self::$icon = 'download';
                         self::$type = 'download';
                         self::$linkCat = 'download';
+                        self::compileUrl();
                     }
             }
             return;
         }
+    } // determineLinkType
 
-        if (filter_var(self::$url, FILTER_VALIDATE_EMAIL)) {
-            self::$type = 'mail';
-            self::$linkCat = 'mail';
-            return;
-        }
-
-        $ext = strtolower(fileExt(self::$url, false, true));
-        if ($ext) {
-            if ($ext === 'pdf') {
-                self::$type = 'pdf';
-                self::$linkCat = 'pdf';
-            } elseif (stripos(DOWNLOAD_TYPES, $ext)) {
-                self::$icon = 'download';
-                self::$type = 'download';
-                self::$linkCat = 'download';
-            }
-        }
-    }
 
     private static function getProto()
     {
@@ -170,8 +160,7 @@ class Link
             self::$isExternalLink = true;
 
         } else {
-            $ext = fileExt(self::$url);
-            switch ($ext) {
+            switch (self::$ext) {
                 case 'pdf':
                     self::$proto = '';
                     self::$type = 'pdf';
@@ -180,7 +169,8 @@ class Link
             }
         }
         return self::$proto;
-    }
+    } // getProto
+
 
     private static function assembleAttributes()
     {
@@ -292,7 +282,8 @@ class Link
             $attr .= self::$attributes;
         }
         return $attr;
-    }
+    } // assembleAttributes
+
 
     private static function getText()
     {
@@ -313,7 +304,8 @@ class Link
             self::$text .= "<span class='pfy-invisible'>" . self::$hiddenText . "</span>";
         }
         return self::$text;
-    }
+    } // getText
+
 
     private static function processRegularLink()
     {
@@ -321,7 +313,8 @@ class Link
             self::addClass('pfy-link-https pfy-external-link pfy-print-url');
             self::$target = PageFactory::$config['externalLinksToNewWindow'] ?? '';
         }
-    }
+    } // processRegularLink
+
 
     private static function processMailLink()
     {
@@ -347,7 +340,8 @@ class Link
                 self::$url .= "?body=$body";
             }
         }
-    }
+    } // processMailLink
+
 
     private static function addIcon()
     {
@@ -407,6 +401,33 @@ class Link
             self::$url = str_replace(['<samp>', '</samp>'], '``', self::$url);
             self::$url = str_replace(['<span class="underline">', '</span>'], '__', self::$url);
         }
-    }
-}
+    } // fixUrl
+
+
+    private static function compileUrl()
+    {
+        if (str_starts_with(self::$url, '~page/')) {
+            $imgFile = page()->image(basename(self::$url));
+            if ($imgFile) {
+                self::$url = $imgFile->url();
+            }
+        } else {
+            throw new Exception("Link: URLs beyond ~page/ not implemented yet.");
+//ToDo: ...
+//            $url = resolvePath(self::$url);
+//            $path = substr($url, strlen('content/'));
+//            $id = dirname($path);
+//            $id = 'home';
+//            $page = page();
+//            $file = site()->files()->find($url);
+//            $results = site()->search(basename($url));
+            if (str_starts_with(self::$url, '~assets/')) {
+
+            } elseif (str_starts_with(self::$url, '~/')) {
+
+            }
+        }
+    } // compileUrl
+
+} // LINK
 
