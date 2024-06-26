@@ -6,7 +6,8 @@ use mysql_xdevapi\Exception;
 
 define('SUPPORTED_TYPES',   ',pdf,png,gif,jpg,jpeg,txt,doc,docx,xls,xlsx,ppt,pptx,odt,ods,odp,mail,mailto,file,'.
     'sms,tel,gsm,geo,slack,twitter,facebook,instagram,tiktok,zip,');
-define('PROTO_TYPES',        ',mailto:,sms:,tel:,gsm:,geo:,slack:,twitter:,facebook:,instagram:,tiktok:,');
+define('PROTO_TYPES',        ',https://,http://,mailto:,sms:,tel:,gsm:,geo:,slack:,twitter:,facebook:,instagram:,tiktok:,');
+//define('PROTO_TYPES',        ',mailto:,sms:,tel:,gsm:,geo:,slack:,twitter:,facebook:,instagram:,tiktok:,');
 define('DOWNLOAD_TYPES',        ',txt,doc,docx,dotx,xls,xlsx,xltx,ppt,pptx,potx,odt,ods,ots,ott,odp,otp,png,gif,jpg,jpeg,zip,');
 
 class Link
@@ -84,6 +85,9 @@ class Link
         return $str;
     } // render
 
+    /**
+     * @return void
+     */
     private static function determineLinkType()
     {
         $proto = self::getProto();
@@ -133,6 +137,9 @@ class Link
     } // determineLinkType
 
 
+    /**
+     * @return string
+     */
     private static function getProto()
     {
         if (preg_match('/^(\w+:)(.*)/', self::$url, $m)) {
@@ -172,6 +179,9 @@ class Link
     } // getProto
 
 
+    /**
+     * @return string
+     */
     private static function assembleAttributes()
     {
         $attr = '';
@@ -285,6 +295,10 @@ class Link
     } // assembleAttributes
 
 
+    /**
+     * @return string
+     * @throws \Exception
+     */
     private static function getText()
     {
         if (self::$args['text'] ?? false) {
@@ -307,6 +321,9 @@ class Link
     } // getText
 
 
+    /**
+     * @return void
+     */
     private static function processRegularLink()
     {
         if (self::$isExternalLink) {
@@ -316,6 +333,9 @@ class Link
     } // processRegularLink
 
 
+    /**
+     * @return void
+     */
     private static function processMailLink()
     {
         self::$class .= ' pfy-link-mail';
@@ -343,6 +363,10 @@ class Link
     } // processMailLink
 
 
+    /**
+     * @return void
+     * @throws \Exception
+     */
     private static function addIcon()
     {
         $icon = '';
@@ -376,6 +400,10 @@ class Link
         }
     } // addIcon
 
+    /**
+     * @param $class
+     * @return void
+     */
     private static function addClass($class)
     {
         $classes = explodeTrim(', ', $class);
@@ -386,6 +414,9 @@ class Link
         }
     }
 
+    /**
+     * @return void
+     */
     private static function fixUrl()
     {
         if (strpbrk(self::$url, '<')) {
@@ -404,6 +435,9 @@ class Link
     } // fixUrl
 
 
+    /**
+     * @return void
+     */
     private static function compileUrl()
     {
         if (str_starts_with(self::$url, '~page/')) {
