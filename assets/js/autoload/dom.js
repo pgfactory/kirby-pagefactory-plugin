@@ -10,6 +10,9 @@
  */
 function domForEach(elem = document, pattern = null, fun = null) {
     let parentPattern, childPattern;
+    if (typeof elem === 'undefined' || elem === null) {
+      elem = document;
+    }
     [elem, pattern, parentPattern, childPattern, fun] = parseDomForArgs(elem, pattern, fun);
     if (!fun) {
        console.log('domForEach(): nothing to do');
