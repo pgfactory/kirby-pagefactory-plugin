@@ -292,7 +292,8 @@ EOT;
     {
         $functions = self::findAllMacros();
         $html = "<ul class='pfy-list-functions'>\n";
-        foreach ($functions as $name) {
+        foreach ($functions as $name => $longName) {
+            $name = ltrim($name, '*');
             $html .= "<li>$name()</li>\n";
         }
         $html .= "<ul>\n";
@@ -454,7 +455,8 @@ EOT;
             return;
         }
 
-        if (!preg_match("/\nreturn function/", file_get_contents($file))) {
+        // take care of legacy custom macros:
+        if (str_starts_with($file, 'site/custom/') && !preg_match("/\nreturn function/", file_get_contents($file))) {
             // legacy mode -> preload entire macro:
             require_once $file;
             return;
