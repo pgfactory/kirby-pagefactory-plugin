@@ -236,7 +236,7 @@ class DataSet
         if ($type === 'array') {
             $this->data = [];
             foreach ($arg1 as $rec) {
-                $this->addRec($rec);
+                $this->addRec($rec, flush: false);
             }
 
         // Payload is already of type DataSet -> just replace :
