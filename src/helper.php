@@ -2782,3 +2782,23 @@ function iconExists(string $iconName): bool
     return (string)$value;
 } // fixDataType
 
+
+ /**
+  * Proxy function that is invoked from by a virtual function with a macro's name.
+  * Passes the request on to the actual macro.
+  * @param string $file
+  * @param ...$args
+  * @return string
+  */
+ function funProxy(string $file, ...$args): string
+{
+    $args = $args[0];
+    if (sizeof($args) === 1) {
+        $args = $args[0]; // normal case, invoked by TransVars
+    } else {
+        $args = $args[1]; // special case: invoked by TemplateCompiler and Twig
+    }
+    $fun = include $file;
+    $res = $fun($args);
+    return $res;
+} // funProxy

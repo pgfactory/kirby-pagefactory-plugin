@@ -158,7 +158,7 @@ class Macros
         if ($args === 'help' || ($args['help']??false)) {
             return self::renderMacroHelp($config);
 
-            // render as unprocessed (?notranslate):
+        // render as unprocessed (?notranslate):
         } elseif (self::$noTranslate) {
             $macroName1 = ltrim($macroName, '_');
             if (is_array($args)) {
@@ -367,6 +367,7 @@ EOT;
         return array($args, $src);
     } // handleShowSource
 
+
     /**
      * @param mixed $type
      * @param mixed $value
@@ -462,13 +463,12 @@ EOT;
             return;
         }
 
-        // normal mode: instantiate a load-and-execute wrapper:
+        // normal mode: instantiate a function that invokes requested macro via proxy function:
         $createFun = <<<EOT
 namespace PgFactory\PageFactory;
-function $funName(\$args = [])
+function $funName(...\$args)
 {
-    \$fun = include '$file';
-    return \$fun(\$args);
+    return funProxy('$file', \$args); // call proxy function in helper.php
 }
 
 EOT;
