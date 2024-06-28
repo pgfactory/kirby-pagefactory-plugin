@@ -8,7 +8,6 @@ use Kirby\Data\Yaml as Yaml;
  // meta keys:
 const DATAREC_TIMESTAMP = '_timestamp';
 const SUPPORTED_FILE_TYPES = 'yaml,json,csv,txt';
-//const SUPPORTED_FILE_TYPES = 'yaml,json,csv';
 
  // timings:
 const DEFAULT_MAX_DB_LOCK_TIME      = 60; // sec
