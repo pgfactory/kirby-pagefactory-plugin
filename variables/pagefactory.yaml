@@ -406,10 +406,12 @@ pfy-email-change-successful:
 #--- Error Page -------------------------
 
 pfy-error-page-heading:
+    de: Fehler
     _: Error
 
 
 pfy-error-page-text:
+    de: Es tut uns leid, die gewünschte Seite ist nicht auffindbar oder es ist ein interner Fehler aufgetreten.
     _: Sorry, an error occured or the requested page could not be found.
 
 
