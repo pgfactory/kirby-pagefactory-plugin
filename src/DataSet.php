@@ -172,6 +172,9 @@ class DataSet
                                 $key = $this->obfuscateRecKey($key);
                             }
                         }
+                        if (isset($rec['_origRecKey'])) {
+                            unset($rec['_origRecKey']);
+                        }
                         $out[$key] = $rec;
                     }
                 }
@@ -184,16 +187,14 @@ class DataSet
             foreach ($out as $key => $rec) {
                 unset($out[$key]['_timestamp']);
                 unset($out[$key]['_reckey']);
-                if (isset($rec['_origRecKey'])) {
-                    unset($out[$key]['_origRecKey']);
-                }
             }
         } elseif ($includeMetaFields === '_reckey') {
             foreach ($out as $key => $rec) {
                 unset($out[$key]['_timestamp']);
-                if (isset($rec['_origRecKey'])) {
-                    unset($out[$key]['_origRecKey']);
-                }
+            }
+        } elseif ($includeMetaFields === '_timestamp') {
+            foreach ($out as $key => $rec) {
+                unset($out[$key]['_reckey']);
             }
         }
         return $out;
