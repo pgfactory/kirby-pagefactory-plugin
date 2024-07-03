@@ -126,30 +126,39 @@ class Data2DSet extends DataSet
      * @return array
      * @throws \Exception
      */
-    private function normalizeData(): array
+    private function _normalizeData(): array
     {
-        $placeholderForUndefined = $this->placeholderForUndefined;
         if (!PageFactory::$debug) {
             $placeholderForUndefined = '';
+        } else {
+            $placeholderForUndefined = $this->placeholderForUndefined;
+        }
+        $data2D = $this->normalizeData(false, $placeholderForUndefined, $this->recElements);
+        $this->data2D = $data2D;
+        return $data2D;
+    } // _normalizeData
+
+
+    /**
+     * @param array|false $data
+     * @param string $placeholderForUndefined
+     * @param array $recElements
+     * @return array
+     * @throws \Exception
+     */
+    public function normalizeData(array|false $data, string $placeholderForUndefined, array $recElements): array
+    {
+        if ($data === false) {
+            $data = $this->data(true);
         }
         $data2D = [];
-        $data2D['_hrd'] = $this->recElements;
-        foreach ($this->data(true) as $recKey => $rec) {
+        $data2D['_hrd'] = $recElements;
+        foreach ($data as $recKey => $rec) {
             $newRec = [];
-            foreach ($this->recElements as $key => $value) {
+            foreach ($recElements as $key => $value) {
                 if (isset($rec[$key])) {
-                    $val = $rec[$key];
-                    if ($key === DATAREC_TIMESTAMP) {
-                        $newRec[$key] = date('Y-m-d H:i', $val);
-                    } elseif (is_bool($val)) {
-                        $newRec[$key] = $val? '1':'0';
-                    } elseif (is_scalar($val)) {
-                        $newRec[$key] = $val;
-                    } elseif (is_array($val) && isset($val['_'])) {
-                        $newRec[$key] = $val['_'];
-                    } elseif (is_array($val)) {
-                        $newRec[$key] = json_encode($val);
-                    }
+                    $newRec[$key] = $this->normalizeDataElement($key, $rec[$key]);
+
                 } else {
                     // no elem found, check for indexed element of type 'a.b':
                     if (str_contains($key, '.')) {
@@ -165,11 +174,11 @@ class Data2DSet extends DataSet
                                 continue 2;
                             }
                         }
-                        $newRec[$key] = is_bool($v) ? ($v?'1':'0'): $v;
+                        $newRec[$key] = $this->normalizeDataElement($key, $v);
 
                         // check whether indirect data access via recLabels works:
-                    } elseif (isset($rec[$this->recElements[$key]])) {
-                        $newRec[$key] = $rec[$this->recElements[$key]];
+                    } elseif (isset($rec[$recElements[$key]])) {
+                        $newRec[$key] = $this->normalizeDataElement($key, $rec[$recElements[$key]]);
 
                     // no matching data found -> mark as unknown
                     } else {
@@ -179,9 +188,31 @@ class Data2DSet extends DataSet
             }
             $data2D[$recKey] = $newRec;
         }
-        $this->data2D = $data2D;
         return $data2D;
     } // normalizeData
+
+
+    /**
+     * @param string $key
+     * @param mixed $value
+     * @return string
+     */
+    public function normalizeDataElement(string $key, mixed $value): string
+    {
+        $newValue = '';
+        if ($key === DATAREC_TIMESTAMP) {
+            $newValue = date('Y-m-d H:i', $value);
+        } elseif (is_bool($value)) {
+            $newValue = $value? '1':'0';
+        } elseif (is_scalar($value)) {
+            $newValue = $value;
+        } elseif (is_array($value) && isset($value['_'])) {
+            $newValue = $value['_'];
+        } elseif (is_array($value)) {
+            $newValue = json_encode($value);
+        }
+        return $newValue;
+    } // normalizeDataElement
 
 
     /**
