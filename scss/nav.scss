@@ -208,6 +208,13 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
       }
     }
   }
+
+  .pfy-nav-hoveropen {
+    // circle around hovered arrow:
+    .pfy-nav-arrow:hover {
+      border: 1px solid var(--nav-arrow-hover-color, $nav-arrow-hover-color);
+    }
+  }
 } // pfy-large-screen
 
 
@@ -281,11 +288,6 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
           height: var(--pfy-nav-line-height, 1.2em);
         }
       border: 1px solid transparent;
-    }
-
-    // circle around hovered arrow:
-    .pfy-nav-arrow:hover {
-        border: 1px solid var(--nav-arrow-hover-color, $nav-arrow-hover-color);
     }
 
     // make frozen state visible:

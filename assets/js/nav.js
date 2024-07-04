@@ -21,6 +21,7 @@ const PfyNav = {
   hoveropen: false,
   arrowClicks: 0,
   initialized: false,
+  navBranchIsOpen: false,
 
   transitionTimeMs: 300,
   transitionTimeS: null,
@@ -279,23 +280,43 @@ const PfyNav = {
 
   setupMouseHandlers: function (navWrapper) {
     const isTopNav = navWrapper.classList.contains('pfy-nav-horizontal');
-    const liElems = navWrapper.querySelectorAll('.pfy-has-children');
-    if (liElems) {
-      liElems.forEach(function (liElem) {
-        const arrow = liElem.querySelector('.pfy-nav-arrow');
-        if (arrow) {
-          if (isTopNav) {
-            arrow.addEventListener('click', PfyNav.freezeBranchState);
-          } else {
-            arrow.addEventListener('click', PfyNav.toggleBranch);
+    if (this.hoveropen) {
+      // if hoveropen is enabled, activate click on arrow:
+      const liElems = navWrapper.querySelectorAll('.pfy-has-children');
+      if (liElems) {
+        liElems.forEach(function (liElem) {
+          const arrow = liElem.querySelector('.pfy-nav-arrow');
+          if (arrow) {
+            if (isTopNav) {
+              arrow.addEventListener('click', PfyNav.freezeBranchState);
+            } else {
+              arrow.addEventListener('click', PfyNav.toggleBranch);
+            }
           }
+        });
+      }
+      if (!isTopNav) { // hover-open and NOT topNav -> no need to set up hover-handlers on arrows
+        return;
+      }
+
+    } else { // no hover-open:
+      if (isTopNav) {
+        // setup click handler for top nav elems with children:
+        domForEach(navWrapper, '.pfy-lvl-1.pfy-has-children > a', (el) => {
+          el.addEventListener('click', (el) => {
+            PfyNav.toggleBranch(el, true);
+          });
+        })
+      }
+      document.body.addEventListener('click', (ev) => {
+        ev.stopImmediatePropagation();
+        if (PfyNav.navBranchIsOpen) {
+          PfyNav.closeAll();
         }
       });
-    }
-
-    if (!isTopNav || !this.hoveropen) {
       return;
     }
+
     const l1AElems = navWrapper.querySelectorAll('.pfy-lvl-1.pfy-has-children > a');
     if (l1AElems) {
       l1AElems.forEach(function (l1AElem) {
@@ -629,6 +650,7 @@ const PfyNav = {
     } else {
       liElem = eventOrElem.currentTarget;
     }
+    PfyNav.navBranchIsOpen = true;
 
     const isTopNav = liElem.closest('.pfy-nav-wrapper').classList.contains('pfy-nav-horizontal');
     if (isTopNav && !override && liElem.classList.contains('pfy-branch-frozen')) {
@@ -674,6 +696,7 @@ const PfyNav = {
       liElem = eventOrElem.currentTarget;
     }
     this.presetSubElemHeight(liElem, true);
+    PfyNav.navBranchIsOpen = false;
 
     const isTopNav = liElem.closest('.pfy-nav-wrapper').classList.contains('pfy-nav-horizontal');
     if (isTopNav && !override && (liElem.classList.contains('pfy-branch-frozen'))) {
@@ -709,6 +732,11 @@ const PfyNav = {
 
 
   closeAll: function (navWrapper) {
+    if (typeof navWrapper === 'undefined') {
+      navWrapper = document;
+    }
+    PfyNav.navBranchIsOpen = false;
+
     const liElems = navWrapper.querySelectorAll('.pfy-has-children');
     if (liElems) {
       liElems.forEach(function (liElem) {
@@ -848,7 +876,7 @@ if (navs) {
 }
 
 
-// monitor screen size changes:
+ // monitor screen size changes:
 window.addEventListener("resize", function() {
   PfyNav.adaptToWidth();
 });

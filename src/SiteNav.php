@@ -24,22 +24,6 @@ class SiteNav
      */
     public static function render(array|null $args = null): string
     {
-        if (($args['type']??false) === 'top') {
-            if (self::$defaultNav) {
-                return self::$defaultNav;
-            }
-        }
-        if ($args === null) {
-            $args = [
-                'type' => 'top',
-                'wrapperClass' => 'pfy-nav-top-right-aligned pfy-nav-colored pfy-mobile-nav-colored',
-                'class' => '',
-                'id' => '',
-                'isPrimary' => NULL,
-                'listTag' => 'ol',
-                'inx' => 1,
-            ];
-        }
         $site = site();
         $inx = self::$inx++; // index of nav-element
         $wrapperClass = $args['wrapperClass'];
@@ -61,7 +45,7 @@ class SiteNav
 
         // 'top' shorthand:
         if (str_contains($type, 'top')) {
-            $wrapperClass .= ' pfy-nav-horizontal pfy-nav-indented pfy-nav-animated pfy-nav-hoveropen pfy-nav-collapsible pfy-encapsulated';
+            $wrapperClass .= ' pfy-nav-horizontal pfy-nav-indented pfy-nav-animated pfy-nav-collapsible pfy-encapsulated';
 
         // 'side' shorthand:
         } elseif (str_contains($type, 'side')) {

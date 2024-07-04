@@ -188,8 +188,6 @@ class PageFactory
         self::$user = Permission::checkPageAccessCode();
         self::$userName = is_object(self::$user) ? (string)self::$user->nameOrEmail() : (self::$user ?: '');
 
-        SiteNav::render();
-
         Extensions::loadExtensions();
 
         TransVars::loadCustomVars();
