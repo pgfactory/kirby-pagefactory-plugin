@@ -13,7 +13,7 @@ window.onresize = function() {
 
 
 function execLateLoading() {
-// perform late loading:
+ // perform late loading:
   var elem = document.getElementsByClassName('pfy-onload-css');
   for (i = 0; i < elem.length; i++) {
     let href = elem[i].getAttribute('href');
@@ -34,22 +34,9 @@ function adaptToWidth() {
   if (windowWidth < screenSizeBreakpoint) {
     document.body.classList.remove('pfy-large-screen');
     document.body.classList.add('pfy-small-screen');
-    const sitemap = document.querySelector('.pfy-sitemap');
-    if (sitemap) {
-      if (sitemap.classList.contains('pfy-nav-indented')) {
-        sitemap.dataset.keepIndented = true;
-      }
-      sitemap.classList.add('pfy-nav-indented');
-    }
   } else {
     document.body.classList.remove('pfy-small-screen');
     document.body.classList.add('pfy-large-screen');
-    const sitemap = document.querySelector('.pfy-sitemap');
-    if (sitemap) {
-      if (!sitemap.dataset.keepIndented) {
-        sitemap.classList.remove('pfy-nav-indented');
-      }
-    }
   }
 } // adaptToWidth
 
@@ -138,8 +125,8 @@ function translateVar(transvarDef) {
 
 
 
-// === copy content button ==============================
-// targets for copy button are identified by class .pfy-has-copy-btn.
+ // === copy content button ==============================
+ // targets for copy button are identified by class .pfy-has-copy-btn.
 function initCopyButton() {
   const copyBtnElems = document.querySelectorAll('.pfy-has-copy-btn');
   if (!copyBtnElems.length) {
@@ -167,7 +154,7 @@ function initCopyButton() {
     wrapper.appendChild(btnDiv);
   });
 
-// set up event handler for copy buttons:
+ // set up event handler for copy buttons:
   const copyButtons = document.querySelectorAll('.pfy-copy-btn');
   if (copyButtons) {
     // loop over copy buttons:
@@ -187,7 +174,7 @@ function initCopyButton() {
     });
   }
 
-// copy to clipboard
+ // copy to clipboard
   async function copyToClipboard(str, textareaEl) {
     try {
       // write to clipboard:
