@@ -13,7 +13,7 @@ return function($args = null)
             'class' => ['Class applied to the Nav element.', ''],
             'id' => ['Id applied to the Nav element.', ''],
             'type' => ['[top,side,branch|primary].', ''],
-            'isPrimary' => ['By default, first Nav is primary. Set to false to override.', null],
+            'isPrimary' => ['By default, first Nav is primary. Set to false to override.', false],
             'listTag' => ['[ul,ol] The tag to be used in list of nav-elements.', 'ol'],
             'prefix' => ['String to be prepended to nav, e.g. to add "link to home" in branch menu.', null],
         ],

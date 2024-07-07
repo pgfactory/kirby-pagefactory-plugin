@@ -28,28 +28,18 @@ class SiteNav
         $inx = self::$inx++; // index of nav-element
         $wrapperClass = $args['wrapperClass'];
 
-        // find out whether this is the primary nav:
-        if (!self::$primaryNavInitialized && (($args['isPrimary']??null) !== false)) {
-            self::$primaryNavInitialized = true;
-            if (!str_contains($wrapperClass, 'pfy-primary-nav')) {
-                $wrapperClass .= ' pfy-primary-nav';
-            }
-            if (!($args['id']??false)) {
-                $args['id'] = 'pfy-primary-nav';
-            }
-        }
-
         $class = $args['class'];
         self::$listTag = ($args['listTag']??false) ?: DEFAULT_NAV_LIST_TAG;
         $type = $args['type']??'';
 
         // 'top' shorthand:
         if (str_contains($type, 'top')) {
-            $wrapperClass .= ' pfy-nav-horizontal pfy-nav-indented pfy-nav-animated pfy-nav-collapsible pfy-encapsulated';
+            $wrapperClass .= ' pfy-nav-horizontal pfy-nav-indented pfy-nav-animated pfy-nav-collapsible pfy-nav-collapsed pfy-encapsulated';
+            $args['isPrimary'] = true;
 
         // 'side' shorthand:
         } elseif (str_contains($type, 'side')) {
-            $wrapperClass .= ' pfy-nav-indented pfy-nav-animated pfy-encapsulated pfy-nav-collapsible';
+            $wrapperClass .= ' pfy-nav-indented pfy-nav-animated pfy-encapsulated pfy-nav-collapsible pfy-nav-open-current';
 
         // 'branch' shorthand:
         } elseif (str_contains($type, 'branch')) {
@@ -57,7 +47,7 @@ class SiteNav
 
         // 'sitemap' shorthand:
         } elseif (str_contains($type, 'sitemap')) {
-            $wrapperClass .= ' pfy-encapsulated pfy-sitemap pfy-sitemap-horizontal';
+            $wrapperClass .= ' pfy-encapsulated pfy-sitemap pfy-sitemap-horizontal pfy-nav-indented';
 
         // else, e.g. sitemap:
         } else {
@@ -69,6 +59,15 @@ class SiteNav
             $wrapperClass .= ' pfy-nav-collapsible';
         }
 
+        // find out whether this is the primary nav:
+        if ( $args['isPrimary'] || str_contains($wrapperClass, 'pfy-primary-nav')) {
+            if (!str_contains($wrapperClass, 'pfy-primary-nav')) {
+                $wrapperClass .= ' pfy-primary-nav';
+            }
+            if (!($args['id']??false)) {
+                $args['id'] = 'pfy-primary-nav';
+            }
+        }
 
         // === render: ========
         $out = false;
@@ -95,7 +94,7 @@ class SiteNav
             $id = ($args['id']) ? " id='{$args['id']}'" : '';
             $out = <<<EOT
 
-<div id='pfy-nav-$inx' class='pfy-nav-wrapper $wrapperClass'$dataPageNr>
+<div id='pfy-nav-$inx' class='pfy-nav-wrapper $wrapperClass'$dataPageNr data-nav-inx='$inx'>
   <nav$id class='pfy-nav $class' style="display: none;">
 $out
   </nav>
@@ -231,7 +230,6 @@ EOT;
             $out = "<div class='pfy-nav-branch-title'>$label</div>\n";
             $subtree = $page->children();
             $out .= self::_render($subtree, prefix: $prefix);
-            $out .= "</div>\n";
         } else {
             $out = '';
             $wrapperClass .= ' pfy-nav-empty';

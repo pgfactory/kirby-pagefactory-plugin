@@ -11,41 +11,41 @@
 @import '_scss-variables.scss';
 
 
-// side markers (e.g. mobile nav):
+ // side markers (e.g. mobile nav):
 $side-marker-width:       var(--pfy-nav-side-marker-width, 3px);
 
-// arrow:
+ // arrow:
 $nav-arrow-size:          1.3em;
 $nav-arrow-left:          1.3em;
 $nav-arrow-hover-color:   gray;
 
 
-// mobile nav:
+ // mobile nav:
 $mobile-nav-text-size:    var(--pfy-mobile-nav-txt-size, 5vw);
 
 
-// pfy-nav-horizontal:
+ // pfy-nav-horizontal:
 $nav-horizontal-col-gap:  10px;
 $nav-horizontal-padding:  0.5em;
 
-// pfy-nav-accordion:
+ // pfy-nav-accordion:
 $nav-animation-duration:  0.3s;
 
-// pfy-nav-indented-no-arrow:
+ // pfy-nav-indented-no-arrow:
 $nav-first-indent:        1.2em;
 $nav-indent-step:         1.2em;
 
-//=== in-page nav:
+ //=== in-page nav:
 $in-page-first-indent:    0em;
 $in-page-indent-step:     1em;
 
-// === Colors ======================================
+ // === Colors ======================================
 
-// Base color: "hue, saturation", e.g. "10, 80%":
+ // Base color: "hue, saturation", e.g. "10, 80%":
 $base-col1: var(--nav-base-color1); // --nav-base-color1: 0, 0%;
 $base-col2: var(--nav-base-color2); // --nav-base-color2: 0, 0%;
 
-// Text:
+ // Text:
 $nav-txt-size:        var(--pfy-nav-txt-size, 12pt);
 $txt-color:           var(--pfy-nav-txt-color, currentColor);
 $sub-txt-color:       var(--pfy-nav-sub-txt-color, $txt-color);
@@ -54,7 +54,7 @@ $curr-txt-color:      var(--pfy-nav-curr-txt-color, $txt-color);
 $surrogate-txt-color: var(--pfy-nav-surrogate-txt-color, $txt-color);
 $hover-txt-color:     var(--pfy-nav-hover-txt-color, $txt-color);
 
-// Background and border-left:
+ // Background and border-left:
 $nav-bg-color:        var(--pfy-nav-bg-color, white);
 $elem-bg-color:       var(--pfy-nav-elem-bg-color, $nav-bg-color);
 $hover-bg-color:      var(--pfy-nav-hover-bg-color, $elem-bg-color);
@@ -63,12 +63,12 @@ $active-bg-color:     var(--pfy-nav-active-bg-color, $elem-bg-color);
 $curr-bg-color:       var(--pfy-nav-curr-bg-color, $elem-bg-color);
 $surrogate-bg-color:  var(--pfy-nav-surrogate-bg-color, $sub-bg-color);
 
-// focus:
+ // focus:
 $focus-frame-color1: var(--pfy-focus-frame-color1, #{$focus-frame-color1});
 $focus-frame-color2: var(--pfy-focus-frame-color2, #{$focus-frame-color2});
 
 
-// Layout:
+ // Layout:
 $nav-elem-height:     2em;
 $nav-line-height:     1.2em;	// -> space between wrapped lines
 $nav-sub-width:       10em;
@@ -80,8 +80,13 @@ $horizontal-padding:  var(--pfy-nav-horizontal-padding, #{$nav-horizontal-paddin
 $animation-duration:  var(--pfy-nav-animation-duration, #{$nav-animation-duration});
 
 
+ // Side Markers:
+$navCurrSideMarker:   var(--nav-side-marker-curr-color, inherit);
+$navActiveSideMarker: var(--nav-side-marker-active-color, inherit);
+$navHoverSideMarker:  var(--nav-side-marker-hover-color, inherit);
 
-// === Computed indentation values ==================================
+
+ // === Computed indentation values ==================================
 $indent1: var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent});
 $indent2: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + var(--pfy-nav-horizontal-indent-step, #{$nav-indent-step}));
 $indent3: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 2 * var(--pfy-nav-horizontal-indent-step, #{$nav-indent-step}));
@@ -91,9 +96,9 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
 
 
 
-// === Generic Nav ===================
+ // === Generic Nav ===================
 
-// === flicker - all screen sizes =================================
+ // === flicker - all screen sizes =================================
 #pfy.pfy-default-styling .pfy-nav-wrapper,
 .pfy-default-styling .pfy-nav-wrapper {
   position: relative;
@@ -107,21 +112,30 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
     margin: 0;
   }
 
-  // hide surrogate elem if folder empty (i.e. fall through to child):
-  .pfy-nav-no-direct-child .pfy-surrogate-elem {
-    display: none;
-  }
-
   .pfy-nav-empty,
   &.pfy-nav-empty {
     display: none;
   }
+
+  //=== side marker
+  // default on li to inherit from:
+  li {
+    border-left-color: var(--nav-side-marker-color, transparent);
+    border-left-width: 0; // suppress sidebar on li
+  }
+  // all:
+  li > a {
+    border-left-color: inherit;
+    border-left-width: $side-marker-width;
+    border-left-style: solid;
+  }
+
 } // .pfy-nav-wrapper
 
 
 
 
-// === large screen =======================================================
+ // === large screen =======================================================
 #pfy.pfy-default-styling.pfy-large-screen .pfy-encapsulated,
 .pfy-default-styling.pfy-large-screen {
 
@@ -161,19 +175,11 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
     }
 
 
-    .pfy-has-surrogate-elem {
-      > a {
-                cursor: s-resize;
-      }
-    }
     // pfy-surrogate-elem:
     .pfy-surrogate-elem {
       > a {
         color:      $surrogate-txt-color;
         background: $surrogate-bg-color;
-      }
-      &.pfy-open > a .pfy-nav-arrow,
-      &.pfy-open > a {
       }
     }
   } // .pfy-nav
@@ -215,6 +221,7 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
       border: 1px solid var(--nav-arrow-hover-color, $nav-arrow-hover-color);
     }
   }
+
 } // pfy-large-screen
 
 
@@ -303,9 +310,7 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
 
 
   // hide surrogate elements wherever not collapsing:
-  .pfy-nav-horizontal .pfy-nav .pfy-lvl-2,    // top nav, below lvl-1
-  .pfy-nav-wrapper:not(.pfy-nav-collapsible),
-  .pfy-nav-plain {
+  .pfy-nav-wrapper:not(.pfy-nav-collapsible) {
     .pfy-surrogate-elem {
       display: none!important;
     } // .pfy-surrogate-elem
@@ -334,6 +339,29 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
 
 
 
+  // === collapsible elements ===========================
+  .pfy-nav-collapsible {
+    li a:hover .pfy-nav-label span {
+      border-bottom: 1px dotted currentColor;
+    }
+    .pfy-nav.pfy-nav .pfy-nav-reveal-controller {
+      border-bottom: none;
+    }
+    li.pfy-has-surrogate-elem > a,
+    li.pfy-nav-no-direct-child > a {
+      .pfy-nav-arrow,
+      .pfy-nav-label span {
+        cursor: s-resize;
+      }
+    }
+    li.pfy-has-surrogate-elem.pfy-open > a,
+    li.pfy-nav-no-direct-child.pfy-open > a {
+      .pfy-nav-arrow,
+      .pfy-nav-label span {
+        cursor: n-resize;
+      }
+    }
+  }
 
   // === indented ===================================
   .pfy-nav-indented { // no-arrow indentation:
@@ -360,7 +388,6 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
 
 
   // === animated ===================================
-  .pfy-nav-animated,
   .pfy-nav-animate {
       li.pfy-has-children > div > ol {
           transition: margin-top $animation-duration;
@@ -392,11 +419,6 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
         width: 100%;
       }
     }
-
-    // remove extra space below:
-//    .pfy-lvl-1 li:first-child a {
-//      padding-top: 0;
-//    }
 
     &.pfy-nav-indented {
       .pfy-lvl-1 > a {
@@ -444,28 +466,6 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
         .pfy-nav-arrow {
           left: calc(#{$indent6} - #{$nav-arrow-left});
         }
-      }
-    }
-
-    .pfy-nav {
-      // all:
-      li a {
-        border-left: $side-marker-width solid var(--nav-side-marker-color, transparent);
-      }
-
-      // active top:
-      .pfy-lvl-1.pfy-active > a {
-        border-left: $side-marker-width solid var(--nav-side-marker-active-color, transparent);
-      }
-
-      // curr:
-      .pfy-curr.pfy-curr > a {
-        border-left: $side-marker-width solid var(--nav-side-marker-curr-color, transparent);
-      }
-
-      // hover:
-      &.pfy-nav a:hover {
-        border-left: $side-marker-width solid var(--nav-side-marker-hover-color, transparent);
       }
     }
   } // vertical nav
@@ -586,19 +586,41 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
       display: none;
     }
   }
+
+
+
+  // === side markers ======================================
+  .pfy-nav {
+    // hover:
+    a:hover {
+      border-left-color: $navHoverSideMarker;
+    }
+
+    // active top:
+    .pfy-lvl-1.pfy-active > a {
+      border-left-color: $navActiveSideMarker;
+    }
+
+    // curr:
+    .pfy-curr.pfy-curr > a {
+      border-left-color: $navCurrSideMarker;
+    }
+  }
+
+
 } // pfy-encapsulated
 
 
 
-// === typical cases ===========================================
-// colored mobile nav:
+ // === typical cases ===========================================
+ // colored mobile nav:
 .pfy-nav-mobile-open .pfy-mobile-nav-colored {
   --nav-side-marker-hover-color: yellow;
   --nav-side-marker-active-color: orange;
   --nav-side-marker-curr-color: red;
 }
 
-// colored nav:
+ // colored nav:
 .pfy-nav-colored {
   --pfy-nav-elem-bg-color: hsl(#{$base-col1}, 90%);
   --pfy-nav-sub-bg-color: hsl(#{$base-col1}, 90%);
@@ -610,7 +632,7 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
   --pfy-nav-hover-txt-color: hsl(#{$base-col2}, 90%);
 }
 
-// top menu right-aligned:
+ // top menu right-aligned:
 .pfy-nav-top-right-aligned {
   &.pfy-nav-horizontal {
     display: flex;
