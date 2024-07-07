@@ -25,7 +25,7 @@
  @import '../_scss-variables.scss';
 
 $mobile-main-bg-color:    var(--pfy-mobile-main-bg-color, #{$mobile-main-bg-color});
-$mobile-body-height:      calc(100vh - var(--pfy-mobile-header-height, #{$mobile-header-height}));
+$mobile-body-height:      calc(100dvh - var(--pfy-mobile-header-height, #{$mobile-header-height}));
 
 $mobile-header-height:    var(--pfy-mobile-header-height, #{$mobile-header-height});
 $mobile-header-txt-size:  var(--pfy-mobile-header-txt-size, #{$mobile-header-txt-size});
@@ -62,7 +62,8 @@ $mobile-nav-bg-color:     var(--pfy-mobile-nav-bg-color, #{$mobile-nav-bg-color}
     width: 100vw;
     overflow-x: hidden;
     overflow-y: auto;
-    padding: 1rem 1rem 8rem;
+    padding: 1rem;
+//    padding: 1rem 1rem 8rem;
     background: $mobile-main-bg-color;
   } // pfy-main-wrapper
 
