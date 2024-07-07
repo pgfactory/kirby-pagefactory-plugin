@@ -84,6 +84,7 @@ class Assets
     private $frameworkFiles;
     private $filePriority = [];
     private $assetGroups;
+    private bool $browserCacheBusting = false;
 
 
     /**
@@ -377,6 +378,12 @@ class Assets
     } // prepareAssets
 
 
+    public function activateBrowserCacheBusting(): void
+    {
+        $this->browserCacheBusting = true;
+    } // activateBrowserCacheBusting
+
+
 
     // === private =============================================
     /**
@@ -538,6 +545,10 @@ class Assets
      */
     private function renderAssetLoadingCode(string $fileUrl, string $jsOrCss): string
     {
+        if ($this->browserCacheBusting) {
+            $fileUrl .= '?v=' . rand(1,99);
+        }
+
         if ($jsOrCss === 'js') { // js
             $html = "\t<script src='$fileUrl'></script>\n";
 

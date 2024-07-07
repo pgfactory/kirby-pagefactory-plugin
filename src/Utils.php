@@ -285,7 +285,7 @@ EOT;
             return;
         }
 
-        self::execAsAnon('printview,printpreview,print-preview,print,logout,reset,flush,flushcache,iframe');
+        self::execAsAnon('printview,printpreview,print-preview,print,logout,reset,flush,flushcache,iframe,bust');
         self::execAsAdmin('help,reset,notranslate,release');
     } // handleAgentRequests
 
@@ -366,6 +366,9 @@ EOT;
                         PageFactory::$pg->addBodyTagClass('pfy-export-as-iframe');
                         header("Access-Control-Allow-Origin: $a");
                     }
+                    break;
+                case 'bust':
+                    PageFactory::$assets->activateBrowserCacheBusting();
                     break;
             }
         }
