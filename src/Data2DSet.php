@@ -146,10 +146,16 @@ class Data2DSet extends DataSet
      * @return array
      * @throws \Exception
      */
-    public function normalizeData(array|false $data, string $placeholderForUndefined, array $recElements): array
+    public function normalizeData(array|false $data, string $placeholderForUndefined, array|bool $recElements): array
     {
         if ($data === false) {
             $data = $this->data(true);
+        }
+        if (!is_array($recElements) || !$recElements) {
+            $rec0 = reset($data);
+            unset($rec0['_reckey']);
+            $recElements = array_keys($rec0);
+            $recElements = array_combine($recElements, $recElements);
         }
         $data2D = [];
         $data2D['_hrd'] = $recElements;
