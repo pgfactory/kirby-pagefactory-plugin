@@ -11,14 +11,6 @@ $dl-as-table-dt-width: 6em;
         display: inline-block;
     }
 
-  .pfy-site-title {
-    padding-top:      calc( (var(--pfy-nav-elem-height, 2em) - 1.2em) / 2);
-    padding-bottom:   calc( (var(--pfy-nav-elem-height, 2em) - 1.2em) / 2);
-    font-size:        var(--pfy-nav-txt-size,  12pt);
-    white-space: nowrap;
-  }
-
-
   .pfy-h-v-centered, .h-v-centered,
     .pfy-v-h-centered, .v-h-centered {
         height: 100%;
@@ -54,20 +46,15 @@ $dl-as-table-dt-width: 6em;
         border: none;
     }
 
-  .pfy-presentation-only {
-    display: none;
-  }
-
-  // === header ==================
-  // for default template: put site-title and nav on same height:
-  .pfy-header-wrapper {
-    display: flex;
-    justify-content: space-between;
-    overflow-x: clip;
-    .pfy-header {
-      padding-top: calc((var(--pfy-nav-elem-height, 2em) - 1.2em) / 2);
+    .pfy-full-width {
+      flex-basis: 100%;
+      width: 100%;
     }
-  }
+    
+    .pfy-presentation-only {
+      display: none;
+    }
+
 
   // dl as table:
   &.pfy-large-screen
