@@ -209,6 +209,7 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
       nav > ol {
         display: flex;
         justify-content: space-between;
+
         //gap: 10px;
          > li {
           flex: 1 1 auto;
@@ -480,6 +481,9 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
   // === Top Nav
   .pfy-nav-horizontal,
   &.pfy-nav-horizontal {
+    nav > ol {
+      border-left-color: transparent;
+    }
 
       a {
           padding-right: $horizontal-padding;

@@ -155,7 +155,7 @@ EOT;
             $text = '<span class="pfy-page-switcher-link-text">'.$prev->title()->value().'</span>';
             $text = TransVars::getVariable('pfy-previous-page-text').$text;
             $prevLink = "<a href='$url' title='$title' rel='prev'>\n\t\t$text\n\t\t</a>";
-            $this->empty = true;
+            $this->empty = false;
         } else {
             $prevLink = '&nbsp;';
         }
@@ -182,7 +182,7 @@ EOT;
             $text = '<span class="pfy-page-switcher-link-text">'.$next->title()->value().'</span>';
             $text = $text.TransVars::getVariable('pfy-next-page-text');
             $nextLink = "<a href='$nextUrl' title='$title' rel='next'>\n\t\t$text\n\t\t</a>";
-            $this->empty = true;
+            $this->empty = false;
         } else {
             $nextLink = '&nbsp;';
         }
