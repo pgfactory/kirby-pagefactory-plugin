@@ -10,13 +10,69 @@ define('DEFAULT_NAV_LIST_TAG',  'ol');          // the list tag to be used
 class SiteNav
 {
     public static $inx = 1;
-    private static $primaryNavInitialized = false;
     private static bool $deep = true;
     private static $listTag;
     public static int $pageNr = 1;
     public static $prev = false;
     public static $next = null;
+    private static object $currPg;
+    private static array $siteStruct = [];
     private static string|null $defaultNav = null;
+
+
+    public static function init(): void
+    {
+        $tree = site()->children()->listed();
+        self::$siteStruct = self::_parseSite($tree);
+    } // init
+
+    private static function _parseSite($subtree)
+    {
+        $out = [];
+        $i = 0;
+        foreach ($subtree->listed() as $pg) {
+            if ($visibility = $pg->visible()->value()) {
+                $visible = Permission::evaluate($visibility);
+                if (!$visible) {
+                    continue;
+                }
+            }
+            if ($showFrom = $pg->showfrom()->value()) {
+                if (strtotime($showFrom) > time()) {
+                    continue;
+                }
+            }
+            if ($showTill = $pg->showtill()->value()) {
+                if (strtotime($showTill) < time()) {
+                    continue;
+                }
+            }
+            $hasContent = self::hasMdContent($pg);
+            // set $next once $curr was passed and the next page with content has been reached:
+            if (self::$next === false && $hasContent) {
+                self::$next = $pg;
+            }
+            $curr = $pg->isActive();
+            if ($curr) {
+                self::$currPg = $pg;
+                self::$next = false;
+            } elseif (!self::$next && $hasContent) {
+                // drag $prev along until $curr has been reached (but skipping pages without content):
+                self::$prev = $pg;
+            }
+            if (!(self::$currPg??false)) {
+                self::$pageNr++;
+            }
+            $hasChildren = !$pg->children()->listed()->isEmpty();
+            $out[$i]['pg'] = $pg;
+            if (self::$deep && $hasChildren) {
+                $out[$i]['sub'] = self::_parseSite($pg->children());
+            }
+            $i++;
+        }
+        return $out;
+    } // _parseSite
+
 
     /**
      * Renders the default nav menu
@@ -78,13 +134,7 @@ class SiteNav
 
         // default type:
         } elseif ($site->hasListedChildren()) {
-            $tree = $site->children()->listed();
-            // render nav if homepage has siblings or children:
-            if ((sizeof($tree->data()) > 1) || (sizeof($tree->children()->listed()->data()) > 0)) {
-                $out = self::_render($tree);
-            } else {
-                $wrapperClass .= ' pfy-nav-empty';
-            }
+            $out = self::_render(self::$siteStruct);
             $pageNr = self::$pageNr;
             $dataPageNr = " data-currpagenr='$pageNr'";
         }
@@ -121,24 +171,8 @@ EOT;
     private static function _render($subtree, $indent = '', $prefix = ''): string
     {
         $out = '';
-        foreach ($subtree->listed() as $pg) {
-            // check and handle visibility-restriction on page:
-            if ($visibility = $pg->visible()->value()) {
-                $visible = Permission::evaluate($visibility);
-                if (!$visible) {
-                    continue;
-                }
-            }
-            if ($showFrom = $pg->showfrom()->value()) {
-                if (strtotime($showFrom) > time()) {
-                    continue;
-                }
-            }
-            if ($showTill = $pg->showtill()->value()) {
-                if (strtotime($showTill) < time()) {
-                    continue;
-                }
-            }
+        foreach ($subtree as $elem) {
+            $pg = $elem['pg'];
 
             $hasContent = self::hasMdContent($pg);
             // set $next once $curr was passed and the next page with content has been reached:
@@ -146,13 +180,6 @@ EOT;
                 self::$next = $pg;
             }
             $curr = $pg->isActive() ? ' aria-current="page"': '';
-            if ($curr) {
-                self::$next = false;
-            } elseif (!self::$next && $hasContent) {
-                // drag $prev along until $curr has been reached (but skipping pages without content):
-                self::$prev = $pg;
-                self::$pageNr++;
-            }
             $url = $pg->url();
             $title = $pg->title()->html();
             $hasChildren = !$pg->children()->listed()->isEmpty();
@@ -167,12 +194,12 @@ EOT;
             }
             $class = $class ? " class='$class'" : '';
 
-            if (self::$deep && $hasChildren) {
-                $out .= "$indent<li$class><a href='$url'$curr>$title</a>";
-                $out .=  self::_render($pg->children(), "$indent    ");
-                $out .= "$indent</li>\n";
+            if (self::$deep && ($elem['sub']??false)) {
+                $out .= "$indent <li$class><a href='$url'$curr>$title</a>";
+                $out .=  self::_render($elem['sub'], "$indent    ");
+                $out .= "$indent </li>\n";
             } else {
-                $out .= "$indent<li><a href='$url'$curr>$title</a></li>\n";
+                $out .= "$indent <li><a href='$url'$curr>$title</a></li>\n";
             }
         }
         if (!$out) {
@@ -228,8 +255,15 @@ EOT;
             // get children of top-level parent:
             $label = (string)$page->title();
             $out = "<div class='pfy-nav-branch-title'>$label</div>\n";
-            $subtree = $page->children();
-            $out .= self::_render($subtree, prefix: $prefix);
+            foreach (self::$siteStruct as $elem) {
+                $pg = $elem['pg'];
+                if ($pg === $page) {
+                    break;
+                }
+            }
+            if ($elem['sub']??false) {
+                $out .= self::_render($elem['sub'], prefix: $prefix);
+            }
         } else {
             $out = '';
             $wrapperClass .= ' pfy-nav-empty';

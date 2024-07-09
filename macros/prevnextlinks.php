@@ -56,10 +56,11 @@ EOT,
 
 class PrevNextLinks
 {
-    public static $inx = 1;
+    public static $inx = 0;
     public $class;
     public $page;
     public $pages;
+    private bool $empty = true;
 
 
     /**
@@ -70,35 +71,48 @@ class PrevNextLinks
      */
     public function render(array $args): string
     {
+        self::$inx++;
         $this->class = $args['class'];
         $this->page  = PageFactory::$page;
         $this->pages = PageFactory::$pages;
+
+        $wrapperClass = $args['wrapperClass'];
 
         if (($args['type'][0]??'') === 'h') {
             $out = $this->renderHeadLinkElements();
 
         } else {
-            $out = "\n<div class='pfy-page-switcher-wrapper {$args['wrapperClass']}'>\n";
-            $out .= $this->renderPrevLink();
+            $prev = $this->renderPrevLink();
 
+            $center = '';
             if ($args['center']??false) {
                 $center = $args['center'];
                 while (preg_match('/%(\w{2,16})%/', $center, $m)) {
                     $value = TransVars::getVariable($m[1]);
                     $center = str_replace($m[0], $value, $center);
                 }
-
-                $out .= "<div class='pfy-page-switcher-center'>$center</div>\n";
+                $center = "<div class='pfy-page-switcher-center'>$center</div>\n";
             }
 
-            $out .= $this->renderNextLink();
+            $next = $this->renderNextLink();
 
+            if ($this->empty) {
+                $wrapperClass .= ' pfy-page-switcher-empty';
+                if (!$center) {
+                    $wrapperClass .= ' pfy-dispno';
+                }
+            }
+
+            $out = <<<EOT
+<div class='pfy-page-switcher-wrapper $wrapperClass'>
+$prev$center$next
+</div><!-- /.pfy-page-switcher-wrapper -->
+EOT;
             if (self::$inx === 1) {
                 // inject script code for page-switching:
                 $url = PageFactory::$appUrl . "media/plugins/pgfactory/pagefactory/js/page-switcher.js";
                 $out .= "\t<script src='$url'></script>\n";
             }
-            $out .= "</div>\n";
         }
 
         return $out;
@@ -141,6 +155,7 @@ class PrevNextLinks
             $text = '<span class="pfy-page-switcher-link-text">'.$prev->title()->value().'</span>';
             $text = TransVars::getVariable('pfy-previous-page-text').$text;
             $prevLink = "<a href='$url' title='$title' rel='prev'>\n\t\t$text\n\t\t</a>";
+            $this->empty = true;
         } else {
             $prevLink = '&nbsp;';
         }
@@ -167,6 +182,7 @@ EOT;
             $text = '<span class="pfy-page-switcher-link-text">'.$next->title()->value().'</span>';
             $text = $text.TransVars::getVariable('pfy-next-page-text');
             $nextLink = "<a href='$nextUrl' title='$title' rel='next'>\n\t\t$text\n\t\t</a>";
+            $this->empty = true;
         } else {
             $nextLink = '&nbsp;';
         }

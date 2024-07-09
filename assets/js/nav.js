@@ -27,8 +27,7 @@ class PfyNav {
 
   init() {
     //mylog('init: ' + this.navWrapper.getAttribute('id'));
-    this.initialized = false;
-    const navWrapper = this.navWrapper;
+    const navWrapper  = this.navWrapper;
     this.isPrimary    = navWrapper.classList.contains('pfy-primary-nav');
     this.isTopNav     = navWrapper.classList.contains('pfy-nav-horizontal');
     this.collapsed    = navWrapper.classList.contains('pfy-nav-collapsed')? 1 : false;
@@ -93,10 +92,14 @@ class PfyNav {
         // apply level-class:
         liElem.classList.add('pfy-lvl-' + depth);
 
+        const subOlElem = liElem.querySelector('ol,ul');
+        let needsSurrogate = subOlElem && !liElem.classList.contains('pfy-nav-no-direct-child');
+        needsSurrogate = needsSurrogate && (!parent.isTopNav || (depth === 1));
+
         // mark current-page (and its parent pages):
         const aElem = liElem.querySelector('a');
         const currPage = aElem.getAttribute('aria-current')? ' aria-current="page"' : '';
-        if (currPage) {
+        if (currPage && !needsSurrogate) {
           liElem.classList.add('pfy-curr');
           let parentLiElem = liElem.parentElement.closest('li');
           while (parentLiElem) {
@@ -106,8 +109,7 @@ class PfyNav {
         }
 
         // handle sub-branches:
-        const subOlElem = liElem.querySelector('ol,ul');
-        {
+        if (subOlElem) {
           liElem.classList.add('pfy-has-children');
           let ariaExpanded = parent.isTopNav ? 'false' : 'true';
           if (!parent.isTopNav) {
@@ -115,74 +117,48 @@ class PfyNav {
           }
 
           // inject arrow into <a>:
-          const aElem = liElem.querySelector('a');
-          const text = aElem.textContent;
+          const text = liElem.querySelector('a').textContent;
 
           const href = aElem.getAttribute('href');
-          const currPage = aElem.getAttribute('aria-current') ? ' aria-current="page"' : '';
 
-          if (currPage) {
-            liElem.classList.add('pfy-curr');
-            let parentLiElem = liElem.parentElement.closest('li');
-            while (parentLiElem) {
-              parentLiElem.classList.add('pfy-active');
-              parentLiElem = parentLiElem.parentElement.closest('li');
-            }
+          aElem.outerHTML = `<a href="${href}" aria-expanded="${ariaExpanded}" aria-controls="${subId}"><span class='pfy-nav-label'>` +
+            `<span>${text}</span></span><span class='pfy-nav-arrow' aria-hidden='true'>${parent.arrowSvg}</span></a>`;
+
+          let olInnerHtml = subOlElem.innerHTML;
+
+          if (needsSurrogate) {
+            const aHref = aElem.getAttribute('href');
+            const aText = aElem.innerHTML;
+            olInnerHtml = '<li class="pfy-lvl-' + (depth + 1) + ` pfy-surrogate-elem"><a href="${aHref}">${aText}</a></li>` + olInnerHtml;
+            liElem.classList.add('pfy-has-surrogate-elem');
           }
+          subOlElem.outerHTML = `<div id="${subId}" class="pfy-nav-sub-wrapper"><ol>` + olInnerHtml + '</ol>';
 
-          if (subOlElem) {
-            if (parent.collapsible || (parent.isTopNav && (depth === 1))) {
-              // level 1 in top-nav:
-              if (currPage) {
-                aElem.outerHTML = `<a href="${href}" aria-expanded="${ariaExpanded}" aria-current="page" aria-controls="${subId}"><span class="pfy-nav-label">` +
-                  `<span>${text}</span></span><span class='pfy-nav-arrow' aria-hidden='true'>${parent.arrowSvg}</span></a>`;
-              } else {
-                aElem.outerHTML = `<a href="${href}" aria-expanded="${ariaExpanded}" aria-controls="${subId}"><span class='pfy-nav-label'>` +
-                  `<span>${text}</span></span><span class='pfy-nav-arrow' aria-hidden='true'>${parent.arrowSvg}</span></a>`;
-              }
-
-            } else {
-              // any level except level 1 in top-nav:
-              if (currPage) {
-                aElem.outerHTML = `<a href="${href}" aria-current="page"><span class='pfy-nav-label'><span>${text}</span></span></a>`;
-              } else {
-                aElem.outerHTML = `<a href="${href}"><span class='pfy-nav-label'><span>${text}</span></span></a>`;
-              }
-            }
-
-            let olInnerHtml = subOlElem.innerHTML;
-
-            // if liElem has children but is not yet a surrogate-elem, convert it into one now:
-            if (parent.collapsible) {
-              if (!liElem.classList.contains('pfy-has-surrogate-elem') && !liElem.classList.contains('pfy-nav-no-direct-child')) {
-                const aHref = aElem.getAttribute('href');
-                const aText = aElem.innerHTML;
-                olInnerHtml = '<li class="pfy-lvl-' + (depth + 1) + ` pfy-surrogate-elem"><a href="${aHref}">${aText}</a></li>` + olInnerHtml;
-                liElem.classList.add('pfy-has-surrogate-elem');
-              }
-            }
-
-            // wrap sub <ol> in a <div>:
-            if (parent.collapsible && !(parent.isTopNav && (depth > 1))) {
-              subOlElem.outerHTML = `<div id="${subId}" class="pfy-nav-sub-wrapper"><ol>` + olInnerHtml + '</ol>';
-            } else {
-              subOlElem.outerHTML = `<div id="${subId}" class="pfy-nav-sub-wrapper"><ol>` + olInnerHtml + '</ol>';
-            }
-
-            // process all contained <li> recursively:
-            const subLiElems = liElem.querySelectorAll(':scope > div > ol > li');
-            if (subLiElems.length) {
-              parent._initNavHtml(subLiElems, depth + 1);
-            }
-
-          } else {
-            if (currPage) {
-              aElem.outerHTML = `<a href="${href}" aria-current="page"><span class='pfy-nav-label'><span>${text}</span></span></a>`;
-            } else {
-              aElem.outerHTML = `<a href="${href}"><span class='pfy-nav-label'><span>${text}</span></span></a>`;
-            }
+          // process all contained <li> recursively:
+          const subLiElems = liElem.querySelectorAll(':scope > div > ol > li');
+          if (subLiElems.length) {
+            parent._initNavHtml(subLiElems, depth + 1);
           }
         }
+        if (currPage) {
+          if (needsSurrogate) {
+            domForOne(liElem, '.pfy-surrogate-elem', (surrogateLi) => {
+              surrogateLi.classList.add('pfy-curr');
+              surrogateLi.setAttribute('aria-current', 'page');
+            })
+            liElem.classList.add('pfy-active');
+          } else {
+            liElem.classList.add('pfy-curr');
+            liElem.setAttribute('aria-current', 'page');
+          }
+
+          let parentLiElem = liElem.parentElement.closest('li');
+          while (parentLiElem) {
+            parentLiElem.classList.add('pfy-active');
+            parentLiElem = parentLiElem.parentElement.closest('li');
+          }
+        }
+
       });
     }
   } // _initNavHtml
@@ -205,11 +181,7 @@ class PfyNav {
 
 
   adaptToWidth() {
-    let navWrapper = this.navWrapper;
     this.isSmallScreen = (window.innerWidth < screenSizeBreakpoint);
-    if (typeof navWrapper === 'undefined') {
-      navWrapper = document.querySelector('.pfy-primary-nav');
-    }
     if (this.prevScreenMode !== this.isSmallScreen) {
       this.prevScreenMode = this.isSmallScreen;
       if (this.isSmallScreen) {
@@ -218,11 +190,13 @@ class PfyNav {
         this.initDesktopMode();
       }
       this.setupMouseHandlers();
-      this.initialized = true;
     }
+
     if (this.isPrimary) {
-      if (this.prevScreenMode !== this.isSmallScreen) {
-        this.initialized = true;
+      if (this.isSmallScreen) {
+        this.openCurrentElem();
+      } else {
+        this.closeAll();
       }
     }
   } //adaptToWidth
@@ -236,11 +210,9 @@ class PfyNav {
       this.setMobileMode(false);
       this.collapsible = true;
     }
-    if (!this.initialized) {
-      this.presetSubElemHeights();
-    }
-    if (this.collapsed) {
-      this.closeAllExcept(true, navWrapper);
+    this.presetSubElemHeights();
+    if (this.collapsed && !this.isTopNav && !this.isPrimary) {
+      this.openCurrentElem();
     }
     this.presetSubElemHeights();
   } // initDesktopMode
@@ -249,14 +221,16 @@ class PfyNav {
 
   // === mobile mode =====================================
   initMobileMode () {
+    this.presetSubElemHeights();
+
+    if (this.collapsed) {
+      this.openCurrentElem();
+    }
+
     if (!this.isPrimary) {
       return;
     }
     this.setMobileMode(true);
-
-    this.presetSubElemHeights();
-
-    this.openCurrentElem();
 
     const mobileMenuButton = document.getElementById('pfy-nav-menu-icon');
     if (!mobileMenuButton) {
@@ -818,7 +792,7 @@ class PfyNav {
   closeAll (navWrapper) {
     const parent = this;
     if (typeof navWrapper === 'undefined') {
-      navWrapper = document;
+      navWrapper = this.navWrapper;
     }
     this.navBranchIsOpen = false;
 
@@ -863,16 +837,17 @@ class PfyNav {
   openCurrentElem () {
     const navWrapper = this.navWrapper;
     const parent = this;
-    // close all branches recursively:
-    this.closeAll(navWrapper);
 
     // find current elem:
-    let liElem = navWrapper.querySelector('.pfy-curr');
-    if (!liElem) {
+    let aElem = navWrapper.querySelector('[aria-current="page"]');
+    if (!aElem) {
       return;
     }
-    liElem = liElem.parentElement.closest('li');
-    const currLi = liElem;
+    const currLi = aElem.parentElement;
+    let liElem =  currLi;
+
+    // close all branches recursively:
+    this.closeAll(navWrapper);
 
     // open all from current elem up to top level:
     while (liElem) {
@@ -906,12 +881,6 @@ class PfyNav {
     if (pfyNavSubWrappers) {
       pfyNavSubWrappers.forEach(function (liElem) {
         parent.presetSubElemHeight(liElem, true);
-      });
-      pfyNavSubWrappers.forEach(function (liElem) {
-        const subDivElem = liElem.querySelector('div');
-        if (subDivElem) {
-          subDivElem.style.display = 'none';
-        }
       });
     }
   } // presetSubElemHeights

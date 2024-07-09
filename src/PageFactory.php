@@ -162,6 +162,8 @@ class PageFactory
             self::$forceAssetsUpdate = true;
         }
 
+        SiteNav::init(); // determines site structure, prev and next pages/links
+
         self::$assets = new Assets($this);
         self::$pg = new Page($this);
         self::$pg->set('pageParams', self::$page->content()->data());

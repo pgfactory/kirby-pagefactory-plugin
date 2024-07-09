@@ -51,17 +51,17 @@ $txt-color:           var(--pfy-nav-txt-color, currentColor);
 $sub-txt-color:       var(--pfy-nav-sub-txt-color, $txt-color);
 $active-txt-color:    var(--pfy-nav-active-txt-color, $txt-color);
 $curr-txt-color:      var(--pfy-nav-curr-txt-color, $txt-color);
-$surrogate-txt-color: var(--pfy-nav-surrogate-txt-color, $txt-color);
 $hover-txt-color:     var(--pfy-nav-hover-txt-color, $txt-color);
+$surrogate-txt-color: var(--pfy-nav-surrogate-txt-color, inherit);
 
  // Background and border-left:
 $nav-bg-color:        var(--pfy-nav-bg-color, white);
-$elem-bg-color:       var(--pfy-nav-elem-bg-color, $nav-bg-color);
-$hover-bg-color:      var(--pfy-nav-hover-bg-color, $elem-bg-color);
-$sub-bg-color:        var(--pfy-nav-sub-bg-color, $elem-bg-color);
+$elem-bg-color:       var(--pfy-nav-elem-bg-color, inherit);
+$hover-bg-color:      var(--pfy-nav-hover-bg-color);
+$sub-bg-color:        var(--pfy-nav-sub-bg-color, inherit);
 $active-bg-color:     var(--pfy-nav-active-bg-color, $elem-bg-color);
 $curr-bg-color:       var(--pfy-nav-curr-bg-color, $elem-bg-color);
-$surrogate-bg-color:  var(--pfy-nav-surrogate-bg-color, $sub-bg-color);
+$surrogate-bg-color:  var(--pfy-nav-surrogate-bg-color, inherit);
 
  // focus:
 $focus-frame-color1: var(--pfy-focus-frame-color1, #{$focus-frame-color1});
@@ -81,9 +81,9 @@ $animation-duration:  var(--pfy-nav-animation-duration, #{$nav-animation-duratio
 
 
  // Side Markers:
-$navCurrSideMarker:   var(--nav-side-marker-curr-color, inherit);
-$navActiveSideMarker: var(--nav-side-marker-active-color, inherit);
-$navHoverSideMarker:  var(--nav-side-marker-hover-color, inherit);
+$navCurrSideMarker:   var(--pfy-nav-side-marker-curr-color, inherit);
+$navActiveSideMarker: var(--pfy-nav-side-marker-active-color, inherit);
+$navHoverSideMarker:  var(--pfy-nav-side-marker-hover-color, inherit);
 
 
  // === Computed indentation values ==================================
@@ -143,37 +143,24 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
   .pfy-nav {
     background: $nav-bg-color;
 
-    a {
-      color: $txt-color;
+    li {
+      color:      $txt-color;
       background: $elem-bg-color;
+    }
+    a {
+      color:      inherit;
+      background: inherit;
       padding-right: 0.5em;
     }
 
-
+    .pfy-lvl-1 > a {
+      color: $txt-color;
+      background: $elem-bg-color;
+    }
     .pfy-lvl-2 a {
       color: $sub-txt-color;
       background: $sub-bg-color;
     }
-
-    // pfy-active:
-    .pfy-lvl-1.pfy-active {
-      > a {
-        color:      $active-txt-color;
-        background: $active-bg-color;
-      }
-    }
-    // pfy-curr:
-    .pfy-curr.pfy-curr {
-      > a {
-        color:      $curr-txt-color;
-        background: $curr-bg-color;
-      }
-    }
-    &.pfy-nav a:hover {
-      color:      $hover-txt-color;
-      background: $hover-bg-color;
-    }
-
 
     // pfy-surrogate-elem:
     .pfy-surrogate-elem {
@@ -182,6 +169,24 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
         background: $surrogate-bg-color;
       }
     }
+
+    .pfy-nav-horizontal .pfy-lvl-1.pfy-active > a {
+      background: $active-bg-color;
+    }
+    :not(.pfy-nav-horizontal) .pfy-has-children:has(.pfy-curr):not(.pfy-open) {
+      background: $active-bg-color;
+    }
+
+    // curr:
+    .pfy-curr > a {
+      background: $curr-bg-color;
+    }
+
+    &.pfy-nav a:hover {
+      color:      $hover-txt-color;
+      background: $hover-bg-color;
+    }
+
   } // .pfy-nav
 
   // nav placeholder:
@@ -597,12 +602,15 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
     }
 
     // active top:
-    .pfy-lvl-1.pfy-active > a {
+    .pfy-nav-horizontal .pfy-lvl-1.pfy-active > a {
+      border-left-color: $navActiveSideMarker;
+    }
+    :not(.pfy-nav-horizontal) .pfy-has-children:has(.pfy-curr):not(.pfy-open) {
       border-left-color: $navActiveSideMarker;
     }
 
     // curr:
-    .pfy-curr.pfy-curr > a {
+    .pfy-curr > a {
       border-left-color: $navCurrSideMarker;
     }
   }
@@ -615,9 +623,9 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
  // === typical cases ===========================================
  // colored mobile nav:
 .pfy-nav-mobile-open .pfy-mobile-nav-colored {
-  --nav-side-marker-hover-color: yellow;
-  --nav-side-marker-active-color: orange;
-  --nav-side-marker-curr-color: red;
+  --pfy-nav-side-marker-hover-color: yellow;
+  --pfy-nav-side-marker-active-color: orange;
+  --pfy-nav-side-marker-curr-color: red;
 }
 
  // colored nav:
