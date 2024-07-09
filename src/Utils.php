@@ -531,19 +531,19 @@ EOT;
 # Help
 
 [?help](./?help)       12em>> this information 
-[?variables](./?variables)      >> show currently defined variables
-[?macros](./?macros)      >> show currently defined macros()
-[?lang=](./?lang)      >> activate given language
-[?logout](./?logout)      >> log out user
-[?debug](./?debug)      >> activate debug mode
+[?variables](./?variables)      >> shows currently defined variables
+[?macros](./?macros)      >> shows currently defined macros()
+[?lang=](./?lang)      >> activates given language
+[?debug](./?debug)      >> activates debug mode
 [?localhost=false](./?localhost=false)      >> mimicks running on a remote host (for testing)
-[?notranslate](./?notranslate)      >> show variables instead of translating them
-[?login](./?login)      >> open login window
-[?logout](./?logout)      >> logout user
+[?notranslate](./?notranslate)      >> shows variables instead of translating them
+[?login](./?login)      >> opens login window
+[?logout](./?logout)      >> logs out user
 [?print](./?print)		    	>> starts printing mode and launches the printing dialog
 [?printpreview](./?printpreview)  	>> presents the page in print-view mode    
 [?reset](./?reset)		    	>> resets all state-defining information: caches, tokens, session-vars.
 [?release](./?release)		    >> like reset, but recompiles SCSS files without line numbers.
+[?bust=](./?bust)      >> activates 'browser cache busting'
 
 @@@
 EOT;
