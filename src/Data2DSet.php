@@ -327,6 +327,10 @@ class Data2DSet extends DataSet
             throw new \Exception("Export to original data file '$toFile' is not allowed.");
         }
         preparePath($toFile, 0755);
+
+        if (!$this->data2D) {
+            $this->data2D = $this->normalizeData(false, '', $this->elementKeys);
+        }
         try {
             if ($fileType === 'office') {
                 $toFile .= 'xlsx';
