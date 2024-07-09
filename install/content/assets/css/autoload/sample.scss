@@ -1,29 +1,114 @@
 // Sample styles - remove or modify as you like
 
-.pfy-page {
-	padding: 2em;
-}
-.pfy-nav-horizontal {
-	display: flex;
-	justify-content: flex-end;
-}
-#pfy .pfy-nav-horizontal li.pfy-lvl-1:last-child > div {
-    right: 0;
-    left: unset !important;
-    text-align: right;
-}
+body {
+	// typcal css-variables:
+		// --page-padding: 1em;
+		// --background-color: wheat;
+		// --text-color: maroon;
+		// --footer-background: navy;
+		// --footer-text-color: yellow;
+	
+		color: var(--text-color);
+		background: var(--background-color);
+	}
+	
+	
+	// === page ========================================
+	.pfy-header-wrapper,
+	.pfy-main {
+		// page padding:
+		padding: var(--page-padding, 4vw);
+		padding-bottom: 0;
+	}
+	
+	
+	// === header ======================================
+	.pfy-header-wrapper {
+		// horizontally spread header elements:
+		display: flex;
+		justify-content: space-between;
+		flex-wrap: wrap;
+		> * {
+			flex: 1 0 auto;
+		}
+	}
+	.pfy-header {
+		.pfy-page-switcher-wrapper {
+			// page-switcher to occupy full width:
+			flex-basis: 100%;
+		}
+	}
+	.pfy-small-screen {
+		.pfy-header {
+			display: none;
+		}
+	}
 
-.pfy-footer {
-	margin-top: 3em;
-	border-top: 1px solid #ccc;
-	padding-top: 1em;
-	display: flex;
-	justify-content: space-between;
-}
+	.pfy-primary-nav.pfy-nav-horizontal {
+		// nav right aligned:
+		display: flex;
+		justify-content: flex-end;
+	}
+	#pfy .pfy-nav-horizontal li.pfy-lvl-1:last-child > div {
+		// avoid sub-elments in last menu branch to right edge of viewport:
+		right: 0;
+		left: unset !important;
+		text-align: right;
+	}
+	
+	.v-align-with-nav {
+		// insert top and bottom padding just like nav:
+		padding-top:      calc( (var(--pfy-nav-elem-height, 2em) - 1.2em) / 2);
+		padding-bottom:   calc( (var(--pfy-nav-elem-height, 2em) - 1.2em) / 2);
+		font-size:        var(--pfy-nav-txt-size,  12pt);
+	}
+	
+	
+	
+	// === footer =====================================
+	.pfy-footer {
+		// layout of footer:
+		margin-top: 3em; // leave some room between content and footer
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		background: var(--footer-background, #333);
+		&, a {
+			color: var(--footer-text-color, white);
+		}
+	
+		// horizontal page padding:
+		padding: 1em var(--page-padding, 1em) 0 var(--page-padding, 1em);
+	}
+	
+	.pfy-footer-sitemap {
+		flex-basis: 100%;
+		.pfy-sitemap {
+			border-bottom: 1px solid #ccc;
+			padding-bottom: 1em;
+			margin-bottom: 0.6em;
+			--pfy-nav-horizontal-first-indent: -1em;
+			--pfy-nav-horizontal-indent-step: 1em;
+	
+			&.pfy-nav-indented .pfy-lvl-3 > a {
+				padding-left: 1em !important;
+			}
+		}
+	}
+	
+	// for dev on localhost only:
+	.dev-footer {
+		margin-bottom: 1em;
+		display: flex;
+		justify-content: space-between;
+		background: #a537ff;
+		background: repeating-linear-gradient(-55deg, #9f29ff, #9f29ff 10px, #9310fe 10px, #9310fe 15px);
+	}
+	
 
-.pfy-site-title {
-	float: left;
-	padding-top:      calc( (var(--pfy-nav-elem-height, 2em) - 1.2em) / 2);
-	padding-bottom:   calc( (var(--pfy-nav-elem-height, 2em) - 1.2em) / 2);
-	font-size:        var(--pfy-nav-txt-size,  12pt);
-}
+	// === page switcher ================================
+	.pfy-page-switcher-wrapper.pfy-page-switcher-empty.pfy-page-switcher-empty {
+		margin: 0; // avoid taking up space on single pager, where page-switcher is obsolete and thus empty
+	}
+	
+	

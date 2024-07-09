@@ -6,6 +6,7 @@
 
   <meta name="viewport" content="width=device-width, user-scalable=yes, initial-scale=1">
   <meta name="generator" content="{{ page.generator }} (on PHP {{ page.phpVersion }})">
+  {{ prevnextlinks({type:'header-links'}) }}
 {#  {{ snippet('favicon') }}  -> requires plugin https://getkirby.com/plugins/moritzebeling/kirby-favicon #}
 
   {{ page.headInjections|raw }}
@@ -17,13 +18,13 @@
 
   <div class="pfy-header-wrapper">
 
-    <header class='pfy-header'>
-      <div class="pfy-large-screen-only">{{ page.homeLink | raw }}</div>
+    <header class='pfy-header v-align-with-nav'>
+      {{ page.homeLink | raw }}
     </header>
 
-    <aside class="pfy-nav-outer-wrapper">
-      {{ nav({ type: 'top', wrapperClass: 'pfy-nav-top-right-aligned pfy-nav-colored pfy-mobile-nav-colored' }) }}
-    </aside>
+    {{ nav({ type: 'top' }) }}
+
+    {{ prevnextlinks({'wrapperClass':'pfy-large-screen-only pfy-full-width'}) }}
 
   </div><!-- /pfy-header-wrapper -->
 
@@ -42,39 +43,41 @@
 
 
     <footer class="pfy-footer">
-      <div class="pfy-footer-left">
-        {{ page.langSelection|raw }}
+
+      <div class="pfy-footer-sitemap">
+
+        {{ nav({type: 'sitemap' }) }}
+
+        {{ prevnextlinks({center: '%loginButton%'}) }}
+
       </div>
 
-      <div class="pfy-footer-center pfy-loggedin-or-localhost-only">
-        <div>{{ page.adminPanelLink|raw }}</div>
-        <div class='pfy-localhost-only'>
+{% if page.localhost %}
+
+      <div class="dev-footer pfy-localhost-only">
+        <div>
+          {{ page.adminPanelLink | raw }}
+        </div>
+        <div>
+          {{ page.loggedIn }} {{ page.loginButton|raw }}
+        </div>
+        <div>
           [{{ link({ url: '~page/?debug=reset', text: 'debug auto' }) }}
           {{ link({ url: '~page/?debug=false', text: 'debug off' }) }}]
         </div>
       </div>
-
-      <div class='pfy-footer-right'>
-        {{ page.loggedIn|raw }}
-        {{ page.loginButton|raw }}
-      </div><!-- /pfy-footer-right -->
+{% endif %}
     </footer>
 
 
 
-
-    <div class="pfy-small-screen-header pfy-small-screen-only">
-      {{ page.smallScreenHeader|raw }}
-    </div><!-- /pfy-small-screen-header -->
-
-
-    {{ prevnextlinks({'wrapperClass':'pfy-large-screen-only'}) }}
+  {{ page.smallScreenHeader|raw }}
 
   </div><!-- /pfy-main-wrapper -->
 
 </div><!-- /.pfy-page -->
 
-
+{# {{ countvisits({show:false}) }} #}
 
 {{ page.bodyEndInjections|raw }}
 </body>
