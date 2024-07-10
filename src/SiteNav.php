@@ -80,6 +80,11 @@ class SiteNav
      */
     public static function render(array|null $args = null): string
     {
+        // if site consists of just 1 page, return empty nav/sitemap:
+        if (sizeof(self::$siteStruct) === 1) {
+            return '';
+        }
+
         $site = site();
         $inx = self::$inx++; // index of nav-element
         $wrapperClass = $args['wrapperClass'];
