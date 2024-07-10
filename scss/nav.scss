@@ -278,7 +278,8 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
       position:         relative;
       overflow:         hidden;
       text-overflow:    ellipsis;
-      font-size:        var(--pfy-nav-txt-size,  $nav-txt-size);
+      font-size:        $nav-txt-size;
+      //font-size:        var(--pfy-nav-txt-size,  $nav-txt-size);
       line-height:      var(--pfy-nav-line-height, $nav-line-height);
       padding-top:      calc( (var(--pfy-nav-elem-height, #{$nav-elem-height}) - 1.2em) / 2);
       padding-bottom:   calc( (var(--pfy-nav-elem-height, #{$nav-elem-height}) - 1.2em) / 2);
@@ -579,9 +580,11 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
 
 
   // === mobile nav ======================================
-  &.pfy-nav-mobile-open {
+  &#pfy.pfy-small-screen {
     .pfy-primary-nav {
-      font-size: $mobile-nav-text-size;
+      &, a {
+        font-size: $mobile-nav-text-size;
+      }
     }
   } // .pfy-nav-mobile-open
 

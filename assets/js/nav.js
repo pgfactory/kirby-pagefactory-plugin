@@ -221,7 +221,6 @@ class PfyNav {
 
   // === mobile mode =====================================
   initMobileMode () {
-    this.presetSubElemHeights();
 
     if (this.collapsed) {
       this.openCurrentElem();
@@ -290,6 +289,7 @@ class PfyNav {
         navWrapper.dataset.classList = null;
       }
     }
+    this.presetSubElemHeights();
   } // setMobileMode
 
 
@@ -872,7 +872,7 @@ class PfyNav {
 
     const parent = this;
     let pfyNavSubWrappers;
-    if (this.isTopNav) {
+    if (this.navWrapper.classList.contains('pfy-nav-horizontal')) {
       pfyNavSubWrappers = navWrapper.querySelectorAll('.pfy-lvl-1.pfy-has-children');
     } else {
       pfyNavSubWrappers = navWrapper.querySelectorAll('.pfy-has-children');
