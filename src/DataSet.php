@@ -2,6 +2,7 @@
 
 namespace PgFactory\PageFactory;
 
+use Error;
 use Kirby\Filesystem\F;
 use Kirby\Data\Yaml as Yaml;
 
@@ -1284,7 +1285,11 @@ class DataSet
      */
     protected function readCacheFile(): void
     {
-        $obj = unserialize(readFileLocking($this->cacheFile));
+        try {
+            $obj = unserialize(readFileLocking($this->cacheFile));
+        } catch (Error $e) {
+            die ("Internal data error - try to clear data cache (" . $e->getMessage() . ')');
+        }
         $obj->options = $this->options;
         if (is_object($obj)) {
             foreach ($obj as $key => $value) {
