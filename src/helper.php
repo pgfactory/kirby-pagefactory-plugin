@@ -750,38 +750,62 @@ function removeCStyleComments(string $str): string
   * @param bool|string $associative  Return as associative array
   * @return array
   */
-function getDir(string $pat, mixed $associative = false, $type = false): array
+function getDir(string $pat, mixed $associative = false, string $type = ''): array
 {
-    if (strpos($pat, '{') === false) {
-        if (strpos($pat, '*') !== false) {
-            $files = glob($pat);
-        } else {
-            $files = glob(fixPath($pat).'*', GLOB_BRACE);
+    if ($type) {
+        // 'type' specified (either files and/or folders):
+        $files = [];
+        if (str_contains($type, 'folders')) {
+            $path = preg_replace('/[*{].*/', '', $pat);
+            $folders = glob("$path*", GLOB_ONLYDIR);
+            array_walk($folders, function (&$item) {
+                $item = rtrim($item, '/') . '/';
+            });
         }
+        if (str_contains($type, 'files')) {
+            if (!str_contains($pat, '{')) {
+                if (str_contains($pat, '*')) {
+                    $files = glob($pat);
+                } else {
+                    $files = glob(fixPath($pat).'*', GLOB_BRACE);
+                }
+            } else {
+                $files = glob($pat, GLOB_BRACE);
+            }
+        }
+        $files = array_merge($folders, $files);
+
     } else {
-        $files = glob($pat, GLOB_BRACE);
+        // no type specified -> return files and folders:
+        if (!str_contains($pat, '{')) {
+            if (str_contains($pat, '*')) {
+                $files = glob($pat);
+            } else {
+                $files = glob(fixPath($pat).'*', GLOB_BRACE);
+            }
+        } else {
+            $files = glob($pat, GLOB_BRACE);
+        }
+
+        // fix folders -> add '/':
+        array_walk($files, function (&$item) {
+            if (is_dir($item)) {
+                $item .= '/';
+            }
+            return $item;
+        });
     }
     if (!$files) {
         return [];
     }
-    $files = array_filter($files, function ($str) {
-        return ($str && ($str[0] !== '#') && (strpos($str, '/#') === false));
-    });
-    if ($type === 'folders') {
-        $files = array_filter($files, function ($str) {
-            return is_dir($str);
-        });
 
-    } elseif ($type === 'files') {
+    // filter out "commented out files":
+    if (!str_contains($type, 'hash')) {
         $files = array_filter($files, function ($str) {
-            return is_file($str);
+            return ($str && ($str[0] !== '#') && (!str_contains($str, '/#')));
         });
     }
-    foreach ($files as $i => $item) {
-        if (is_dir($item)) {
-            $files[$i] = $item.'/';
-        }
-    }
+
     if ($associative === 'name_only') {
         $filenames = array_map(function ($e) { return base_name($e, false); }, $files);
         $files = array_combine($filenames, $files);
