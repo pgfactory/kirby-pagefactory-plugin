@@ -155,7 +155,7 @@ class Macros
     private static function handleSpecialOptions(string $macroName, array $config, mixed &$args): string
     {
         // render help text:
-        if ($args === 'help' || ($args['help']??false)) {
+        if (is_string($args) && (trim($args) === 'help') || ($args['help']??false)) {
             return self::renderMacroHelp($config);
 
         // render as unprocessed (?notranslate):
@@ -238,7 +238,7 @@ EOT;
             }
         }
         foreach ($options as $key => $value) {
-            if (is_int($key) && $value) {
+            if (is_int($key) && ($value !== null)) {
                 $key1 = array_keys($config['options'])[$key];
                 $options[$key1] = fixDataType($value);
                 unset($options[$key]);
