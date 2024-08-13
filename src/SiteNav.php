@@ -96,7 +96,9 @@ class SiteNav
         // 'top' shorthand:
         if (str_contains($type, 'top')) {
             $wrapperClass .= ' pfy-nav-horizontal pfy-nav-indented pfy-nav-animated pfy-nav-collapsible pfy-nav-collapsed pfy-encapsulated';
-            $args['isPrimary'] = true;
+            if ($args['isPrimary'] === null) {
+                $args['isPrimary'] = true;
+            }
 
         // 'side' shorthand:
         } elseif (str_contains($type, 'side')) {
