@@ -50,7 +50,7 @@ $dl-as-table-dt-width: 6em;
       flex-basis: 100%;
       width: 100%;
     }
-    
+
     .pfy-presentation-only {
       display: none;
     }
@@ -75,7 +75,7 @@ $dl-as-table-dt-width: 6em;
     }
 
     dd {
-      width: calc(100% - var(--pfy-dl-as-table-dt-width, #{$dl-as-table-dt-width}) - 0.3em);
+      width: calc(100% - var(--pfy-dl-as-table-dt-width, #{$dl-as-table-dt-width}) - 0.5em);
     }
     p {
       margin: 0;
@@ -83,3 +83,4 @@ $dl-as-table-dt-width: 6em;
   }
 
 } // pfy-default-styling
+
