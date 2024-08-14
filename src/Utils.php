@@ -1020,13 +1020,19 @@ EOT;
      */
     public static function getUsers(array $options = []): array
     {
-        $groupFilter = $options['role']??false;
+        $groupFilter = strtolower($options['role']??'');
+        $selector = $options['selector']??false;
+        $selectorOp = $options['selectorOp']??'!=';
+        $selectorValue = $options['selectorValue']??'';
         $reversed = $options['reversed']??false;
         $sort = $options['sort']??false;
 
         $users = kirby()->users();
         if ($groupFilter) {
-            $users = $users->filterBy('role', $groupFilter);
+            $users = $users->filter('role', $groupFilter);
+        }
+        if ($selector) {
+            $users = $users->filterBy($selector, $selectorOp, $selectorValue);
         }
         $users = $users->sortBy('name');
 
