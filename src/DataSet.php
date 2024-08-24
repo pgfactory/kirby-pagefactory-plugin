@@ -1293,7 +1293,7 @@ class DataSet
         $obj->options = $this->options;
         if (is_object($obj)) {
             foreach ($obj as $key => $value) {
-                if (!str_contains('sess,officeFormatAvailable,includeMeta,keepDataOnField,keepDataThreshold', $key)) {
+                if (!str_contains('sess,officeFormatAvailable,includeMeta,keepDataOnField,keepDataThreshold,masterFileRecKeyType', $key)) {
                     $this->$key = $value;
                 }
             }
