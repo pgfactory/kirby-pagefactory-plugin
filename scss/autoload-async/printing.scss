@@ -8,11 +8,17 @@
     }
 }
 
+.pfy-print-only {
+  display: none;
+}
 
 @media print {
   .pfy-screen_only,
   .pfy-screen-only {
     display: none!important;
+  }
+  .pfy-print-only {
+    display: initial !important;
   }
 
   #pfy.pfy-default-styling .pfy-encapsulated,
