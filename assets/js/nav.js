@@ -36,6 +36,7 @@ class PfyNav {
     this.preOpenCurr  = navWrapper.classList.contains('pfy-nav-open-current');
     this.navInx       = navWrapper.dataset.navInx;
     this.navElemInx   = 0;
+    this.timer        = [];
 
     this.initNavHtml();
 
@@ -374,7 +375,7 @@ class PfyNav {
         // set mouseenter-trigger on a elem:
         l1AElem.addEventListener('mouseenter', function (ev) {
           const elem = ev.currentTarget.parentElement;
-          if (parent.timer[elem.dataset.inx]) {
+          if ((typeof parent.timer === 'object') && (typeof parent.timer[elem.dataset.inx] !== 'undefined') && parent.timer[elem.dataset.inx]) {
             clearTimeout(parent.timer[elem.dataset.inx]);
           }
           parent.openBranch(elem);
@@ -383,10 +384,12 @@ class PfyNav {
         // set mouseleave-trigger on li elem:
         l1AElem.parentElement.addEventListener('mouseleave', function (ev) {
           const elem = ev.currentTarget;
-          parent.timer[elem.dataset.inx] = setTimeout(function () {
-            parent.closeBranch(elem);
-            parent.timer[elem.dataset.inx] = false;
-          }, parent.transitionTimeMs);
+          if ((typeof parent.timer === 'object') && (typeof parent.timer[elem.dataset.inx] !== 'undefined')) {
+            parent.timer[elem.dataset.inx] = setTimeout(function () {
+              parent.closeBranch(elem);
+              parent.timer[elem.dataset.inx] = false;
+            }, parent.transitionTimeMs);
+          }
         });
       })
     }
