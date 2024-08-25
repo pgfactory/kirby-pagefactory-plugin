@@ -1029,7 +1029,16 @@ EOT;
 
         $users = kirby()->users();
         if ($groupFilter) {
-            $users = $users->filter('role', $groupFilter);
+            if (str_contains($groupFilter, ',')) { // multiple roles
+                $groups = explodeTrim(',', $groupFilter);
+                $users = $users->filter(function ($user) use ($groups) {
+                    $role = $user->role()->name();
+                    return in_array($role, $groups);
+                });
+
+            } else { // single role requested
+                $users = $users->filter('role', $groupFilter);
+            }
         }
         if ($selector) {
             $users = $users->filterBy($selector, $selectorOp, $selectorValue);
