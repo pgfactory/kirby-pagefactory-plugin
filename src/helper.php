@@ -1647,8 +1647,8 @@ function mylog(string $str, mixed $filename = false): void
          return $str;
      }
 
-     $pattern = '/(.{1,'.$width.'})(?:[\s,])|(.{'.$width.'})(?!$)/uS';
-     $str = preg_replace($pattern, "$1$2\n                     ", $str);
+     $str = wordwrap($str, $width, "\n", false);
+     $str = str_replace("\n", "\n                     ", $str);
      return $str;
  } // log_wordwrap
 
