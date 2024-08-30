@@ -1760,7 +1760,7 @@ function parseArgumentStr(string $str, string $delim = ','): array
     // otherwise, interpret as 'relaxed Yaml':
     // (meaning: first elements may come without key, then they are interpreted by position)
     $rest = ltrim($str, ", \n");
-    $rest = rtrim($rest, ", \n)");
+    $rest = rtrim($rest, ", \n"); // fixed from:   $rest = rtrim($rest, ", \n)");
 
     if (preg_match('/^(.*?) \)\s*}}/msx', $rest, $mm)) {
         $rest = rtrim($mm[1], " \t\n");
