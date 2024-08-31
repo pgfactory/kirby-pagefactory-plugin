@@ -153,9 +153,13 @@ class Data2DSet extends DataSet
         }
         if (!is_array($recElements) || !$recElements) {
             $rec0 = reset($data);
-            unset($rec0['_reckey']);
-            $recElements = array_keys($rec0);
-            $recElements = array_combine($recElements, $recElements);
+            if (is_array($rec0)) {
+                unset($rec0['_reckey']);
+                $recElements = array_keys($rec0);
+                $recElements = array_combine($recElements, $recElements);
+            } else {
+                $recElements = [];
+            }
         }
         $data2D = [];
         $data2D['_hrd'] = $recElements;
