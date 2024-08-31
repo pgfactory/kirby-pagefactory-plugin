@@ -51,10 +51,14 @@ class Utils
         TransVars::setVariable('pageTitle', $kirbyPageTitle);
 
         if (PageFactory::$debug) {
-            TransVars::setVariable('generator', 'Kirby v' . kirby()::version() . " + PageFactory " . getGitTag());
+            $generator = 'Kirby v' . kirby()::version() . " + PageFactory " . getGitTag();
+            $metaTagGenerator = $generator . ' (on PHP ' . phpversion() . ')';
+            $metaTagGenerator = "<meta name='generator' content='$metaTagGenerator'>";
         } else {
-            TransVars::setVariable('generator', '');
+            $metaTagGenerator = $generator = '';
         }
+        TransVars::setVariable('generator', $generator);
+        TransVars::setVariable('metaTagGenerator', $metaTagGenerator);
 
         // homeLink:
         if (PageFactory::$pageUrl !== PageFactory::$appUrl) {
