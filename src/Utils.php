@@ -1030,6 +1030,8 @@ EOT;
         $selectorValue = $options['selectorValue']??'';
         $reversed = $options['reversed']??false;
         $sort = $options['sort']??false;
+        $blueprintFile = $options['blueprintFile']??'site/blueprints/users/default.yml';
+        $labels = self::getUserRecLabels($blueprintFile);
 
         $users = kirby()->users();
         if ($groupFilter) {
@@ -1051,14 +1053,16 @@ EOT;
 
         $usersArray = [];
         foreach ($users as $user) {
-            $content = $user->content();
+            $content = $user->content()->data();
             $rec = [
-                'username' =>  (string)$user->name(),
-                'email' =>  (string)$user->email(),
+                $labels['username'] =>  (string)$user->name(),
+                $labels['email'] =>  (string)$user->email(),
+                $labels['group'] => (string)$user->role()->name(),
                 ];
             if ($content) {
-                foreach ($content->data() as $k => $v) {
-                    if (is_string($v)) {
+                foreach ($content as $k => $v) {
+                    if (is_string($v) && ($k !== 'accesscode')) {
+                        $k = isset($labels[$k]) ?$labels[$k]: $k;
                         $rec[$k] = $v;
                     }
                 }
@@ -1073,8 +1077,8 @@ EOT;
                 $aa = [];
                 $bb = [];
                 foreach ($sortElems as $e) {
-                    $aa[] = $a[$e];
-                    $bb[] = $b[$e];
+                    $aa[] = $a[$e]??'';
+                    $bb[] = $b[$e]??'';
                 }
                 return $aa <=> $bb;
             });
@@ -1086,5 +1090,32 @@ EOT;
 
         return $usersArray;
     } // getUsers
+    
+    
+    private static function getUserRecLabels(string $blueprintFile): array
+    {
+        $array = loadFile($blueprintFile);
+        $userLabels = [];
+        $userLabels['username'] = 'Username';
+        $userLabels['email'] = 'E-Mail';
+        $userLabels['group'] = 'Group';
+        $userLabels += self::_getUserRecLabels($array);
+        return $userLabels;
+    } // getUserRecLabels
+
+    private static function _getUserRecLabels(array $array): array
+    {
+        $userLabels = [];
+        foreach ($array as $k => $v) {
+            if (is_array($v)) {
+                if (isset($v['label'])) {
+                    $userLabels[$k] = $v['label'];
+                } else {
+                    $userLabels += self::_getUserRecLabels($v);
+                }
+            }
+        }
+        return $userLabels;
+    } // getUserRecLabels
 
 } // Utils
