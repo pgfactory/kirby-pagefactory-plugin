@@ -30,7 +30,7 @@ class DataSet
     protected $blocking = 0;
     protected $readWriteMode;
     protected $obfuscateRecKeys;
-    public    $elementKeys;
+    public    $elementKeys = [];
     protected $options;
     protected $includeMeta;
     protected $data;
@@ -133,7 +133,7 @@ class DataSet
             $this->initData();
         }
 
-        self::$officeFormatAvailable = (class_exists('PhpOffice\PhpSpreadsheet\Spreadsheet'));
+        self::checkOfficeFormatIsAvailable();
     } // __construct
 
 
@@ -1417,6 +1417,16 @@ class DataSet
         }
         return $key;
     } // deObfuscateRecKey
+
+
+    /**
+     * @return bool
+     */
+    public static function checkOfficeFormatIsAvailable()
+    {
+        self::$officeFormatAvailable = (class_exists('PhpOffice\PhpSpreadsheet\Spreadsheet'));
+        return self::$officeFormatAvailable;
+    } // checkOfficeFormatIsAvailable
 
 
 

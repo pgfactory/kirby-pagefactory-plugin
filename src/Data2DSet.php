@@ -22,10 +22,17 @@ class Data2DSet extends DataSet
     private array $recKeys = [];
     private bool  $markLocked = false;
     private string $placeholderForUndefined = '?';
+    private array $options2d;
 
-    public function __construct(string $file, array $options = [])
+    public function __construct(string|array $file, array $options = [])
     {
+        $this->options2d = $options;
         $this->markLocked = $options['markLocked'] ?? false;
+
+        if (is_array($file)) {
+            $this->data2D = $file;
+            $file = false;
+        }
         parent::__construct($file, $options);
         $unknown = $options['unknownValue'] ?? ($options['placeholderForUndefined']??false);
         if ($unknown !== false) {
@@ -416,8 +423,11 @@ class Data2DSet extends DataSet
         if ($this->downloadFilename) {
             // basename can be overridden by option:
             $downloadFilename = base_name($this->downloadFilename, false);
-        } else {
+        } elseif ($basename) {
             $downloadFilename = base_name($basename, false);
+        } else {
+            $downloadFilename = $this->options2d['tableName']??'download';
+            $basename = base_name($downloadFilename, false);
         }
         // determine download path (i.e. random hash static per page):
         $dlLinkFile = resolvePath('~cache/links/'.str_replace('/','_', $basename)).'.txt';
