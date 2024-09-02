@@ -321,6 +321,11 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
     .pfy-surrogate-elem {
       display: none!important;
     } // .pfy-surrogate-elem
+
+    // when surrogate is hidden, apply mark to its parent a-elem:
+    .pfy-active:has(> div > ol > .pfy-surrogate-elem.pfy-curr) > a {
+      border-left-color: var(--pfy-nav-side-marker-curr-color, inherit) !important;
+    }
   }
 
 
