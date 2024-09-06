@@ -87,9 +87,13 @@ class PrevNextLinks
             $center = '';
             if ($args['center']??false) {
                 $center = $args['center'];
-                while (preg_match('/%(\w{2,16})%/', $center, $m)) {
+                while (preg_match('/%(\w{2,32})%/', $center, $m)) {
                     $value = TransVars::getVariable($m[1]);
                     $center = str_replace($m[0], $value, $center);
+                }
+                // handle transvars in {{}} notation:
+                if (str_contains($center, '{{')) {
+                    $center = TransVars::translate($center);
                 }
                 $center = "<div class='pfy-page-switcher-center'>$center</div>\n";
             }
