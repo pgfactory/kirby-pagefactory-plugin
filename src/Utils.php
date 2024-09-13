@@ -519,7 +519,34 @@ EOT;
         Cache::flushAll(); // -> deletes media/ and site/cache/
         Assets::reset(); // Deletes all files created by Assets
         PageFactory::$assets->prepareAssets(); // -> recompile scss files while still privileged
+
+        self::resetAssetsPerPage(); // -> recompile scss files in page folders
     } // resetAll
+
+
+    /**
+     * @return void
+     * @throws \ScssPhp\ScssPhp\Exception\SassException
+     */
+    private static function resetAssetsPerPage()
+    {
+        $pages = site()->index();
+        foreach ($pages as $page) {
+            $path = $page->root().'/';
+            if (str_contains($path, 'contnt/assets/')) {
+                continue;
+            }
+            $scssFiles = getDir("$path*.scss");
+            foreach ($scssFiles as $scssFile) {
+                $dest = dirname($scssFile).'/-'.basename($scssFile, 'scss').'css';
+                if (file_exists($dest)) {
+                    unlink($dest);
+                }
+                Scss::compileFile($scssFile, $dest);
+            }
+        }
+
+    } // resetAssetsPerPage
 
 
     /**
@@ -1090,8 +1117,13 @@ EOT;
 
         return $usersArray;
     } // getUsers
-    
-    
+
+
+    /**
+     * @param string $blueprintFile
+     * @return array
+     * @throws Kirby\Exception\InvalidArgumentException
+     */
     private static function getUserRecLabels(string $blueprintFile): array
     {
         $array = loadFile($blueprintFile);
@@ -1103,6 +1135,10 @@ EOT;
         return $userLabels;
     } // getUserRecLabels
 
+    /**
+     * @param array $array
+     * @return array
+     */
     private static function _getUserRecLabels(array $array): array
     {
         $userLabels = [];
