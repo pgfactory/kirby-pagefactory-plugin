@@ -28,7 +28,7 @@ class Scss
         if (!self::$scssphp) {
             self::$scssphp = new Compiler;
         }
-        $scssStr = self::resolvePaths($scssStr);
+        $scssStr = self::resolveUrls($scssStr);
         return self::$scssphp->compileString($scssStr)->getCss();
     } // compileStr
 
@@ -66,7 +66,6 @@ class Scss
             return;
         }
         $srcStr = self::getFile($srcFile);
-        $srcStr = self::resolveUrls($srcStr);
         self::$scssphp->setImportPaths(dir_name($srcFile));
         $css = self::compileStr($srcStr);
         $css = "/* === Automatically created from ".basename($srcFile)." - do not modify! === */\n\n$css";
@@ -74,24 +73,6 @@ class Scss
         file_put_contents($targetFile, $css);
         mylog("SCSS: '$targetFile' compiled");
     } // compileFile
-
-
-    /**
-     * converts path patterns starting with ~
-     * @param $srcStr
-     * @return array|string|string[]
-     */
-    private static function resolvePaths($srcStr)
-    {
-        $appRoot = PageFactory::$appUrl;
-        $pathPatterns = [
-            '~/'            => $appRoot,
-            '~assets/'       => $appRoot.'assets/',
-        ];
-        $srcStr = str_replace(array_keys($pathPatterns), array_values($pathPatterns), $srcStr);
-
-        return $srcStr;
-    } // resolvePaths
 
 
     /**
@@ -243,7 +224,7 @@ class Scss
                 }
             }
         }
-        $appRootUrl =  kirby()->url() . '/';
+        $appRootUrl = dirname(substr($_SERVER['SCRIPT_FILENAME'], -strlen($_SERVER['SCRIPT_NAME']))) . '/';
         $patterns = [
             '~/'        => $appRootUrl,
             '~data/'    => $appRootUrl.'site/custom/data/',

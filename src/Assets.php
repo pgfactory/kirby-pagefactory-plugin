@@ -603,7 +603,7 @@ class Assets
     private function aggregate(string $dest, array $sources): void
     {
         $tempSrcFiles = [];
-        $modified = false;
+        $modified = !file_exists($dest);
         foreach ($sources as $sourceFolder) {
             $files = getDir($sourceFolder);
             foreach ($files as $srcFile) {
