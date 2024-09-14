@@ -95,6 +95,26 @@ body {
 			}
 		}
 	}
+
+	// Onboarding Aid
+	.pfy-onboardingaid-button * {
+		color: orange;
+		margin: 0 0.3em 0 0.2em;
+	}
+	.pfy-onboardingaid {
+		margin: 2em 0;
+		padding: 2em;
+		border: 1px solid orange;
+		background: rgb(255, 242, 218);
+	}
+	#pfy .pfy-onboarding-link {
+		display: block;
+		margin: 1em 0 0 0;
+		color: red;
+		border: 1px solid red;
+		padding: 0.5em;
+	}
+	
 	
 	// for dev on localhost only:
 	.dev-footer {
