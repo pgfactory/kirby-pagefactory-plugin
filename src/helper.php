@@ -1791,7 +1791,11 @@ function parseArgumentStr(string $str, string $delim = ','): array
 
     $json = rtrim($json, ',');
     $json = '{'.$json.'}';
-    $options = json_decode($json, true);
+    try {
+        $options = json_decode($json, true);
+    } catch (\Exception $e) {
+        throw new Exception($e->getMessage());
+    }
     if ($options === null) {
         throw new Exception("Error in argument list: \"$str\"");
     }
@@ -1912,7 +1916,7 @@ function parseArgValue(string &$rest, string $delim): mixed
                 'role' => trim($role),
             ]);
             $users = array_map(function($rec) {
-                return $rec['username'] ?: $rec['email'];
+                return ($rec['Username']??false) ?: (($rec['E-Mail']??false) ?: '');
             }, $users);
             $s = implode(',', $users);
 
