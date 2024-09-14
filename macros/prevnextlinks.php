@@ -57,6 +57,7 @@ EOT,
 class PrevNextLinks
 {
     public static $inx = 0;
+    public static $initialized = false;
     public $class;
     public $page;
     public $pages;
@@ -106,17 +107,18 @@ class PrevNextLinks
                     $wrapperClass .= ' pfy-dispno';
                 }
             }
-
-            $out = <<<EOT
-<div class='pfy-page-switcher-wrapper $wrapperClass'>
-$prev$center$next
-</div><!-- /.pfy-page-switcher-wrapper -->
-EOT;
-            if (self::$inx === 1) {
+            $out = '';
+            if (!self::$initialized) {
+                self::$initialized = true;
                 // inject script code for page-switching:
                 $url = PageFactory::$appUrl . "media/plugins/pgfactory/pagefactory/js/page-switcher.js";
                 $out .= "\t<script src='$url'></script>\n";
             }
+            $out .= <<<EOT
+<div class='pfy-page-switcher-wrapper $wrapperClass'>
+$prev$center$next
+</div><!-- /.pfy-page-switcher-wrapper -->
+EOT;
         }
 
         return $out;
