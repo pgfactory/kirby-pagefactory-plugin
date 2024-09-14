@@ -24,7 +24,7 @@
 
     {{ nav({ type: 'top' }) }}
 
-    {{ prevnextlinks({'wrapperClass':'pfy-large-screen-only pfy-full-width'}) }}
+    {# {{ prevnextlinks({'wrapperClass':'pfy-large-screen-only pfy-full-width'}) }} #}
 
   </div><!-- /pfy-header-wrapper -->
 
@@ -48,7 +48,8 @@
 
         {{ nav({type: 'sitemap' }) }}
 
-        {{ prevnextlinks({center: '%loginButton%'}) }}
+        {{ prevnextlinks({'wrapperClass':'full-width', center: '%loginButton%'}) }}
+        {# {{ prevnextlinks({'wrapperClass':'full-width', center: '<span>%loggedIn% %pfyOnboardingaid%</span> %loginButton%'}) }} #}
 
       </div>
 
@@ -58,9 +59,9 @@
         <div>
           {{ page.adminPanelLink | raw }}
         </div>
-        <div>
+        {# <div>
           {{ page.loggedIn }} {{ page.loginButton|raw }}
-        </div>
+        </div> #}
         <div>
           [{{ link({ url: '~page/?debug=reset', text: 'debug auto' }) }}
           {{ link({ url: '~page/?debug=false', text: 'debug off' }) }}]
