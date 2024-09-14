@@ -51,11 +51,23 @@
         padding: 0;
         width: 1.2em;
         height: 1.2em;
-//        margin-left: 0.5em;
         white-space: nowrap;
         svg {
           width: 1em;
           transform: translateY(0.1em);
+        }
+    }
+    .pfy-onboardingaid-button {
+        display: inline-block;
+        position: relative;
+        background: none;
+        border: none;
+        padding: 0;
+        width: 1.2em;
+        height: 1.2em;
+        white-space: nowrap;
+        svg {
+          transform: skewX(-25deg) translateY(10%);
         }
     }
 
