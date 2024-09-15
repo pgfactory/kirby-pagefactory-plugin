@@ -12,6 +12,7 @@ return function($args = '')
     $config =  [
         'options' => [
             'label' => ['Text on the button.', null],
+            'text' => ['Synonyme for "label".', null],
             'id' => ['ID to apply to button', null],
             'class' => ['Class  to apply to button (class "`pfy-button`" is always applied).', null],
             'callback' => ['Optional callback function (either name or closure)', null],
@@ -47,18 +48,28 @@ EOT,
     // assemble output:
     $id = $options['id']?: "pfy-button-$inx";
     $class = rtrim('pfy-button '.$options['class']);
-    $label = $options['label'] ?: 'BUTTON';
+    $label = $options['label'] ?: ($options['text'] ?: 'BUTTON');
     $attrib = $options['attrib'] ? " {$options['attrib']}" : '';
     $title = $options['title'] ? " title='{$options['title']}'" : '';
 
     $str .= "<button id='$id' class='$class'$title$attrib>$label</button>";
 
-    if ($options['callback']) {
-        $callback = trim($options['callback']);
-        if (preg_match('/^\w+$/', $callback)) {
-            $callback = "$callback();";
-        }
-        $jq = <<<EOT
+    if ($callback = trim($options['callback'])) {
+        if (str_starts_with($callback, 'function')) {
+            // closure:
+            $jq = <<<EOT
+pfyButton = document.querySelector('#$id');
+if (pfyButton) {
+    pfyButton.addEventListener('click', $callback);
+}
+EOT;
+
+        } else {
+            // function name
+            if (preg_match('/^\w+$/', $callback)) {
+                $callback = "$callback();";
+            }
+            $jq = <<<EOT
 pfyButton = document.querySelector('#$id');
 if (pfyButton) {
     pfyButton.addEventListener('click', function(e) {
@@ -70,9 +81,32 @@ if (pfyButton) {
     });
 }
 EOT;
+        }
+
         PageFactory::$pg->addJs('let pfyButton = null;');
         PageFactory::$pg->addJsReady($jq);
     }
+
+//    if ($options['callback']) {
+//        $callback = trim($options['callback']);
+//        if (preg_match('/^\w+$/', $callback)) {
+//            $callback = "$callback();";
+//        }
+//        $jq = <<<EOT
+//pfyButton = document.querySelector('#$id');
+//if (pfyButton) {
+//    pfyButton.addEventListener('click', function(e) {
+//        try {
+//          $callback
+//        } catch (error) {
+//          console.error(error);
+//        }
+//    });
+//}
+//EOT;
+//        PageFactory::$pg->addJs('let pfyButton = null;');
+//        PageFactory::$pg->addJsReady($jq);
+//    }
 
     return $str;
 };
