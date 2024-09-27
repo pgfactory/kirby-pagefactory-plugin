@@ -236,8 +236,12 @@ class DataSet
         // payload is array -> convert to DataRecs
         if ($type === 'array') {
             $this->data = [];
-            foreach ($arg1 as $rec) {
-                $this->addRec($rec, flush: false);
+            foreach ($arg1 as $k => $rec) {
+                if ($this->masterFileRecKeyType !== '_origRecKey') {
+                    $this->addRec($rec, flush: false);
+                } else {
+                    $this->addRec($rec, flush: false, recKeyToUse: $k);
+                }
             }
 
         // Payload is already of type DataSet -> just replace :
