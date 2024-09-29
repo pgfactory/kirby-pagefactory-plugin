@@ -1187,7 +1187,7 @@ function writeFileLocking(string $file, mixed $content, string $type = '', bool 
             $val = trim($m[2][$i]);
             if (str_contains($val, '#NL#')) {
                 if (preg_match('/^([\'"]).*\1$/', $val)) {
-                    $val = substr($val, 1, -2);
+                    $val = substr($val, 1, -1);
                 }
                 $val = "\n    ".str_replace('#NL#', "\n    ",$val);
                 $yamlStr = str_replace($m[0][$i], "\n".$m[1][$i] . " |$val", $yamlStr);
