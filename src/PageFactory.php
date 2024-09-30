@@ -20,7 +20,9 @@ const PFY_USER_CODE_PATH =         PFY_CUSTOM_PATH.'macros/';
 const PFY_CUSTOM_CODE_PATH =       PFY_CUSTOM_PATH.'autoexecute/';
 const PFY_CUSTOM_DATA_PATH =       PFY_CUSTOM_PATH.'data/';
 const PFY_MACROS_PATH =            PFY_BASE_PATH.'macros/';
-define('PFY_LOGS_PATH',            'site/logs/');
+if (!defined('PFY_LOGS_PATH')) { // available in extensions
+    define('PFY_LOGS_PATH', 'site/logs/');
+}
 if (!defined('PFY_CACHE_PATH')) { // available in extensions
     define('PFY_CACHE_PATH', 'site/cache/pagefactory/'); // available in extensions
 }
