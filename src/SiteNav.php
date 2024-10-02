@@ -10,6 +10,7 @@ define('DEFAULT_NAV_LIST_TAG',  'ol');          // the list tag to be used
 class SiteNav
 {
     public static $inx = 1;
+    public static $primInx = 0;
     private static bool $deep = true;
     private static $listTag;
     public static int $pageNr = 1;
@@ -124,11 +125,12 @@ class SiteNav
 
         // find out whether this is the primary nav:
         if ( $args['isPrimary'] || str_contains($wrapperClass, 'pfy-primary-nav')) {
+            self::$primInx++;
             if (!str_contains($wrapperClass, 'pfy-primary-nav')) {
                 $wrapperClass .= ' pfy-primary-nav';
             }
             if (!($args['id']??false)) {
-                $args['id'] = 'pfy-primary-nav';
+                $args['id'] = 'pfy-primary-nav' . ((self::$primInx > 1) ? '-'.self::$primInx : '');
             }
         }
 
