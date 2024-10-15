@@ -96,14 +96,16 @@ class SiteNav
 
         // 'top' shorthand:
         if (str_contains($type, 'top')) {
-            $wrapperClass .= ' pfy-nav-horizontal pfy-nav-indented pfy-nav-animated pfy-nav-collapsible pfy-nav-collapsed pfy-encapsulated';
+            $wrapperClass .= ' pfy-nav-horizontal pfy-nav-indented pfy-nav-animated pfy-nav-collapsible pfy-nav-collapsed';
+//            $wrapperClass .= ' pfy-nav-horizontal pfy-nav-indented pfy-nav-animated pfy-nav-collapsible pfy-nav-collapsed pfy-encapsulated';
             if ($args['isPrimary'] === null) {
                 $args['isPrimary'] = true;
             }
 
         // 'side' shorthand:
         } elseif (str_contains($type, 'side')) {
-            $wrapperClass .= ' pfy-nav-indented pfy-nav-animated pfy-encapsulated pfy-nav-collapsible pfy-nav-open-current';
+            $wrapperClass .= ' pfy-nav-indented pfy-nav-animated pfy-nav-collapsible pfy-nav-open-current';
+//            $wrapperClass .= ' pfy-nav-indented pfy-nav-animated pfy-encapsulated pfy-nav-collapsible pfy-nav-open-current';
 
         // 'branch' shorthand:
         //} elseif (str_contains($type, 'branch')) {
@@ -111,7 +113,8 @@ class SiteNav
 
         // 'sitemap' shorthand:
         } elseif (str_contains($type, 'sitemap')) {
-            $wrapperClass .= ' pfy-encapsulated pfy-sitemap pfy-sitemap-horizontal pfy-nav-indented';
+            $wrapperClass .= ' pfy-sitemap pfy-sitemap-horizontal pfy-nav-indented';
+//            $wrapperClass .= ' pfy-encapsulated pfy-sitemap pfy-sitemap-horizontal pfy-nav-indented';
 
         // else, e.g. sitemap:
         } else {

@@ -39,7 +39,7 @@ $mobile-nav-bg-color:     var(--pfy-mobile-nav-bg-color, #{$mobile-nav-bg-color}
 
 
 // === Small/Mobile Screen:
-#pfy.pfy-default-styling.pfy-small-screen .pfy-encapsulated,
+//#pfy.pfy-default-styling.pfy-small-screen .pfy-encapsulated,
 #pfy.pfy-default-styling.pfy-small-screen {
 
   h1, .h1, h2, .h2, h3, .h3, h4, .h4 {
@@ -163,7 +163,7 @@ $mobile-nav-bg-color:     var(--pfy-mobile-nav-bg-color, #{$mobile-nav-bg-color}
 
 
 
-#pfy.pfy-default-styling.pfy-small-screen .pfy-encapsulated,
+//#pfy.pfy-default-styling.pfy-small-screen .pfy-encapsulated,
 #pfy.pfy-default-styling.pfy-small-screen {
 
   .pfy-large-screen-only {
@@ -171,7 +171,7 @@ $mobile-nav-bg-color:     var(--pfy-mobile-nav-bg-color, #{$mobile-nav-bg-color}
   }
 }
 
-#pfy.pfy-default-styling.pfy-large-screen .pfy-encapsulated,
+//#pfy.pfy-default-styling.pfy-large-screen .pfy-encapsulated,
 #pfy.pfy-default-styling.pfy-large-screen {
 
   .pfy-small-screen-only {
