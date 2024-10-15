@@ -178,7 +178,8 @@ class Macros
      */
     private static function renderMacroHelp(array $config, bool $mdCompile = true): string
     {
-        $str = "<div class='pfy-help pfy-encapsulated'>\n";
+//        $str = "<div class='pfy-help pfy-encapsulated'>\n";
+        $str = "<div class='pfy-help'>\n";
         $summary = $mdCompile? markdown($config['summary'] ?? '') : '';
         $summary = shieldStr($summary);
         $str .= "<div class='pfy-help-summary'>$summary</div>\n";
