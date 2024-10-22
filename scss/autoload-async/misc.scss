@@ -1,6 +1,6 @@
 
 
-#pfy.pfy-default-styling .pfy-encapsulated,
+//#pfy.pfy-default-styling .pfy-encapsulated,
 .pfy-default-styling {
     .pfy-general-help .c1 {
         width: 10em!important;
@@ -204,7 +204,8 @@
 
 
 // === Macro Help ===============
-.pfy-help.pfy-encapsulated {
+//.pfy-help.pfy-encapsulated {
+.pfy-help {
     font-size: 9pt;
     background: #f5fffe;
     color: #12049c;

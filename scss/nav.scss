@@ -99,7 +99,7 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
  // === Generic Nav ===================
 
  // === flicker - all screen sizes =================================
-#pfy.pfy-default-styling .pfy-nav-wrapper,
+//#pfy.pfy-default-styling .pfy-encapsulated.pfy-nav-wrapper,
 .pfy-default-styling .pfy-nav-wrapper {
   position: relative;
 
@@ -136,7 +136,7 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
 
 
  // === large screen =======================================================
-#pfy.pfy-default-styling.pfy-large-screen .pfy-encapsulated,
+//#pfy.pfy-default-styling.pfy-large-screen .pfy-encapsulated,
 .pfy-default-styling.pfy-large-screen {
 
   // nav not .pfy-nav-colored -> apply CSS-variables:
@@ -232,7 +232,7 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
 
 
 
-#pfy.pfy-default-styling .pfy-encapsulated,
+//#pfy.pfy-default-styling .pfy-encapsulated,
 .pfy-default-styling {
 
   // === generic ===================================
@@ -607,7 +607,8 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
 
 
   // === side markers ======================================
-  .pfy-nav {
+  .pfy-nav-wrapper .pfy-nav {
+  //.pfy-nav {
     // hover:
     a:hover {
       border-left-color: $navHoverSideMarker;
@@ -628,7 +629,7 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
   }
 
 
-} // pfy-encapsulated
+} // pfy-default-styling
 
 
 
