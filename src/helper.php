@@ -49,8 +49,8 @@ function isLoggedIn(): bool
   */
 function isAdmin(): bool
 {
-    $user = kirby()->user();
-    if ($user !== null) {
+    $user = Permission::getLoggedInUser();
+    if ($user) {
         $role = (string)$user->role();
         if ($role === 'admin') {
             return true;
