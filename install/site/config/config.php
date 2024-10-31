@@ -4,7 +4,7 @@
 $functions = false;
 if (file_exists('site/plugins/pagefactory/src/TransVars.php')) {
     require_once 'site/plugins/pagefactory/src/TransVars.php';
-    $functions = PgFactory\PageFactory\TransVars::findAllMacros(true);
+    $functions = PgFactory\PageFactory\TransVars::findAllMacros();
 }
 
 // Defaults recommended by PageFactory plugin:

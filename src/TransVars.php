@@ -435,15 +435,12 @@ class TransVars
     } // initMacro
 
     /**
-     * @param mixed $forRegistering
-     * @param bool $includePaths
-     * @param bool $buildInOnly
      * @return array
      */
-    public static function findAllMacros(mixed $forRegistering = false, bool $includePaths = false, bool $buildInOnly = false): array
+    public static function findAllMacros(): array
     {
         require_once 'site/plugins/pagefactory/src/Macros.php';
-        return Macros::findAllMacros($forRegistering, $includePaths, $buildInOnly);
+        return Macros::findAllMacros();
     } // findAllMacros
 
     /**
