@@ -252,6 +252,7 @@ EOT;
      */
     public static function prepareTemplateVariables(): void
     {
+        PageFactory::$assets->resolveAssetAliases(); // resolve asset aliases that may have been registered very rearly
         PageFactory::$page->headInjections()->value     = PageFactory::$pg->renderHeadInjections();
 
         $bodyTagClasses   = PageFactory::$pg->bodyTagClasses ?: 'pfy-large-screen';
@@ -292,22 +293,6 @@ EOT;
         self::execAsAnon('printview,printpreview,print-preview,print,logout,reset,flush,flushcache,iframe,bust');
         self::execAsAdmin('help,reset,notranslate,release');
     } // handleAgentRequests
-
-
-    /**
-     * @return void
-     */
-    public static function executeCustomCode()
-    {
-        $files = getDir(PFY_CUSTOM_CODE_PATH.'*.php');
-        if (!$files) {
-            return;
-        }
-        foreach ($files as $file)
-        {
-            require $file;
-        }
-    } // executeCustomCode
 
 
     /**
@@ -371,7 +356,7 @@ EOT;
                         header("Access-Control-Allow-Origin: $a");
                     }
                     break;
-                case 'bust':
+                case 'bust':  // ?bust
                     PageFactory::$assets->activateBrowserCacheBusting();
                     break;
             }
@@ -553,7 +538,7 @@ EOT;
      * Handles ?help request
      * @return void
      */
-    private static function showHelp()
+    private static function showHelp(): void
     {
         if (isset($_GET['help'])) {
             if (isAdminOrLocalhost()) {
@@ -612,13 +597,7 @@ EOT;
 
         // show macros:
         } elseif ((isset($_GET['functions']) || isset($_GET['macros'])) && isAdminOrLocalhost()) {
-            $html = "<ul class='pfy-list-functions'>\n";
-            $macros = TransVars::findAllMacros(buildInOnly: true);
-            foreach ($macros as $macro) {
-                $html .= "\t<li>$macro()</li>\n";
-            }
-            $html .= "</ul>\n";
-
+            $html = Macros::renderMacros();
             $str = <<<EOT
 <h1>Macros</h1>
 $html

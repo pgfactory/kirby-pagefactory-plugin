@@ -170,6 +170,25 @@ class Assets
             }
         }
 
+        $this->resolveAssetAliases($assets, $treatAsJq);
+    } // addAssets
+
+
+    /**
+     * @param mixed|null $assets
+     * @param bool $treatAsJq
+     * @return void
+     */
+    public function resolveAssetAliases(mixed $assets = null, bool $treatAsJq = false): void
+    {
+        if ($assets === null) {
+            $assets = $this->assetQueue['ALIAS'] ?? false;
+            $this->assetQueue['ALIAS'] = false;
+        }
+        if (!$assets) {
+            return;
+        }
+
         // loop over all requested assets and check whether it corresponds to a definition, if so, replace:
         $i = 0;
         foreach ($assets as $asset) {
@@ -180,11 +199,11 @@ class Assets
             }
             $i++;
         }
-
-        // finally loop over resulting array of assets, check for priority-hints and add to queue:
         foreach ($assets as $asset) {
             $type = fileExt($asset);
-            if ($type === 'jq') {
+            if ($type === '') {
+                $type = 'ALIAS';
+            } elseif ($type === 'jq') {
                 $this->jsFrameworkRequired = true;
                 $asset = rtrim($asset, 'jq').'js';
             } elseif ($type === 'js' && $treatAsJq) {
@@ -193,7 +212,7 @@ class Assets
             $asset = $this->extractPriorityHint($asset);
             $this->assetQueue[$type][] = $asset;
         }
-    } // addAssets
+    } // resolveAssetAliases
 
 
     /**
@@ -378,6 +397,9 @@ class Assets
     } // prepareAssets
 
 
+    /**
+     * @return void
+     */
     public function activateBrowserCacheBusting(): void
     {
         $this->browserCacheBusting = true;
