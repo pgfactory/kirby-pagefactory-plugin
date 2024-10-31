@@ -16,8 +16,6 @@ const PFY_SVG_ICONS_PATH =         'site/plugins/markdownplus/assets/svg-icons/'
 const PFY_CONFIG_PATH =            'site/config/';
 const PFY_CONFIG_FILE =            PFY_CONFIG_PATH.'config.php';
 const PFY_CUSTOM_PATH =            'site/custom/';
-const PFY_USER_CODE_PATH =         PFY_CUSTOM_PATH.'macros/';
-const PFY_CUSTOM_CODE_PATH =       PFY_CUSTOM_PATH.'autoexecute/';
 const PFY_CUSTOM_DATA_PATH =       PFY_CUSTOM_PATH.'data/';
 const PFY_MACROS_PATH =            PFY_BASE_PATH.'macros/';
 if (!defined('PFY_LOGS_PATH')) { // available in extensions
@@ -255,7 +253,6 @@ class PageFactory
         Utils::prepareStandardVariables();
 
         Utils::handleAgentRequestsOnRenderedPage();
-        Utils::executeCustomCode();
 
         $html = '';
         $inx = 0;
