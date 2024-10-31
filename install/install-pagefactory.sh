@@ -75,7 +75,7 @@ echo Kirby-Twig:
 
 echo
 echo MarkdownPlus:
-/usr/bin/env git submodule add https://github.com/pgfactory/markdownplus.git site/plugins/markdownplus
+/usr/bin/env git submodule add $branch https://github.com/pgfactory/markdownplus.git site/plugins/markdownplus
 /usr/bin/env composer update --working-dir=$appRoot/site/plugins/markdownplus
 
 echo
