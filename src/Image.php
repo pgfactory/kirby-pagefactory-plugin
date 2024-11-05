@@ -573,7 +573,9 @@ EOT;
             self::$quickViewInitialized = true;
             PageFactory::$pg->addAssets('media/plugins/pgfactory/pagefactory/js/medium-zoom.min.js');
             $js = <<<EOT
+
 const zoom = mediumZoom('.pfy-quickview', {background:'#444', margin:4});
+
 EOT;
             PageFactory::$pg->addJsReady($js);
         }
