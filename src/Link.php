@@ -445,21 +445,6 @@ class Link
             if ($imgFile) {
                 self::$url = $imgFile->url();
             }
-        } else {
-            throw new Exception("Link: URLs beyond ~page/ not implemented yet.");
-//ToDo: ...
-//            $url = resolvePath(self::$url);
-//            $path = substr($url, strlen('content/'));
-//            $id = dirname($path);
-//            $id = 'home';
-//            $page = page();
-//            $file = site()->files()->find($url);
-//            $results = site()->search(basename($url));
-            if (str_starts_with(self::$url, '~assets/')) {
-
-            } elseif (str_starts_with(self::$url, '~/')) {
-
-            }
         }
     } // compileUrl
 
