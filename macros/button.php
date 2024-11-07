@@ -54,7 +54,7 @@ EOT,
 
     $str .= "<button id='$id' class='$class'$title$attrib>$label</button>";
 
-    if ($callback = trim($options['callback'])) {
+    if ($callback = trim($options['callback']??'')) {
         if (str_starts_with($callback, 'function')) {
             // closure:
             $jq = <<<EOT

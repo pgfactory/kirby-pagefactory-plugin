@@ -14,7 +14,7 @@ return function($args = '')
         ],
         'summary' => <<<EOT
 
-# $funcName()
+# css()
 
 Renders a \<link> tag for given CSS file.
 EOT,

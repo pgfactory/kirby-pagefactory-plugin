@@ -23,7 +23,7 @@ return function($args = '')
 
 # $funcName()
 
-ToDo: describe purpose of function
+Renders a file's "last modified" date.
 EOT,
     ];
 
