@@ -55,7 +55,7 @@ class Link
         self::$class = $args['class'] ?? '';
         self::$alt = $args['alt'] ?? '';
         self::$proto = '';
-        self::$target = false;
+        self::$target = $args['target'] ?? false;
         self::$type = false;
         self::$ext = strtolower(fileExt(self::$url, couldBeUrl: true));
         self::$linkCat = false;
@@ -261,9 +261,6 @@ class Link
             $attr .= " alt='" . self::$alt . "'";
         }
 
-        if ((self::$args['target'] ?? null) !== null) {
-            self::$target = self::$args['target'];
-        }
         if ((self::$target === true) || (self::$target === 'newwin')) {
             $attr .= " target='_blank' rel='noreferrer'";
             self::$title .= '{{ pfy-opens-in-new-win }}';
@@ -328,7 +325,7 @@ class Link
     {
         if (self::$isExternalLink) {
             self::addClass('pfy-link-https pfy-external-link pfy-print-url');
-            self::$target = PageFactory::$config['externalLinksToNewWindow'] ?? '';
+            self::$target = (self::$target !== null) ? self::$target : PageFactory::$config['externalLinksToNewWindow'] ?? '';
         }
     } // processRegularLink
 
