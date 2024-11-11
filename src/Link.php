@@ -55,7 +55,7 @@ class Link
         self::$class = $args['class'] ?? '';
         self::$alt = $args['alt'] ?? '';
         self::$proto = '';
-        self::$target = $args['target'] ?? false;
+        self::$target = isset($args['target']) ? $args['target'] : null;
         self::$type = false;
         self::$ext = strtolower(fileExt(self::$url, couldBeUrl: true));
         self::$linkCat = false;
