@@ -897,8 +897,11 @@ EOT;
      * @param bool $includeTime
      * @return string
      */
-    public static function timeToString(mixed $datetime = null, bool $includeTime = null): string
+    public static function timeToString(mixed $datetime = null, bool $includeTime = null, int $timeRef = 0): string
     {
+        if (!$timeRef) {
+            $timeRef = time();
+        }
         if ($datetime === null) {
             $datetime = time();
         } elseif (is_string($datetime)) {
@@ -908,7 +911,7 @@ EOT;
             } elseif (str_contains($datetime, 'T') && ($includeTime === null)) {
                 $includeTime = true;
             }
-            $datetime = strtotime($datetime);
+            $datetime = strtotime($datetime, $timeRef);
         }
         if (!is_object('IntlDateFormatter')) {
             if ($includeTime) {
