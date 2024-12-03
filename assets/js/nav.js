@@ -276,7 +276,7 @@ class PfyNav {
 
     if (activate) {    // small screen:
       navWrapper.dataset.classList = navWrapper.classList.value;
-      let cls = 'pfy-nav-wrapper pfy-mobile-nav pfy-primary-nav pfy-nav-indented pfy-nav-collapsible pfy-nav-animated';
+      let cls = 'pfy-nav-wrapper pfy-mobile-nav pfy-primary-nav pfy-nav-indented pfy-nav-collapsible pfy-nav-animated pfy-encapsulated';
       if (navWrapper.classList.contains('pfy-mobile-nav-colored')) {
         cls += ' pfy-mobile-nav-colored';
       }
