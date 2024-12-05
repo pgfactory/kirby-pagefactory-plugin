@@ -18,7 +18,8 @@ const DEFAULT_MAX_REC_BLOCKING_TIME = 2; // sec
 const DEFAULT_KEEP_DATA_DURATION    = 12; // month
 const MAX_DB_FILE_SIZE              = 10485760; // 10MB
 
-
+// data archive:
+const ARCHIVE_SUBPATH               = '-archive/';
 
 class DataSet
 {
@@ -1183,7 +1184,7 @@ class DataSet
      * Manages size and age of data-source files.
      * a) limits size of source-file as well as archive files to MAX_DB_FILE_SIZE
      * b) based on 'keepDataDuration' argument, extracts old records and moves them to archive file
-     *      -> path/archive/file.ext
+     *      -> path/ARCHIVE_SUBPATH/file.ext
      * @return void
      */
     private function archiveOldData(): void
@@ -1214,7 +1215,7 @@ class DataSet
         }
 
         // append new recs to (possibly) existing archive:
-        $destPath = dir_name($this->file)."archive/";
+        $destPath = dir_name($this->file).ARCHIVE_SUBPATH;
         $basename = basename($this->file);
         $timestamp = '';
         foreach (getDir($destPath) as $file) {
