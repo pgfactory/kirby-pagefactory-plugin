@@ -244,7 +244,21 @@ function pull(url, callback) {
 }
 
 
+function scrollAnchorIntoView() {
+  let anchor = window.location.hash;
+  if (anchor) {
+    anchor = anchor.substring(1);
+    const target = document.getElementById(anchor);
+    if (target) {
+      target.scrollIntoView({behavior: "smooth"});
+    }
+  }
+
+} // scrollAnchorIntoView
+
+
 document.addEventListener('DOMContentLoaded', function() {
   initCopyButton();
   adaptToWidth();
+  scrollAnchorIntoView();
 });
