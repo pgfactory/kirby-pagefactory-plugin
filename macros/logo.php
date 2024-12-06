@@ -14,10 +14,12 @@ return function ($args = '')
             'src' => ['Image source file.', '~/assets/logo/logo.png'],
             'alt' => ['Alt-text for image, i.e. a short text that describes the image.', false],
             'id' => ['Id that will be applied to the image.', false],
-            'class' => ['Class-name that will be applied to the image.', ''],
-            'width' => ['Define width of the image to be shown.', '100%'],
-            'height' => ['Define height of the image to be shown.', ''],
+            'class' => ['Classes that will be applied to the image.', ''],
+            'wrapperClass' => ['Classes that will be applied to the image wrapper.', ''],
+            'width' => ['Define width of the image to be shown.', null],
+            'height' => ['Define height of the image to be shown.', null],
             'url' => ['The url used when logo is not displayed on the homepage.', '~/'],
+            'link' => ['Synonyme for "url".', null],
         ],
         'summary' => <<<EOT
 
@@ -42,6 +44,10 @@ EOT,
     $url = ($options['url']??false) ?: '~/';
     $options['quickview'] = false;
     $options['id'] = "pfy-logo-$inx";
+    if ($options['link']??false) {
+        $options['url'] = $options['link'];
+    }
+    unset($options['link']);
 
     $img = new Image($options);
     $html = $img->html();
@@ -50,8 +56,10 @@ EOT,
         $html = "<a href='$url'>$html</a>";
     }
 
+    $wrapperClass = $options['wrapperClass'];
+
     $str = <<<EOT
-<div class="pfy-logo">
+<div class="pfy-logo $wrapperClass">
 $html
 </div>
 EOT;
