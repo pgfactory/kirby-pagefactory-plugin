@@ -55,7 +55,7 @@ class Utils
             $metaTagGenerator = $generator . ' (on PHP ' . phpversion() . ')';
             $metaTagGenerator = "<meta name='generator' content='$metaTagGenerator'>";
         } else {
-            $metaTagGenerator = $generator = '';
+            $metaTagGenerator = $generator = 'Kirby CMS';
         }
         TransVars::setVariable('generator', $generator);
         TransVars::setVariable('metaTagGenerator', $metaTagGenerator);
