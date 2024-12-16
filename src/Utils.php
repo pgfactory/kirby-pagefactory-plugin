@@ -405,10 +405,18 @@ EOT;
 
         $jq = <<<EOT
 setTimeout(function() {
-    window.print();
-}, 200);
+  console.log('now running paged.polyfill.js');
+  pullScript( '$pagedPolyfillScript' );
+}, 1000);
+
+setTimeout(function() {
+  document.body.classList.add('pfy-print');
+  window.print();
+}, 1200);
 
 EOT;
+
+
         PageFactory::$pg->addJq($jq);
         self::preparePrintVariables();
     } // print
