@@ -382,9 +382,12 @@ setTimeout(function() {
 
 setTimeout(function() {
   console.log('now adding buttons');
-  var printBtns = document.createElement('div');
+  const printUrl = window.location.href.replace(/printview/, 'print');
+  const origUrl = window.location.href.replace(/(\&|\?)printview/, '');
+  console.log(`printUrl: \${printUrl}, origUrl: \${origUrl}`);
+  const printBtns = document.createElement('div');
   printBtns.className = 'pfy-print-btns';
-  printBtns.innerHTML = "<a href='./?print' class='pfy-button'>$printNow</a><a href='./' class='pfy-button'>$printClose</a>";
+  printBtns.innerHTML = `<a href='\${printUrl}' class='pfy-button'>$printNow</a><a href='\${origUrl}' class='pfy-button'>$printClose</a>`;
   document.body.appendChild(printBtns);
   document.body.classList.add('pfy-print-preview');
 }, 1200);
