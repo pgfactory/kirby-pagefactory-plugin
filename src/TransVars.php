@@ -222,6 +222,7 @@ class TransVars
      */
     private static function translateVariable(string $varName, string $lang = ''): mixed
     {
+        $lang0 = $lang;
         if (!$lang) {
             $lang = self::$lang;
         }
@@ -234,7 +235,7 @@ class TransVars
             if (is_array($out)) {
                 if (isset($out[$lang])) {             // check language-variant (e.g. de2)
                     $out = $out[$lang];
-                } elseif (isset($out[self::$langCode])) {   // check base language (e.g. de)
+                } elseif (!$lang0 && isset($out[self::$langCode])) {   // check base language (e.g. de)
                     $out = $out[self::$langCode];
                 } elseif (isset($out['_'])) {               // check default language
                     $out = $out['_'];
