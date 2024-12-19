@@ -2,8 +2,6 @@
 
 namespace PgFactory\PageFactory;
 
-use mysql_xdevapi\Exception;
-
 define('SUPPORTED_TYPES',   ',pdf,png,gif,jpg,jpeg,txt,doc,docx,xls,xlsx,ppt,pptx,odt,ods,odp,mail,mailto,file,'.
     'sms,tel,gsm,geo,slack,twitter,facebook,instagram,tiktok,zip,');
 define('PROTO_TYPES',        ',https://,http://,mailto:,sms:,tel:,gsm:,geo:,slack:,twitter:,facebook:,instagram:,tiktok:,');
@@ -12,7 +10,6 @@ define('DOWNLOAD_TYPES',        ',txt,doc,docx,dotx,xls,xlsx,xltx,ppt,pptx,potx,
 
 class Link
 {
-    private static $instanceCounter = 1;
     private static $url;
     private static $args;
     private static $text;
@@ -44,10 +41,10 @@ class Link
      */
     public static function render(array $args): string
     {
-        if (!self::$url = ($args['url'] ?? false)) {
+        if (!isset($args['url'])) {
             return '';
         }
-
+        self::$url = ($args['url'] ?? '');
         self::$args = $args;
         self::$text = false;
         self::$title = false;
@@ -59,7 +56,7 @@ class Link
         self::$type = false;
         self::$ext = strtolower(fileExt(self::$url, couldBeUrl: true));
         self::$linkCat = false;
-        self::$icon = false;
+        self::$icon = isset($args['icon']) ? $args['icon'] : null;
         self::$iconBefore = !(($args['iconPosition'] ?? false) && ($args['iconPosition'] === 'after'));
         self::$attributes = $args['attr'] ?? '';
         self::$hiddenText = '';
@@ -98,7 +95,7 @@ class Link
         $type = (self::$args['type']??false) ?: self::$ext;
         if ($type) {
             self::$type = $type;
-            self::$icon = $type;
+            self::$icon = (self::$icon === null) ? self::$icon : $type;
             switch ($type) {
                 case 'pdf':
                     self::$linkCat = 'pdf';
@@ -126,7 +123,7 @@ class Link
                         self::$linkCat = 'mail';
                         return;
                     } elseif (str_contains(DOWNLOAD_TYPES, $type)) {
-                        self::$icon = 'download';
+                        self::$icon = (self::$icon === null) ? self::$icon : 'download';
                         self::$type = 'download';
                         self::$linkCat = 'download';
                         self::compileUrl();
@@ -193,12 +190,12 @@ class Link
                     self::$proto = 'https://';
                 }
             }
-            self::$icon = 'external';
+            self::$icon = (self::$icon === null) ? self::$icon : 'external';
         } elseif (stripos(self::$type, 'inter') !== false) {
             if (!self::$proto) {
                 self::$type = 'link';
             }
-            self::$icon = '';
+            self::$icon = (self::$icon === null) ? self::$icon : '';
         }
 
         switch (self::$linkCat) {
@@ -206,7 +203,7 @@ class Link
                 self::$class .= ' pfy-link-download';
                 self::$download = true;
                 if (!self::$icon) {
-                    self::$icon = 'download';
+                    self::$icon = (self::$icon === null) ? self::$icon : 'download';
                 }
                 if (!self::$text) {
                     self::$text = base_name(self::$url);
@@ -216,26 +213,26 @@ class Link
 
             case 'pdf':
                 self::$class .= ' pfy-link-pdf';
-                self::$icon = 'pdf';
+                self::$icon = (self::$icon === null) ? self::$icon : 'pdf';
                 self::$text = base_name(self::$url);
-                self::$target = true;
+                self::$target = (self::$target) ? self::$target : true;
                 break;
 
             case 'zip':
                 self::$class .= ' pfy-link-zip';
-                self::$icon = 'zip';
+                self::$icon = (self::$icon === null) ? self::$icon : 'zip';
                 self::$text = base_name(self::$url);
                 self::$download = true;
                 break;
 
             case 'image':
                 self::$download = true;
-                self::$icon = 'download';
+                self::$icon = (self::$icon === null) ? self::$icon : 'download';
                 break;
 
             case 'special':
                 self::$class .= " pfy-link-" . self::$type;
-                self::$icon = self::$type;
+                self::$icon = (self::$icon === null) ? self::$icon : self::$type;
                 self::$title .= "{{ pfy-opens-" . self::$type . " }}";
                 break;
 
@@ -265,13 +262,13 @@ class Link
             $attr .= " target='_blank' rel='noreferrer'";
             self::$title .= '{{ pfy-opens-in-new-win }}';
             if (!self::$icon) {
-                self::$icon = 'external';
+                self::$icon = (self::$icon === null) ? self::$icon : 'external';
             }
         } elseif (self::$target) {
             $attr .= " target='" . self::$target . "' rel='noreferrer'";
             self::$title .= '{{ pfy-opens-in-new-win }}';
             if (!self::$icon) {
-                self::$icon = 'external';
+                self::$icon = (self::$icon === null) ? self::$icon : 'external';
             }
         }
 
@@ -336,7 +333,7 @@ class Link
     private static function processMailLink()
     {
         self::$class .= ' pfy-link-mail';
-        self::$icon = 'mail';
+        self::$icon = (self::$icon === null) ? self::$icon : 'mail';
         self::$proto = 'mailto:';
         if (!self::$text) {
             self::$text = self::$url;
