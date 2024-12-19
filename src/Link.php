@@ -151,11 +151,17 @@ class Link
                 self::$url = $m[2];
                 self::$type = 'pdf';
                 self::$linkCat = 'pdf';
+                if ((self::$args['icon']??null) === null) {
+                    self::$icon = 'pdf';
+                }
             } else {
                 self::$proto = $m[1];
                 self::$url = $m[2];
                 self::$type = str_replace(':', '', self::$proto);
                 self::$linkCat = 'special';
+                if ((self::$args['icon']??null) === null) {
+                    self::$icon = self::$type;
+                }
             }
         } elseif (str_starts_with(self::$url, 'www.')) {
             self::$proto = 'https://';
@@ -169,6 +175,9 @@ class Link
                     self::$proto = '';
                     self::$type = 'pdf';
                     self::$linkCat = 'pdf';
+                    if ((self::$args['icon']??null) === null) {
+                        self::$icon = 'pdf';
+                    }
                     break;
             }
         }
