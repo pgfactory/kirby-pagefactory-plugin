@@ -34,7 +34,7 @@ class Import
         if ($subfolder) {
             $compileMd = self::$mdCompile;
             self::$mdCompile = null;
-            $src = resolvePath($subfolder, relativeToPage: true);
+            $src = resolvePath($subfolder);
             $folders = getDir($src, true);
             $keys = array_keys($folders);
             natsort($keys);

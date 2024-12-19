@@ -78,7 +78,7 @@ EOT;
         $images = [];
 
         if ($imageCaptionsFile0) {
-            $imageCaptionsFile = resolvePath($imageCaptionsFile0, relativeToPage: true);
+            $imageCaptionsFile = resolvePath($imageCaptionsFile0);
             if (!file_exists($imageCaptionsFile)) {
                 $imageCaptionsFile = resolvePath($path.$imageCaptionsFile0);
             }

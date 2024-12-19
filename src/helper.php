@@ -975,19 +975,11 @@ function findAvailableIcons(): array
   *   Supported path patterns: ~/, ~page/, ~pagefactory/, ~media/, ~assets/, ~data/
   * @param string $path
   * @param bool $returnAbsPath
-  * @param bool $relativeToPage
   * @return string
   */
-function resolvePath(string $path, bool $returnAbsPath = false, bool $relativeToPage = false): string
+function resolvePath(string $path, bool $returnAbsPath = false): string
 {
     if (($path[0]??'') !== '~') {
-        if ($relativeToPage) {
-            if ($returnAbsPath) {
-                $path = PageFactory::$absPageRoot.$path;
-            } else {
-                $path = PageFactory::$pageRoot.$path;
-            }
-        }
         return $path;
     }
 
@@ -1021,7 +1013,7 @@ function resolvePath(string $path, bool $returnAbsPath = false, bool $relativeTo
     } else {
         $pageRoot = PageFactory::$pageRoot;
         $pathPatterns = [
-            '~/' => $appRoot,
+            '~/'            => $appRoot,
             '~media/'       => $appRoot . 'media/',
             '~assets/'      => $appRoot . 'content/assets/',
             '~config/'      => $appRoot . PageFactory::$customConfigPath, // normally /site/config/
