@@ -59,6 +59,7 @@ class Scss
      * @param string $srcFile
      * @param string $targetFile
      * @throws \ScssPhp\ScssPhp\Exception\SassException
+     * @throws \Exception
      */
     public static function compileFile(string $srcFile, string $targetFile): void
     {
@@ -66,6 +67,7 @@ class Scss
             return;
         }
         $srcStr = self::getFile($srcFile);
+        $srcStr = self::resolveUrls($srcStr);
         self::$scssphp->setImportPaths(dir_name($srcFile));
         $css = self::compileStr($srcStr);
         $css = "/* === Automatically created from ".basename($srcFile)." - do not modify! === */\n\n$css";
@@ -210,14 +212,13 @@ class Scss
         }
 
         // special case: ~assets/ -> need to get url from Kirby:
-        if (preg_match_all('|~assets/([^\s"\']*)|', $html, $m)) {
+        if (preg_match_all('|~assets/([^\s"\')]*)|', $html, $m)) {
             $l = strlen(PageFactory::$hostUrl);
             foreach ($m[1] as $i => $item) {
                 $filename = 'assets/'.$m[1][$i];
                 $file= site()->index()->files()->find($filename);
                 if ($file) {
                     $url = $file->url();
-                    $url = substr($url, $l);
                     $html = str_replace($m[0][$i], $url, $html);
                 } else {
                     throw new \Exception("Error: unable to find asset '~$filename'");
@@ -230,6 +231,7 @@ class Scss
             '~data/'    => $appRootUrl.'site/custom/data/',
         ];
         $html = str_replace(array_keys($patterns), array_values($patterns), $html);
+        $html = str_replace( PageFactory::$hostUrl, '/', $html);
         return $html;
     } // resolveUrls
 
