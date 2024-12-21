@@ -8,13 +8,12 @@
 // --mdp-accordion-summary-bg-color: navy;
 // --mdp-accordion-summary-indent: 1rem;
 // --mdp-accordion-body-txt-color: navy;
-// --mdp-accordion-bodyy-bg-color: yellow;
+// --mdp-accordion-body-bg-color: yellow;
 // --mdp-accordion-body-padding: 1rem;
 // --mdp-accordion-frame: 3px dashed magenta;
 
 */
 
-//#pfy.pfy-default-styling .pfy-encapsulated .mdp-accordion,
 .pfy-default-styling .mdp-accordion {
 
   summary {
@@ -33,13 +32,17 @@
     box-sizing: border-box;
     margin-top: 5px;
     color: var(--mdp-accordion-body-txt-color);
-    background: var(--mdp-accordion-bodyy-bg-color);
+    background: var(--mdp-accordion-body-bg-color);
+    overflow: hidden;
   }
   details summary::-webkit-details-marker {
     display:none;
   }
   details[open] > summary:before {
     transform: rotate(90deg);
+  }
+  details.closing summary:before {
+    transform: rotate(0) !important;
   }
   summary:before {
     content: '▷';
@@ -56,6 +59,7 @@
     padding: var(--mdp-accordion-body-padding, 0);
     border: var(--mdp-accordion-frame);
     border-top: none;
+    overflow: hidden; // -> prevent margin collapsing
   }
 
 } // mdp-accordion

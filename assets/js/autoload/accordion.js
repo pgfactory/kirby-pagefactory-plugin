@@ -9,6 +9,7 @@ class Accordion {
       // Store the <div class="mdp-accordion-body"> element
       this.content = el.querySelector('.mdp-accordion-body');
 
+      this.duration = 250;
       // Store the animation object (so we can cancel it if needed)
       this.animation = null;
       // Store if the element is closing
@@ -30,7 +31,7 @@ class Accordion {
         return;
       }
 
-      // Stop default behaviour from the browser
+      // Stop browser's default behaviour
       e.preventDefault();
 
       // handle autoClose feature:
@@ -38,15 +39,15 @@ class Accordion {
         closeAllAccordions();
       }
       // Add an overflow on the <details> to avoid content overflowing
-      this.el.style.overflow = 'hidden';
       // Check if the element is being closed or is already closed
       if (this.isClosing || !this.el.open) {
         this.open();
       // Check if the element is being openned or is already open
       } else if (this.isExpanding || this.el.open) {
+        this.el.classList.add('closing');
         this.close();
       }
-    }
+    } // onClick
 
     close() {
       // Set the element as "being closed"
@@ -61,15 +62,14 @@ class Accordion {
       if (this.animation) {
         // Cancel the current animation
         this.animation.cancel();
-      }
+      } // close
 
       // Start a WAAPI animation
       this.animation = this.el.animate({
         // Set the keyframes from the startHeight to endHeight
         height: [startHeight, endHeight]
       }, {
-        duration: 250,
-      //   duration: 400,
+        duration: this.duration,
         easing: 'ease-out'
       });
 
@@ -77,7 +77,7 @@ class Accordion {
       this.animation.onfinish = () => this.onAnimationFinish(false);
       // If the animation is cancelled, isClosing variable is set to false
       this.animation.oncancel = () => this.isClosing = false;
-    }
+    } // close
 
     open() {
       // Apply a fixed height on the element
@@ -86,7 +86,7 @@ class Accordion {
       this.el.open = true;
       // Wait for the next frame to call the expand function
       window.requestAnimationFrame(() => this.expand());
-    }
+    } // open
 
     expand() {
       // Set the element as "being expanding"
@@ -107,15 +107,14 @@ class Accordion {
         // Set the keyframes from the startHeight to endHeight
         height: [startHeight, endHeight]
       }, {
-        duration: 250,
-      //   duration: 400,
+        duration: this.duration,
         easing: 'ease-out'
       });
       // When the animation is complete, call onAnimationFinish()
       this.animation.onfinish = () => this.onAnimationFinish(true);
       // If the animation is cancelled, isExpanding variable is set to false
       this.animation.oncancel = () => this.isExpanding = false;
-    }
+    } // expand
 
     onAnimationFinish(open) {
       // Set the open attribute based on the parameter
@@ -126,9 +125,10 @@ class Accordion {
       this.isClosing = false;
       this.isExpanding = false;
       // Remove the overflow hidden and the fixed height
-      this.el.style.height = this.el.style.overflow = '';
+      this.el.style.height = '';
+      this.el.classList.remove('closing');
     }
-  }
+  } // onAnimationFinish
 
   document.querySelectorAll('.mdp-accordion details').forEach((el) => {
     new Accordion(el);
