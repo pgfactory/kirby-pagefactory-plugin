@@ -1,11 +1,11 @@
 <?php
 
 // find twig-functions in pagefactory:
-$functions = false;
-if (file_exists('site/plugins/pagefactory/src/TransVars.php')) {
-    require_once 'site/plugins/pagefactory/src/TransVars.php';
-    $functions = PgFactory\PageFactory\TransVars::findAllMacros();
-}
+// $functions = false;
+// if (file_exists('site/plugins/pagefactory/src/TransVars.php')) {
+//     require_once 'site/plugins/pagefactory/src/TransVars.php';
+//     $functions = PgFactory\PageFactory\TransVars::findAllMacros();
+// }
 
 // Defaults recommended by PageFactory plugin:
 return [
@@ -22,7 +22,7 @@ return [
     //     'methods' => ['code','password']
     // ],
 
-    'wearejust.twig.env.functions' => $functions, // register pagefactory's twig-functions
+    // 'wearejust.twig.env.functions' => $functions, // register pagefactory's twig-functions
 
     'pgfactory.markdownplus.options' => [
         // 'divblockChars'		=> '@%:',  // chars identifying DIV-Blocks, default is '@%'
@@ -31,6 +31,7 @@ return [
     ],
 
     'pgfactory.pagefactory.options' => [
+		'timezone'		=> 'Europe/Zurich', // Automatically set by PageFactory,
         // 'defaultLanguage'               => 'de',   // multilang -> configure in panel instead! (Opt. use 'Code: de2' and 'PHP locale string: de_DE')
         // 'robots'                        => true,   // inject "robots" elem in HTML header
         // 'excludeFilesRegex'             => '\.old\.md$',// regex pattern to exclude certain .md files from rendering
@@ -60,6 +61,20 @@ return [
     ],
 
 // pgfactory.pagefactory-elements.options
+
+// 'auth.challenge.email.from' => 'webmaster@domain.net',
+
+    'pgfactory.pagefactory-elements.options' => [
+//        'templateCompilerDefaultMode' => 'twig', // default mode for TemplateCompiler, e.g. used by macro form()
+//        'allowChangePassword'         => true,
+//        'initCode'                    => 'init.php', // run init code in site/custom/code/
+//        'login-mode'                  => 'passwordless',   // 'username-password-only' or 'passwordless' or 'login'
+//        'activatePresentationSupport' => true,
+//        'presentationAutoSizing'      => true,
+//        'autoSlideNumbering'          => true, // false, true or 'toc' (= first slide per page is TOC)
+//        'presentationDefaultSize'     => '1.8vw',
+    ],
+
 
 /* Cache support:
     // note: caching always disabled while in debug mode.

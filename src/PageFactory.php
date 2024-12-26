@@ -197,6 +197,7 @@ class PageFactory
         preparePath(PFY_LOGS_PATH);
         Utils::showPendingMessage();
         Utils::handleAgentRequests();
+        Macros::initMacros();
     } // __construct
 
 

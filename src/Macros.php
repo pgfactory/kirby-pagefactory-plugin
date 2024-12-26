@@ -76,7 +76,10 @@ class Macros
         if (function_exists("PgFactory\\PageFactory\\_$macroName")) {
             $macroName = "_$macroName";
         } elseif (!function_exists("PgFactory\\PageFactory\\$macroName")) {
-            return false;
+            $macroFile = "site/plugins/pagefactory/macros/$macroName.php";
+            self::instantiateMacroLoader($macroName, $macroFile);
+
+//            return false;
         }
 
         // the actual macro call:
@@ -435,14 +438,24 @@ EOT;
     /**
      * @return void
      */
-    public static function loadTwigFunctions(): void
+//    public static function loadTwigFunctions(): void
+//    {
+//        $twigFunctions = self::getMacros();
+//        foreach ($twigFunctions as $funName => $file) {
+//            $funName = basename($file, '.php');
+//            self::instantiateMacroLoader($funName, $file);
+//        }
+//    } // loadTwigFunctions
+
+
+    public static function initMacros(): void
     {
-        $twigFunctions = self::getMacros();
-        foreach ($twigFunctions as $funName => $file) {
+        $macros = self::getMacros();
+        foreach ($macros as $funName => $file) {
             $funName = basename($file, '.php');
-            self::instantiateMacroLoaders($funName, $file);
+            self::instantiateMacroLoader($funName, $file);
         }
-    } // loadTwigFunctions
+    } // initMacros
 
 
     /**
@@ -451,10 +464,18 @@ EOT;
      * @param $file
      * @return void
      */
-    private static function instantiateMacroLoaders($funName, $file)
+    public static function instantiateMacroLoader($funName, $file)
+//    private static function instantiateMacroLoader($funName, $file)
     {
-        if (function_exists($funName)) {
+        if (function_exists("PgFactory\\PageFactory\\$funName")) {
+//        if (function_exists($funName)) {
             return;
+        }
+        if (!file_exists($file)) {
+            $file = dirname($file) . '/_' . basename($file);
+            if (!file_exists($file)) {
+                return;
+            }
         }
 
         // take care of legacy custom macros:
@@ -474,7 +495,7 @@ function $funName(...\$args)
 
 EOT;
         eval($createFun);
-    } // instantiateMacroLoaders
+    } // instantiateMacroLoader
 
 
 } // Macros
