@@ -158,6 +158,66 @@ class PageFactory
         self::$debug = Utils::determineDebugState();
         self::$isAdmin = isAdmin();
         self::$isLocalhost = isLocalhost();
+    } // __construct
+
+
+    public function prepareTemplateFields(): void
+    {
+        $page = self::$page;
+
+        $pageFields = Cache::checkPageCache();
+        if (!$pageFields) {
+            self::init();
+            Utils::prepareUserRelatedVars();
+            $pageFields = [
+                'lang' => self::$langCode,
+                'headTitle' => Utils::renderHeadTitle(),
+                'generator' => Utils::renderGenerator(),
+                'homeLink' => Utils::renderHomeLink(),
+                'localhost' => isLocalhost(),
+                'adminPanelLink' => Utils::renderAdminPanelLink(),
+                'loggedIn' => Utils::$loggedIn,
+                'loginLink' => Utils::$loginLink,
+                'username' => self::$userName,
+                'loginButton' => Utils::$loginButton,
+                'smallScreenHeader' => Utils::renderSmallScreenHeader(),
+                'langSelection' => Utils::renderLanguageSelector(),
+                'menuIcon' => Utils::$menuIcon,
+                'headInjections' => self::$pg->renderHeadInjections(),
+                'bodyTagClasses' => Utils::renderBodyTagClasses(),
+                'bodyTagAttributes' => self::$pg->bodyTagAttributes,
+                'bodyEndInjections' => self::$pg->renderBodyEndInjections(),
+                'pageContent' => $this->renderPageContent(),
+            ];
+            Cache::updatePageCache($pageFields);
+        }
+
+        $page->lang()->value                = $pageFields['lang'];
+        $page->headTitle()->value           = $pageFields['headTitle'];
+        $page->generator()->value           = $pageFields['generator'];
+        $page->homeLink()->value            = $pageFields['homeLink'];
+        $page->localhost()->value           = $pageFields['localhost'];
+        $page->adminPanelLink()->value      = $pageFields['adminPanelLink'];
+        $page->loggedIn()->value            = $pageFields['loggedIn'];
+        $page->loginLink()->value           = $pageFields['loginLink'];
+        $page->username()->value            = $pageFields['username'];
+        $page->loginButton()->value         = $pageFields['loginButton'];
+        $page->smallScreenHeader()->value   = $pageFields['smallScreenHeader'];
+        $page->langSelection()->value       = $pageFields['langSelection'];
+        $page->menuIcon()->value            = $pageFields['menuIcon'];
+
+        $page->headInjections()->value      = $pageFields['headInjections'];
+        $page->bodyTagClasses()->value      = $pageFields['bodyTagClasses'];
+        $page->bodyTagAttributes()->value   = $pageFields['bodyTagAttributes'];
+        $page->bodyEndInjections()->value   = $pageFields['bodyEndInjections'];
+
+        $page->pageContent()->value         = $pageFields['pageContent'];
+
+    } // prepareTemplateFields
+
+
+    private function init(): void
+    {
         if (!file_exists('site/plugins/pagefactory/assets/css/-pagefactory.css')) {
             self::$forceAssetsUpdate = true;
         }
@@ -198,37 +258,9 @@ class PageFactory
         Utils::showPendingMessage();
         Utils::handleAgentRequests();
         Macros::initMacros();
-    } // __construct
 
+    } // init
 
-    public function prepareTemplateFields(): void
-    {
-        Utils::prepareUserRelatedVars();
-        $page = self::$page;
-
-        $page->lang()->value                = self::$langCode;
-
-        $page->headTitle()->value           = Utils::renderHeadTitle();
-        $page->generator()->value           = Utils::renderGenerator();
-        $page->homeLink()->value            = Utils::renderHomeLink();
-        $page->localhost()->value           = isLocalhost();
-        $page->adminPanelLink()->value      = Utils::renderAdminPanelLink();
-        $page->loggedIn()->value            = Utils::$loggedIn;
-        $page->loginLink()->value           = Utils::$loginLink;
-        $page->username()->value            = self::$userName;
-        $page->loginButton()->value         = Utils::$loginButton;
-        $page->smallScreenHeader()->value   = Utils::renderSmallScreenHeader();
-        $page->langSelection()->value       = Utils::renderLanguageSelector();
-        $page->menuIcon()->value            = Utils::$menuIcon;
-
-        $page->headInjections()->value      = self::$pg->renderHeadInjections();
-        $page->bodyTagClasses()->value      = Utils::renderBodyTagClasses();
-        $page->bodyTagAttributes()->value   = self::$pg->bodyTagAttributes;
-        $page->bodyEndInjections()->value   = self::$pg->renderBodyEndInjections();
-
-        $page->pageContent()->value         = $this->renderPageContent();
-
-    } // prepareTemplateFields
 
 
     /**
