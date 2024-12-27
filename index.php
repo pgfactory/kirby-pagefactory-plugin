@@ -16,9 +16,6 @@ require_once __DIR__ . '/vendor/autoload.php';
 use PgFactory\PageFactory\Macros;
 use PgFactory\PageFactory\PageFactory as PageFactory;
 
-// find all macros and preparate as functions to Twig:
-require_once 'site/plugins/pagefactory/src/Macros.php';
-Macros::initMacros();
 
 Kirby::plugin('pgfactory/pagefactory', [
 
@@ -48,10 +45,8 @@ Kirby::plugin('pgfactory/pagefactory', [
 //        },
 
         'page.render:before' => function (string $contentType, array $data, Kirby\Cms\Page $page) {
-            $pfy = new PageFactory($data);
-
             // render page content and store in page.text variable, where the twig template picks it up:
-            $page->pageContent()->value = $pfy->renderPageContent();
+            $page->pageContent()->value = (new PageFactory($data))->renderPageContent();
             return $data;
         },
 

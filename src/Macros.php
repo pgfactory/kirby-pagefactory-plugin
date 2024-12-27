@@ -284,6 +284,9 @@ EOT;
      */
     public static function getMacros(): array
     {
+        if (!self::$macros) {
+            self::findAllMacros();
+        }
         return self::$macroFiles;
     } // getMacros
 
