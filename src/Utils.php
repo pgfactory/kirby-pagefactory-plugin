@@ -11,6 +11,11 @@ use PgFactory\MarkdownPlus\Permission;
 
 class Utils
 {
+    public static string $loginLink;
+    public static string $loginButton;
+    public static mixed $loggedIn;
+    public static mixed $menuIcon;
+
     /**
      * Assign values to variables that are used in templates or in page content
      * - lang
@@ -36,6 +41,10 @@ class Utils
      */
     public static function prepareStandardVariables(): void
     {
+
+        return;
+        
+        
         $kirbyPageTitle = TransVars::$variables['pageTitle'] ?? PageFactory::$page->title();
         TransVars::setVariable('kirbyPageTitle', $kirbyPageTitle);
 
@@ -199,6 +208,142 @@ EOT;
         PageFactory::$pg->addBodyEndInjections($pfyIcons);
 
     } // prepareStandardVariables
+    
+    
+    public static function prepareUserRelatedVars(): void
+    {
+        $pageUrl = '~page/';
+        if (Extensions::$loadedExtensions['PageElements']??false) {
+            $loginLink = "$pageUrl?login";
+            $logoutLink = "$pageUrl?login";
+        } else {
+            $loginLink = '~/panel/login/';
+            $logoutLink = "$pageUrl?logout";
+        }
+
+        $user = PageFactory::$user;
+        if ($user) {
+            // user is already logged in, so inform and offer logout:
+            $username = PageFactory::$userName;
+            $logout = TransVars::getVariable('pfy-logout');
+            self::$loginLink = "<a href='$logoutLink'>$logout</a>";
+//            TransVars::setVariable('LoginLink', "<a href='$logoutLink'>$logout</a>");
+
+            $label = TransVars::getVariable('pfy-logged-in-label');
+            self::$loggedIn = $label.$username;
+//            TransVars::setVariable('loggedIn', $label.$username);
+
+//            TransVars::setVariable('username', $username);
+
+            $logoutIcon = self::renderPfyIcon('logout');
+            $pfyLoginButtonLabel = TransVars::getVariable('pfy-logout-button-title');
+            self::$loginButton = "<span class='pfy-login-button'><a href='$logoutLink' class='pfy-login-button' title='$pfyLoginButtonLabel'>$logoutIcon</a></span>";
+//            TransVars::setVariable('loginButton', "<span class='pfy-login-button'><a href='$logoutLink' class='pfy-login-button' title='$pfyLoginButtonLabel'>$logoutIcon</a></span>");
+
+        } else {
+            $login = TransVars::getVariable('pfy-login');
+            self::$loginLink = "<a href='$loginLink'>$login</a>";
+//            TransVars::setVariable('LoginLink', "<a href='$loginLink'>$login</a>");
+
+            $label = TransVars::getVariable('pfy-not-logged-in-label');
+            self::$loggedIn = $label;
+//            TransVars::setVariable('loggedIn', $label);
+
+//            TransVars::setVariable('username', '');
+
+            $loginIcon = self::renderPfyIcon('user');
+            $pfyLoginButtonLabel = TransVars::getVariable('pfy-login-button-title');
+            self::$loginButton = "<span class='pfy-login-button'><a href='$loginLink' class='pfy-login-button' title='$pfyLoginButtonLabel'>$loginIcon</a></span>";
+//            TransVars::setVariable('loginButton', "<span class='pfy-login-button'><a href='$loginLink' class='pfy-login-button' title='$pfyLoginButtonLabel'>$loginIcon</a></span>");
+        }
+    } // prepareUserRelatedVars
+
+
+    public static function renderHeadTitle(): string
+    {
+        $headTitle = TransVars::getVariable('headTitle');
+        if (!$headTitle) {
+            $headTitle = page()->title() . " / " . site()->title();
+        } else {
+            $headTitle = TransVars::translate($headTitle);
+        }
+        return $headTitle;
+    } // renderHeadTitle
+
+
+    public static function renderGenerator(): string
+    {
+        if (PageFactory::$debug) {
+            $generator = 'Kirby v' . kirby()::version() . " + PageFactory " . getGitTag();
+            $generator .= ' (on PHP ' . phpversion() . ')';
+        } else {
+            $generator = 'Kirby CMS';
+        }
+        return $generator;
+    } // renderGenerator
+
+
+    public static function renderHomeLink(): string
+    {
+        if (PageFactory::$pageUrl !== PageFactory::$appUrl) {
+            $homeLink = Link::render([
+                'url' => PageFactory::$appUrl,
+                'text' => site()->title(),
+                'title' => 'Homepage',
+                'class' => 'pfy-home-link',
+            ]);
+        } else {
+            $homeLink = site()->title();
+        }
+        return $homeLink;
+    } // renderHomeLink
+
+
+    public static function renderAdminPanelLink(): string
+    {
+        $pfyAdminPanelLinkText = TransVars::getVariable('pfy-admin-panel-link-text');
+        return "<a href='~/panel' target='_blank'>$pfyAdminPanelLinkText</a>";
+    } // renderAdminPanelLink
+
+
+    public static function renderSmallScreenHeader(): string
+    {
+        self::$menuIcon = $menuIcon = self::renderPfyIcon('menu');
+        $smallScreenTitle = TransVars::$variables['smallScreenHeader']?? site()->title()->value();
+        $smallScreenHeader = <<<EOT
+
+<div class="pfy-small-screen-header pfy-small-screen-only">
+    <h1>$smallScreenTitle</h1>
+    <button id='pfy-nav-menu-icon' type="button">$menuIcon</button>
+</div>
+EOT;
+
+        return TransVars::translate($smallScreenHeader);
+    } // renderSmallScreenHeader
+
+
+    public static function renderBodyTagClasses(): string
+    {
+        $bodyTagClasses   = PageFactory::$pg->bodyTagClasses ?: 'pfy-large-screen';
+        if (isAdmin()) {
+            $bodyTagClasses .= ' pfy-admin pfy-loggedin';
+        } elseif (Permission::isLoggedIn()) {
+            $bodyTagClasses .= ' pfy-loggedin';
+        }
+        // for debugging:
+        //if (kirby()->session()->get()) {
+        //    $bodyTagClasses = trim("session $bodyTagClasses");
+        //}
+        if (PageFactory::$isLocalhost && PageFactory::$debug) {
+            $bodyTagClasses = trim("localhost $bodyTagClasses");
+        }
+        if (PageFactory::$debug) {
+            $bodyTagClasses = trim("debug $bodyTagClasses");
+        }
+        return $bodyTagClasses;
+    } // renderBodyTagClasses
+    
+    
 
 
     /**
@@ -251,32 +396,32 @@ EOT;
      * @return void
      * @throws \Kirby\Exception\LogicException|\ScssPhp\ScssPhp\Exception\SassException
      */
-    public static function prepareTemplateVariables(): void
-    {
-        PageFactory::$assets->resolveAssetAliases(); // resolve asset aliases that may have been registered very rearly
-        PageFactory::$page->headInjections()->value     = PageFactory::$pg->renderHeadInjections();
-
-        $bodyTagClasses   = PageFactory::$pg->bodyTagClasses ?: 'pfy-large-screen';
-        if (isAdmin()) {
-            $bodyTagClasses .= ' pfy-admin pfy-loggedin';
-        } elseif (Permission::isLoggedIn()) {
-            $bodyTagClasses .= ' pfy-loggedin';
-        }
-        // for debugging:
-        //if (kirby()->session()->get()) {
-        //    $bodyTagClasses = trim("session $bodyTagClasses");
-        //}
-        if (PageFactory::$isLocalhost && PageFactory::$debug) {
-            $bodyTagClasses = trim("localhost $bodyTagClasses");
-        }
-        if (PageFactory::$debug) {
-            $bodyTagClasses = trim("debug $bodyTagClasses");
-        }
-        PageFactory::$page->bodyTagClasses()->value     = $bodyTagClasses;
-
-        PageFactory::$page->bodyTagAttributes()->value  = PageFactory::$pg->bodyTagAttributes;
-        PageFactory::$page->bodyEndInjections()->value  = PageFactory::$pg->renderBodyEndInjections();
-    } // prepareTemplateVariables
+//    public static function prepareTemplateVariables(): void
+//    {
+//        PageFactory::$assets->resolveAssetAliases(); // resolve asset aliases that may have been registered very early
+//        PageFactory::$page->headInjections()->value     = PageFactory::$pg->renderHeadInjections();
+//
+//        $bodyTagClasses   = PageFactory::$pg->bodyTagClasses ?: 'pfy-large-screen';
+//        if (isAdmin()) {
+//            $bodyTagClasses .= ' pfy-admin pfy-loggedin';
+//        } elseif (Permission::isLoggedIn()) {
+//            $bodyTagClasses .= ' pfy-loggedin';
+//        }
+//        // for debugging:
+//        //if (kirby()->session()->get()) {
+//        //    $bodyTagClasses = trim("session $bodyTagClasses");
+//        //}
+//        if (PageFactory::$isLocalhost && PageFactory::$debug) {
+//            $bodyTagClasses = trim("localhost $bodyTagClasses");
+//        }
+//        if (PageFactory::$debug) {
+//            $bodyTagClasses = trim("debug $bodyTagClasses");
+//        }
+//        PageFactory::$page->bodyTagClasses()->value     = $bodyTagClasses;
+//
+//        PageFactory::$page->bodyTagAttributes()->value  = PageFactory::$pg->bodyTagAttributes;
+//        PageFactory::$page->bodyEndInjections()->value  = PageFactory::$pg->renderBodyEndInjections();
+//    } // prepareTemplateVariables
 
 
 

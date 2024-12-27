@@ -201,6 +201,36 @@ class PageFactory
     } // __construct
 
 
+    public function prepareTemplateFields(): void
+    {
+        Utils::prepareUserRelatedVars();
+        $page = self::$page;
+
+        $page->lang()->value                = self::$langCode;
+
+        $page->headTitle()->value           = Utils::renderHeadTitle();
+        $page->generator()->value           = Utils::renderGenerator();
+        $page->homeLink()->value            = Utils::renderHomeLink();
+        $page->localhost()->value           = isLocalhost();
+        $page->adminPanelLink()->value      = Utils::renderAdminPanelLink();
+        $page->loggedIn()->value            = Utils::$loggedIn;
+        $page->loginLink()->value           = Utils::$loginLink;
+        $page->username()->value            = self::$userName;
+        $page->loginButton()->value         = Utils::$loginButton;
+        $page->smallScreenHeader()->value   = Utils::renderSmallScreenHeader();
+        $page->langSelection()->value       = Utils::renderLanguageSelector();
+        $page->menuIcon()->value            = Utils::$menuIcon;
+
+        $page->headInjections()->value      = self::$pg->renderHeadInjections();
+        $page->bodyTagClasses()->value      = Utils::renderBodyTagClasses();
+        $page->bodyTagAttributes()->value   = self::$pg->bodyTagAttributes;
+        $page->bodyEndInjections()->value   = self::$pg->renderBodyEndInjections();
+
+        $page->pageContent()->value         = $this->renderPageContent();
+
+    } // prepareTemplateFields
+
+
     /**
      * Wrapper for _renderPageContent(). Catches errors and redirects to error page while in productive mode.
      * @return string
@@ -281,7 +311,7 @@ class PageFactory
             $html = str_replace(['{!!{', '}!!}', '⟮'], ['{{', '}}', '('], $html);
         }
 
-        Utils::prepareTemplateVariables();
+//        Utils::prepareTemplateVariables();
         $html = self::$pg->renderBody($html);
         self::$renderingClosed = true;
 

@@ -46,7 +46,7 @@ Kirby::plugin('pgfactory/pagefactory', [
 
         'page.render:before' => function (string $contentType, array $data, Kirby\Cms\Page $page) {
             // render page content and store in page.text variable, where the twig template picks it up:
-            $page->pageContent()->value = (new PageFactory($data))->renderPageContent();
+            (new PageFactory($data))->prepareTemplateFields();
             return $data;
         },
 
