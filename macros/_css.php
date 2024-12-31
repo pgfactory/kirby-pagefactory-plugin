@@ -35,7 +35,7 @@ EOT,
     $file = resolvePath($file);
     $file = Assets::translateToUrl($file);
     $css = css($file);
-    $str .= str_replace(PageFactory::$appRootUrl, '/', $css);
+    $str .= str_replace(PFY_APP_BASE_URL, '/', $css);
 
     return $str;
 };

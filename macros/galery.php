@@ -43,11 +43,11 @@ return function($args = ''): string
             'maxWidth'      => ['[int] Maximum width of images (i.e. in overlay).', IMG_MAX_WIDTH],
             'maxHeight'     => ['[int] Maximum height of images', IMG_MAX_HEIGHT],
             'class'         => ['[string] Class to be applied to the wrapper tag.', false],
-            'fullscreen'    => ['[bool] If true, galery covers the entire screen when opened.', false],
+            'fullscreen'    => ['[bool] If true, gallery covers the entire screen when opened.', false],
             'background'    => ['[color] Color of the overlay background.', '#212121f2'],
             'config'        => ['Various options, see table above.', []],
             'imageCaptions' => ['(optional) .txt-file containing image descriptions. Also defines image order. '.
-                '(file-path relative to galery-path or absolute like "\~/xy/z.yaml") ', 'index.txt'],
+                '(file-path relative to gallery-path or absolute like "\~/xy/z.yaml") ', 'index.txt'],
             'thumbCaptions' => ['[bool] If true, captions from `imageCaptions` are rendered in thumbnail-preview '.
                 'as well.', false],
         ],
@@ -117,7 +117,7 @@ EOT,
 
     $class = $options['class']??'';
 
-    // galery config options:
+    // gallery config options:
     if ($options['background']) {
         $options['config']['overlayBackgroundColor'] = $options['background'];
     }
@@ -134,21 +134,21 @@ EOT,
         $path = "~page/$path";
     }
 
-    $images = Galery::getImages($path, $options['imageCaptions']);
+    $images = Gallery::getImages($path, $options['imageCaptions']);
     if (is_array($images)) {
         foreach ($images as $file => $caption) {
-            $html .= Galery::renderImage($file, $options, $caption);
+            $html .= Gallery::renderImage($file, $options, $caption);
         }
     }
 
     $html = <<<EOT
-<div class='pfy-galery pfy-galery-$inx $class'>
+<div class='pfy-gallery pfy-gallery-$inx $class'>
 $html
-</div><!-- /pfy-galery -->
+</div><!-- /pfy-gallery -->
 EOT;
 
-    Galery::loadAssets($options['config'], $inx);
+    Gallery::loadAssets($options['config'], $inx);
 
     return $str.$html; // return [$str]; if result needs to be shielded
-}; // galery
+}; // gallery
 

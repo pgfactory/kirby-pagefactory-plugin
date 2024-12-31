@@ -29,7 +29,7 @@ class TransVars
         self::$langCode = PageFactory::$langCode ?: $lang;
 
         // load PFY's standard variable definitions:
-        $files = getDir('site/plugins/pagefactory/variables/*.yaml');
+        $files = getDir(PFY_APP_BASE_PATH . 'site/plugins/pagefactory/variables/*.yaml');
         if (is_array($files)) {
             foreach ($files as $file) {
                 self::loadVariables($file);
@@ -44,6 +44,25 @@ class TransVars
         }
         self::compileVars();
     } // init
+
+
+    public static function preprocess(string $str): string
+    {
+        $p1end = 0;
+        while ($p1 = strpos($str, '{% if')) {
+            $p1end = strpos($str, '%}', $p1) + 3;
+            $p2 = strpos($str, '{% endif', $p1end);
+            $p2end = strpos($str, '%}', $p2) + 3;
+
+            $s1 = substr($str, 0, $p1);
+            $s2 = substr($str, $p2end);
+
+            $varname = trim(substr($str, $p1+5, $p1end-$p1-9));
+            $value = self::getVariable($varname);
+            $str = $s1 . $value . $s2;
+        }
+        return $str;
+    } // preprocess
 
 
     /**
@@ -102,7 +121,7 @@ class TransVars
     public static function loadCustomVars(): void
     {
         // load custom variable definitions:
-        $files = getDir('site/custom/variables/*.yaml');
+        $files = getDir(PFY_APP_BASE_PATH . 'site/custom/variables/*.yaml');
         if (is_array($files)) {
             foreach ($files as $file) {
                 self::loadVariables($file);
@@ -352,48 +371,70 @@ class TransVars
                 $key = substr($key, 0, - strlen($m[0]));
             }
 
-            // skip macro() calls:
-            if (strpbrk($key, '()')) {
-                list($p1, $p2) = strPosMatching($str, $p2);
-                continue;
-            }
-
-            // catch in-text assignments, e.g. {{ n=3 }}:
-            if (preg_match('/^([\w-]*?)=(.*)/', $key, $m)) {
-                $key1 = trim($m[1]);
-                $value = trim($m[2]);
-                self::setVariable($key1, $value);
-                $value = "<span class='pfy-transvar-assigned'>$value</span>";
-
-            } else {
-                $varNameIfNotFound = true;
-                if (($key[0]??false) === '^') {
-                    $varNameIfNotFound = false;
-                    $key = ltrim($key,'^ ');
-                }
-                $key1 = str_replace(['++', '--'], '', $key);
-                $value = self::getVariable($key1, $varNameIfNotFound, $lang);
-                if ($key !== $key1) {
-                    $s1 = $s2 = '';
-                    if (preg_match('/^(.*?)([-\d.]+)(.*)$/', $value, $m)) {
-                        $s1 = $m[1];
-                        $s2 = $m[3];
-                        $n = $m[2];
+            // handle '|filger', e.g. '|date("l, j. F Y")
+            if (preg_match('/^ (.*) \s* \| \s* (.*?) \s* $/mx', $key, $m)) {
+                $key = substr($key, 0, - strlen($m[0]));
+                $varname = $m[1];
+                $value = self::getVariable($varname);
+                $fun = $m[2];
+                if (preg_match('/(.*) \((.*) \)/mx', $fun, $mm)) {
+                    $fun = $mm[1];
+                    $args = $mm[2];
+                    try {
+                        if ($fun === 'date' || $fun === 'intlDate') {
+                            $value = \PgFactory\PageFactoryElements\intlDate($args, $value);
+                        } else {
+                            $value = $fun($value, $args);
+                        }
+                    } catch (\Exception $e) {
+                        throw new \Exception("Error in macro '$varname': $e");
                     }
-                    if (str_starts_with($key, '++')) { // pre-increase
-                        $n++;
-                        $value = "$s1$n$s2";
-                        self::setVariable($key1, $value);
-                    } elseif (str_starts_with($key, '--')) { // pre-decrease
-                        $n--;
-                        $value = "$s1$n$s2";
-                        self::setVariable($key1, $value);
-                    } elseif (str_ends_with($key, '++')) { // post-increase
-                        $n++;
-                        self::setVariable($key1, "$s1$n$s2");
-                    } elseif (str_ends_with($key, '--')) { // post-decrease
-                        $n--;
-                        self::setVariable($key1, "$s1$n$s2");
+                }
+            } else {
+
+                // skip macro() calls:
+                if (strpbrk($key, '()')) {
+                    list($p1, $p2) = strPosMatching($str, $p2);
+                    continue;
+                }
+
+                // catch in-text assignments, e.g. {{ n=3 }}:
+                if (preg_match('/^([\w-]*?)=(.*)/', $key, $m)) {
+                    $key1 = trim($m[1]);
+                    $value = trim($m[2]);
+                    self::setVariable($key1, $value);
+                    $value = "<span class='pfy-transvar-assigned'>$value</span>";
+
+                } else {
+                    $varNameIfNotFound = true;
+                    if (($key[0] ?? false) === '^') {
+                        $varNameIfNotFound = false;
+                        $key = ltrim($key, '^ ');
+                    }
+                    $key1 = str_replace(['++', '--'], '', $key);
+                    $value = self::getVariable($key1, $varNameIfNotFound, $lang);
+                    if ($key !== $key1) {
+                        $s1 = $s2 = '';
+                        if (preg_match('/^(.*?)([-\d.]+)(.*)$/', $value, $m)) {
+                            $s1 = $m[1];
+                            $s2 = $m[3];
+                            $n = $m[2];
+                        }
+                        if (str_starts_with($key, '++')) { // pre-increase
+                            $n++;
+                            $value = "$s1$n$s2";
+                            self::setVariable($key1, $value);
+                        } elseif (str_starts_with($key, '--')) { // pre-decrease
+                            $n--;
+                            $value = "$s1$n$s2";
+                            self::setVariable($key1, $value);
+                        } elseif (str_ends_with($key, '++')) { // post-increase
+                            $n++;
+                            self::setVariable($key1, "$s1$n$s2");
+                        } elseif (str_ends_with($key, '--')) { // post-decrease
+                            $n--;
+                            self::setVariable($key1, "$s1$n$s2");
+                        }
                     }
                 }
             }
@@ -440,7 +481,7 @@ class TransVars
      */
     public static function findAllMacros(): array
     {
-        require_once 'site/plugins/pagefactory/src/Macros.php';
+        require_once __DIR__ . '/Macros.php';
         return Macros::findAllMacros();
     } // findAllMacros
 

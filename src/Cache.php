@@ -3,56 +3,99 @@
 namespace PgFactory\PageFactory;
 
 
-const CACHE_PATH = 'site/cache/';
+const CACHE_PATH = PFY_APP_BASE_PATH.'site/cache/';
 const PFY_CACHE_PATH = CACHE_PATH.'pagefactory/';
 const LAST_CACHE_UPDATE_FILE = PFY_CACHE_PATH . 'last-cache-update.txt';
 const PFY_PAGE_CACHE_PATH = PFY_CACHE_PATH . 'page-cache/';
 
 class Cache
 {
-    public static bool $pageCacheable = true; // used by Cache
+    public static bool $pageCachingEnabled = true; // used by Cache
     public static bool $cacheUpdateNecessary = false;
-    public static int $maxCacheDuration = 86400; // 24h
 
 
-    public static function checkPageCache(): array
+    public static function init(): void
     {
-        $cacheFile = self::getCacheFile();
-        if ($_REQUEST || !self::$pageCacheable) {
-            unlink($cacheFile);
-            return [];
+        self::$pageCachingEnabled = kirby()->option('pgfactory.pagefactory.options.enablePageCache') &&
+            !kirby()->session()->pull('pfy.message');
+        self::preparePath();
+        $lastCacheRefresh = file_exists(LAST_CACHE_UPDATE_FILE) ? filemtime(LAST_CACHE_UPDATE_FILE) : 0;
+        if (($lastCacheRefresh === 0) || PageFactory::$debug) {
+            self::$pageCachingEnabled = false;
+            self::$cacheUpdateNecessary = true;
+            // ToDo: optimize, i.e. clear KirbyCache for current page only.
+            self::clearKirbyCache(); // clears entire cache, good enough for now...
+            self::flushPageCache();
+            self::updateCacheFlag();
+            return;
+        }
+
+        $resetKirbyCache = (strtotime('today') !== strtotime('today', $lastCacheRefresh));
+        if ($resetKirbyCache) {
+            self::clearKirbyCache(); // clear entire cache
+            self::$pageCachingEnabled = false;
+        }
+        self::updateCacheFlag();
+    } // init
+
+
+
+    // === Page Cache ==========================================
+    // Page Cache caches 'pageContent'
+
+    public static function checkPageCache(string $prefix = ''): mixed
+    {
+        $cacheFile = self::getPageCacheFileName($prefix);
+        if ($_REQUEST || !self::$pageCachingEnabled) {
+            if (file_exists($cacheFile)) {
+                unlink($cacheFile);
+            }
+            return false;
         }
         if (!file_exists($cacheFile)) {
-            return [];
+            return false;
         }
-        $pageFields = unserialize(file_get_contents($cacheFile));
-        if (($pageFields['validUntil']??0) < time()) {
-            return [];
+        $rec = unserialize(file_get_contents($cacheFile));
+        $payload = $rec['payload']??false;
+        $validUntil = $rec['validUntil']??0;
+        if ($validUntil < time()) {
+            return false;
         }
-        $pageFields['headTitle'] = "*" . $pageFields['headTitle'];
-        $pageFields['headInjections'] .= "  <!-- cached content -->\n";
-        return $pageFields;
+        if (!$prefix && isset($payload)) {
+            $payload['cacheIndicator'] = "\n<!-- cached pageContent -->";
+        }
+        return $payload;
     } // checkPageCache
 
 
-    public static function updatePageCache(array $pageFields): void
+    public static function updatePageCache(mixed $payload, string $prefix = ''): void
     {
-        if (!self::$pageCacheable) {
+        if (!self::$pageCachingEnabled) {
             return;
         }
         
-        $cacheFile = self::getCacheFile();
-        $pageFields['validUntil'] = time() + Cache::$maxCacheDuration;
-        writeFile($cacheFile, serialize($pageFields));
+        $cacheFile = self::getPageCacheFileName($prefix);
+        $rec = [
+            'payload' => $payload,
+            'validUntil' => strtotime('today') + 86400, // next midnight
+        ];
+        writeFile($cacheFile, serialize($rec));
     } // updatePageCache
 
 
-    private static function getCacheFile(): string
+    private static function getPageCacheFileName(string $prefix = ''): string
     {
         $pageId = str_replace('/', '_', page()->id());
-        $cacheFile = PFY_PAGE_CACHE_PATH . PageFactory::$lang . '/' . $pageId . '.dat';
+        $prefix = $prefix ? '_' . $prefix : '';
+        $cacheFile = PFY_PAGE_CACHE_PATH . PageFactory::$lang . "/$pageId$prefix.dat";
         return $cacheFile;
-    } // getCacheFile
+    } // getPageCacheFileName
+
+
+    private static function flushPageCache(): void
+    {
+        rrmdir(PFY_PAGE_CACHE_PATH);
+    } // flushPageCache
 
 
     /**

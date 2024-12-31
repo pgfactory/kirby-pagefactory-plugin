@@ -13,12 +13,13 @@ return function ($args = '')
         'options' => [
             'src' => ['Image source file.', '~/assets/logo/logo.png'],
             'alt' => ['Alt-text for image, i.e. a short text that describes the image.', false],
+            'text' => ['Text that will be placed next to the logo image.', ''],
             'id' => ['Id that will be applied to the image.', false],
             'class' => ['Classes that will be applied to the image.', ''],
             'wrapperClass' => ['Classes that will be applied to the image wrapper.', ''],
             'width' => ['Define width of the image to be shown.', null],
             'height' => ['Define height of the image to be shown.', null],
-            'url' => ['The url used when logo is not displayed on the homepage.', '~/'],
+            'url' => ['The url used when logo is not displayed on the homepage (default: "\~/").', null],
             'link' => ['Synonyme for "url".', null],
         ],
         'summary' => <<<EOT
@@ -42,6 +43,7 @@ EOT,
     $str .= '';
 
     $url = ($options['url']??false) ?: '~/';
+    $text = ($options['text']??false) ? "<span>{$options['text']}</span>" : '';
     $options['quickview'] = false;
     $options['id'] = "pfy-logo-$inx";
     if ($options['link']??false) {
@@ -60,7 +62,7 @@ EOT,
 
     $str = <<<EOT
 <div class="pfy-logo $wrapperClass">
-$html
+$html$text
 </div>
 EOT;
 

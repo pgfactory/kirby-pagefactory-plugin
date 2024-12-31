@@ -17,23 +17,19 @@ class Page
     public string $bodyEndInjections = '';
     public string $bodyTagClasses = '';
     public string $bodyTagAttributes = '';
+    public array $pageParams = [];
     public string $css = '';
     public string $scss = '';
     public string $js = '';
     public string $jsWhenReady = '';
-    public string $jq = '';
 
     public array $override = [];
 
     private string|bool  $robots = false;
-    public array|null $assetFiles = [];
     public array|null $asset = [];
     private string|false $overrideContent = false;
     public static array|null $definitions;
     private object $pfy;
-    private object $trans;
-    private Scss $sc;
-    private $pageParams;
 
 
     /**
@@ -42,7 +38,6 @@ class Page
     public function __construct($pfy)
     {
         $this->pfy = $pfy;
-        $this->sc = new Scss();
         self::$definitions['assets'] = ASSET_URL_DEFINITIONS;
     } // __construct
 
@@ -57,7 +52,8 @@ class Page
      */
     public function requireFramework(): void
     {
-        PageFactory::$assets->requireFramework();
+        //ToDo
+        // Assets::requireFramework();
     } // requireFramework
 
 
@@ -136,7 +132,6 @@ class Page
         $this->override['scss'] = $this->scss; $this->scss = '';
         $this->override['js'] = $this->js; $this->js = '';
         $this->override['jsWhenReady'] = $this->jsWhenReady; $this->jsWhenReady = '';
-        $this->override['jq'] = $this->jq; $this->jq = '';
     } // overrideContent
 
 
@@ -148,7 +143,7 @@ class Page
     public function setOverlay(string $str, bool $mdCompile = true): void
     {
         if (isset(Extensions::$availableExtensions['pageelements'])) {
-            $pe = new \PgFactory\PageFactoryElements\Overlay($this->pfy);
+            $pe = new \PgFactory\PageFactoryElements\Overlay();
             $pe->set($str, $mdCompile);
 
         // if PageElements are not loaded, we need to create bare page and exit immediately:
@@ -183,7 +178,7 @@ EOT;
     public function setMessage(string $str, bool $mdCompile = true): void
     {
         if (isset(Extensions::$availableExtensions['pageelements'])) {
-            $pe = new \PgFactory\PageFactoryElements\Message($this->pfy);
+            $pe = new \PgFactory\PageFactoryElements\Message();
             $pe->set($str, $mdCompile);
 
         // if PageElements are not loaded, we need to create bare page and exit immediately:
@@ -191,7 +186,7 @@ EOT;
             if ($mdCompile) {
                 $str = compileMarkdown($str);
             }
-            $this->addJq("window.alert('$str')");
+            $this->addjsReady("window.alert('$str')");
         }
     } // setMessage
 
@@ -205,7 +200,7 @@ EOT;
     public function setPopup(string $str, string $header, $mdCompile = true): void
     {
         if (isset(Extensions::$availableExtensions['pageelements'])) {
-            $pe = new \PgFactory\PageFactoryElements\Popup($this->pfy);
+            $pe = new \PgFactory\PageFactoryElements\Popup();
             $pe->set($str, $header, $mdCompile);
 
         // if PageElements are not loaded, we need to create bare page and exit immediately:
@@ -213,7 +208,7 @@ EOT;
             if ($mdCompile) {
                 $str = compileMarkdown($str);
             }
-            $this->addJq("window.alert('$str')");
+            $this->addjsReady("window.alert('$str')");
         }
     } // setMessage
 
@@ -279,17 +274,7 @@ EOT;
 
 
     /**
-     * Accepts jsFramework code (without the ready-statement) and injects it after loading instructions of js/jq-files
-     * @param string $str
-     */
-    public function addJq(string $str):void
-    {
-        $this->append('jq', trim($str, "\t\n ")."\n");
-    }
-
-
-    /**
-     * Accepts jsFramework code (without the ready-statement) and injects it after loading instructions of js/jq-files
+     * Accepts jsFramework code (without the ready-statement) and injects it after loading instructions of js/jsReady-files
      * @param string $str
      */
     public function addJsReady(string $str):void
@@ -301,15 +286,15 @@ EOT;
     /**
      * Forwards call to Assets->addAssets()
      * @param mixed $assets  array or comma separated list
-     * @param bool $treatAsJq
+     * @param bool $treatAsJsReady
      * @return void
      */
-    public function addAssets(mixed $assets, bool $treatAsJq = false): void
+    public function addAssets(mixed $assets, bool $treatAsJsReady = false): void
     {
         if (PageFactory::$renderingClosed) {
             throw new \Exception("Error: a Macro is trying to queue a resource after page rendering has finished.");
         }
-        PageFactory::$assets->addAssets($assets, $treatAsJq);
+        Assets::addAssets($assets);
     } // addAssets
 
 
@@ -352,17 +337,17 @@ EOT;
         $html .= $this->headInjections;
 
         // add CSS-Files loading instructions:
-        $html .= PageFactory::$assets->renderQueuedAssets('css');
+        $html .= Assets::renderCssLoadingCode();
 
         // add CSS-Code (compile if it's SCSS):
-        $css = $this->css ? "$this->css\n": '';
+        $css = $this->css ? "$this->css\n" : '';
         $css .= PageFactory::$page->css()->value() ?? '';
 
-        $scss = $this->scss ? "$this->scss\n": '';
-        $scss .= PageFactory::$page->scss()->value() ?? '';
+        $scss = $this->scss ? "$this->scss\n" : '';
+        $scss .= PageFactory::$page->scss()->value() ?? ''; // scss from meta-file
 
         if ($scss) {
-            $css .= "\n".$this->sc->compileStr($scss);
+            $css .= "\n".Scss::compileStr($scss);
         }
         if ($css) {
             $css = indentLines($css, 8);
@@ -388,18 +373,17 @@ EOT;
             $this->scss = $this->override['scss'];
             $this->js = $this->override['js'];
             $this->jsWhenReady = $this->override['jsWhenReady'];
-            $this->jq = $this->override['jq'];
         }
 
         $jsInjection = '';
-        $jqInjection = '';
+        $jsReadyInjection = '';
         $miscInjection = "\n$this->bodyEndInjections";
         $screenSizeBreakpoint = PageFactory::$config['screenSizeBreakpoint']??false;
         $screenSizeBreakpoint = $screenSizeBreakpoint ?: 480;
 
         $js = "var screenSizeBreakpoint = $screenSizeBreakpoint\n";
-        $js .= "const hostUrl = '" .        PageFactory::$appRoot . "';\n";
-        $js .= "const pageUrl = '" .        PageFactory::$pageUrl . "';\n";
+        $js .= "const hostUrl = '" .        PFY_APP_BASE_URL . "';\n";
+        $js .= "const pageUrl = '" .        PFY_PAGE_URL . "';\n";
         $js .= "const loggedinUser = '" .   PageFactory::$userName . "';\n";
         $js .= "const currLang = '" .       PageFactory::$langCode . "';\n";
         $js .= "const pageLoaded =          Math.floor(Date.now()/1000);\n";
@@ -426,16 +410,9 @@ EOT;
 
         $jsWhenReady = $this->jsWhenReady ? "$this->jsWhenReady\n": '';
         $jsWhenReady .= PageFactory::$page->jsWhenReady()->value() ?? '';
-        $jq = $this->jq ? "$this->jq\n": '';
-        $jq .= PageFactory::$page->jq()->value() ?? '';
-        if ($jq) {
-            $this->requireFramework();
-        }
-
-        $jsWhenReady .= $jq;
         if ($jsWhenReady) {
             $jsWhenReady = "\t\t\t".str_replace("\n", "\n\t\t\t", rtrim($jsWhenReady, "\n"));
-            $jqInjection .= <<<EOT
+            $jsReadyInjection .= <<<EOT
 
     <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -446,14 +423,14 @@ $jsWhenReady
 EOT;
         }
 
-        $jsFilesInjection = PageFactory::$assets->renderQueuedAssets('js');
+        $jsFilesInjection = Assets::renderJsLoadingCode();
 
         // now assemble final output for body end injection:
         $html = <<<EOT
 
 $jsInjection
 $jsFilesInjection
-$jqInjection
+$jsReadyInjection
 $miscInjection
 EOT;
         return $html;

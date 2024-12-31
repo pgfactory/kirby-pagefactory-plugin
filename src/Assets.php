@@ -4,327 +4,251 @@ namespace PgFactory\PageFactory;
 
 use Kirby\Exception\Exception;
 
+const JQUERY = ['js' => PFY_ASSETS_URL.'js/jquery-3.7.1.min.js', 'priority' => true];
 
  // DEFAULT_ASSET_GROUPS define where PageFactory will look for assets, compiling and aggregating them where necessary.
-const DEFAULT_ASSET_GROUPS = [
+define('DEFAULT_AGGREGATED_ASSETS', [
 
     // 1) Plugin-Assets
     // Note: plugin assets are made available via URL 'media/plugins/pgfactory/pagefactory/...':
-    'site/plugins/pagefactory/assets/css/-pagefactory.css' => [   // $dest
-        'site/plugins/pagefactory/scss/autoload/*',               // $sources
-    ],
-    // scss-compile to site/plugins/pagefactory/css/xy.css, where xy is filename of source
-    'site/plugins/pagefactory/assets/css/' => [
-        'site/plugins/pagefactory/scss/*',
-    ],
-    'site/plugins/pagefactory/assets/js/-pagefactory.js' => [
-        'site/plugins/pagefactory/assets/js/autoload/*',
-    ],
+    'site/plugins/pagefactory/assets/css/-pagefactory.css' => 'site/plugins/pagefactory/scss/autoload/*',               // $sources
 
-    'site/plugins/pagefactory/assets/css/-pagefactory-async.css' => [
-        'site/plugins/pagefactory/scss/autoload-async/*',
-    ],
+    'site/plugins/pagefactory/assets/js/-pagefactory.js' => 'site/plugins/pagefactory/assets/js/autoload/*',
+
+    'site/plugins/pagefactory/assets/css/-pagefactory-async.css' => 'site/plugins/pagefactory/scss/autoload-async/*',
 
     // 2) Custom Assets
-    'content/assets/css/-app.css' => [
-        'content/assets/css/autoload/*',
-    ],
-    'content/assets/css/' => [
-        'content/assets/css/scss/*',
-    ],
-    'content/assets/css/-app-async.css' => [
-        'content/assets/css/autoload-async/*',
-    ],
-    'content/assets/js/-app.js' => [
-        'content/assets/js/autoload/*',
-    ],
-];
+    'content/assets/css/-app.css' => 'content/assets/css/autoload/*',
 
-const ASSET_URL_DEFINITIONS = [
-    'JQUERY' => JQUERY, // defined in PageFactory.php
+    'content/assets/css/-app-async.css' => 'content/assets/css/autoload-async/*',
+
+    'content/assets/js/-app.js' => 'content/assets/js/autoload/*',
+]);
+
+define('DEFAULT_SCSS_ASSET_LOCATIONS', [
+    // scss-compile to site/plugins/pagefactory/css/xy.css, where xy is filename of source
+   'site/plugins/pagefactory/assets/css/' => 'site/plugins/pagefactory/scss/*',
+   'content/assets/css/' => 'content/assets/css/scss/*',
+]);
+
+
+define('ASSET_URL_DEFINITIONS', [
+    'JQUERY' => JQUERY,
     'NAV' => [
-        'site/plugins/pagefactory/assets/js/nav.js',
-        'site/plugins/pagefactory/assets/css/-nav.css',
+       'site/plugins/pagefactory/assets/js/nav.js',
+       'site/plugins/pagefactory/assets/css/-nav.css',
     ],
     'QUICKVIEW' => [
-        'site/plugins/pagefactory/assets/js/quickview.js',
-        'site/plugins/pagefactory/assets/css/-quickview.css',
+       'site/plugins/pagefactory/assets/js/quickview.js',
+       'site/plugins/pagefactory/assets/css/-quickview.css',
     ],
     'PAGE_SWITCHER' => [
-        'site/plugins/pagefactory/assets/css/-page-switcher.css',
-        'site/plugins/pagefactory/assets/js/page-switcher.js',
+       'site/plugins/pagefactory/assets/css/-page-switcher.css',
+       'site/plugins/pagefactory/assets/js/page-switcher.js',
     ],
-];
+]);
 
  // define system assets:
-const SYSTEM_ASSETS = [
+define('SYSTEM_ASSETS', [
     'css' => [
-        'site/plugins/pagefactory/assets/css/-pagefactory.css',
-        'site/plugins/pagefactory/assets/css/-pagefactory-async.css',
-        'content/assets/css/-app.css',
+       'site/plugins/markdownplus/assets/css/markdownplus.css',
+       'site/plugins/pagefactory/assets/css/-pagefactory.css',
+       'site/plugins/pagefactory/assets/css/-pagefactory-async.css',
+       'content/assets/css/-app.css',
     ],
     'js' => [
-        'site/plugins/pagefactory/assets/js/-pagefactory.js',
-        'content/assets/js/-app.js',
+       'site/plugins/pagefactory/assets/js/-pagefactory.js',
+       'content/assets/js/-app.js',
     ],
-];
+]);
 
 
 class Assets
 {
-    public  $assetQueue = [];
-    public  $systemAssets;
-    public  $jsFrameworkRequired = false;
-    private $scssModified = false;
-    private $hostUrl;
-    private $hostUrlLen;
-    private $pageFolderfiles;
-    private $pageFolderPath;
-    private $definitions;
-    private $frameworkFiles;
-    private $filePriority = [];
-    private $assetGroups;
-    private bool $browserCacheBusting = false;
+    private static array $assetGroups = ASSET_URL_DEFINITIONS;
+    private static array $aggregatedAssets = DEFAULT_AGGREGATED_ASSETS;
+    private static array $assetsLocation = DEFAULT_SCSS_ASSET_LOCATIONS;
+    private static array $cssAssets = [];
+    private static array $jsAssets = [];
+    private static array $cssPriorityAssets = [];
+    private static array $jsPriorityAssets = [];
 
 
-    /**
-     * @param $pfy
-     */
-    public function __construct()
+
+    public static function addCssFiles(mixed $asset): void
     {
-        new Scss();
-
-        $this->hostUrl = PageFactory::$hostUrl;
-        $this->hostUrlLen = strlen($this->hostUrl)-1;
-        $this->pageFolderfiles = page()->files()->data();
-        $this->pageFolderPath = page()->root().'/';
-
-        $this->definitions = &Page::$definitions;
-        if (!($this->assetGroups = PageFactory::$config['assetGroups']??false)) {
-            $this->assetGroups = DEFAULT_ASSET_GROUPS;
-        }
-        if (class_exists('PgFactory\MarkdownPlus\MarkdownPlus')) {
-            $this->assetGroups['site/plugins/pagefactory/assets/css/-pagefactory.css'][] = 'site/plugins/markdownplus/assets/css/*';
-        }
-        $this->prepareAssets();
-    } // __construct
-
-
-    /**
-     * Adds an asset group to the assets definition list
-     * @param $newAssetGroups
-     * @return void
-     */
-    public function addAssetGroups($newAssetGroups)
-    {
-        $this->assetGroups = array_merge_recursive($this->assetGroups, $newAssetGroups);
-    } // addAssetGroups
-
-
-    /**
-     * Add CSS or SCSS File(s) to asset-queue
-     * @param mixed $assets  array or comma separated list
-     * @return void
-     */
-    public function addCssFiles(mixed $assets):void
-    {
-        $this->addAssets($assets);
+        self::$cssAssets[] = $asset;
     } // addCssFiles
 
 
-    /**
-     * Add jsFramework File(s) to asset-queue
-     * Accepts jq-file-name(s) and queues them for loading; as a side effect makes sure that jsFramework is loaded as well
-     * @param mixed $assets  array or comma separated list
-     */
-    public function addJqFiles(mixed $assets):void
+    public static function addJsFiles(mixed $asset): void
     {
-        $this->addAssets($assets, true);
+        self::$jsAssets[] = $asset;
     } // addJqFiles
 
 
-    /**
-     * Accepts js-file-name(s) and queues them for loading
-     * @param mixed $assets  array or comma separated list
-     */
-    public function addJsFiles(mixed $assets):void
+    public static function addAssets(mixed $asset): void
     {
-        $this->addAssets($assets);
-    } // addJsFiles
-
-
-    /**
-     * Add CSS or SCSS or JS or JQ File(s) to asset-queue
-     * @param mixed $assets  array or comma separated list
-     * @param bool $treatAsJq
-     * @return void
-     */
-    public function addAssets(mixed $assets, bool $treatAsJq = false): void
-    {
-        // if arg is a string, transform:
-        if (is_string($assets)) {
-            if (isset($this->definitions['assets'][$assets])) {
-                $assets = $this->definitions['assets'][$assets];
+        if (is_string($asset) && ctype_upper($asset)) {
+            if (in_array($asset, array_keys(self::$assetGroups))) {
+                $asset = self::$assetGroups[$asset];
             } else {
-                $assets = explodeTrim(',', $assets);
+                throw new Exception("Unknown asset group: '$asset'.");
             }
         }
+        if (is_array($asset)) {
+            foreach ($asset as $ass) {
+                if ($asset['priority']?? false) {
+                    if (fileExt($ass) === 'css') {
+                        self::$cssPriorityAssets[$ass] = '';
+                    } elseif (fileExt($ass) === 'js') {
+                        self::$jsPriorityAssets[$ass] = '';
+                    };
 
-        $this->resolveAssetAliases($assets, $treatAsJq);
+                } else {
+                    if (fileExt($ass) === 'css') {
+                        self::$cssAssets[$ass] = '';
+                    } else {
+                        self::$jsAssets[$ass] = '';
+                    };
+                }
+            }
+        } elseif (is_string($asset)) {
+            if (fileExt($asset) === 'css') {
+                self::$cssAssets[$asset] = '';
+            } else {
+                self::$jsAssets[$asset] = '';
+            };
+        }
     } // addAssets
 
 
-    /**
-     * @param mixed|null $assets
-     * @param bool $treatAsJq
-     * @return void
-     */
-    public function resolveAssetAliases(mixed $assets = null, bool $treatAsJq = false): void
+    public static function addAssetGroups(array $assetGroups): void
     {
-        if ($assets === null) {
-            $assets = $this->assetQueue['ALIAS'] ?? false;
-            $this->assetQueue['ALIAS'] = false;
-        }
-        if (!$assets) {
-            return;
-        }
+        self::$assetGroups += $assetGroups;
+    } // addAssetGroups
 
-        // loop over all requested assets and check whether it corresponds to a definition, if so, replace:
-        $i = 0;
-        foreach ($assets as $asset) {
-            if (isset($this->definitions['assets'][$asset])) {
-                $assets2 = $this->definitions['assets'][$asset];
-                array_splice($assets, $i, 1, $assets2);
-                $i += sizeof($assets2)-1;
+
+    public static function addAggregatedAssets(array $assets): void
+    {
+        self::$aggregatedAssets += $assets;
+    } // addAggregatedAssets
+
+
+    public static function addAssetLocation(array $assets): void
+    {
+        self::$assetsLocation += $assets;
+    } // addAssetLocation
+
+
+    // === compiling ========================================
+    public static function compileAssets(): void
+    {
+        // compile aggregated system assets:
+        self::compileAggregatedAssets();
+
+        $assetLocations = self::$assetsLocation;
+        $tmp = getDirDeep(PFY_APP_BASE_PATH.'content/*.scss');
+        $l = strlen(PFY_APP_BASE_PATH);
+        foreach ($tmp as $file) {
+            $path = substr(dirname($file).'/', $l);
+            if (str_starts_with($path, 'content/assets')) {
+                continue;
             }
-            $i++;
+            $assetLocations[$path] = $path.'*';
         }
-        foreach ($assets as $asset) {
-            $type = fileExt($asset);
-            if ($type === '') {
-                $type = 'ALIAS';
-            } elseif ($type === 'jq') {
-                $this->jsFrameworkRequired = true;
-                $asset = rtrim($asset, 'jq').'js';
-            } elseif ($type === 'js' && $treatAsJq) {
-                $this->jsFrameworkRequired = true;
+        foreach ($assetLocations as $destPath => $srcPath) {
+            $destPath = PFY_APP_BASE_PATH.$destPath;
+            $srcPath = PFY_APP_BASE_PATH.$srcPath;
+            $files = getDir($srcPath);
+            foreach ($files as $file) {
+                $basename = base_name($file, false);
+                if (is_dir($file) || $basename[0] === '_' || fileExt($file) !== 'scss') {
+                    continue;
+                }
+                $destFile = "$destPath-$basename.css";
+                if (PageFactory::$forceAssetsUpdate) {
+                    Scss::compileFile($file, $destFile);
+                } else {
+                    Scss::updateFile($file, $destFile);
+                }
             }
-            $asset = $this->extractPriorityHint($asset);
-            $this->assetQueue[$type][] = $asset;
         }
-    } // resolveAssetAliases
+
+    } // compileAssets
 
 
-    /**
-     * Removes system styles from asset queue -> called if template doesn't contain 'pfy-default-styling'
-     * @return void
-     */
-    public function excludeSystemAssets(): void
+    // === rendering ========================================
+    public static function renderCssLoadingCode(): string
     {
-        unset($this->systemAssets['css'][0]);
-        unset($this->systemAssets['css'][1]);
-    } // excludeSystemAssets
+        $cssAssets = array_merge(array_keys(self::$cssPriorityAssets), SYSTEM_ASSETS['css']);
+        $cssAssets = array_merge($cssAssets, array_keys(self::$cssAssets));
+        $cssAssets = array_merge($cssAssets, self::addPageAssets('css'));
 
-
-
-    /**
-     * Extracts priority-hints from an array of files/urls:
-     *   Priority-hints are patterns like '(n)' where 0 < n < 100.
-     * @param array $queue
-     * @param int $default
-     * @return array
-     */
-    private function extractPriorityHints(array $queue, int $default = 50): array
-    {
-        foreach ($queue as $key => $elem) {
-            $queue[$key] = $this->extractPriorityHint($elem, $default);
-        }
-        return $queue;
-    } // extractPriorityHints
-
-
-    /**
-     * Extracts priority-hint from a file/url:
-     * @param string $file
-     * @param int $default
-     * @return string
-     */
-    private function extractPriorityHint(string $file, int $default = 50): string
-    {
-        if (isset($this->filePriority[basename($file)])) {
-            return $file;
-        }
-        if (preg_match('|(.*) \((.*)\) (.*)|x', $file, $m)) {
-            $file = $m[1].$m[3];
-            $this->filePriority[basename($file)] = intval($m[2]);
-            return $file;
-        } else {
-            $this->filePriority[basename($file)] = $default;
-        }
-        return $file;
-    } // extractPriorityHint
-
-
-    /**
-     * Sorts given queue according to priority-hints collected before (in $this->filePriority).
-     * @param array $queue
-     * @return array
-     */
-    private function sortQueue(array $queue): array
-    {
-        // extract prio-hints, sort and thereby remove multiple instances of files:
-        $q = [];
-        foreach ($queue as $elem) {
-            $filename = basename($elem);
-            if (isset($this->filePriority[$filename])) {
-                $q[$elem] = $this->filePriority[$filename];
+        $html = "\n";
+        $page = page('assets/css');
+        $files = page('assets/css')->files();
+        foreach ($cssAssets as $asset) {
+            if (str_starts_with($asset, '<')) {
+                $html .= "  $asset\n";
+            } elseif (str_starts_with($asset, 'content')) {
+                $file = $files->find(basename($asset));
+                if (!$file) {
+                    continue;
+                }
+                $html .= '  ' . css($file) . "\n";
             } else {
-                $q[$elem] = 50;
+                $html .= '  ' . css($asset) . "\n";
             }
         }
-        asort($q);
-        return array_keys($q);
-    } // sortQueue
-
-
-    /**
-     * Sets the flag to get jsFramework loaded.
-     * @return void
-     */
-    public function requireFramework(): void
-    {
-        $this->jsFrameworkRequired = true;
-    } // requireFramework
-
-
-    /**
-     * Generic setter
-     * @param string $key
-     * @param mixed $value
-     */
-    public function set(string $key, mixed $value): void
-    {
-        $this->$key = $value;
-    }
-
-
-    /**
-     * Returns HTML for loading JS or CSS files which have been added to the queue.
-     * @param string $jsOrCss
-     * @return string
-     */
-    public function renderQueuedAssets(string $jsOrCss): string
-    {
-        $queuedFiles = $this->getQueuedFiles($jsOrCss);
-
-        $html = '';
-        if ($queuedFiles) {
-            foreach ($queuedFiles as $file) {
-                $html .= $this->renderAssetLoadingCode($file, $jsOrCss);
-            }
+        $html = str_replace('/site/plugins/markdownplus/assets/',
+                            '/media/plugins/pgfactory/markdownplus/', $html);
+        $html = preg_replace('|/site/plugins/pagefactory(-.*?)?/assets/|',
+                          '/media/plugins/pgfactory/pagefactory\1/', $html);
+        if (PFY_BASE_OFFSET) {
+            $html = preg_replace('|'.PFY_APP_BASE_URL.'(?!'.PFY_BASE_OFFSET.')|',PFY_APP_BASE_URL.PFY_BASE_OFFSET, $html);
         }
         return $html;
-    } // renderQueuedAssets
+    } // renderCssLoadingCode
+
+
+    public static function renderJsLoadingCode(): string
+    {
+        $jsAssets = array_merge(array_keys(self::$jsPriorityAssets), SYSTEM_ASSETS['js']);
+        $jsAssets = array_merge($jsAssets, array_keys(self::$jsAssets));
+        $jsAssets = array_merge($jsAssets, self::addPageAssets('js'));
+
+        $html = "\n";
+        $files = page('assets/js')->files();
+        foreach ($jsAssets as $asset) {
+            if (str_starts_with($asset, '<')) {
+                $html .= "  $asset\n";
+            } elseif (str_starts_with($asset, 'content')) {
+                $file = $files->find(basename($asset));
+                $html .= '  ' . js($file) . "\n";
+            } else {
+                $html .= '  ' . js($asset) . "\n";
+            }
+        }
+        $html = preg_replace('|/site/plugins/pagefactory(-.*?)?/assets/|', '/media/plugins/pgfactory/pagefactory\1/', $html);
+        if (PFY_BASE_OFFSET) {
+            $html = preg_replace('|'.PFY_APP_BASE_URL.'(?!'.PFY_BASE_OFFSET.')|',PFY_APP_BASE_URL.PFY_BASE_OFFSET, $html);
+        }
+        return $html;
+    } // renderJsLoadingCode
+
+
+    private static function addPageAssets(string $cssOrJs): array
+    {
+        $pageAssets = [];
+        $files = page()->files()->filterBy('extension', $cssOrJs);
+        foreach ($files as $file) {
+            if (($file->filename())[0] !== '#') {
+                $pageAssets[] = $cssOrJs($file);
+            }
+        }
+        return $pageAssets;
+    } // addPageAssets
 
 
     /**
@@ -334,10 +258,10 @@ class Assets
     public static function reset(): void
     {
         $dir = array_merge(
-                getDirDeep(PFY_ASSETS_PATH.'css/'),
-                getDirDeep(PFY_ASSETS_PATH.'js/'),
-                getDirDeep(PFY_CONTENT_ASSETS_PATH.'css/'),
-                getDirDeep(PFY_CONTENT_ASSETS_PATH.'js/'));
+            getDirDeep(PFY_PAGEFACTORY_ASSETS_PATH.'css/'),
+            getDirDeep(PFY_PAGEFACTORY_ASSETS_PATH.'js/'),
+            getDirDeep(PFY_APP_BASE_PATH.'content/-*.css'),
+        );
 
         foreach ($dir as $file) {
             if ((basename($file)[0]) === '-') {
@@ -347,344 +271,37 @@ class Assets
     } // reset
 
 
-    /**
-     * Prepares required folders and aggregates system assets if necessary.
-     * @return void
-     * @throws \Exception
-     */
-    public function prepareAssets(): bool
+    private static function compileAggregatedAssets(): void
     {
-        preparePath(PFY_CACHE_PATH . 'compiledScss/');
-        preparePath(PFY_CONTENT_ASSETS_PATH . 'css/');
-        preparePath(PFY_CONTENT_ASSETS_PATH . 'js/');
-
-        $this->assetQueue = ['css' =>[], 'js' => [], 'jq' => []];
-
-        // get system assets:
-        $this->systemAssets = SYSTEM_ASSETS;
-
-        // prepare asset groups:
-        $assetGroups = $this->assetGroups;
-        if ($assetGroups && is_array($assetGroups)) {
-            foreach ($assetGroups as $dest => $sources) {
-                $dest1 = $this->extractPriorityHint($dest);
-                if ($dest1 !== $dest) {
-                    $assetGroups[$dest1] = $assetGroups[$dest];
-                    unset($assetGroups[$dest]);
-                    $dest = $dest1;
-                }
-                if (PageFactory::$forceAssetsUpdate || PageFactory::$debug || PageFactory::$isLocalhost) {
-                    $this->prepareAssetGroup($dest, $sources);
-                }
-            }
-        }
-
-        // get framework assets:
-        if ($frontendFrameworkUrls = (PageFactory::$config['frontendFrameworkUrls']??false)) {
-            if ($frontendFrameworkUrls === true) {
-                $this->frameworkFiles = DEFAULT_FRONTEND_FRAMEWORK_URLS;
-            } else {
-                $this->frameworkFiles = $frontendFrameworkUrls;
-            }
-            foreach ($this->frameworkFiles as $i => $file) {
-                $this->filePriority[basename($file)] = 10;
-                if (!str_starts_with($file, 'http')) {
-                    $this->frameworkFiles[$i] = PageFactory::$appUrl . $file;
-                }
-            }
-        }
-        return $this->scssModified;
-    } // prepareAssets
-
-
-    /**
-     * @return void
-     */
-    public function activateBrowserCacheBusting(): void
-    {
-        $this->browserCacheBusting = true;
-    } // activateBrowserCacheBusting
-
-
-
-    // === private =============================================
-    /**
-     * Returns queued assets of given type (css or js).
-     * @param string $jsOrCss
-     * @return array
-     */
-    private function getQueuedFiles(string $jsOrCss): array
-    {
-        // get assets from current page folder:
-        $pageFolderAssets = $this->getAssetsFromPageFolder($jsOrCss);
-
-        // if required, get framework-files (e.g. jQuery):
-        $requireFrameworkOption = kirby()->option('pgfactory.pagefactory.options.requireFramework');
-        if ($this->jsFrameworkRequired || $requireFrameworkOption) {
-            if ($frameworkFiles = $this->frameworkFiles[$jsOrCss]??false) {
-                if (is_string($frameworkFiles)) {
-                    $frameworkFiles = explodeTrim(',', $frameworkFiles);
-                }
-                $this->systemAssets[$jsOrCss] = array_merge($frameworkFiles, $this->systemAssets[$jsOrCss]);
-            }
-        }
-
-        // extract priority hints from files in assetQueue:
-        $assetQueue = $this->extractPriorityHints($this->assetQueue[$jsOrCss]);
-
-        // get custom jQuery files -> to be added at the end:
-        if ($jsOrCss === 'js') {
-            $assetQueue = array_merge($assetQueue, $this->extractPriorityHints($this->assetQueue['jq'], 70));
-        }
-
-        // assemble queue out of systemAssets, assetQueue and pageFolderAssets:
-        $queue = array_merge($this->systemAssets[$jsOrCss], $assetQueue, $pageFolderAssets);
-
-        // sort queue according to priority-hints and remove multiple instances:
-        $queue = $this->sortQueue($queue);
-
-        // translate paths to urls:
-        $queue = $this->translateToUrls($queue, $jsOrCss);
-        return $queue;
-    } // getQueuedFiles
-
-
-    /**
-     * @param array $queue
-     * @param string $jsOrCss
-     * @return array
-     * @throws \Exception
-     */
-    private function translateToUrls(array $queue, string $jsOrCss): array
-    {
-        // find assets in asset folder:
-
-        foreach ($queue as $i => $file) {
-            if (!$file) { // skip empty items:
-                unset($queue[$i]);
-                continue;
-            }
-    
-            // cope with case request contains prio, but not file:
-            $url = resolvePath($file);
-
-            if (!(str_starts_with($url, 'http') || str_starts_with($url, 'media/') || str_starts_with($url, PageFactory::$appUrl)) &&
-                !file_exists($url)) {
-                $file1 = $this->extractPriorityHint($url);
-                if ($url && file_exists($file1)) {
-                    $url = dirname($url).'/'.basename($file1);
-                } else {
-                    // mylog("Error: requested asset `$file` not found.");
-                    unset($queue[$i]);
-                    continue;
-                    // throw new \Exception("Error: requested asset `$file` not found.");
-                }
-            }
-
-            $url = self::translateToUrl($url, $jsOrCss);
-            if (!$url) {
-                throw new \Exception("Unable to find requested asset '{$queue[$i]}'");
-            }
-            $queue[$i] = $url;
-        }
-        return $queue;
-    } // translateToUrls
-
-
-    /**
-     * @param string $url
-     * @param string $jsOrCss
-     * @return string
-     * @throws \Exception
-     */
-    public static function translateToUrl(string $url, string $jsOrCss = 'css'): string
-    {
-        $assetFolderFiles = PageFactory::$pages->find("assets/$jsOrCss")->files()->data();
-        if (str_starts_with($url, 'site/plugins/')) {       // filepath to asset in pluginXY/assets/
-            if (preg_match('|^site/plugins/(.+?)/.+?/(.*)|', $url, $m)) {
-                $url = PageFactory::$appUrl . PFY_BASE_ASSETS_URL . "{$m[1]}/{$m[2]}";
-            } else {
-                throw new \Exception("Internal Error: unexpected pattern '$url'");
-            }
-
-        } elseif (str_starts_with($url, 'media/plugins/')) { // already a plugin-url
-            $url = PageFactory::$appUrl . $url;
-
-        } elseif (str_starts_with($url, 'content/assets/')) { // filepath to asset in content/assets/
-            $url = (string)($assetFolderFiles[substr($url, 8)] ?? '');
-        }
-
-        // beautify urls, i.e. get rid of hostUrl part if present:
-        if (str_starts_with($url, PageFactory::$hostUrl)) {
-            $url = '/'.substr($url, strlen(PageFactory::$hostUrl));
-        }
-        return $url;
-    } // translateToUrl
-
-
-    /**
-     * Checks the current page foder for CSS, SCSS and JS files and returns them, compiled if necessary.
-     * @param string $jsOrCss
-     * @return array
-     * @throws \ScssPhp\ScssPhp\Exception\SassException
-     */
-    private function getAssetsFromPageFolder(string $jsOrCss): array
-    {
-        $modified = false;
-        if (($jsOrCss === 'css') && ($scssFiles = getDir($this->pageFolderPath.'*.scss'))) {
-            // compile any scss files in page folder:
-            foreach ($scssFiles as $file) {
-                $modified |= (bool)Scss::updateFile($file, $file);
-            }
-        }
-        if ($modified) {
-            reloadAgent();
-        }
-
-        $assets = [];
-        foreach ($this->pageFolderfiles as $file => $url) {
-            $file = $this->extractPriorityHint($file, 60);
-            $ext = fileExt($file);
-            if ($ext !== $jsOrCss) {
-                continue;
-            }
-            if ($ext === 'js') {  // js:
-                $assets[] = (string)$url;
-
-            } else {             // css:
-                $assets[] = (string)$url;
-            }
-        }
-        return $assets;
-    } // getAssetsFromPageFolder
-
-
-    /**
-     * Returns HTML for loading given asset.
-     * @param string $fileUrl
-     * @param string $jsOrCss
-     * @return string
-     */
-    private function renderAssetLoadingCode(string $fileUrl, string $jsOrCss): string
-    {
-        if ($this->browserCacheBusting) {
-            $fileUrl .= '?v=' . rand(1,99);
-        }
-
-        if ($jsOrCss === 'js') { // js
-            $html = "\t<script src='$fileUrl'></script>\n";
-
-        } else { // css
-            if (strpos($fileUrl, '-async') !== false) {
-                $html = "\t<link href='$fileUrl' rel='stylesheet' media='print' class='pfy-onload-css'>\n";
-                $html .= "\t<noscript><link href='$fileUrl' rel='stylesheet'></noscript>\n";
-            } else {
-                $html = "\t<link href='$fileUrl' rel='stylesheet'>\n";
-            }
-        }
-        return $html;
-    } // renderAssetLoadingCode
-
-
-    /**
-     * Prepares given asset-group, compiles SCSS and aggregates into collective file, if requirec.
-     * @param string $dest
-     * @param array $sources
-     * @return void
-     */
-    private function prepareAssetGroup(string $dest, array $sources): void
-    {
-        // system assets are defined as an array of dest =>
-        if ($dest[strlen($dest)-1] === '/') {   // dest is defined as a folder -> prepare each file individually
-            foreach ($sources as $sourceDir) {
-                $files = getDir($sourceDir);
-                foreach ($files as $sourceFile) {
-                    $sourceFileName = basename($sourceFile);
-                    $fileExt = fileExt($sourceFileName);
-                    if ($fileExt !== 'scss' || $sourceFileName[0] === '_' || $sourceFileName[0] === '-') {
-                        continue;
-                    }
-                    $targetFile = $dest.'-'.base_name($sourceFileName, false).'.css';
-                    $this->compileScss($sourceFile, $targetFile);
-                }
-            }
-
-        } else {        // dest is defined as a filename -> aggregate all files into one
-            $this->aggregate($dest, $sources);
-        }
-    } // preparePfyAsset
-
-
-    /**
-     * Copies a group of files into one.
-     * @param string $dest
-     * @param array $sources
-     * @return void
-     * @throws \Exception
-     */
-    private function aggregate(string $dest, array $sources): void
-    {
-        $tempSrcFiles = [];
-        $modified = !file_exists($dest);
-        foreach ($sources as $sourceFolder) {
-            $files = getDir($sourceFolder);
+        foreach (self::$aggregatedAssets as $destFile => $srcPath) {
+            $destFile = PFY_APP_BASE_PATH.$destFile;
+            $srcPath = PFY_APP_BASE_PATH.$srcPath;
+            $tTarg = fileTime($destFile);
+            $modified = false;
+            $files = getDir($srcPath);
             foreach ($files as $srcFile) {
-                $ext = fileExt($srcFile);
-                if ($ext === 'txt') { // skip readme.txt
+                $modified = $modified || fileTime($srcFile) > $tTarg;
+            }
+            if (!$modified) {
+                continue;
+            }
+
+            $str = '';
+            foreach ($files as $srcFile) {
+                $basename = base_name($srcFile, false);
+                if (!ctype_alnum($basename[0])) {
                     continue;
                 }
-                $filename = basename($srcFile);
-                if (fileExt($srcFile) === 'scss') {
-                    $targetFile = PFY_CACHE_PATH . "compiledScss/".basename($dest).'/-'.base_name($filename, false).'.css';
-                    $this->compileScss($srcFile, $targetFile);
-                    $tempSrcFiles[] = [$filename, $targetFile];
-                    $modified |= $this->scssModified;
-                } else {
-                    $filename = basename($srcFile);
-                    $tempSrcFiles[] = [$filename, $srcFile];
-                    $modified |= (fileTime($dest) < fileTime($srcFile));
+                if (($ext = fileExt($srcFile)) === 'scss') {
+                    $str .= Scss::compileFileToString($srcFile);
+                } elseif ($ext === 'css' || $ext === 'js') {
+                    $str .= "/* === Copied from " . basename($srcFile) . " - do not modify! === */\n\n";
+                    $str .= getFile($srcFile);
                 }
             }
+            writeFile($destFile, $str);
+            mylog("Assets: '$destFile' compiled");
         }
-
-        if ($modified) {
-            $out = '';
-            foreach ($tempSrcFiles as $tempSrcFile) {
-                $out .= "/* @@@@@@@@ Imported from {$tempSrcFile[0]} @@@@@@@@ */\n\n";
-                $out .= getFile($tempSrcFile[1], !PageFactory::$config['debug_compileScssWithSrcRef']);
-                $out .= "\n\n";
-            }
-            preparePath($dest);
-            file_put_contents($dest, $out);
-        }
-    } // aggregate
-
-
-    /**
-     * Compiles given SCSS file, if necessary (i.e. compiled file is outdated).
-     * @param string $srcFile
-     * @param string $targetFile
-     * @return string
-     * @throws \ScssPhp\ScssPhp\Exception\SassException
-     */
-    private function compileScss(string $srcFile, string $targetFile): string
-    {
-        if (fileExt($targetFile) !== 'css') { // skip any non-scss files
-            $targetFile = fileExt($targetFile, true).'.css';
-        }
-        if (PageFactory::$forceAssetsUpdate) {
-            Scss::compileFile($srcFile, $targetFile);
-            $this->scssModified = true;
-
-        } else {
-            $tTarget = lastModified($targetFile, false);
-            $tSrc = lastModified($srcFile, false);
-            if ($tTarget < $tSrc) {
-                Scss::compileFile($srcFile, $targetFile);
-                $this->scssModified = true;
-            }
-        }
-        return $targetFile;
-    } // compileScss
+    } // compileAggregatedAssets
 
 } // Assets

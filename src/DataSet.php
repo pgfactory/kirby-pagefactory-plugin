@@ -18,7 +18,7 @@ const DEFAULT_MAX_REC_BLOCKING_TIME = 2; // sec
 const DEFAULT_KEEP_DATA_DURATION    = 12; // month
 const MAX_DB_FILE_SIZE              = 10485760; // 10MB
 
-// data archive:
+ // data archive:
 const ARCHIVE_SUBPATH               = '-archive/';
 
 class DataSet
@@ -112,10 +112,11 @@ class DataSet
                 throw new \Exception("Error: DataSet invoked with unsupported file-type: '$this->type'");
             }
             $this->file = $file;
-            $dataFile = str_replace('/', '_', dirname($file)) . '_' . base_name($file, false);
+            $p = substr(dirname($file), strlen(PFY_APP_BASE_PATH));
+            $dataFile = str_replace('/', '_', $p) . '_' . base_name($file, false);
             $this->cacheFile = PFY_CACHE_PATH . "data/$dataFile.cache.dat";
             // lockFile needs to be absolute because it may be used by __destruct():
-            $this->lockFile = kirby()->root().'/'.PFY_CACHE_PATH . "data/$dataFile.lock";
+            $this->lockFile = PFY_CACHE_PATH . "data/$dataFile.lock";
 
             // if data file doesn't exist, prepare it empty and make sure no old cache/lock-files exist.
             if (!is_file($file)) {

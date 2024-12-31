@@ -6,6 +6,7 @@ use Kirby;
 use Kirby\Data\Yaml;
 use Kirby\Email\PHPMailer;
 use Exception;
+use Kirby\Http\Url;
 use PgFactory\MarkdownPlus\Permission;
 
 
@@ -39,186 +40,15 @@ class Utils
      * @return void
      * @throws \Kirby\Exception\LogicException|\Kirby\Exception\InvalidArgumentException
      */
-    public static function prepareStandardVariables(): void
-    {
 
-        return;
-        
-        
-        $kirbyPageTitle = TransVars::$variables['pageTitle'] ?? PageFactory::$page->title();
-        TransVars::setVariable('kirbyPageTitle', $kirbyPageTitle);
-
-        $kirbySiteTitle = TransVars::$variables['siteTitle'] ?? site()->title();
-        TransVars::setVariable('kirbySiteTitle', $kirbySiteTitle);
-        $headTitle = TransVars::getVariable('headTitle');
-        if (!$headTitle) {
-            $headTitle = "$kirbyPageTitle / $kirbySiteTitle";
-        } else {
-            $headTitle = TransVars::translate($headTitle);
-        }
-        TransVars::setVariable('headTitle', $headTitle);
-        TransVars::setVariable('pageTitle', $kirbyPageTitle);
-
-        if (PageFactory::$debug) {
-            $generator = 'Kirby v' . kirby()::version() . " + PageFactory " . getGitTag();
-            $metaTagGenerator = $generator . ' (on PHP ' . phpversion() . ')';
-            $metaTagGenerator = "<meta name='generator' content='$metaTagGenerator'>";
-        } else {
-            $generator = 'Kirby CMS';
-            $metaTagGenerator = "<meta name='generator' content='Kirby CMS'>";
-        }
-        TransVars::setVariable('generator', $generator);
-        TransVars::setVariable('metaTagGenerator', $metaTagGenerator);
-
-        // homeLink:
-        if (PageFactory::$pageUrl !== PageFactory::$appUrl) {
-            $homeLink = Link::render([
-                'url' => PageFactory::$appUrl,
-                'text' => $kirbySiteTitle,
-                'title' => 'Homepage',
-                'class' => 'pfy-home-link',
-            ]);
-        } else {
-            $homeLink = $kirbySiteTitle;
-        }
-        TransVars::setVariable('homeLink', $homeLink);
-
-        $appUrl = PageFactory::$appUrl;
-        $menuIcon = self::renderPfyIcon('menu');
-        TransVars::setVariable('menuIcon',$menuIcon);
-        $smallScreenTitle = TransVars::$variables['smallScreenHeader']?? site()->title()->value();
-        $smallScreenHeader = <<<EOT
-
-<div class="pfy-small-screen-header pfy-small-screen-only">
-    <h1>$smallScreenTitle</h1>
-    <button id='pfy-nav-menu-icon' type="button">$menuIcon</button>
-</div>
-EOT;
-
-        $smallScreenHeader = TransVars::translate($smallScreenHeader);
-        TransVars::setVariable('smallScreenHeader', $smallScreenHeader);
-
-        TransVars::setVariable('langSelection', self::renderLanguageSelector());
-        TransVars::setVariable('pageUrl', PageFactory::$pageUrl);
-        TransVars::setVariable('appUrl', $appUrl);
-        TransVars::setVariable('hostUrl', PageFactory::$hostUrl);
-        TransVars::setVariable('lang', PageFactory::$langCode);
-        TransVars::setVariable('langActive', PageFactory::$lang); // can be lang-variant, e.g. de2
-        TransVars::setVariable('phpVersion', phpversion());
-
-        if (file_exists(PFY_WEBMASTER_EMAIL_CACHE)) {
-            $webmasterEmail = file_get_contents(PFY_WEBMASTER_EMAIL_CACHE);
-        } else {
-            if (!($webmasterEmail = PageFactory::$config['webmaster_email'] ?? false)) {
-                $webmasterEmail = TransVars::getVariable('webmaster_email');
-            }
-            if ($webmasterEmail) {
-                PageFactory::$webmasterEmail = $webmasterEmail;
-            } else {
-                // default webmaster email derived from current domain:
-                $domain = preg_replace('|^https?://([\w.-]+)(.*)|', "$1", site()->url());
-
-                // for localhost: create pseudo
-                if (str_contains($domain, 'localhost')) {
-                    $domain .= '.net';
-                }
-                PageFactory::$webmasterEmail = $webmasterEmail = 'webmaster@' . $domain;
-            }
-            preparePath(PFY_WEBMASTER_EMAIL_CACHE);
-            file_put_contents(PFY_WEBMASTER_EMAIL_CACHE, $webmasterEmail);
-        }
-        TransVars::setVariable('webmaster_email', $webmasterEmail);
-        PageFactory::$webmasterEmail = $webmasterEmail;
-        
-        $webmasterLink = Link::render([
-            'url' => "mailto:$webmasterEmail",
-            'text' => 'Webmaster',
-        ]);
-        TransVars::setVariable('pfy-webmaster-link', $webmasterLink);
-
-
-        // Copy site field values to transvars:
-        $siteAttributes = site()->content()->data();
-        foreach ($siteAttributes as $key => $value) {
-            if ($key === 'title') {
-                continue;
-            }
-            TransVars::setVariable($key, $value);
-        }
-
-        // Copy page field values to transvars:
-        $pageAttributes = page()->content()->data();
-        foreach ($pageAttributes as $key => $value) {
-            if (str_contains(',title,text,uuid,accesscodes,', ",$key,") || str_ends_with($key, '_md')) {
-                continue;
-            } elseif ($key === 'variables') {
-                $values = Yaml::decode($value);
-                foreach ($values as $k => $v) {
-                    TransVars::setVariable($k, $v);
-                }
-            } else {
-                TransVars::setVariable($key, (string)$value);
-            }
-        }
-
-        $pageUrl = PageFactory::$pageUrl;
-        if (Extensions::$loadedExtensions['PageElements']??false) {
-            $loginLink = "$pageUrl?login";
-            $logoutLink = "$pageUrl?login";
-        } else {
-            $loginLink = PageFactory::$appUrl.'panel/login/';
-            $logoutLink = "$pageUrl?logout";
-        }
-
-        $user = PageFactory::$user;
-        if ($user) {
-            // user is already logged in, so inform and offer logout:
-            $username = PageFactory::$userName;
-            $logout = TransVars::getVariable('pfy-logout');
-            TransVars::setVariable('LoginLink', "<a href='$logoutLink'>$logout</a>");
-
-            $label = TransVars::getVariable('pfy-logged-in-label');
-            TransVars::setVariable('loggedIn', $label.$username);
-
-            TransVars::setVariable('username', $username);
-
-            $logoutIcon = self::renderPfyIcon('logout');
-            $pfyLoginButtonLabel = TransVars::getVariable('pfy-logout-button-title');
-            TransVars::setVariable('loginButton', "<span class='pfy-login-button'><a href='$logoutLink' class='pfy-login-button' title='$pfyLoginButtonLabel'>$logoutIcon</a></span>");
-
-        } else {
-            $login = TransVars::getVariable('pfy-login');
-            TransVars::setVariable('LoginLink', "<a href='$loginLink'>$login</a>");
-
-            $label = TransVars::getVariable('pfy-not-logged-in-label');
-            TransVars::setVariable('loggedIn', $label);
-
-            TransVars::setVariable('username', '');
-
-            $loginIcon = self::renderPfyIcon('user');
-            $pfyLoginButtonLabel = TransVars::getVariable('pfy-login-button-title');
-            TransVars::setVariable('loginButton', "<span class='pfy-login-button'><a href='$loginLink' class='pfy-login-button' title='$pfyLoginButtonLabel'>$loginIcon</a></span>");
-        }
-
-        $pfyAdminPanelLinkText = TransVars::getVariable('pfy-admin-panel-link-text');
-        TransVars::setVariable('adminPanelLink', "<a href='{$appUrl}panel' target='_blank'>$pfyAdminPanelLinkText</a>");
-
-        // site/plugins/pagefactory/assets/icons/_pfy-icons.svg
-        $pfyIcons = svg('site/plugins/pagefactory/assets/icons/_pfy-icons.svg');
-        PageFactory::$pg->addBodyEndInjections($pfyIcons);
-
-    } // prepareStandardVariables
-    
-    
     public static function prepareUserRelatedVars(): void
     {
-        $pageUrl = '~page/';
         if (Extensions::$loadedExtensions['PageElements']??false) {
-            $loginLink = "$pageUrl?login";
-            $logoutLink = "$pageUrl?login";
+            $loginLink = PFY_PAGE_URL . '?login';
+            $logoutLink = PFY_PAGE_URL . "?login";
         } else {
-            $loginLink = '~/panel/login/';
-            $logoutLink = "$pageUrl?logout";
+            $loginLink = PFY_APP_BASE_URL . 'panel/login/';
+            $logoutLink = PFY_PAGE_URL . "?logout";
         }
 
         $user = PageFactory::$user;
@@ -227,36 +57,33 @@ EOT;
             $username = PageFactory::$userName;
             $logout = TransVars::getVariable('pfy-logout');
             self::$loginLink = "<a href='$logoutLink'>$logout</a>";
-//            TransVars::setVariable('LoginLink', "<a href='$logoutLink'>$logout</a>");
 
             $label = TransVars::getVariable('pfy-logged-in-label');
             self::$loggedIn = $label.$username;
-//            TransVars::setVariable('loggedIn', $label.$username);
-
-//            TransVars::setVariable('username', $username);
 
             $logoutIcon = self::renderPfyIcon('logout');
             $pfyLoginButtonLabel = TransVars::getVariable('pfy-logout-button-title');
             self::$loginButton = "<span class='pfy-login-button'><a href='$logoutLink' class='pfy-login-button' title='$pfyLoginButtonLabel'>$logoutIcon</a></span>";
-//            TransVars::setVariable('loginButton', "<span class='pfy-login-button'><a href='$logoutLink' class='pfy-login-button' title='$pfyLoginButtonLabel'>$logoutIcon</a></span>");
 
         } else {
             $login = TransVars::getVariable('pfy-login');
             self::$loginLink = "<a href='$loginLink'>$login</a>";
-//            TransVars::setVariable('LoginLink', "<a href='$loginLink'>$login</a>");
 
             $label = TransVars::getVariable('pfy-not-logged-in-label');
             self::$loggedIn = $label;
-//            TransVars::setVariable('loggedIn', $label);
-
-//            TransVars::setVariable('username', '');
 
             $loginIcon = self::renderPfyIcon('user');
             $pfyLoginButtonLabel = TransVars::getVariable('pfy-login-button-title');
             self::$loginButton = "<span class='pfy-login-button'><a href='$loginLink' class='pfy-login-button' title='$pfyLoginButtonLabel'>$loginIcon</a></span>";
-//            TransVars::setVariable('loginButton', "<span class='pfy-login-button'><a href='$loginLink' class='pfy-login-button' title='$pfyLoginButtonLabel'>$loginIcon</a></span>");
         }
     } // prepareUserRelatedVars
+
+
+    public static function queuePfyIconDefinitions(): void
+    {
+        $pfyIcons = svg(PFY_APP_BASE_PATH.'site/plugins/pagefactory/assets/icons/_pfy-icons.svg');
+        PageFactory::$pg->addBodyEndInjections($pfyIcons);
+    } // queuePfyIconDefinitions
 
 
     public static function renderHeadTitle(): string
@@ -285,9 +112,9 @@ EOT;
 
     public static function renderHomeLink(): string
     {
-        if (PageFactory::$pageUrl !== PageFactory::$appUrl) {
+        if (PFY_PAGE_URL !== PFY_APP_BASE_URL) {
             $homeLink = Link::render([
-                'url' => PageFactory::$appUrl,
+                'url' => PFY_APP_BASE_URL,
                 'text' => site()->title(),
                 'title' => 'Homepage',
                 'class' => 'pfy-home-link',
@@ -377,52 +204,13 @@ EOT;
                     $out .= "<span class='pfy-lang-elem pfy-active-lang $langCode'><span>$text</span></span> ";
                 } else {
                     $title = TransVars::getVariable("pfy-lang-select-title-$langCode");
-                    $out .= "<span class='pfy-lang-elem $langCode'><a href='?lang=$lang' title='$title'>$text</a></span> ";
+                    $out .= "<span class='pfy-lang-elem $langCode'><a href='~page/?lang=$lang' title='$title'>$text</a></span> ";
                 }
             }
             $out = "<span class='pfy-lang-selection'>$out</span>\n";
         }
         return $out;
     } // renderLanguageSelector
-
-
-
-    /**
-     * Assign values to variables that are used directly in templates (i.e. outside of page content)
-     *  - headInjections
-     *  - bodyTagClasses
-     *  - bodyTagAttributes
-     *  - bodyEndInjections
-     * @return void
-     * @throws \Kirby\Exception\LogicException|\ScssPhp\ScssPhp\Exception\SassException
-     */
-//    public static function prepareTemplateVariables(): void
-//    {
-//        PageFactory::$assets->resolveAssetAliases(); // resolve asset aliases that may have been registered very early
-//        PageFactory::$page->headInjections()->value     = PageFactory::$pg->renderHeadInjections();
-//
-//        $bodyTagClasses   = PageFactory::$pg->bodyTagClasses ?: 'pfy-large-screen';
-//        if (isAdmin()) {
-//            $bodyTagClasses .= ' pfy-admin pfy-loggedin';
-//        } elseif (Permission::isLoggedIn()) {
-//            $bodyTagClasses .= ' pfy-loggedin';
-//        }
-//        // for debugging:
-//        //if (kirby()->session()->get()) {
-//        //    $bodyTagClasses = trim("session $bodyTagClasses");
-//        //}
-//        if (PageFactory::$isLocalhost && PageFactory::$debug) {
-//            $bodyTagClasses = trim("localhost $bodyTagClasses");
-//        }
-//        if (PageFactory::$debug) {
-//            $bodyTagClasses = trim("debug $bodyTagClasses");
-//        }
-//        PageFactory::$page->bodyTagClasses()->value     = $bodyTagClasses;
-//
-//        PageFactory::$page->bodyTagAttributes()->value  = PageFactory::$pg->bodyTagAttributes;
-//        PageFactory::$page->bodyEndInjections()->value  = PageFactory::$pg->renderBodyEndInjections();
-//    } // prepareTemplateVariables
-
 
 
     /**
@@ -484,11 +272,15 @@ EOT;
                         $name = (string)$user->nameOrEmail();
                         $user->logout();
                     }
-                    mylog("User '$name' logged out.", LOGIN_LOG_FILE);
+                    mylog("User '$name' logged out.", PFY_LOGIN_LOG_FILE);
                     reloadAgent(message: '{{ pfy-logged-out-now }}'); // get rid of url-command
                     break;
                 case 'reset': // ?reset (as non-admin): harmless reset => just undo previous '?debug' commands
                     self::resetDebugState();
+                    if (isLocalhost()) { // exception: reset on localhost
+                        self::resetAll();
+                        reloadAgent();
+                    }
                     break;
                 case 'iframe':
                     if (!($a = page()->supportExportAsIframe()->value())) {
@@ -516,7 +308,7 @@ EOT;
      */
     private static function printPreview()
     {
-        $pagedPolyfillScript = PageFactory::$appUrl.PAGED_POLYFILL_SCRIPT_URL;
+        $pagedPolyfillScript = PFY_APP_BASE_URL.PAGED_POLYFILL_SCRIPT_URL;
         $printNow = TransVars::getVariable('pfy-print-now');
         $printClose = TransVars::getVariable('pfy-close');
         $jq = <<<EOT
@@ -549,7 +341,7 @@ EOT;
      */
     private static function print()
     {
-        $pagedPolyfillScript = PageFactory::$appUrl.PAGED_POLYFILL_SCRIPT_URL;
+        $pagedPolyfillScript = PFY_APP_BASE_URL.PAGED_POLYFILL_SCRIPT_URL;
 
         $jq = <<<EOT
 setTimeout(function() {
@@ -656,39 +448,13 @@ EOT;
         }
         session_write_close();
 
-        PageFactory::$forceAssetsUpdate = true;
 
         Cache::flushAll(); // -> deletes media/ and site/cache/
+        Extensions::reset();
         Assets::reset(); // Deletes all files created by Assets
-        PageFactory::$assets->prepareAssets(); // -> recompile scss files while still privileged
-
-        self::resetAssetsPerPage(); // -> recompile scss files in page folders
+        PageFactory::$forceAssetsUpdate = true;
+        Assets::compileAssets();
     } // resetAll
-
-
-    /**
-     * @return void
-     * @throws \ScssPhp\ScssPhp\Exception\SassException
-     */
-    private static function resetAssetsPerPage()
-    {
-        $pages = site()->index();
-        foreach ($pages as $page) {
-            $path = $page->root().'/';
-            if (str_contains($path, 'contnt/assets/')) {
-                continue;
-            }
-            $scssFiles = getDir("$path*.scss");
-            foreach ($scssFiles as $scssFile) {
-                $dest = dirname($scssFile).'/-'.basename($scssFile, 'scss').'css';
-                if (file_exists($dest)) {
-                    unlink($dest);
-                }
-                Scss::compileFile($scssFile, $dest);
-            }
-        }
-
-    } // resetAssetsPerPage
 
 
     /**
@@ -769,50 +535,35 @@ EOT;
      * @param string $html
      * @return string
      */
-    public static function resolveUrl(string $url): string
-    {
-        $patterns = [
-            '~/'        => PageFactory::$appUrl,
-            '~media/'   => 'media/',
-            '~assets/'  => 'content/assets/',
-            '~page/'    => PageFactory::$pageUrl,
-        ];
-        $url = str_replace(array_keys($patterns), array_values($patterns), $url);
-        $url = normalizePath($url);
-        return $url;
-    } // resolveUrl
-
-
-    /**
-     * Resolves path patterns of type '~x/' to correct urls
-     * @param string $html
-     * @return string
-     */
     public static function resolveUrls(string $html): string
     {
-        $l = strlen(PageFactory::$hostUrl);
         // special case: ~assets/ -> need to get url from Kirby:
-        if (preg_match_all('|~assets/([^\s"\']*)|', $html, $m)) {
+        if (preg_match_all('|~assets/([^\s"\')]*)|', $html, $m)) {
             foreach ($m[1] as $i => $item) {
                 $filename = 'assets/'.$m[1][$i];
                 $file= site()->index()->files()->find($filename);
                 if ($file) {
                     $url = $file->url();
-                    $url = substr($url, $l);
                     $html = str_replace($m[0][$i], $url, $html);
                 } else {
                     throw new \Exception("Error: unable to find asset '~$filename'");
                 }
             }
         }
+        $appUrl = PFY_APP_BASE_URL . PFY_BASE_OFFSET;
+        $pageId = page()->id() . '/';
+        // ~page/ for <a> tags -> replace without redir-offset:
+        $html = preg_replace('|(<a\s+href=[\'"])~page/|', "$1".PFY_APP_BASE_URL.$pageId, $html);
+        // ~/ for <a> tags -> replace without redir-offset:
+        $html = preg_replace('|(<a\s+href=[\'"])~/|', "$1".PFY_APP_BASE_URL, $html);
         $patterns = [
-            '~/'        => PageFactory::$appUrl,
-            '~download/'=> PageFactory::$appUrl.'download/',
-            '~media/'   => PageFactory::$appRootUrl.'media/',
-            '~page/'    => PageFactory::$pageUrl,
+            '~/'        => $appUrl,
+            '~download/'=> $appUrl.'download/',
+            '~media/'   => $appUrl.'media/',
+            // ~page/ for <img> and other tags -> replace with redir-offset:
+            '~page/'    => "$appUrl$pageId",
         ];
-        $html = str_replace(array_keys($patterns), array_values($patterns), $html);
-        return $html;
+        return str_replace(array_keys($patterns), array_values($patterns), $html);
     } // resolveUrls
 
 
@@ -925,11 +676,6 @@ EOT;
             }
         }
 
-        // Right after installation on remote host, assets have not been compiled. Activate debug in that case:
-        if (!is_dir('site/plugins/pagefactory/assets/css/')) {
-            $debug = true;
-        }
-
         session_write_close();
         return $debug;
     } // determineDebugState
@@ -980,9 +726,6 @@ EOT;
         if ($s = $site->keywords()->value()) {
             PageFactory::$config['keywords'] = $s;
         }
-        PageFactory::$wrapperTag = PageFactory::$config['sourceWrapperTag'];
-        PageFactory::$wrapperClass = PageFactory::$config['sourceWrapperClass'];
-
     } // loadPfyConfig
 
 
@@ -992,8 +735,8 @@ EOT;
      */
     public static function showPendingMessage(): void
     {
-        $session = kirby()->session();
         if (!isset($_GET['ajax'])) {
+            $session = kirby()->session();
             if ($msg = $session->pull('pfy.message')) {
                 PageFactory::$pg->setMessage($msg);
             }

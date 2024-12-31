@@ -2,7 +2,7 @@
 
 namespace PgFactory\PageFactory;
 
-class Galery
+class Gallery
 {
     /**
      * @param string $file
@@ -13,14 +13,14 @@ class Galery
      */
     public static function renderImage(string $file, array $options, string $caption = ''): string
     {
-        // create thiumbnail and size-variants if necessary:
+        // create thumbnail and size-variants if necessary:
         list($imgUrl, $thumb, $srcSet) = self::prepareImage($file, $options);
 
         $thumbCaption = '';
         if (($options['thumbCaptions']??false) === '') {
-            $thumbCaption = "\n<div class='pfy-galery-thumb-caption'></div>";
+            $thumbCaption = "\n<div class='pfy-gallery-thumb-caption'></div>";
         } elseif ($options['thumbCaptions']??false) {
-            $thumbCaption = "\n<div class='pfy-galery-thumb-caption'>$caption</div>";
+            $thumbCaption = "\n<div class='pfy-gallery-thumb-caption'>$caption</div>";
         }
         $style = "style='width:{$options['thumbWidthPx']};height:{$options['thumbHeightPx']};object-fit:cover;'";
         $html = <<<EOT
@@ -42,13 +42,13 @@ EOT;
     public static function loadAssets(array $config, int $inx): void
     {
         if ($inx === 1) {
-            PageFactory::$pg->addAssets([
+            Assets::addAssets([
                 'media/plugins/pgfactory/pagefactory/css/baguetteBox.min.css',
-                'media/plugins/pgfactory/pagefactory/css/-galery.css',
+                'media/plugins/pgfactory/pagefactory/css/-gallery.css',
                 'media/plugins/pgfactory/pagefactory/js/baguetteBox.min.js'
             ]);
         }
-        $js = "baguetteBox.run('.pfy-galery-$inx', {\n";
+        $js = "baguetteBox.run('.pfy-gallery-$inx', {\n";
 
         if ($config && is_array($config)) {
             foreach ($config as $key => $value) {
@@ -95,12 +95,12 @@ EOT;
         }
 
         if (!$images) {
-            $galeryPath = resolvePath($path);
-            $pagePath = 'content/'.PageFactory::$pagePath;
-            $files = getDir("$galeryPath*");
+            $galleryPath = resolvePath($path);
+            $pagePath = PFY_PAGE_PATH;
+            $files = getDir("$galleryPath*");
             foreach ($files as $image) {
                 if (is_file($image) && str_contains('jpg,jpeg,png,gif,bmp', fileExt($image))) {
-                    $image = str_replace(['content/assets/', $pagePath], ['~assets/', '~page/'], $image);
+                    $image = str_replace([PFY_APP_BASE_PATH . 'content/assets/', $pagePath], ['~assets/', '~page/'], $image);
                     $images[$image] = '';
                 }
             }
@@ -144,4 +144,4 @@ EOT;
     } // prepareImage
 
 
-} // Galery
+} // Gallery

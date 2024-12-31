@@ -78,8 +78,6 @@ class Macros
         } elseif (!function_exists("PgFactory\\PageFactory\\$macroName")) {
             $macroFile = "site/plugins/pagefactory/macros/$macroName.php";
             self::instantiateMacroLoader($macroName, $macroFile);
-
-//            return false;
         }
 
         // the actual macro call:
@@ -181,7 +179,6 @@ class Macros
      */
     private static function renderMacroHelp(array $config, bool $mdCompile = true): string
     {
-//        $str = "<div class='pfy-help pfy-encapsulated'>\n";
         $str = "<div class='pfy-help'>\n";
         $summary = $mdCompile? markdown($config['summary'] ?? '') : '';
         $summary = shieldStr($summary);
@@ -259,8 +256,8 @@ EOT;
     public static function findAllMacros(): array
     {
         $functions = [];
-        $pfyPlugins = glob('site/plugins/pagefactory*'); // check pagefactory and its extensions
-        $pfyPlugins[] = 'site/custom';                           // check place for custom macros
+        $pfyPlugins = glob(PFY_APP_BASE_PATH . 'site/plugins/pagefactory*'); // check pagefactory and its extensions
+        $pfyPlugins[] = PFY_APP_BASE_PATH . 'site/custom';                           // check place for custom macros
         foreach ($pfyPlugins as $plugin) {
             $dir = glob("$plugin/macros/*.php");
             foreach ($dir as $file) {
@@ -355,7 +352,7 @@ EOT;
             $args = preg_replace('|\\\//.*|', '', $args);
 
             if ($reveal) {
-                PageFactory::$pg->addAssets('REVEAL');
+                Assets::addAssets('REVEAL');
                 $src = <<<EOT
 <div class="pfy-reveal-source">
 <div class="pfy-reveal-controller-wrapper-src pfy-reveal-controller-wrapper">
@@ -438,19 +435,6 @@ EOT;
     } // extractedAuxOptions
 
 
-    /**
-     * @return void
-     */
-//    public static function loadTwigFunctions(): void
-//    {
-//        $twigFunctions = self::getMacros();
-//        foreach ($twigFunctions as $funName => $file) {
-//            $funName = basename($file, '.php');
-//            self::instantiateMacroLoader($funName, $file);
-//        }
-//    } // loadTwigFunctions
-
-
     public static function initMacros(): void
     {
         $macros = self::getMacros();
@@ -468,10 +452,8 @@ EOT;
      * @return void
      */
     public static function instantiateMacroLoader($funName, $file)
-//    private static function instantiateMacroLoader($funName, $file)
     {
         if (function_exists("PgFactory\\PageFactory\\$funName")) {
-//        if (function_exists($funName)) {
             return;
         }
         if (!file_exists($file)) {

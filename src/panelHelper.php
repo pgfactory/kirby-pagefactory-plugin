@@ -97,8 +97,8 @@ function checkMetaFiles(): void
     $pages = site()->pages()->index();
     foreach ($pages as $page) {
         $path = $page->root();
-        if ((strpos($path, 'content/assets') !== false) ||
-            (strpos($path, 'content/error') !== false)) {
+        if ((str_contains($path, 'content/assets')) ||
+            (str_contains($path, 'content/error'))) {
             continue;
         }
         $primaryMetaFilename = "$path/".PFY_PAGE_META_FILE_BASENAME."$langTag.txt";
@@ -147,7 +147,7 @@ function onPageCreateAfter(Kirby\Cms\Page $page)
 
     // rename .txt file to '~page.xy.txt' if necessary:
     // -> this activates the automatic blueprint
-    $path = 'content/' . $page->diruri() . '/';
+    $path = $page->url() . '/';
     $languages = kirby()->language();
     $lang = $languages ? '.'.$languages->code() : '';
     $origMetaFile = "$path$template$lang.txt";

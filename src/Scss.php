@@ -8,14 +8,6 @@ class Scss
 {
     private static object $scssphp;
 
-    /**
-     * @param $pfy
-     */
-    public function __construct()
-    {
-        self::$scssphp = new Compiler;
-    }
-
 
     /**
      * Compiles SCSS (supplied in a string) and renders it as CSS.
@@ -23,12 +15,15 @@ class Scss
      * @return string
      * @throws \ScssPhp\ScssPhp\Exception\SassException
      */
-    public static function compileStr(string $scssStr): string
+    public static function compileStr(string $scssStr, string $importPath = ''): string
     {
-        if (!self::$scssphp) {
+        if (!isset(self::$scssphp)) {
             self::$scssphp = new Compiler;
         }
-        $scssStr = self::resolveUrls($scssStr);
+        $scssStr = self::resolvePaths($scssStr);
+        if ($importPath) {
+            self::$scssphp->setImportPaths($importPath);
+        }
         return self::$scssphp->compileString($scssStr)->getCss();
     } // compileStr
 
@@ -39,11 +34,8 @@ class Scss
      * @return string|false
      * @throws \ScssPhp\ScssPhp\Exception\SassException
      */
-    public static function updateFile(string $srcFile, string $targetPath): string|false
+    public static function updateFile(string $srcFile, string $targetFile = ''): string|false
     {
-        $targetPath = self::dir_name($targetPath);
-        $basename = str_replace(' ', '-', basename($srcFile, '.scss'));
-        $targetFile = "$targetPath-$basename.css"; // mark compiled assets with '-' prefix
         $tTarget = fileTime($targetFile);
         $tSrc = fileTime($srcFile);
         if ($tTarget < $tSrc) {
@@ -61,50 +53,36 @@ class Scss
      * @throws \ScssPhp\ScssPhp\Exception\SassException
      * @throws \Exception
      */
+    public static function compileFileToString(string $srcFile): string
+    {
+        $srcStr = self::getFile($srcFile);
+        $css = self::compileStr($srcStr, dirname($srcFile).'/' );
+        $css = "/* === Automatically created from ".basename($srcFile)." - do not modify! === */\n\n$css";
+        return $css;
+    } // compileFileToString
+
+
     public static function compileFile(string $srcFile, string $targetFile): void
     {
         if (fileExt($srcFile) !== 'scss') { // skip any non-scss files
             return;
         }
-        $srcStr = self::getFile($srcFile);
-        $srcStr = self::resolveUrls($srcStr);
-        self::$scssphp->setImportPaths(dir_name($srcFile));
-        $css = self::compileStr($srcStr);
-        $css = "/* === Automatically created from ".basename($srcFile)." - do not modify! === */\n\n$css";
-        preparePath($targetFile);
-        file_put_contents($targetFile, $css);
+        $css = self::compileFileToString($srcFile);
+        writeFile($targetFile, $css);
         mylog("SCSS: '$targetFile' compiled");
     } // compileFile
 
 
     /**
-     * @param string $path
-     * @return string
-     */
-    private static function dir_name(string $path): string
-    {
-        if ($path && ($path[strlen($path)-1]) === '/') {
-            return $path;
-        } elseif (is_dir($path)) {
-            return  $path . '/';
-        } elseif (is_file($path)) {
-            return dirname($path) . '/';
-        } else {
-            return $path;
-        }
-    } // dir_name
-
-
-    /**
-     * Reads a file and injects comments cotaining line numbers, if requested by settings
+     * Reads a file and injects comments containing line numbers, if requested by settings
      * @param string $file
      * @return string
      * @throws InvalidArgumentException
      */
     private static function getFile(string $file): string
     {
-        $compileScssWithLineNumbers = PageFactory::$config['debug_compileScssWithSrcRef'] &&
-            (PageFactory::$debug || PageFactory::$isAdmin);
+        $compileScssWithLineNumbers = kirby()->option('pgfactory.pagefactory.options.debug_compileScssWithSrcRef', false) &&
+            (PageFactory::$debug || isAdminOrLocalhost());
         if ($compileScssWithLineNumbers) {
             if (!file_exists($file)) {
                 throw new \Exception("Error: file '$file' not found.");
@@ -203,36 +181,27 @@ class Scss
      * @return string
      * @throws \Exception
      */
-    private static function resolveUrls(string $html): string
+    private static function resolvePaths(string $html): string
     {
-        // special case: @import ~/path/file; (i.e. file from other plugin):
-        if (preg_match('|@import\s+([\'"])~/|', $html, $m )) {
-            $path = kirby()->root();
-            $html = str_replace($m[0], "@import {$m[1]}$path/", $html);
-        }
-
         // special case: ~assets/ -> need to get url from Kirby:
         if (preg_match_all('|~assets/([^\s"\')]*)|', $html, $m)) {
-            $l = strlen(PageFactory::$hostUrl);
             foreach ($m[1] as $i => $item) {
                 $filename = 'assets/'.$m[1][$i];
                 $file= site()->index()->files()->find($filename);
                 if ($file) {
-                    $url = $file->url();
-                    $html = str_replace($m[0][$i], $url, $html);
+                    $path = $file->root();
+                    $html = str_replace($m[0][$i], $path, $html);
                 } else {
                     throw new \Exception("Error: unable to find asset '~$filename'");
                 }
             }
         }
-        $appRootUrl = dirname(substr($_SERVER['SCRIPT_FILENAME'], -strlen($_SERVER['SCRIPT_NAME']))) . '/';
         $patterns = [
-            '~/'        => $appRootUrl,
-            '~data/'    => $appRootUrl.'site/custom/data/',
+            '~/'        => PFY_APP_BASE_PATH,
+            '~data/'    => PFY_APP_BASE_PATH.'site/custom/data/',
         ];
         $html = str_replace(array_keys($patterns), array_values($patterns), $html);
-        $html = str_replace( PageFactory::$hostUrl, '/', $html);
         return $html;
-    } // resolveUrls
+    } // resolvePaths
 
 } // Scss

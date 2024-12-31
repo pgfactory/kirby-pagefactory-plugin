@@ -86,16 +86,16 @@ EOT;
 
         if ($literal) {
             $str = str_replace(['{{','<'], ['&#123;{', '&lt;'], $str);
+            $str = str_replace('/', '&#47;', $str);
             if ($highlight) {
                 if ($highlight === true) {
                     $str = self::doHighlight($str, '```', postfix: '3');
                     $str = self::doHighlight($str, '``', postfix: '2');
                     $str = self::doHighlight($str, '`', postfix: '1');
-//                } else {
-//ToDo: explicit patterns
+ //                } else {
+ //ToDo: explicit patterns
                 }
             }
-            $str = str_replace('/', '&#47;', $str);
             $str = shieldStr($str);
         }
         if ($literal && !$wrapperTag) {

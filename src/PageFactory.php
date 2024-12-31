@@ -4,45 +4,62 @@ namespace PgFactory\PageFactory;
 
 use Kirby;
 use Kirby\Data\Yaml;
+use Kirby\Http\Url;
 use ScssPhp\ScssPhp\Exception\SassException;
 use PgFactory\MarkdownPlus\Permission;
 
- // filesystem paths:
-const PFY_BASE_PATH =              'site/plugins/pagefactory/';
-const PFY_CONTENT_ASSETS_PATH =    'content/assets/';
-const PFY_ASSETS_PATH =            'site/plugins/pagefactory/assets/';
-const PFY_ICONS_PATH =             'site/plugins/pagefactory/assets/icons/';
-const PFY_SVG_ICONS_PATH =         'site/plugins/markdownplus/assets/svg-icons/';
-const PFY_CONFIG_PATH =            'site/config/';
-const PFY_CONFIG_FILE =            PFY_CONFIG_PATH.'config.php';
-const PFY_CUSTOM_PATH =            'site/custom/';
-const PFY_CUSTOM_DATA_PATH =       PFY_CUSTOM_PATH.'data/';
-const PFY_MACROS_PATH =            PFY_BASE_PATH.'macros/';
-if (!defined('PFY_LOGS_PATH')) { // available in extensions
-    define('PFY_LOGS_PATH', 'site/logs/');
+ // System ULRs:
+define('PFY_HOST_URL',                  $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST'] . '/'); // https://domain.net/
+define('PFY_APP_BASE_URL',              URL::index().'/');    // https://domain.net/webapp/
+define('PFY_PAGE_URL',                  page()->url() . '/'); // https://domain.net/webapp/pg1/
+
+ // System Paths:
+ // defined in config.php:
+ //  PFY_DOCROOT
+ //  PFY_BASE_OFFSET    = onair/
+ //  PFY_APP_BASE_PATH  = PFY_DOCROOT . PFY_BASE_OFFSET
+
+if (!defined('PFY_DOCROOT')) {
+    define('PFY_DOCROOT', dirname($_SERVER['SCRIPT_FILENAME']) . '/');
 }
-if (!defined('PFY_CACHE_PATH')) { // available in extensions
-    define('PFY_CACHE_PATH', 'site/cache/pagefactory/'); // available in extensions
+if (!defined('PFY_BASE_OFFSET')) {
+    define('PFY_BASE_OFFSET', '');
 }
-define('LOGIN_LOG_FILE',           'login-log.txt'); // available in extensions
-define('DOWNLOAD_PATH',            'download/');
-define('TEMP_DOWNLOAD_PATH',       DOWNLOAD_PATH.'temp/'); // for temp download of datasets (excel-format)
+if (!defined('PFY_APP_BASE_PATH')) {
+    define('PFY_APP_BASE_PATH', PFY_DOCROOT . PFY_BASE_OFFSET);
+}
 
-define('PFY_WEBMASTER_EMAIL_CACHE',  PFY_CACHE_PATH.'webmaster-email.txt');
+define('PFY_PAGEFACTORY_PATH',          dirname(__DIR__) . '/'); // site/plugins/pagefactory/
+define('PFY_CONTENT_ASSETS_PATH',       PFY_APP_BASE_PATH . 'content/assets/');
+define('PFY_PAGEFACTORY_ASSETS_PATH',   PFY_PAGEFACTORY_PATH . 'assets/');
+define('PFY_PAGEFACTORY_ICONS_PATH',    PFY_PAGEFACTORY_PATH . 'assets/icons/');
 
-const PFY_MKDIR_MASK =             0700; // permissions for file accesses by PageFactory
-const IMMUTABLE_SHIELD =           'span immutable';
-const BLOCK_SHIELD =               'div shielded';
-const INLINE_SHIELD =              'span shielded';
-const MD_SHIELD =                  'span mdshielded';
+define('PFY_PAGE_PATH',                 page()->root() . '/');
+define('PFY_PAGE_URI',                  page()->uri() . '/');
 
- // URLs:
-const PFY_BASE_ASSETS_URL =        'media/plugins/pgfactory/';
+define('PFY_SVG_ICONS_PATH',            PFY_APP_BASE_PATH . 'site/plugins/markdownplus/assets/svg-icons/');
+define('PFY_CONFIG_PATH',               PFY_APP_BASE_PATH . 'site/config/');
+define('PFY_CONFIG_FILE',               PFY_CONFIG_PATH.'config.php');
+define('PFY_CUSTOM_PATH',               PFY_APP_BASE_PATH . 'site/custom/');
+define('PFY_CUSTOM_DATA_PATH',          PFY_CUSTOM_PATH.'data/');
+if (!defined('PFY_LOGS_PATH')) {
+    define('PFY_LOGS_PATH',             PFY_APP_BASE_PATH . 'site/logs/');
+}
+if (!defined('PFY_CACHE_PATH')) {
+    define('PFY_CACHE_PATH',            PFY_APP_BASE_PATH . 'site/cache/pagefactory/');
+}
+define('PFY_LOGIN_LOG_FILE',           'login-log.txt');
+define('PFY_DOWNLOAD_PATH',             PFY_APP_BASE_PATH . 'download/');
+define('PFY_TEMP_DOWNLOAD_PATH',        PFY_DOWNLOAD_PATH.'temp/'); // for temp download of datasets (excel-format)
+
+define('PFY_WEBMASTER_EMAIL_CACHE',     PFY_CACHE_PATH.'webmaster-email.txt');
+
+
+ // misc constants:
+const PFY_BASE_ASSETS_URL =        PFY_APP_BASE_URL . 'media/plugins/pgfactory/';
 const PFY_ASSETS_URL =             PFY_BASE_ASSETS_URL.'pagefactory/';
 const PAGED_POLYFILL_SCRIPT_URL =  PFY_ASSETS_URL.'js/paged.polyfill.min.js';
 
-const JQUERY =                     ['js' => PFY_ASSETS_URL.'js/jquery-3.7.1.min(1).js']; // '(1)' is the priority hint, will be omitted
-const DEFAULT_FRONTEND_FRAMEWORK_URLS = JQUERY;
 
  // use this name for meta-files (aka text-files) in page folders:
 define('PFY_PAGE_META_FILE_BASENAME','z'); // 'define' required by site/plugins/pagefactory/index.php
@@ -56,23 +73,8 @@ define('OPTIONS_DEFAULTS', [
     'includeMetaFileContent'        => true,  // -> option for website using '(include: *.md)' in metafile
                                               // e.g. when converting from MdP site to Pfy
     'screenSizeBreakpoint'          => 480,   // Value used by JS to switch body classes ('pfy-large-screen' and 'pfy-small-screen')
-    'sourceWrapperTag'              => 'section', // tag used to wrap .md content
-    'sourceWrapperClass'            => '',    // class applied to sourceWrapperTag
     'webmaster_email'               => '',    // email address of webmaster
-    'maxCacheAge'                   => 86400, // [s] max time after which Kirby's file cache is automatically flushed
     // 'timezone' => 'Europe/Zurich', // PageFactory tries to guess the timezone - you can override this manually
-
-    // optionally define files to be used as css/js framework (e.g. jQuery or bootstrap etc):
-    //    'frontendFrameworkUrls' => [
-    //        'css' => 'assets/framework1.css, assets/framework12.css',
-    //        'js' => 'assets/framework1.js',
-    //    ],
-
-
-    // Options for dev phase:
-    'debug_checkMetaFiles'   => false,   // if true, Pagefactory will skip checks for presence of metafiles
-    'debug_compileScssWithSrcRef'   => false,   // injects ref to source SCSS file&line in compiled CSS
-    //'debug_logIP'  // -> handled in ajax_server.php
 ]);
 
 
@@ -86,18 +88,8 @@ class PageFactory
     public static $page;
     public static $pages;
     public static $site;
-    public static $siteFiles;
-    public static $appRoot;
-    public static $appRootUrl;
-    public static $appUrl;
-    public static $absAppRoot;
-    public static $absPfyRoot;
-    public static $pagePath;
-    public static $pageRoot;
-    public static $absPageRoot;
-    public static $hostUrl;
-    public static $absPageUrl;
-    public static $pageUrl;
+
+    public static $debug;
     public static $lang;
     public static $langCode;
     public static $defaultLanguage;
@@ -105,29 +97,16 @@ class PageFactory
     public static $webmasterEmail;
     public static $pg;
     public static $md;
-    public static $debug;
-    public static $isAdmin;
     public static string $timezone;
     public static string $locale;
     public static $isLocalhost;
     public static $user;
     public static $userName;
-    public static string $slug = '';
-    public static $pageId;
-    public static $urlToken; // the hash code extracted from HTTP request (e.g. home/ABCDEF)
     public static $availableIcons;
-    public static $phpSessionId;
     public static $assets;
     public static $config;
     public static $customConfigPath = PFY_CONFIG_PATH;
     public static $dataPath = PFY_CUSTOM_DATA_PATH;
-    public        $pageOptions;
-    public        $utils;
-    public static $mdFileProcessor = false;
-    public static string $wrapperTag = '';
-    public static string $wrapperClass = '';
-    private string $sectionsCss;
-    private string $sectionsScss;
     public static bool $forceAssetsUpdate = false;
 
     public static bool $renderingClosed = false;
@@ -138,65 +117,72 @@ class PageFactory
         self::$pages = $data['pages'];
         self::$page = $data['page'];
         self::$site = $data['site'];
-        self::$siteFiles = self::$pages->files();
-        self::$phpSessionId = getSessionId();
 
-        $this->pageOptions = self::$page->content()->data();
+        self::$debug = Utils::determineDebugState();
+        Cache::init(); // force cache reset on first request every day, inhibit cache in debug mode
 
         // find available icons:
         self::$availableIcons = findAvailableIcons();
 
         Extensions::findExtensions();
 
-        self::$hostUrl = $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST'] . '/';
-
-        $this->utils = new Utils();
         Utils::loadPfyConfig();
         Utils::determineLanguage();
-        TransVars::init();
-
-        self::$debug = Utils::determineDebugState();
-        self::$isAdmin = isAdmin();
         self::$isLocalhost = isLocalhost();
     } // __construct
 
 
+    /**
+     * @return void
+     * @throws Kirby\Exception\InvalidArgumentException
+     * @throws Kirby\Exception\LogicException
+     */
     public function prepareTemplateFields(): void
     {
         $page = self::$page;
+        $pageFields = false;
+        if (Cache::$pageCachingEnabled && $this->checkAccessRestriction()) {
+            $pageFields = Cache::checkPageCache();
+        }
 
-        $pageFields = Cache::checkPageCache();
         if (!$pageFields) {
             self::init();
             Utils::prepareUserRelatedVars();
+            Utils::queuePfyIconDefinitions();
             $pageFields = [
-                'lang' => self::$langCode,
-                'headTitle' => Utils::renderHeadTitle(),
-                'generator' => Utils::renderGenerator(),
-                'homeLink' => Utils::renderHomeLink(),
-                'localhost' => isLocalhost(),
-                'adminPanelLink' => Utils::renderAdminPanelLink(),
-                'loggedIn' => Utils::$loggedIn,
-                'loginLink' => Utils::$loginLink,
-                'username' => self::$userName,
-                'loginButton' => Utils::$loginButton,
-                'smallScreenHeader' => Utils::renderSmallScreenHeader(),
-                'langSelection' => Utils::renderLanguageSelector(),
-                'menuIcon' => Utils::$menuIcon,
-                'headInjections' => self::$pg->renderHeadInjections(),
-                'bodyTagClasses' => Utils::renderBodyTagClasses(),
-                'bodyTagAttributes' => self::$pg->bodyTagAttributes,
-                'bodyEndInjections' => self::$pg->renderBodyEndInjections(),
-                'pageContent' => $this->renderPageContent(),
+                'lang'                      => self::$langCode,
+                'baseUrl'                   => PFY_APP_BASE_URL,
+                'headTitle'                 => Utils::renderHeadTitle(),
+                'generator'                 => Utils::renderGenerator(),
+                'homeLink'                  => Utils::renderHomeLink(),
+                'adminPanelLink'            => Utils::renderAdminPanelLink(),
+                'loggedIn'                  => Utils::$loggedIn,
+                'loginLink'                 => Utils::$loginLink,
+                'username'                  => self::$userName,
+                'loginButton'               => Utils::$loginButton,
+                'smallScreenHeader'         => Utils::renderSmallScreenHeader(),
+                'langSelection'             => Utils::renderLanguageSelector(),
+                'menuIcon'                  => Utils::$menuIcon,
+
+                'pageContent'               => $this->renderPageContent(),
+
+                'headInjections'            => self::$pg->renderHeadInjections(),
+                'bodyTagClasses'            => Utils::renderBodyTagClasses(),
+                'bodyTagAttributes'         => self::$pg->bodyTagAttributes,
+                'bodyEndInjections'         => self::$pg->renderBodyEndInjections(),
+                'cacheIndicator'            => '',
             ];
+            self::$renderingClosed = true;
             Cache::updatePageCache($pageFields);
         }
 
         $page->lang()->value                = $pageFields['lang'];
+        $page->baseUrl()->value             = $pageFields['baseUrl'];
         $page->headTitle()->value           = $pageFields['headTitle'];
         $page->generator()->value           = $pageFields['generator'];
         $page->homeLink()->value            = $pageFields['homeLink'];
-        $page->localhost()->value           = $pageFields['localhost'];
+        $page->localhost()->value           = isLocalhost();
+        $page->debug()->value               = PageFactory::$debug;
         $page->adminPanelLink()->value      = $pageFields['adminPanelLink'];
         $page->loggedIn()->value            = $pageFields['loggedIn'];
         $page->loginLink()->value           = $pageFields['loginLink'];
@@ -205,6 +191,7 @@ class PageFactory
         $page->smallScreenHeader()->value   = $pageFields['smallScreenHeader'];
         $page->langSelection()->value       = $pageFields['langSelection'];
         $page->menuIcon()->value            = $pageFields['menuIcon'];
+        $page->cacheIndicator()->value      = $pageFields['cacheIndicator'];
 
         $page->headInjections()->value      = $pageFields['headInjections'];
         $page->bodyTagClasses()->value      = $pageFields['bodyTagClasses'];
@@ -216,8 +203,14 @@ class PageFactory
     } // prepareTemplateFields
 
 
+    /**
+     * @return void
+     * @throws Kirby\Exception\InvalidArgumentException
+     */
     private function init(): void
     {
+        TransVars::init();
+
         if (!file_exists('site/plugins/pagefactory/assets/css/-pagefactory.css')) {
             self::$forceAssetsUpdate = true;
         }
@@ -231,26 +224,13 @@ class PageFactory
         self::$timezone = Utils::getTimezone();
         self::$locale = Utils::getCurrentLocale();
 
-        self::$pagePath = substr(self::$page->root(), strlen(site()->root()) + 1) . '/';
-        self::$absAppRoot = kirby()->root() . '/';
-        self::$absPfyRoot = __DIR__ . '/';
-        self::$appRoot = dirname(substr($_SERVER['SCRIPT_FILENAME'], -strlen($_SERVER['SCRIPT_NAME']))) . '/';
-        self::$appUrl = dirname(substr($_SERVER['SCRIPT_FILENAME'], -strlen($_SERVER['SCRIPT_NAME']))) . '/';
-        self::$appUrl = str_replace('//', '/', self::$appUrl);
-        self::$appRootUrl = kirby()->url() . '/';
-        if (!self::$slug) {
-            self::$slug = page()->slug();
-        }
-        self::$pageId = str_replace('/', '_', page()->id()); // Caution: not identical to Kirby's page ID
-        self::$pageRoot = 'content/' . self::$pagePath;
-        self::$absPageRoot = self::$page->root() . '/';
-        self::$absPageUrl = (string)self::$page->url() . '/';
-        self::$pageUrl = substr(self::$absPageUrl, strlen(self::$hostUrl) - 1);
-
         self::$user = Permission::checkPageAccessCode();
         self::$userName = is_object(self::$user) ? (string)self::$user->nameOrEmail() : (self::$user ?: '');
 
         Extensions::loadExtensions();
+        if (self::$debug) {
+            Assets::compileAssets();
+        }
 
         TransVars::loadCustomVars();
 
@@ -271,6 +251,9 @@ class PageFactory
      */
     public function renderPageContent(): string
     {
+        Extensions::extensionsFinalCode();
+        Utils::handleAgentRequestsOnRenderedPage();
+
         if (self::$debug) {
             return $this->_renderPageContent();
         } else {
@@ -310,13 +293,6 @@ class PageFactory
      */
     public function _renderPageContent(): string
     {
-        Maintenance::trigger(1); // first run -> superviseKirbyCache()
-
-        Extensions::extensionsFinalCode();
-        Utils::prepareStandardVariables();
-
-        Utils::handleAgentRequestsOnRenderedPage();
-
         $html = '';
         $inx = 0;
 
@@ -343,13 +319,7 @@ class PageFactory
             $html = str_replace(['{!!{', '}!!}', '⟮'], ['{{', '}}', '('], $html);
         }
 
-//        Utils::prepareTemplateVariables();
-        $html = self::$pg->renderBody($html);
-        self::$renderingClosed = true;
-
-        Maintenance::trigger(2); // second run -> registered callbacks
-
-        return $html;
+        return self::$pg->renderBody($html);
     } // _renderPageContent
 
 
@@ -366,53 +336,46 @@ class PageFactory
         }
 
         $excludePattern = kirby()->option('pgfactory.pagefactory.options.excludeFilesRegex');
-        $wrapperTag = PageFactory::$wrapperTag;
-        $customWrapperClass = PageFactory::$wrapperClass;
         $path = self::$page->root();
-        $dir = getDir("$path/*.md");
+        $files = getDir("$path/*.md");
 
         // first find _meta.md files (only containing frontmatter but no content):
-        foreach ($dir as $i => $file) {
+        foreach ($files as $i => $file) {
             if (str_contains('#-_', basename($file)[0])) {
                 continue;
             }
             if (str_ends_with($file, '_meta.md')) {
                 $mdStr = getFile($file, 'cstyle,emptylines,twig');
-                $this->extractFrontmatter($mdStr);
-                // if some CSS/SCSS found in frontmatter, request rendering it now:
-                $this->propagateFrontmatterStyles('pfy-main');
-                unset($dir[$i]);
+                Frontmatter::extract($mdStr);
+                Frontmatter::propagaterStyles('pfy-main');
+                unset($files[$i]);
 
             // optionally exclude certain files from the rendering process:
             } elseif ($excludePattern && preg_match("/$excludePattern/", $file)) {
-                unset($dir[$i]);
+                unset($files[$i]);
             }
         }
 
         // process remaining .md files:
         $inx = 0;
         $finalHtml = '';
-        foreach ($dir as $file) {
+        foreach ($files as $file) {
             if (str_contains('#-_', basename($file)[0])) {
                 continue;
             }
             $inx++;
             $mdStr = getFile($file, 'cstyle,emptylines,twig');
-            if (!$this->extractFrontmatter($mdStr)) {
+            if (!$res = Frontmatter::extract($mdStr)) {
                 continue;
             }
+            list($mdStr, $wrapperTag, $wrapperClass) = $res;
 
             $wrapperId = "pfy-part-$inx";
             $fileId = translateToClassName(base_name($file, false), false);
             $fileId = 'pfy-src-'.preg_replace('/^\d+[_\s]?/', '', $fileId);
-            $wrapperClass = "pfy-$wrapperTag-wrapper $wrapperId $fileId $customWrapperClass";
-
-            if (self::$mdFileProcessor) {
-                $html = (self::$mdFileProcessor)($mdStr, $inx, $wrapperTag, $wrapperId, $wrapperClass);
-
-            } else {
-                $html = TransVars::compile($mdStr, $inx, removeComments: false);
-                $html = <<<EOT
+            $wrapperClass = "pfy-$wrapperTag-wrapper$wrapperClass $wrapperId $fileId";
+            $html = TransVars::compile($mdStr, $inx, removeComments: false);
+            $html = <<<EOT
 
 <$wrapperTag id='$wrapperId' class='$wrapperClass'>
 
@@ -421,110 +384,15 @@ $html
 
 
 EOT;
-            }
 
             // if some CSS/SCSS found in frontmatter, request rendering it now:
-            $this->propagateFrontmatterStyles($wrapperId);
+            Frontmatter::propagaterStyles($wrapperId);
 
             $finalHtml .= $html;
         } // loop over files
 
-        $finalHtml = Utils::resolveUrls($finalHtml);
-
         return $finalHtml;
     } // loadMdFiles
-
-
-    /**
-     * @param $mdStr
-     * @return bool
-     * @throws Kirby\Exception\InvalidArgumentException
-     */
-    private function extractFrontmatter(&$mdStr): bool
-    {
-        $this->sectionsCss = '';
-        $this->sectionsScss = '';
-        $mdStr .= "\n";
-        $fields = preg_split('!\n-{4}\n!', $mdStr);
-        $n = sizeof($fields)-1;
-        $mdStr = $fields[$n];
-        $continue = true;
-
-        // loop through all fields and add them to the content
-        for ($i=0; $i<$n; $i++) {
-            $field = trim($fields[$i]);
-            $pos = strpos($field, ':');
-            $key = camelCase(trim(substr($field, 0, $pos)));
-            $key = strtolower($key);
-
-            // Don't add fields with empty keys
-            if (empty($key) === true) {
-                continue;
-            }
-
-            $value = trim(substr($field, $pos + 1));
-
-            if ($key === 'variables') {
-                $value = str_replace('{{', "'{=={'", $value);
-                $values = Yaml::decode($value);
-                foreach ($values as $k => $v) {
-                    $v = str_replace("'{=={'", '{{', $v);
-                    if (is_string($v) && str_contains($v, '{{')) {
-                        $v = TransVars::translate($v);
-                    }
-                    TransVars::setVariable($k, $v);
-                }
-
-            } elseif (str_contains('description,keywords,author', $key)) {
-                self::$pg->addHead("  <meta name='$key' content='$value'>\n");
-
-            } elseif ($key === 'robots') {
-                self::$pg->applyRobotsAttrib($value);
-
-            } elseif ($key === 'head') {
-                self::$pg->addHead($value);
-
-            } elseif ($key === 'wrappertag') {
-                $this->wrapperTag = $value;
-
-            } elseif ($key === 'wrapperclass') {
-                $this->wrapperClass = $value;
-
-            } elseif ($key === 'css') {
-                // hold back till ".this"/"#this" can be resolved:
-                $this->sectionsCss = $value;
-
-            } elseif ($key === 'scss') {
-                // hold back till ".this"/"#this" can be resolved:
-                $this->sectionsScss = $value;
-
-            } elseif ($key === 'js') {
-                self::$pg->addJs($value);
-
-            } elseif ($key === 'jsready') {
-                self::$pg->addJsReady($value);
-
-            } elseif ($key === 'jq') {
-                self::$pg->addJq($value);
-
-            } elseif ($key === 'assets') {
-                $assets = Yaml::decode($value);
-                foreach ($assets as $asset) {
-                    self::$pg->addAssets($asset);
-                }
-
-            } elseif ($key === 'visibility') {
-                if (!Permission::evaluate($value)) {
-                    $continue = false;
-                }
-
-            } else {
-                // unescape escaped dividers within a field
-                TransVars::setVariable($key, $value);
-            }
-        }
-        return $continue;
-    } // extractFrontmatter
 
 
     /**
@@ -545,7 +413,7 @@ EOT;
                     return false;
 
                 } else {
-                    $loginLink = PageFactory::$appUrl.'panel/login/';
+                    $loginLink = PFY_APP_BASE_URL.'panel/login/';
                     reloadAgent($loginLink);
                 }
             }
@@ -554,20 +422,15 @@ EOT;
     } // checkAccessRestriction
 
 
-    public static function registerSrcFileProcessor(string $functionName): void
+    /**
+     * @param string $html
+     * @return string
+     * @throws \Exception
+     */
+    public static function cleanUp(string $html): string
     {
-        self::$mdFileProcessor = $functionName;
-    } // registerSrcFileProcessor
-
-    private function propagateFrontmatterStyles(string $wrapperId): void
-    {
-        if ($this->sectionsCss) {
-            $this->sectionsCss = str_replace(['#this', '.this'], ["#$wrapperId", ".$wrapperId"], $this->sectionsCss);
-            self::$pg->addCss($this->sectionsCss);
-        }
-        if ($this->sectionsScss) {
-            $this->sectionsScss = str_replace(['#this', '.this'], ["#$wrapperId", ".$wrapperId"], $this->sectionsScss);
-            self::$pg->addScss($this->sectionsScss);
-        }
-    }
+        $html = unshieldStr($html);
+        $html = Utils::resolveUrls($html);
+        return unshieldStr($html, true, true);
+    } // cleanUp
 } // PageFactory

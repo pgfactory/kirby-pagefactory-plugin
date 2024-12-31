@@ -2,6 +2,8 @@
 
 namespace PgFactory\PageFactory;
 
+use PgFactory\PageFactoryElements\PageElements;
+
 class Extensions
 {
     public static array $availableExtensions = [];
@@ -11,9 +13,9 @@ class Extensions
 
     public static function findExtensions()
     {
-        $extensions = getDir(rtrim(PFY_BASE_PATH, '/').'-*');
+        $extensions = getDir(rtrim(PFY_PAGEFACTORY_PATH, '/').'-*');
         foreach ($extensions as $extension) {
-            $extensionName = rtrim(substr($extension, 25), '/');
+            $extensionName = rtrim(substr($extension, strlen(PFY_APP_BASE_PATH)+25), '/');
             self::$availableExtensions[$extensionName] = $extension;
         }
     } // findExtensions
@@ -31,6 +33,15 @@ class Extensions
                 if (!file_exists($indexFile)) {
                     return;
                 }
+
+                // load extension's variables:
+                $files = getDir($extPath.'variables/');
+                if (is_array($files)) {
+                    foreach ($files as $file) {
+                        TransVars::loadVariables($file, doTranslate: true);
+                    }
+                }
+
                 // === load index.php now:
                 $extensionClassName = require_once $indexFile;
                 if (!is_string($extensionClassName)) {
@@ -43,6 +54,7 @@ class Extensions
                 if (!class_exists($extensionClass)) {
                     return;
                 }
+
                 $obj = new $extensionClass();
                 self::$loadedExtensionObjects[] = $obj;
 
@@ -50,20 +62,6 @@ class Extensions
                 if (method_exists($obj, 'getAssetDefs')) {
                     $newAssets = $obj->getAssetDefs();
                     Page::$definitions = array_merge_recursive(Page::$definitions, ['assets' => $newAssets]);
-                }
-
-                // check for and load extension's asset-definitions:
-                if (method_exists($obj, 'getAssetGroups')) {
-                    $newAssetGroupss = $obj->getAssetGroups();
-                    PageFactory::$assets->addAssetGroups($newAssetGroupss);
-                }
-
-                // load extension's variables:
-                $files = getDir($extPath.'variables/');
-                if (is_array($files)) {
-                    foreach ($files as $file) {
-                        TransVars::loadVariables($file, doTranslate: true);
-                    }
                 }
 
                 // check for and load extension's url-request handlers:
@@ -88,5 +86,25 @@ class Extensions
             }
         }
     } // extensionsFinalCode
+
+
+    public static function reset(): void
+    {
+        foreach (self::$loadedExtensions as $path) {
+            $files = getDirDeep($path . '-*.css');
+            foreach ($files as $file) {
+                if ((basename($file)[0]) === '-') {
+                    unlink($file);
+                }
+            }
+        }
+
+        // invoke reset() method of all loaded extensions:
+        foreach (self::$loadedExtensionObjects as $obj) {
+            if (method_exists($obj, 'reset')) {
+                $obj->reset();
+            }
+        }
+    } // reset
 
 } // Extensions

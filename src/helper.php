@@ -13,8 +13,13 @@ use PgFactory\MarkdownPlus\MarkdownPlus;
  use PgFactory\MarkdownPlus\Permission;
 
 
- const FILE_BLOCKING_MAX_TIME = 500; //ms
-const FILE_BLOCKING_CYCLE_TIME = 50; //ms
+ const PFY_MKDIR_MASK =             0700; // permissions for file accesses by PageFactory
+ const IMMUTABLE_SHIELD =           'span immutable';
+ const BLOCK_SHIELD =               'div shielded';
+ const INLINE_SHIELD =              'span shielded';
+ const MD_SHIELD =                  'span mdshielded';
+const FILE_BLOCKING_MAX_TIME =      500; //ms
+const FILE_BLOCKING_CYCLE_TIME =    50; //ms
 
 const UNAMBIGUOUS_CHARACTERS = 'ACDEFHJKLMNPQRTUVWXYabcdefghijkmnpqrstuvwxy3479'; // -> excludes '0O2Z1I5S6G8B'
 const HASH_CODE_CHARACTERS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-_';
@@ -514,7 +519,7 @@ function base_name(string $file, bool $incl_ext = true, bool $incl_args = false)
 function localPath(string $absPath): string
 {
     if (($absPath[0]??'') === '/') {
-        return substr($absPath, strlen(PageFactory::$absAppRoot));
+        return substr($absPath, strlen(PFY_APP_BASE_PATH));
     } else {
         return $absPath;
     }
@@ -965,7 +970,7 @@ function deleteFiles(mixed $files): void
 function findAvailableIcons(): array
  {
      $availableIcons = getDir(PFY_SVG_ICONS_PATH, 'name_only');
-     $availableIcons = array_merge($availableIcons, getDir(PFY_ICONS_PATH, 'name_only'));
+     $availableIcons = array_merge($availableIcons, getDir(PFY_PAGEFACTORY_ICONS_PATH, 'name_only'));
      return $availableIcons;
  } // findAvailableIcons
 
@@ -977,12 +982,11 @@ function findAvailableIcons(): array
   * @param bool $returnAbsPath
   * @return string
   */
-function resolvePath(string $path, bool $returnAbsPath = false): string
+function resolvePath(string $path): string
 {
     if (($path[0]??'') !== '~') {
         return $path;
     }
-
     // first check for root-paths defined by kirby:
     if (($path[1]??'') !== '/') {
         $path1 = preg_replace('|/.*|', '', substr($path, 1));
@@ -995,11 +999,7 @@ function resolvePath(string $path, bool $returnAbsPath = false): string
     }
 
     // resolve PFY's specific folders:
-    if ($returnAbsPath) {
-        $appRoot = PageFactory::$absAppRoot;
-    } else {
-        $appRoot = '';
-    }
+     $appRoot = PFY_APP_BASE_PATH;
     // ~pages/ is special case -> use Kirby to determine actual path:
     if (str_starts_with($path, '~pages/')) {
         $filename = basename($path);
@@ -1011,18 +1011,17 @@ function resolvePath(string $path, bool $returnAbsPath = false): string
 
     // other patterns:
     } else {
-        $pageRoot = PageFactory::$pageRoot;
         $pathPatterns = [
             '~/'            => $appRoot,
             '~media/'       => $appRoot . 'media/',
             '~assets/'      => $appRoot . 'content/assets/',
-            '~config/'      => $appRoot . PageFactory::$customConfigPath, // normally /site/config/
+            '~config/'      => PageFactory::$customConfigPath, // normally /site/config/
             '~custom/'      => $appRoot . 'site/custom/',
             '~cache/'       => $appRoot . 'site/cache/pagefactory/',
             '~download/'    => $appRoot . 'download/',
-            '~data/'        => $appRoot . PageFactory::$dataPath,
-            '~page/'        => $pageRoot,
+            '~data/'        => PageFactory::$dataPath,
             '~pagefactory/' => $appRoot . 'site/plugins/pagefactory/assets/',
+            '~page/'        => PFY_PAGE_PATH,
         ];
         $path = str_replace(array_keys($pathPatterns), array_values($pathPatterns), $path);
     }
@@ -1570,7 +1569,8 @@ function preparePath(string $path0, $accessRights = false): void
 
     // apply access rights if requested:
     if ($accessRights) {
-        $path1 = '';
+        $path = substr($path, strlen(PFY_APP_BASE_PATH));
+        $path1 = PFY_APP_BASE_PATH;
         foreach (explode('/', $path) as $p) {
             $path1 .= "$p/";
             try {
@@ -2136,7 +2136,7 @@ function explodeTrim(string $sep, string $str, bool $excludeEmptyElems = false):
         if ($splitOnLastMatch && preg_match('/(.*):(.*)/', $elem, $m)) {
             $out[$m[1]] = trim($m[2], "'");
         } elseif (preg_match('/(.*?):(.*)/', $elem, $m)) {
-            $out[$m[1]] = trim($m[2], "'");
+            $out[$m[1]] = trim($m[2], "'\"");
         } else {
             $out[$elem] = $elem;
         }

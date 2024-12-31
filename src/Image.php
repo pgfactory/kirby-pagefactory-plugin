@@ -93,18 +93,12 @@ class Image
             }
 
         } else {
-            if (str_contains($srcFilePath, '/')) {
-                $this->kirbyFileObj = page()->children()->images()->find($srcFilePath);
-            } else {
-                $this->kirbyFileObj = page()->images()->find($srcFilePath);
-            }
-        }
-        if (!$this->kirbyFileObj) {
-            if ($this->ignoreMissing) {
-                $this->imageMissing = true;
+            if (str_starts_with($srcFilePath, '~/')) {
+                $srcFilePath = substr($srcFilePath, 2);
             } else {
                 throw new \Exception("Image file not found: '{$options['src']}'");
             }
+            $this->kirbyFileObj = site()->index()->files()->find($srcFilePath);
         }
 
         if ($this->imageMissing) {
@@ -454,7 +448,6 @@ EOT;
             return '';
         }
         $srcset = $this->kirbyFileObj->srcset($sizes);
-        $srcset = $this->fixUrls($srcset);
         $srcset = str_replace(', ', ",\n", $srcset);
         $html = "\n\tsrcset='\n$srcset'";
         $html .= "\n\tsizes='$this->widthStr'";
@@ -516,7 +509,7 @@ EOT;
         }
 
         $resizedImg = $this->kirbyFileObj->resize($width, $height);
-        return  $this->getUrl($resizedImg);
+        return $resizedImg->url();
     } // resizeImage
 
 
@@ -524,11 +517,7 @@ EOT;
      * @return string
      */
     private function getPath(): string{
-        $path = $this->kirbyFileObj->root();
-        if (str_starts_with($path, PageFactory::$absAppRoot)) {
-            $path = substr($path, strlen(PageFactory::$absAppRoot));
-        }
-        return $path;
+        return $this->kirbyFileObj->root();
     } // getPath
 
 
@@ -543,24 +532,8 @@ EOT;
         } elseif (is_object($url)) {
             $url = $url->url();
         }
-        if (str_starts_with($url, PageFactory::$hostUrl)) {
-            $url = substr($url, strlen(PageFactory::$hostUrl)-1);
-        } elseif (PageFactory::$appUrl && !str_starts_with($url, PageFactory::$appUrl)) {
-            $url = '';
-        }
         return $url;
     } // getUrl
-
-
-    /**
-     * @param string $url
-     * @return string
-     */
-    public static function fixUrls(string $url): string
-    {
-        $patt = substr(PageFactory::$hostUrl, 0, -1);
-        return str_replace($patt, '', $url);
-    } // fixUrls
 
 
     /**
@@ -571,7 +544,7 @@ EOT;
     {
         if (!self::$quickViewInitialized && ($this->options['quickview']??true)) {
             self::$quickViewInitialized = true;
-            PageFactory::$pg->addAssets('media/plugins/pgfactory/pagefactory/js/medium-zoom.min.js');
+            Assets::addAssets('media/plugins/pgfactory/pagefactory/js/medium-zoom.min.js');
             $js = <<<EOT
 
 const zoom = mediumZoom('.pfy-quickview', {background:'#444', margin:4});

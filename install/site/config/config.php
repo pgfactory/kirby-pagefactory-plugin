@@ -1,11 +1,22 @@
 <?php
 
 // find twig-functions in pagefactory:
+//<<<<<<< Updated upstream
 // $functions = false;
 // if (file_exists('site/plugins/pagefactory/src/TransVars.php')) {
 //     require_once 'site/plugins/pagefactory/src/TransVars.php';
 //     $functions = PgFactory\PageFactory\TransVars::findAllMacros();
 // }
+//=======
+//
+//
+//$functions = false;
+//if (file_exists(URL::index() . '/site/plugins/pagefactory/src/TransVars.php')) {
+//    require_once dirname(__DIR__) . '/plugins/pagefactory/src/TransVars.php';
+////    require_once 'site/plugins/pagefactory/src/TransVars.php'; //???
+//    $functions = PgFactory\PageFactory\TransVars::findAllMacros();
+//}
+//>>>>>>> Stashed changes
 
 // Defaults recommended by PageFactory plugin:
 return [
@@ -48,7 +59,7 @@ return [
         // 'sourceWrapperTag'              => 'section', // tag used to wrap .md content
         // 'sourceWrapperClass'            => '',     // class applied to sourceWrapperTag
         // 'webmaster_email'               => '',     // email address of webmaster (-> reset cache if modified!)
-        // 'maxCacheAge'                   => 86400,  // [s] max time after which Kirby's file cache is automatically flushed
+//        // 'maxCacheAge'                   => 86400,  // [s] max time after which Kirby's file cache is automatically flushed
         // 'supportExportAsIframe'         => '*',    // Enables Access-Control-Allow-Origin support, to activate use ?iframe
 
         // 'keepDbHistory'                 => 6,      // If true, old state is copied to dated file (e.g. /.history/xx) whenever 
@@ -76,7 +87,7 @@ return [
     ],
 
 
-/* Cache support:
+// /* Cache support:
     // note: caching always disabled while in debug mode.
     'cache' => [
         'pages' => [
@@ -84,8 +95,6 @@ return [
             'ignore' => function () {
                 $cacheFlagFile = 'site/cache/pagefactory/last-cache-update.txt';
                 $lastCacheRefresh = file_exists($cacheFlagFile) ? filemtime($cacheFlagFile) : 0;
-                // if not daily refresh, try using commented line:
-                // if (intval($lastCacheRefresh / 86400) !== intval(time() / 86400)) {
                 if (date('d', $lastCacheRefresh) !== date('d')) {
                     return true; // cache expired, don't cache, let PageFactory re-build pages
                 }
@@ -93,5 +102,17 @@ return [
             }
         ],
     ],
-*/
+
+// Enable cached html notification
+// ==================================
+//  In Kirby/src/CMS/:
+//  in public function render() (ca. line 1030)
+//          ...
+//			// cache the result
+//			$response = $kirby->response();
+//			if ($cache !== null && $response->cache() === true) {
+//  inject line:
+//               $html = str_replace("<!doctype html>\n", "<!doctype html>\n<!-- cached -->/n", $html);
+
+// */
 ];

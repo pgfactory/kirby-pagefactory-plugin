@@ -17,7 +17,6 @@ return function($args = '')
             'format' => ['', 'Y-m-d'],
             'wrapperTag' => ['', false],
             'wrapperClass' => ['', false],
-//            '' => ['', false],
         ],
         'summary' => <<<EOT
 

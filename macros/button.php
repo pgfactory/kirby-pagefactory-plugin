@@ -87,27 +87,6 @@ EOT;
         PageFactory::$pg->addJsReady($jq);
     }
 
-//    if ($options['callback']) {
-//        $callback = trim($options['callback']);
-//        if (preg_match('/^\w+$/', $callback)) {
-//            $callback = "$callback();";
-//        }
-//        $jq = <<<EOT
-//pfyButton = document.querySelector('#$id');
-//if (pfyButton) {
-//    pfyButton.addEventListener('click', function(e) {
-//        try {
-//          $callback
-//        } catch (error) {
-//          console.error(error);
-//        }
-//    });
-//}
-//EOT;
-//        PageFactory::$pg->addJs('let pfyButton = null;');
-//        PageFactory::$pg->addJsReady($jq);
-//    }
-
     return $str;
 };
 

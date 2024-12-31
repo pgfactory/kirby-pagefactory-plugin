@@ -1,16 +1,16 @@
-// === Definitions ================================
+ // === Definitions ================================
 
 $focus-frame-color1: #00008088; // orange
 $focus-frame-color2: #ffa50088; // navy
 
 
 
-// main page:
+ // main page:
 $mobile-main-txt-color: black;
 $mobile-main-link-color: #333;
 $mobile-main-bg-color: white;
 
-// mobile header:
+ // mobile header:
 $mobile-header-txt-size:  6vw;
 $mobile-header-height:    11vw;
 $mobile-header-txt-color: #ddd;
@@ -23,12 +23,12 @@ $mobile-nav-title-color:  #333;
 $mobile-nav-title-bg-color: #ddd;
 $mobile-nav-txt-size:     4.5vw;
 
-// mobile footer:
+ // mobile footer:
 $mobile-footer-height:    8vw;
 $mobile-footer-txt-color: #ddd;
 $mobile-footer-font-size: 4vw;
 
-// mobile nav:
+ // mobile nav:
 $mobile-nav-width:        66vw;
 
 $yPadding: 0.4rem;
@@ -39,7 +39,7 @@ $box-width: 300px;
 $min-font-size: 15;
 $max-font-size: 24;
 
-// use: @include _pfy-button;
+ // use: @include _pfy-button;
 @mixin _pfy-button {
   color: #666;
   font-family: helvetica, arial, sans-serif;
@@ -53,7 +53,7 @@ $max-font-size: 24;
   padding: 0.3em 1.5em;
 }
 
-// --- accessible: visually hidden:
+ // --- accessible: visually hidden:
 @mixin visually-hidden {
   border: 0;
   clip: rect(0 0 0 0);
@@ -67,7 +67,7 @@ $max-font-size: 24;
   width: 1px;
 }
 
-// use: @include _focus;
+ // use: @include _focus;
 @mixin _focus {
   box-shadow:
     0 0 0 1px white,
@@ -86,7 +86,7 @@ $max-font-size: 24;
 }
 
 
-// Usage: @include _striped(251, 50%);
+ // Usage: @include _striped(251, 50%);
 @mixin  _striped($baseColH,$baseColS) {
     background: repeating-linear-gradient(
         -45deg,

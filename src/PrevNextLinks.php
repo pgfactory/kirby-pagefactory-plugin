@@ -59,7 +59,7 @@ class PrevNextLinks
             if (!self::$initialized) {
                 self::$initialized = true;
                 // inject script code for page-switching:
-                $url = PageFactory::$appUrl . "media/plugins/pgfactory/pagefactory/js/page-switcher.js";
+                $url = PFY_APP_BASE_URL . PFY_BASE_OFFSET . "media/plugins/pgfactory/pagefactory/js/page-switcher.js";
                 $out .= "\t<script src='$url'></script>\n";
             }
             $out .= <<<EOT
@@ -83,7 +83,7 @@ EOT;
         $prev = SiteNav::$prev;
         if ($prev) {
             $url = $prev->url();
-            $out = "<link rel='prev' href='$url'>\n";
+            $out = "  <link rel='prev' href='$url'>\n";
         }
         $next = SiteNav::$next;
         if ($next) {
@@ -91,7 +91,7 @@ EOT;
             $out .= "  <link rel='next' href='$url'>\n";
         }
 
-        return $out;
+        return ltrim($out);
     } // renderHeadLinkElements
 
 
