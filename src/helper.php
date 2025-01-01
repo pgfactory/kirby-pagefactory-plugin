@@ -67,12 +67,12 @@ function isAdmin(): bool
 
  /**
   * Checks whether visitor is admin or working on localhost
-  * (isLocalhost may be overridden by ?debug=false)
+  * (isLocalhost may be overridden by ?dev=false)
   * @return bool
   */
 function isAdminOrLocalhost(): bool
 {
-    return isAdmin() || (isLocalhost() && PageFactory::$debug);
+    return isAdmin() || (isLocalhost() && PageFactory::$dev);
 } // isAdminOrLocalhost
 
 
@@ -82,7 +82,7 @@ function isAdminOrLocalhost(): bool
   */
 function isLoggedinOrLocalhost(): bool
 {
-    return isLoggedIn() || (isLocalhost() && PageFactory::$debug);
+    return isLoggedIn() || (isLocalhost() && PageFactory::$dev);
 } // isLoggedinOrLocalhost
 
 

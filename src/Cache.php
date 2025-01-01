@@ -20,7 +20,7 @@ class Cache
             !kirby()->session()->pull('pfy.message');
         self::preparePath();
         $lastCacheRefresh = file_exists(LAST_CACHE_UPDATE_FILE) ? filemtime(LAST_CACHE_UPDATE_FILE) : 0;
-        if (($lastCacheRefresh === 0) || PageFactory::$debug) {
+        if (($lastCacheRefresh === 0) || PageFactory::$dev) {
             self::$pageCachingEnabled = false;
             self::$cacheUpdateNecessary = true;
             // ToDo: optimize, i.e. clear KirbyCache for current page only.

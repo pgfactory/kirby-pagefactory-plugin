@@ -90,6 +90,7 @@ class PageFactory
     public static $site;
 
     public static $debug;
+    public static $dev;
     public static $lang;
     public static $langCode;
     public static $defaultLanguage;
@@ -118,7 +119,7 @@ class PageFactory
         self::$page = $data['page'];
         self::$site = $data['site'];
 
-        self::$debug = Utils::determineDebugState();
+        self::$dev = Utils::determineDevState();
         Cache::init(); // force cache reset on first request every day, inhibit cache in debug mode
 
         // find available icons:
@@ -183,6 +184,7 @@ class PageFactory
         $page->homeLink()->value            = $pageFields['homeLink'];
         $page->localhost()->value           = isLocalhost();
         $page->debug()->value               = PageFactory::$debug;
+        $page->dev()->value                 = PageFactory::$dev;
         $page->adminPanelLink()->value      = $pageFields['adminPanelLink'];
         $page->loggedIn()->value            = $pageFields['loggedIn'];
         $page->loginLink()->value           = $pageFields['loginLink'];
@@ -228,7 +230,7 @@ class PageFactory
         self::$userName = is_object(self::$user) ? (string)self::$user->nameOrEmail() : (self::$user ?: '');
 
         Extensions::loadExtensions();
-        if (self::$debug) {
+        if (self::$dev) {
             Assets::compileAssets();
         }
 
@@ -254,7 +256,7 @@ class PageFactory
         Extensions::extensionsFinalCode();
         Utils::handleAgentRequestsOnRenderedPage();
 
-        if (self::$debug) {
+        if (self::$dev) {
             return $this->_renderPageContent();
         } else {
             try {
@@ -262,7 +264,7 @@ class PageFactory
 
             } catch (\Exception $e) {
                 mylog($e->getMessage());
-                if (!self::$debug) {
+                if (!self::$dev) {
                     // in productive mode: try flush-cache-and-reload once, then give up and return error msg:
                     //  -> in particular after first upload this can fix problems.
                     $session = kirby()->session();

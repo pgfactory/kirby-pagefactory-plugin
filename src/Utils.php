@@ -100,7 +100,7 @@ class Utils
 
     public static function renderGenerator(): string
     {
-        if (PageFactory::$debug) {
+        if (PageFactory::$dev) {
             $generator = 'Kirby v' . kirby()::version() . " + PageFactory " . getGitTag();
             $generator .= ' (on PHP ' . phpversion() . ')';
         } else {
@@ -161,13 +161,16 @@ EOT;
         //if (kirby()->session()->get()) {
         //    $bodyTagClasses = trim("session $bodyTagClasses");
         //}
-        if (PageFactory::$isLocalhost && PageFactory::$debug) {
-            $bodyTagClasses = trim("localhost $bodyTagClasses");
+        if (PageFactory::$isLocalhost && PageFactory::$dev) {
+            $bodyTagClasses = "localhost $bodyTagClasses";
         }
-        if (PageFactory::$debug) {
-            $bodyTagClasses = trim("debug $bodyTagClasses");
+        if (PageFactory::$dev) {
+            $bodyTagClasses = "debug $bodyTagClasses";
         }
-        return $bodyTagClasses;
+        if (PageFactory::$dev) {
+            $bodyTagClasses = "dev $bodyTagClasses";
+        }
+        return trim($bodyTagClasses);
     } // renderBodyTagClasses
     
     
@@ -251,7 +254,7 @@ EOT;
                     break;
                 case 'flush':
                 case 'flushcache':
-                    if (PageFactory::$debug) {
+                    if (PageFactory::$dev) {
                         Cache::flush();
                     }
                     break;
@@ -275,8 +278,8 @@ EOT;
                     mylog("User '$name' logged out.", PFY_LOGIN_LOG_FILE);
                     reloadAgent(message: '{{ pfy-logged-out-now }}'); // get rid of url-command
                     break;
-                case 'reset': // ?reset (as non-admin): harmless reset => just undo previous '?debug' commands
-                    self::resetDebugState();
+                case 'reset': // ?reset (as non-admin): harmless reset => just undo previous '?dev' commands
+                    self::resetDevState();
                     if (isLocalhost()) { // exception: reset on localhost
                         self::resetAll();
                         reloadAgent();
@@ -391,7 +394,7 @@ EOT;
      */
     private static function execAsAdmin($cmds)
     {
-        // note: 'debug' handled in PageFactory->__construct() => Utils->determineDebugState()
+        // note: 'dev' handled in PageFactory->__construct() => Utils->determineDevState()
 
         foreach (explode(',', $cmds) as $cmd) {
             if (!isset($_GET[$cmd])) {
@@ -423,7 +426,7 @@ EOT;
                     reloadAgent();
 
                 case 'release': // ?release
-                    PageFactory::$debug = false;
+                    PageFactory::$dev = false;
                     self::resetAll();
                     reloadAgent();
             }
@@ -473,7 +476,7 @@ EOT;
 [?variables](./?variables)      >> shows currently defined variables
 [?macros](./?macros)      >> shows currently defined macros()
 [?lang=](./?lang)      >> activates given language
-[?debug](./?debug)      >> activates debug mode
+[?dev](./?dev)        >> activates dev mode
 [?localhost=false](./?localhost=false)      >> mimicks running on a remote host (for testing)
 [?notranslate](./?notranslate)      >> shows variables instead of translating them
 [?login](./?login)      >> opens login window
@@ -625,75 +628,73 @@ EOT;
 
 
     /**
-     * Determines the current debug state
-     * Note: PageFactory maintains its own "debug" state, which diverges slightly from Kirby's.
-     * enter debug state, if:
+     * Determines the current dev state
+     * Note: PageFactory maintains its own "dev" state, which diverges slightly from Kirby's.
+     * enter dev state, if:
      * - on productive host:
      *      - false unless
      *          - $kirbyDebugState explicitly true
      *          - logged in as admin and $userDebugRequest true -> remember as long as logged in
      * - on localhost:
-     *      - $kirbyDebugState, unless overridden by ?debug URL-Cmd
+     *      - $kirbyDebugState, unless overridden by ?dev URL-Cmd
      */
-    public static function determineDebugState(): bool
+    public static function determineDevState(): bool
     {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
-        $kirbyDebugState = kirby()->option('debug');
-        if (isset($_GET['debug']) && (isAdmin() || isLocalhost())) {
-            $userDebugRequest = $_GET['debug'];
+        if (isset($_GET['dev']) && (isAdmin() || isLocalhost())) {
+            $userDebugRequest = $_GET['dev'];
 
-            if (($userDebugRequest === '') || ($userDebugRequest === 'true')) { // ?debug or ?debug=true
-                $_SESSION['pfy.debug'] = true;
+            if (($userDebugRequest === '') || ($userDebugRequest === 'true')) { // ?dev or ?dev=true
+                $_SESSION['pfy.dev'] = true;
 
-            } elseif ($userDebugRequest === 'false') { // ?debug=false -> simulate remote host without debug-mode
-                $_SESSION['pfy.debug'] = false;
+            } elseif ($userDebugRequest === 'false') { // ?dev=false -> simulate remote host without dev-mode
+                $_SESSION['pfy.dev'] = false;
                 session_write_close();
                 reloadAgent();
 
-            } elseif ($userDebugRequest === 'reset') { // ?debug=reset
-                unset($_SESSION['pfy.debug']);
+            } elseif ($userDebugRequest === 'reset') { // ?dev=reset
+                unset($_SESSION['pfy.dev']);
                 reloadAgent();
             }
         }
-        $debug = $_SESSION['pfy.debug']??null;
+        $dev = $_SESSION['pfy.dev']??null;
 
         // on productive host:
         if (!isLocalhost()) {
             if (isAdmin()) { // if admin, use Kirby's debug state:
-                $debug = $kirbyDebugState;
+                $dev = true; // because isAdmin()
             } else {
-                if ($debug !== null) { // remove cookie if exists
-                    unset($_SESSION['pfy.debug']);
+                if ($dev !== null) { // remove cookie if exists
+                    unset($_SESSION['pfy.dev']);
                 }
-                $debug = false;
+                $dev = false;
             }
         // on localhost:
         } else {
-            if ($debug === null) { // use Kirby's debug state, unless overridden by ?debug URL-Cmd
-                $debug = $kirbyDebugState;
+            if ($dev === null) { // use Kirby's debug state, unless overridden by ?dev URL-Cmd
+                $dev = true; // because isLocalhost()
             }
         }
-
         session_write_close();
-        return $debug;
-    } // determineDebugState
+        return $dev;
+    } // determineDevState
 
 
     /**
      * @return void
      */
-    public static function resetDebugState(): void
+    public static function resetDevState(): void
     {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
-        if (isset($_SESSION['pfy.debug'])) {
-            unset($_SESSION['pfy.debug']);
+        if (isset($_SESSION['pfy.dev'])) {
+            unset($_SESSION['pfy.dev']);
         }
-        self::determineDebugState();
-    } // resetDebugState
+        self::determineDevState();
+    } // resetDevState
 
 
     /**

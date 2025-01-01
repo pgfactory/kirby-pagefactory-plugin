@@ -82,7 +82,7 @@ class Scss
     private static function getFile(string $file): string
     {
         $compileScssWithLineNumbers = kirby()->option('pgfactory.pagefactory.options.debug_compileScssWithSrcRef', false) &&
-            (PageFactory::$debug || isAdminOrLocalhost());
+            (PageFactory::$dev || isAdminOrLocalhost());
         if ($compileScssWithLineNumbers) {
             if (!file_exists($file)) {
                 throw new \Exception("Error: file '$file' not found.");

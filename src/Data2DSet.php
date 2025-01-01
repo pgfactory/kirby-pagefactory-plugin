@@ -135,7 +135,7 @@ class Data2DSet extends DataSet
      */
     private function _normalizeData(): array
     {
-        if (!PageFactory::$debug) {
+        if (!PageFactory::$dev) {
             $placeholderForUndefined = '';
         } else {
             $placeholderForUndefined = $this->placeholderForUndefined;

@@ -46,7 +46,7 @@ class DataSet
     protected $maxRecLockTime;
     protected $maxRecBlockingTime;
     protected $avoidDuplicates;
-    protected $debug;
+    protected $dev;
     protected int $keepDataThreshold = 0; // unix-time
     protected string|false $keepDataOnField; // field-name
     protected static $sessionId = false;
@@ -95,7 +95,7 @@ class DataSet
             }
         }
         $this->options = $options;
-        $this->debug = PageFactory::$debug ?? Utils::determineDebugState();
+        $this->dev = PageFactory::$dev ?? Utils::determineDevState();
 
         if (!$file) {
             $this->lockFile = '';
@@ -1275,7 +1275,7 @@ class DataSet
             writeFileLocking($this->cacheFile, serialize($ds), blocking: true);
 
             // export debug copy if debug enabled:
-            if (PageFactory::$debug) {
+            if (PageFactory::$dev) {
                 $ds->debugDump(false, $this->cacheFile);
             }
         } catch (\Exception $e) {
