@@ -1,22 +1,14 @@
 <?php
 
-// find twig-functions in pagefactory:
-//<<<<<<< Updated upstream
-// $functions = false;
-// if (file_exists('site/plugins/pagefactory/src/TransVars.php')) {
-//     require_once 'site/plugins/pagefactory/src/TransVars.php';
-//     $functions = PgFactory\PageFactory\TransVars::findAllMacros();
-// }
-//=======
-//
-//
-//$functions = false;
-//if (file_exists(URL::index() . '/site/plugins/pagefactory/src/TransVars.php')) {
-//    require_once dirname(__DIR__) . '/plugins/pagefactory/src/TransVars.php';
-////    require_once 'site/plugins/pagefactory/src/TransVars.php'; //???
-//    $functions = PgFactory\PageFactory\TransVars::findAllMacros();
-//}
-//>>>>>>> Stashed changes
+if (!defined('PFY_DOCROOT')) {      // possibly defined in index.php of parent folder
+    define('PFY_DOCROOT', dirname($_SERVER['SCRIPT_FILENAME']) . '/');
+}
+if (!defined('PFY_BASE_OFFSET')) { // possibly defined in index.php of parent folder
+    define('PFY_BASE_OFFSET', '');
+}
+
+define('PFY_APP_BASE_PATH', PFY_DOCROOT . PFY_BASE_OFFSET);
+
 
 // Defaults recommended by PageFactory plugin:
 return [
@@ -32,8 +24,8 @@ return [
     // 'auth' => [
     //     'methods' => ['code','password']
     // ],
+    // 'auth.challenge.email.from' => 'webmaster@domain.net',
 
-    // 'wearejust.twig.env.functions' => $functions, // register pagefactory's twig-functions
 
     'pgfactory.markdownplus.options' => [
         // 'divblockChars'		=> '@%:',  // chars identifying DIV-Blocks, default is '@%'
@@ -42,7 +34,6 @@ return [
     ],
 
     'pgfactory.pagefactory.options' => [
-		'timezone'		=> 'Europe/Zurich', // Automatically set by PageFactory,
         // 'defaultLanguage'               => 'de',   // multilang -> configure in panel instead! (Opt. use 'Code: de2' and 'PHP locale string: de_DE')
         // 'robots'                        => true,   // inject "robots" elem in HTML header
         // 'excludeFilesRegex'             => '\.old\.md$',// regex pattern to exclude certain .md files from rendering
@@ -56,10 +47,6 @@ return [
         // 'includeMetaFileContent'        => false,  // -> option for website using '(include: *.md)' in metafile
                                                       // e.g. when converting from MdP site to Pfy
         // 'screenSizeBreakpoint'          => 480,    // Value used by JS to switch body classes ('pfy-large-screen' and 'pfy-small-screen')
-        // 'sourceWrapperTag'              => 'section', // tag used to wrap .md content
-        // 'sourceWrapperClass'            => '',     // class applied to sourceWrapperTag
-        // 'webmaster_email'               => '',     // email address of webmaster (-> reset cache if modified!)
-//        // 'maxCacheAge'                   => 86400,  // [s] max time after which Kirby's file cache is automatically flushed
         // 'supportExportAsIframe'         => '*',    // Enables Access-Control-Allow-Origin support, to activate use ?iframe
 
         // 'keepDbHistory'                 => 6,      // If true, old state is copied to dated file (e.g. /.history/xx) whenever 
@@ -70,10 +57,6 @@ return [
         // 'debug_compileScssWithSrcRef'   => true,   // injects ref to source SCSS file&line in compiled CSS
         // 'debug_logIP'                   => true,   // if true, serverLog() includes agent's IP address
     ],
-
-// pgfactory.pagefactory-elements.options
-
-// 'auth.challenge.email.from' => 'webmaster@domain.net',
 
     'pgfactory.pagefactory-elements.options' => [
 //        'templateCompilerDefaultMode' => 'twig', // default mode for TemplateCompiler, e.g. used by macro form()
@@ -87,7 +70,7 @@ return [
     ],
 
 
-// /* Cache support:
+/* Enable Kirby-Cache support:
     // note: caching always disabled while in debug mode.
     'cache' => [
         'pages' => [
@@ -102,17 +85,5 @@ return [
             }
         ],
     ],
-
-// Enable cached html notification
-// ==================================
-//  In Kirby/src/CMS/:
-//  in public function render() (ca. line 1030)
-//          ...
-//			// cache the result
-//			$response = $kirby->response();
-//			if ($cache !== null && $response->cache() === true) {
-//  inject line:
-//               $html = str_replace("<!doctype html>\n", "<!doctype html>\n<!-- cached -->/n", $html);
-
-// */
+*/
 ];
