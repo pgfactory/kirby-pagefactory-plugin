@@ -47,13 +47,6 @@ Manual Installation
     git clone https://github.com/getkirby/plainkit.git .
 
 
-2b) Install Kirby-Twig (recommended):
-
-    git clone https://github.com/wearejust/kirby-twig.git site/plugins/kirby-twig
-    composer update --working-dir=$appRoot/site/plugins/kirby-twig
-
-    Note: instead of "git clone"  you can use "git submodule add", if you like. Same further down.
-
 
 3) Clone MarkdownPlus to folder 'site/plugins/pagefactory/markdownplus':
 

@@ -48,7 +48,7 @@ Kirby::plugin('pgfactory/pagefactory', [
 
         // create initial .md content file for newly created pages:
         'page.create:after' => function (\Kirby\Cms\Page $page) {
-            require_once 'site/plugins/pagefactory/src/panelHelper.php';
+            require_once PFY_APP_BASE_PATH . 'site/plugins/pagefactory/src/panelHelper.php';
             onPageCreateAfter($page);
         },
 

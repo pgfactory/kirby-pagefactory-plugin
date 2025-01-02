@@ -57,12 +57,6 @@ If (Test-Path "$($CurrentDirectory)\site\plugins\pagefactory") {
 Write-Host ""
 Write-Host "Now installing Pagefactory"
 
-## Clone PageFactory:
-Write-Host ""
-Write-Host "Kirby-Twig:"
-git submodule add "https://github.com/wearejust/kirby-twig.git" "site/plugins/kirby-twig"
-Set-Location "$($CurrentDirectory)\site\plugins\kirby-twig"
-composer update
 
 Set-Location $CurrentDirectory
 Write-Host ""

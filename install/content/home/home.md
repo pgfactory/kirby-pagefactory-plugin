@@ -2,6 +2,9 @@ scss:
 	strong a { color: red; }
 ----
 
+//# {{ title }}
+
+//{{ field() }}
 
 # Congratulations!
 

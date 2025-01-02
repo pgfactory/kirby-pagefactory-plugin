@@ -69,11 +69,6 @@ echo Now installing Pagefactory
 ## Clone PageFactory:
 
 echo
-echo Kirby-Twig:
-/usr/bin/env git submodule add https://github.com/wearejust/kirby-twig.git site/plugins/kirby-twig
-/usr/bin/env composer update --working-dir=$appRoot/site/plugins/kirby-twig
-
-echo
 echo MarkdownPlus:
 /usr/bin/env git submodule add $branch https://github.com/pgfactory/markdownplus.git site/plugins/markdownplus
 /usr/bin/env composer update --working-dir=$appRoot/site/plugins/markdownplus

@@ -39,7 +39,12 @@ class TransVars
         $fields = PageFactory::$page->content()->fields();
         foreach ($fields as $key => $field) {
             if (!str_ends_with($key, '_md')) {
-                self::$transVars[$key] = $field->value();
+                $value = $field->value();
+                // check whether it's a content block, unpack it if necessary:
+                if ($value && str_starts_with($value, '[{')) {
+                    $value = $field->toBlocks()->toHtml();
+                }
+                self::$transVars[$key] = $value;
             }
         }
         self::compileVars();
@@ -205,6 +210,9 @@ class TransVars
             if (!isset(self::$variables[$varName1])) {
                 try {
                     $out = PageFactory::$page->$varName1()->value; // try to get Kirby field
+                    if (str_starts_with($out, '[{')) {
+                        $out = PageFactory::$page->$varName1()->toBlocks()->toHtml();
+                    }
                 } catch (\Exception $e) {
                     $out = $varName1;
                 }

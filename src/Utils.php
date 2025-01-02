@@ -576,11 +576,12 @@ EOT;
      */
     public static function determineLanguage(): void
     {
-        $supportedLanguages = PageFactory::$supportedLanguages = kirby()->languages()->codes();
+        $kirby = kirby();
+        $supportedLanguages = PageFactory::$supportedLanguages = $kirby->languages()->codes();
         if (!$supportedLanguages || $supportedLanguages[0] === 'default') {
-            if ($langObj = kirby()->language()) {
+            if ($langObj = $kirby->language()) {
                 $lang = $langObj->code();
-            } elseif (!($lang = kirby()->defaultLanguage())) {
+            } elseif (!($lang = $kirby->defaultLanguage())) {
                 $lang = PageFactory::$config['defaultLanguage'] ?: 'en';
             }
             PageFactory::$lang = $lang;
@@ -588,19 +589,19 @@ EOT;
             return;
         }
 
-        if (!($lang = kirby()->session()->get('pfy.lang'))) {
-            $lang = kirby()->defaultLanguage();
+        if (!($lang = $kirby->session()->get('pfy.lang'))) {
+            $lang = $kirby->defaultLanguage();
             if ($lang) {
-                $lang = kirby()->defaultLanguage()->code();
+                $lang = $kirby->defaultLanguage()->code();
             }
         }
 
         if ($lang) {
             $langCode = substr($lang, 0, 2);
             if (!in_array($lang, $supportedLanguages) && !in_array($langCode, $supportedLanguages)) {
-                $lang = $langCode = kirby()->defaultLanguage()->code();
+                $lang = $langCode = $kirby->defaultLanguage()->code();
             }
-            PageFactory::$defaultLanguage = kirby()->defaultLanguage()->code();
+            PageFactory::$defaultLanguage = $kirby->defaultLanguage()->code();
             PageFactory::$lang = $lang;
             PageFactory::$langCode = $langCode;
         } else {
@@ -617,8 +618,8 @@ EOT;
             if (in_array($lang, $supportedLanguages) || in_array($langCode, $supportedLanguages)) {
                 PageFactory::$lang = $lang;
                 PageFactory::$langCode = $langCode;
-                kirby()->session()->set('pfy.lang', $lang);
-                kirby()->setCurrentLanguage($langCode);
+                $kirby->session()->set('pfy.lang', $lang);
+                $kirby->setCurrentLanguage($langCode);
                 $url = page()->url();
                 reloadAgent($url);
             }

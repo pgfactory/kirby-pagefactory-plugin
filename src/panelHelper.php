@@ -137,17 +137,17 @@ function onPageCreateAfter(Kirby\Cms\Page $page)
 {
     $basename = $page->slug();
 
+    $path = $page->root() . '/';
     $filename = "1_$basename.md";
     $newPageTitle = $page->title();
-    $md = "\n\n# $newPageTitle\n\n";
-    file_put_contents($page->root() . '/' . $filename, $md);
+    $md = "\n\n# $newPageTitle\n\n{{ field(name: 'Contentblocks') }} // -> content from field 'Contentblocks'\n\n";
+    file_put_contents($path . $filename, $md);
 
     $propertyData = $page->propertyData();
     $template = $propertyData['template']??'';
 
     // rename .txt file to '~page.xy.txt' if necessary:
     // -> this activates the automatic blueprint
-    $path = $page->url() . '/';
     $languages = kirby()->language();
     $lang = $languages ? '.'.$languages->code() : '';
     $origMetaFile = "$path$template$lang.txt";
@@ -156,8 +156,7 @@ function onPageCreateAfter(Kirby\Cms\Page $page)
     if (!file_exists($origMetaFile)) {
         return;
     }
-    $varname = filenameToVarname($filename);
-    file_put_contents($origMetaFile, "\n\n----\n$varname:\n\n$md", FILE_APPEND);
+//    file_put_contents($origMetaFile, "\n\n----\n\nContentblocks: x\n\n----\n\n", FILE_APPEND);
     rename($origMetaFile, $newMetaFile);
 } // onPageCreateAfter
 

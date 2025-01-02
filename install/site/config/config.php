@@ -51,24 +51,13 @@ return [
 
         // 'keepDbHistory'                 => 6,      // If true, old state is copied to dated file (e.g. /.history/xx) whenever 
                                                       // a DB is updated; int arg = number of month to keep
+        // 'enablePageCache'                 => true,  // -> caching of template variables, e.g. 'pageContent' etc.
 
-      // Options for dev phase:
+        // Options for dev phase:
         // 'debug_checkMetaFiles'          => true,   // if true, Pagefactory will skip checks for presence of metafiles
         // 'debug_compileScssWithSrcRef'   => true,   // injects ref to source SCSS file&line in compiled CSS
         // 'debug_logIP'                   => true,   // if true, serverLog() includes agent's IP address
     ],
-
-    'pgfactory.pagefactory-elements.options' => [
-//        'templateCompilerDefaultMode' => 'twig', // default mode for TemplateCompiler, e.g. used by macro form()
-//        'allowChangePassword'         => true,
-//        'initCode'                    => 'init.php', // run init code in site/custom/code/
-//        'login-mode'                  => 'passwordless',   // 'username-password-only' or 'passwordless' or 'login'
-//        'activatePresentationSupport' => true,
-//        'presentationAutoSizing'      => true,
-//        'autoSlideNumbering'          => true, // false, true or 'toc' (= first slide per page is TOC)
-//        'presentationDefaultSize'     => '1.8vw',
-    ],
-
 
 /* Enable Kirby-Cache support:
     // note: caching always disabled while in debug mode.
