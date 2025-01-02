@@ -1,37 +1,36 @@
-<!doctype html>
-<html lang="<?= page()->lang() ?>">
+<!doctype html><?= $page->cacheIndicator() ?>
+<html lang="<?= $page->lang() ?>">
 <head>
   <meta charset="utf-8">
-  <title><?= page()->headTitle() ?></title>
+  <title><?= $page->headTitle() ?></title>
 
-  <!-- <base href="<?= page()->baseUrl() ?>"> -->
+  <base href="<?= $page->baseUrl() ?>">
   <meta name="viewport" content="width=device-width, user-scalable=yes, initial-scale=1">
-  <meta name="generator" content="<?= page()->generator() ?>)">
+  <meta name="generator" content="<?= $page->generator() ?>)">
   <?php snippet('prevnextlinks', ['args' => "type:'header-links'"]) ?>
   <?php snippet('favicon') ?>
 
-  <?= page()->headInjections() ?>
+  <?= $page->headInjections() ?>
 </head>
 
-<body id='pfy' class='pfy-default-styling pfy-auto-tabulator <?= page()->bodyTagClasses() ?>' <?= page()->bodyTagAttributes() ?>>
+<body id='pfy' class='pfy-default-styling pfy-auto-tabulator <?= $page->bodyTagClasses() ?>' <?= $page->bodyTagAttributes() ?>>
 
 <div class='pfy-page'>
 
   <div class="pfy-header-wrapper">
 
-    <header class='pfy-header v-align-with-nav'>
-    <?= page()->homeLink() ?>
-
+    <header class='pfy-header'>
+      <div class="pfy-large-screen-only">Page-Elements</div>
     </header>
 
+    <aside class="pfy-nav-outer-wrapper">
+         <?php snippet('nav', ['args' => "type:top, wrapperClass: 'pfy-nav-top-right-aligned pfy-nav-colored pfy-mobile-nav-colored'" ]); ?>
 
-    <?php // snippet('lorem', ['args' => 'min:1, max:10' ]); ?>
-
-    <?php snippet('nav', ['args' => 'type:top' ]); ?>
-
-    <?php snippet('prevnextlinks', ['args' => "'wrapperClass':'pfy-large-screen-only pfy-full-width'"]) ?>
+    </aside>
 
   </div><!-- /pfy-header-wrapper -->
+
+  <?php snippet('prevnextlinks', ['args' => "'wrapperClass':'pfy-large-screen-only pfy-full-width'"]) ?>
 
 
 
@@ -40,7 +39,8 @@
     <!-- === page content =============== -->
     <main id='main' class='pfy-main'>
 
-      <?= page()->pageContent() ?>
+
+      <?= $page->pageContent() ?>
 
     </main>
     <!-- === /page content =============== -->
@@ -49,26 +49,26 @@
 
     <footer class="pfy-footer">
 
-      <div class="pfy-footer-sitemap">
+      <div class="pfy-footer-sitemap pfy-full-width">
 
-        <?php snippet('nav', ['args' => 'type:sitemap' ]); ?>
+        <?php snippet('nav', ['args' => 'type:sitemap']); ?>
 
         <?php snippet('prevnextlinks', ['args' => "'wrapperClass':'pfy-full-width', center:'%loginButton%'"]) ?>
 
       </div>
 
-<?php if (page()->localhost()): ?>
+<?php if ($page->localhost()->value): ?>
 
-      <div class="dev-footer pfy-localhost-only">
+      <div class="dev-footer">
         <div>
-          <?= page()->adminPanelLink() ?>
+          <?= $page->adminPanelLink() ?>
         </div>
         <div>
-          <!-- <?= page()->loggedIn() ?> <?= page()->loginButton() ?> -->
         </div>
         <div>
-          [<?php snippet('link', ['args' => "url: '~page/?debug=reset', text: 'debug auto'"]) ?>
-           <?php snippet('link', ['args' => "url: '~page/?debug=false', text: 'debug off'"]) ?>]
+          [<?php snippet('link', ['args' => "url: '~page/?dev=reset', text: 'dev auto'"]) ?> |
+           <?php snippet('link', ['args' => "url: '~page/?dev=false', text: 'dev off'"]) ?> |
+          <?php snippet('link', ['args' => "url: '~page/?reset', text: 'reset'"]) ?>]
         </div>
       </div>
 <?php endif ?>
@@ -76,13 +76,13 @@
 
 
 
-  <?= page()->smallScreenHeader() ?>
+  <?= $page->smallScreenHeader() ?>
 
   </div><!-- /pfy-main-wrapper -->
 
 </div><!-- /.pfy-page -->
 
-<?= page()->bodyEndInjections() ?>
+<?= $page->bodyEndInjections() ?>
 </body>
 </html>
 
