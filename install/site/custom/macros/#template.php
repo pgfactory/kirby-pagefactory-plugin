@@ -32,8 +32,8 @@ EOT,
     // assemble output:
     $str .= '';
 
-    //PageFactory::$pg->requireFramework();
-    //PageFactory::$pg->addAssets('XY');
+    //Page::requireFramework();
+    //Page::addAssets('XY');
 
     return $str;
 };

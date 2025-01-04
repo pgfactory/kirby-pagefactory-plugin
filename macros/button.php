@@ -83,8 +83,8 @@ if (pfyButton) {
 EOT;
         }
 
-        PageFactory::$pg->addJs('let pfyButton = null;');
-        PageFactory::$pg->addJsReady($jq);
+        Page::addJs('let pfyButton = null;');
+        Page::addJsReady($jq);
     }
 
     return $str;

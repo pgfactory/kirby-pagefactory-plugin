@@ -5,6 +5,7 @@ namespace PgFactory\PageFactory;
 use Kirby;
 use Kirby\Data\Yaml;
 use Kirby\Http\Url;
+use PgFactory\MarkdownPlus\MdPlusHelper;
 use ScssPhp\ScssPhp\Exception\SassException;
 use PgFactory\MarkdownPlus\Permission;
 
@@ -167,10 +168,10 @@ class PageFactory
 
                 'pageContent'               => $this->renderPageContent(),
 
-                'headInjections'            => self::$pg->renderHeadInjections(),
+                'headInjections'            => Page::renderHeadInjections(),
                 'bodyTagClasses'            => Utils::renderBodyTagClasses(),
-                'bodyTagAttributes'         => self::$pg->bodyTagAttributes,
-                'bodyEndInjections'         => self::$pg->renderBodyEndInjections(),
+                'bodyTagAttributes'         => Page::get('bodyTagAttributes'),
+                'bodyEndInjections'         => Page::renderBodyEndInjections(),
                 'cacheIndicator'            => '',
             ];
             self::$renderingClosed = true;
@@ -213,15 +214,12 @@ class PageFactory
     {
         TransVars::init();
 
-        if (!file_exists('site/plugins/pagefactory/assets/css/-pagefactory.css')) {
+        if (!file_exists(PFY_APP_BASE_PATH.'site/plugins/pagefactory/assets/css/-pagefactory.css')) {
             self::$forceAssetsUpdate = true;
         }
 
         SiteNav::init(); // determines site structure, prev and next pages/links
 
-        self::$assets = new Assets($this);
-        self::$pg = new Page($this);
-        self::$pg->set('pageParams', self::$page->content()->data());
 
         self::$timezone = Utils::getTimezone();
         self::$locale = Utils::getCurrentLocale();
@@ -240,7 +238,6 @@ class PageFactory
         Utils::showPendingMessage();
         Utils::handleAgentRequests();
         Macros::initMacros();
-
     } // init
 
 
@@ -321,7 +318,7 @@ class PageFactory
             $html = str_replace(['{!!{', '}!!}', '⟮'], ['{{', '}}', '('], $html);
         }
 
-        return self::$pg->renderBody($html);
+        return Page::renderBody($html);
     } // _renderPageContent
 
 
@@ -410,7 +407,7 @@ EOT;
                     \PgFactory\PageFactoryElements\Login::init(['as-popup' => true]);
                     $html = \PgFactory\PageFactoryElements\Login::render('{{ pfy-restricted-page }}');
                     if ($html) {
-                        PageFactory::$pg->overrideContent($html);
+                        Page::overrideContent($html);
                     }
                     return false;
 

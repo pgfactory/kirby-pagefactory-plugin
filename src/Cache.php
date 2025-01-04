@@ -14,6 +14,9 @@ class Cache
     public static bool $cacheUpdateNecessary = false;
 
 
+    /**
+     * @return void
+     */
     public static function init(): void
     {
         self::$pageCachingEnabled = kirby()->option('pgfactory.pagefactory.options.enablePageCache') &&
@@ -43,6 +46,10 @@ class Cache
     // === Page Cache ==========================================
     // Page Cache caches 'pageContent'
 
+    /**
+     * @param string $prefix
+     * @return mixed
+     */
     public static function checkPageCache(string $prefix = ''): mixed
     {
         $cacheFile = self::getPageCacheFileName($prefix);
@@ -68,6 +75,12 @@ class Cache
     } // checkPageCache
 
 
+    /**
+     * @param mixed $payload
+     * @param string $prefix
+     * @return void
+     * @throws \Exception
+     */
     public static function updatePageCache(mixed $payload, string $prefix = ''): void
     {
         if (!self::$pageCachingEnabled) {
@@ -83,6 +96,10 @@ class Cache
     } // updatePageCache
 
 
+    /**
+     * @param string $prefix
+     * @return string
+     */
     private static function getPageCacheFileName(string $prefix = ''): string
     {
         $pageId = str_replace('/', '_', page()->id());
@@ -92,6 +109,9 @@ class Cache
     } // getPageCacheFileName
 
 
+    /**
+     * @return void
+     */
     private static function flushPageCache(): void
     {
         rrmdir(PFY_PAGE_CACHE_PATH);

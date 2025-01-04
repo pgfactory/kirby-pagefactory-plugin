@@ -62,6 +62,12 @@ class Scss
     } // compileFileToString
 
 
+    /**
+     * @param string $srcFile
+     * @param string $targetFile
+     * @return void
+     * @throws \ScssPhp\ScssPhp\Exception\SassException
+     */
     public static function compileFile(string $srcFile, string $targetFile): void
     {
         if (fileExt($srcFile) !== 'scss') { // skip any non-scss files
@@ -69,7 +75,6 @@ class Scss
         }
         $css = self::compileFileToString($srcFile);
         writeFile($targetFile, $css);
-        mylog("SCSS: '$targetFile' compiled");
     } // compileFile
 
 

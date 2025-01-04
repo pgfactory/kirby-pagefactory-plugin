@@ -51,13 +51,13 @@ class Frontmatter
                 }
 
             } elseif (str_contains('description,keywords,author', $key)) {
-                PageFactory::$pg->addHead("  <meta name='$key' content='$value'>\n");
+                Page::addHead("  <meta name='$key' content='$value'>\n");
 
             } elseif ($key === 'robots') {
-                PageFactory::$pg->applyRobotsAttrib($value);
+                Page::applyRobotsAttrib($value);
 
             } elseif ($key === 'head') {
-                PageFactory::$pg->addHead($value);
+                Page::addHead($value);
 
             } elseif ($key === 'wrappertag') {
                 $wrapperTag = $value;
@@ -74,13 +74,13 @@ class Frontmatter
                 self::$sectionsScss = $value;
 
             } elseif ($key === 'js') {
-                PageFactory::$pg->addJs($value);
+                Page::addJs($value);
 
             } elseif ($key === 'jsready') {
-                PageFactory::$pg->addJsReady($value);
+                Page::addJsReady($value);
 
             } elseif ($key === 'jq') {
-                PageFactory::$pg->addJq($value);
+                Page::addJq($value);
 
             } elseif ($key === 'assets') {
                 $assets = Yaml::decode($value);
@@ -110,11 +110,11 @@ class Frontmatter
     {
         if (self::$sectionsCss) {
             self::$sectionsCss = str_replace(['#this', '.this'], ["#$wrapperId", ".$wrapperId"], self::$sectionsCss);
-            PageFactory::$pg->addCss(self::$sectionsCss);
+            Page::addCss(self::$sectionsCss);
         }
         if (self::$sectionsScss) {
             self::$sectionsScss = str_replace(['#this', '.this'], ["#$wrapperId", ".$wrapperId"], self::$sectionsScss);
-            PageFactory::$pg->addScss(self::$sectionsScss);
+            Page::addScss(self::$sectionsScss);
         }
     } // propagaterStyles
 

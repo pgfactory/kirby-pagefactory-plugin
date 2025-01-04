@@ -21,12 +21,19 @@ class SiteNav
     private static string|null $defaultNav = null;
 
 
+    /**
+     * @return void
+     */
     public static function init(): void
     {
         $tree = site()->children()->listed();
         self::$siteStruct = self::_parseSite($tree);
     } // init
 
+    /**
+     * @param $subtree
+     * @return array
+     */
     private static function _parseSite($subtree)
     {
         $out = [];

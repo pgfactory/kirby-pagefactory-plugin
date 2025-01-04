@@ -65,7 +65,7 @@ define('SYSTEM_ASSETS', [
 
 class Assets
 {
-    private static array $assetGroups = ASSET_URL_DEFINITIONS;
+    private static array $assetUrlDefinitions = ASSET_URL_DEFINITIONS;
     private static array $aggregatedAssets = DEFAULT_AGGREGATED_ASSETS;
     private static array $assetsLocation = DEFAULT_SCSS_ASSET_LOCATIONS;
     private static array $cssAssets = [];
@@ -74,24 +74,36 @@ class Assets
     private static array $jsPriorityAssets = [];
 
 
-
+    /**
+     * @param mixed $asset
+     * @return void
+     */
     public static function addCssFiles(mixed $asset): void
     {
         self::$cssAssets[] = $asset;
     } // addCssFiles
 
 
+    /**
+     * @param mixed $asset
+     * @return void
+     */
     public static function addJsFiles(mixed $asset): void
     {
         self::$jsAssets[] = $asset;
     } // addJqFiles
 
 
+    /**
+     * @param mixed $asset
+     * @return void
+     * @throws Exception
+     */
     public static function addAssets(mixed $asset): void
     {
         if (is_string($asset) && ctype_upper($asset)) {
-            if (in_array($asset, array_keys(self::$assetGroups))) {
-                $asset = self::$assetGroups[$asset];
+            if (in_array($asset, array_keys(self::$assetUrlDefinitions))) {
+                $asset = self::$assetUrlDefinitions[$asset];
             } else {
                 throw new Exception("Unknown asset group: '$asset'.");
             }
@@ -123,18 +135,30 @@ class Assets
     } // addAssets
 
 
+    /**
+     * @param array $assetGroups
+     * @return void
+     */
     public static function addAssetGroups(array $assetGroups): void
     {
-        self::$assetGroups += $assetGroups;
+        self::$assetUrlDefinitions += $assetGroups;
     } // addAssetGroups
 
 
+    /**
+     * @param array $assets
+     * @return void
+     */
     public static function addAggregatedAssets(array $assets): void
     {
         self::$aggregatedAssets += $assets;
     } // addAggregatedAssets
 
 
+    /**
+     * @param array $assets
+     * @return void
+     */
     public static function addAssetLocation(array $assets): void
     {
         self::$assetsLocation += $assets;
@@ -142,6 +166,10 @@ class Assets
 
 
     // === compiling ========================================
+    /**
+     * @return void
+     * @throws \ScssPhp\ScssPhp\Exception\SassException
+     */
     public static function compileAssets(): void
     {
         // compile aggregated system assets:
@@ -179,6 +207,9 @@ class Assets
 
 
     // === rendering ========================================
+    /**
+     * @return string
+     */
     public static function renderCssLoadingCode(): string
     {
         $cssAssets = array_merge(array_keys(self::$cssPriorityAssets), SYSTEM_ASSETS['css']);
@@ -212,6 +243,9 @@ class Assets
     } // renderCssLoadingCode
 
 
+    /**
+     * @return string
+     */
     public static function renderJsLoadingCode(): string
     {
         $jsAssets = array_merge(array_keys(self::$jsPriorityAssets), SYSTEM_ASSETS['js']);
@@ -238,6 +272,10 @@ class Assets
     } // renderJsLoadingCode
 
 
+    /**
+     * @param string $cssOrJs
+     * @return array
+     */
     private static function addPageAssets(string $cssOrJs): array
     {
         $pageAssets = [];
@@ -271,6 +309,10 @@ class Assets
     } // reset
 
 
+    /**
+     * @return void
+     * @throws \ScssPhp\ScssPhp\Exception\SassException
+     */
     private static function compileAggregatedAssets(): void
     {
         foreach (self::$aggregatedAssets as $destFile => $srcPath) {

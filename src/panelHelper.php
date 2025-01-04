@@ -156,7 +156,6 @@ function onPageCreateAfter(Kirby\Cms\Page $page)
     if (!file_exists($origMetaFile)) {
         return;
     }
-//    file_put_contents($origMetaFile, "\n\n----\n\nContentblocks: x\n\n----\n\n", FILE_APPEND);
     rename($origMetaFile, $newMetaFile);
 } // onPageCreateAfter
 

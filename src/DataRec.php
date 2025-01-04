@@ -17,6 +17,12 @@ class DataRec
     public $_origRecKey;
     public $maxRecLockTime;
 
+    /**
+     * @param $recKey
+     * @param $recData
+     * @param $parent
+     * @throws \Exception
+     */
     public function __construct($recKey, $recData, $parent = null)
     {
         $this->_origRecKey = $recKey;
@@ -90,6 +96,13 @@ class DataRec
      * @return mixed
      * @throws \Exception
      */
+    /**
+     * @param $recKey
+     * @param $value
+     * @param bool $flush
+     * @return mixed
+     * @throws \Exception
+     */
     public function update($recKey, $value = null, bool $flush = false): mixed
     {
         if ($this->isLocked()) {
@@ -157,6 +170,9 @@ class DataRec
     } // remove
 
 
+    /**
+     * @return void
+     */
     public function flush(): void
     {
         $this->parent->flush();

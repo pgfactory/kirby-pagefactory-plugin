@@ -61,7 +61,7 @@ EOT;
             }
         }
         $js .= "})\n";
-        PageFactory::$pg->addJsReady($js);
+        Page::addJsReady($js);
     } // loadAssets
 
 

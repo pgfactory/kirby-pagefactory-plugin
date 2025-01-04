@@ -11,6 +11,9 @@ class Extensions
     public static array $loadedExtensionObjects = [];
 
 
+    /**
+     * @return void
+     */
     public static function findExtensions()
     {
         $extensions = getDir(rtrim(PFY_PAGEFACTORY_PATH, '/').'-*');
@@ -34,15 +37,7 @@ class Extensions
                     return;
                 }
 
-                // load extension's variables:
-                $files = getDir($extPath.'variables/');
-                if (is_array($files)) {
-                    foreach ($files as $file) {
-                        TransVars::loadVariables($file, doTranslate: true);
-                    }
-                }
-
-                // === load index.php now:
+                // === load index.php to get extension's class name:
                 $extensionClassName = require_once $indexFile;
                 if (!is_string($extensionClassName)) {
                     return;
@@ -55,19 +50,8 @@ class Extensions
                     return;
                 }
 
-                $obj = new $extensionClass();
+                $obj = new $extensionClass(); // -> initialize extension
                 self::$loadedExtensionObjects[] = $obj;
-
-                // check for and load extension's asset-definitions:
-                if (method_exists($obj, 'getAssetDefs')) {
-                    $newAssets = $obj->getAssetDefs();
-                    Page::$definitions = array_merge_recursive(Page::$definitions, ['assets' => $newAssets]);
-                }
-
-                // check for and load extension's url-request handlers:
-                if (method_exists($obj, 'handleUrlRequests')) {
-                    $obj->handleUrlRequests();
-                }
             }
         }
     } // loadExtensions
@@ -88,6 +72,10 @@ class Extensions
     } // extensionsFinalCode
 
 
+    /**
+     * @return void
+     * @throws \Exception
+     */
     public static function reset(): void
     {
         foreach (self::$loadedExtensions as $path) {

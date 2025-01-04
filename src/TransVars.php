@@ -51,6 +51,10 @@ class TransVars
     } // init
 
 
+    /**
+     * @param string $str
+     * @return string
+     */
     public static function preprocess(string $str): string
     {
         $p1end = 0;

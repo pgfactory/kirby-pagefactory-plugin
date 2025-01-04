@@ -41,6 +41,9 @@ class Utils
      * @throws \Kirby\Exception\LogicException|\Kirby\Exception\InvalidArgumentException
      */
 
+    /**
+     * @return void
+     */
     public static function prepareUserRelatedVars(): void
     {
         if (Extensions::$loadedExtensions['PageElements']??false) {
@@ -79,13 +82,19 @@ class Utils
     } // prepareUserRelatedVars
 
 
+    /**
+     * @return void
+     */
     public static function queuePfyIconDefinitions(): void
     {
         $pfyIcons = svg(PFY_APP_BASE_PATH.'site/plugins/pagefactory/assets/icons/_pfy-icons.svg');
-        PageFactory::$pg->addBodyEndInjections($pfyIcons);
+        Page::addBodyEndInjections($pfyIcons);
     } // queuePfyIconDefinitions
 
 
+    /**
+     * @return string
+     */
     public static function renderHeadTitle(): string
     {
         $headTitle = TransVars::getVariable('headTitle');
@@ -98,6 +107,10 @@ class Utils
     } // renderHeadTitle
 
 
+    /**
+     * @return string
+     * @throws Kirby\Exception\LogicException
+     */
     public static function renderGenerator(): string
     {
         if (PageFactory::$dev) {
@@ -110,6 +123,9 @@ class Utils
     } // renderGenerator
 
 
+    /**
+     * @return string
+     */
     public static function renderHomeLink(): string
     {
         if (PFY_PAGE_URL !== PFY_APP_BASE_URL) {
@@ -126,6 +142,9 @@ class Utils
     } // renderHomeLink
 
 
+    /**
+     * @return string
+     */
     public static function renderAdminPanelLink(): string
     {
         $pfyAdminPanelLinkText = TransVars::getVariable('pfy-admin-panel-link-text');
@@ -133,6 +152,10 @@ class Utils
     } // renderAdminPanelLink
 
 
+    /**
+     * @return string
+     * @throws Exception
+     */
     public static function renderSmallScreenHeader(): string
     {
         self::$menuIcon = $menuIcon = self::renderPfyIcon('menu');
@@ -149,9 +172,12 @@ EOT;
     } // renderSmallScreenHeader
 
 
+    /**
+     * @return string
+     */
     public static function renderBodyTagClasses(): string
     {
-        $bodyTagClasses   = PageFactory::$pg->bodyTagClasses ?: 'pfy-large-screen';
+        $bodyTagClasses   = Page::get('bodyTagClasses') ?: 'pfy-large-screen';
         if (isAdmin()) {
             $bodyTagClasses .= ' pfy-admin pfy-loggedin';
         } elseif (Permission::isLoggedIn()) {
@@ -293,12 +319,12 @@ EOT;
                         if ($a === true || $a === 'true') {
                             $a = '*';
                         }
-                        PageFactory::$pg->addBodyTagClass('pfy-export-as-iframe');
+                        Page::addBodyTagClass('pfy-export-as-iframe');
                         header("Access-Control-Allow-Origin: $a");
                     }
                     break;
                 case 'bust':  // ?bust
-                    PageFactory::$assets->activateBrowserCacheBusting();
+                    Assets::activateBrowserCacheBusting();
                     break;
             }
         }
@@ -333,7 +359,7 @@ setTimeout(function() {
 }, 1200);
 
 EOT;
-        PageFactory::$pg->addJq($jq);
+        Page::addJq($jq);
         self::preparePrintVariables();
     } // printPreview
 
@@ -360,7 +386,7 @@ setTimeout(function() {
 EOT;
 
 
-        PageFactory::$pg->addJq($jq);
+        Page::addJq($jq);
         self::preparePrintVariables();
     } // print
 
@@ -383,7 +409,7 @@ body {
     --pfy-url: '$url';
 }
 EOT;
-        PageFactory::$pg->addCss($css);
+        Page::addCss($css);
     } // preparePrintVariables
 
 
@@ -408,7 +434,7 @@ EOT;
 
 You need to be logged in as Admin to use this system command.
 EOT;
-                PageFactory::$pg->setOverlay($str, true);
+                Page::setOverlay($str, true);
                 continue;
             }
 
@@ -498,7 +524,7 @@ You need to be logged in as Admin to see requested information.
 
 EOT;
             }
-            PageFactory::$pg->setOverlay($str);
+            Page::setOverlay($str);
         }
     } // showHelp
 
@@ -519,7 +545,7 @@ EOT;
 <h1>Variables</h1>
 $html
 EOT;
-            PageFactory::$pg->setOverlay($str, false);
+            Page::setOverlay($str, false);
 
         // show macros:
         } elseif ((isset($_GET['functions']) || isset($_GET['macros'])) && isAdminOrLocalhost()) {
@@ -528,7 +554,7 @@ EOT;
 <h1>Macros</h1>
 $html
 EOT;
-            PageFactory::$pg->setOverlay($str, false);
+            Page::setOverlay($str, false);
         }
     } // handleAgentRequestsOnRenderedPage
 
@@ -740,7 +766,7 @@ EOT;
         if (!isset($_GET['ajax'])) {
             $session = kirby()->session();
             if ($msg = $session->pull('pfy.message')) {
-                PageFactory::$pg->setMessage($msg);
+                Page::setMessage($msg);
             }
         }
     } // showPendingMessage

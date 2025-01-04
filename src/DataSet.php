@@ -139,6 +139,9 @@ class DataSet
     } // __construct
 
 
+    /**
+     *
+     */
     public function __destruct()
     {
         $this->unlockDatasource();

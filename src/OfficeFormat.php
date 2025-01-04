@@ -13,6 +13,9 @@ class OfficeFormat
     private $spreadsheet;
     private $sheet;
 
+    /**
+     * @param $data
+     */
     public function __construct($data)
     {
         $this->spreadsheet = new Spreadsheet();
@@ -33,6 +36,10 @@ class OfficeFormat
     } // __construct
 
 
+    /**
+     * @param string $file
+     * @return void
+     */
     public function export(string $file): void
     {
         $this->exportToXlsx($file);
@@ -40,6 +47,11 @@ class OfficeFormat
     } // export
 
 
+    /**
+     * @param string $file
+     * @return void
+     * @throws \PhpOffice\PhpSpreadsheet\Writer\Exception
+     */
     public function exportToXlsx(string $file): void
     {
         $file = resolvePath($file);

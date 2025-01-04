@@ -550,7 +550,7 @@ EOT;
 const zoom = mediumZoom('.pfy-quickview', {background:'#444', margin:4});
 
 EOT;
-            PageFactory::$pg->addJsReady($js);
+            Page::addJsReady($js);
         }
     } // prepareQuickview
 

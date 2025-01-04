@@ -1,45 +1,29 @@
 <?php
 
-/**
- * This is the engine that accepts elements and at the end churns out the final page components.
- * The final step of assembling those components is done by PageFactory->assembleHtml().
- */
-
 namespace PgFactory\PageFactory;
 
 
+use PgFactory\MarkdownPlus\MdPlusHelper;
 use ScssPhp\ScssPhp\Exception\SassException;
 
 class Page
 {
-    public static string $content = '';
-    public string $headInjections = '';
-    public string $bodyEndInjections = '';
-    public string $bodyTagClasses = '';
-    public string $bodyTagAttributes = '';
-    public array $pageParams = [];
-    public string $css = '';
-    public string $scss = '';
-    public string $js = '';
-    public string $jsWhenReady = '';
+    private static string $content = '';
+    private static string $headInjections = '';
+    public static string $bodyEndInjections = '';
+    public static string $bodyTagClasses = '';
+    public static string $bodyTagAttributes = '';
+    public static string $css = '';
+    public static string $scss = '';
+    public static string $js = '';
+    public static string $jsWhenReady = '';
 
-    public array $override = [];
+    public static array $override = [];
 
-    private string|bool  $robots = false;
-    public array|null $asset = [];
-    private string|false $overrideContent = false;
+    private static string|bool  $robots = false;
+    public static array|null $asset = [];
+    private static string|false $overrideContent = false;
     public static array|null $definitions;
-    private object $pfy;
-
-
-    /**
-     * @param $pfy
-     */
-    public function __construct($pfy)
-    {
-        $this->pfy = $pfy;
-        self::$definitions['assets'] = ASSET_URL_DEFINITIONS;
-    } // __construct
 
 
 
@@ -50,7 +34,7 @@ class Page
      * Tells PageExtruder to make sure jsFramework will be loaded.
      * @return void
      */
-    public function requireFramework(): void
+    public static function requireFramework(): void
     {
         //ToDo
         // Assets::requireFramework();
@@ -62,9 +46,9 @@ class Page
      * @param string $key
      * @return mixed
      */
-    public function get(string $key): mixed
+    public static function get(string $key): mixed
     {
-        return $this->$key ?? null;
+        return self::$$key ?? null;
     } // get
 
 
@@ -73,9 +57,9 @@ class Page
      * @param string $key
      * @param $value
      */
-    public function set(string $key, $value): void
+    public static function set(string $key, $value): void
     {
-        $this->$key = $value;
+        self::$$key = $value;
     }
 
 
@@ -85,13 +69,13 @@ class Page
      * @param string $key
      * @param $value
      */
-    public function append(string $key, $value): void
+    public static function append(string $key, $value): void
     {
         if (PageFactory::$renderingClosed && !str_contains(PageFactory::$page->$key()->value, $value)) {
             PageFactory::$page->$key()->value .= $value;
 
-        } elseif (!str_contains($this->$key, $value)) {
-            $this->$key .= $value;
+        } elseif (!str_contains(self::$$key, $value)) {
+            self::$$key .= $value;
         }
     } // append
 
@@ -100,9 +84,9 @@ class Page
      * Accepts a string to be injected into the <head> element
      * @param $str
      */
-    public function addHead($str): void
+    public static function addHead($str): void
     {
-        $this->append('headInjections', $str);
+        self::append('headInjections', $str);
     }
 
 
@@ -110,9 +94,9 @@ class Page
      * @param bool|string $robots
      * @return void
      */
-    public function applyRobotsAttrib(bool|string $robots = true): void
+    public static function applyRobotsAttrib(bool|string $robots = true): void
     {
-        $this->robots = $robots;
+        self::$robots = $robots;
     } // applyRobotsAttrib
 
 
@@ -120,18 +104,18 @@ class Page
      * Accepts a string which will replace the original page content.
      * @param string $str
      */
-    public function overrideContent(string $str, bool $compile = true): void
+    public static function overrideContent(string $str, bool $compile = true): void
     {
         if ($compile) {
             $str = TransVars::compile($str, forTwig: false);
         }
-        $this->overrideContent = $str;
+        self::$overrideContent = $str;
 
         // save states of in-text assets:
-        $this->override['css'] = $this->css; $this->css = '';
-        $this->override['scss'] = $this->scss; $this->scss = '';
-        $this->override['js'] = $this->js; $this->js = '';
-        $this->override['jsWhenReady'] = $this->jsWhenReady; $this->jsWhenReady = '';
+        self::$override['css'] = self::$css; self::$css = '';
+        self::$override['scss'] = self::$scss; self::$scss = '';
+        self::$override['js'] = self::$js; self::$js = '';
+        self::$override['jsWhenReady'] = self::$jsWhenReady; self::$jsWhenReady = '';
     } // overrideContent
 
 
@@ -140,7 +124,7 @@ class Page
      * @param string $str
      * @param bool $mdCompile
      */
-    public function setOverlay(string $str, bool $mdCompile = true): void
+    public static function setOverlay(string $str, bool $mdCompile = true): void
     {
         if (isset(Extensions::$availableExtensions['pageelements'])) {
             $pe = new \PgFactory\PageFactoryElements\Overlay();
@@ -175,7 +159,7 @@ EOT;
      * @param bool $mdCompile
      * @return void
      */
-    public function setMessage(string $str, bool $mdCompile = true): void
+    public static function setMessage(string $str, bool $mdCompile = true): void
     {
         if (isset(Extensions::$availableExtensions['pageelements'])) {
             $pe = new \PgFactory\PageFactoryElements\Message();
@@ -186,7 +170,7 @@ EOT;
             if ($mdCompile) {
                 $str = compileMarkdown($str);
             }
-            $this->addjsReady("window.alert('$str')");
+            self::addjsReady("window.alert('$str')");
         }
     } // setMessage
 
@@ -197,7 +181,7 @@ EOT;
      * @param $mdCompile
      * @return void
      */
-    public function setPopup(string $str, string $header, $mdCompile = true): void
+    public static function setPopup(string $str, string $header, $mdCompile = true): void
     {
         if (isset(Extensions::$availableExtensions['pageelements'])) {
             $pe = new \PgFactory\PageFactoryElements\Popup();
@@ -208,7 +192,7 @@ EOT;
             if ($mdCompile) {
                 $str = compileMarkdown($str);
             }
-            $this->addjsReady("window.alert('$str')");
+            self::addjsReady("window.alert('$str')");
         }
     } // setMessage
 
@@ -217,9 +201,9 @@ EOT;
      * Accepts classes to be injected into the body's class attribute
      * @param $str
      */
-    public function addBodyTagClass($str): void
+    public static function addBodyTagClass($str): void
     {
-        $this->append('bodyTagClasses', "$str ");
+        self::append('bodyTagClasses', "$str ");
     }
 
 
@@ -227,9 +211,9 @@ EOT;
      * Accepts attributes to be injected into the <body> tag
      * @param $str
      */
-    public function addBodyTagAttributes($str): void
+    public static function addBodyTagAttributes($str): void
     {
-        $this->append('bodyTagAttributes', "$str ");
+        self::append('bodyTagAttributes', "$str ");
     }
 
 
@@ -237,9 +221,9 @@ EOT;
      * Accepts a string to be injected just before the </body> tag
      * @param $str
      */
-    public function addBodyEndInjections($str): void
+    public static function addBodyEndInjections($str): void
     {
-        $this->append('bodyEndInjections', trim($str, "\t\n ")."\n");
+        self::append('bodyEndInjections', trim($str, "\t\n ")."\n");
     } // addBodyEndInjections
 
 
@@ -247,9 +231,9 @@ EOT;
      * Accepts styles to be injected into the <head> element
      * @param string $str
      */
-    public function addCss(string $str):void
+    public static function addCss(string $str):void
     {
-        $this->append('css', trim($str, "\t\n ")."\n");
+        self::append('css', trim($str, "\t\n ")."\n");
     }
 
 
@@ -257,9 +241,9 @@ EOT;
      * Same as addCss(), but compiles SCSS first
      * @param string $str
      */
-    public function addScss(string $str):void
+    public static function addScss(string $str):void
     {
-        $this->append('scss', trim($str, "\t\n ")."\n");
+        self::append('scss', trim($str, "\t\n ")."\n");
     }
 
 
@@ -267,9 +251,9 @@ EOT;
      * Accepts JS code to be injected at the end of the <body> element, but before js-files are loaded
      * @param string $str
      */
-    public function addJs(string $str):void
+    public static function addJs(string $str):void
     {
-        $this->append('js', trim($str, "\t\n ")."\n");
+        self::append('js', trim($str, "\t\n ")."\n");
     }
 
 
@@ -277,9 +261,9 @@ EOT;
      * Accepts jsFramework code (without the ready-statement) and injects it after loading instructions of js/jsReady-files
      * @param string $str
      */
-    public function addJsReady(string $str):void
+    public static function addJsReady(string $str):void
     {
-        $this->append('jsWhenReady', trim($str, "\t\n ")."\n");
+        self::append('jsWhenReady', trim($str, "\t\n ")."\n");
     }
 
 
@@ -289,7 +273,7 @@ EOT;
      * @param bool $treatAsJsReady
      * @return void
      */
-    public function addAssets(mixed $assets, bool $treatAsJsReady = false): void
+    public static function addAssets(mixed $assets, bool $treatAsJsReady = false): void
     {
         if (PageFactory::$renderingClosed) {
             throw new \Exception("Error: a Macro is trying to queue a resource after page rendering has finished.");
@@ -303,10 +287,10 @@ EOT;
      * @param string $html
      * @return string
      */
-    public function renderBody(string $html): string
+    public static function renderBody(string $html): string
     {
-        if ($this->overrideContent) {
-            $html = $this->overrideContent;
+        if (self::$overrideContent) {
+            $html = self::$overrideContent;
             $html = TransVars::resolveVariables($html);
         }
         return $html;
@@ -319,31 +303,31 @@ EOT;
      * @return string
      * @throws SassException
      */
-    public function renderHeadInjections(): string
+    public static function renderHeadInjections(): string
     {
         // check config settings, whether default-nav should be activated:
         if (PageFactory::$config['default-nav']) {
-            $this->addAssets('NAV');
+            self::addAssets('NAV');
         }
 
         // add misc elements from content/site.txt and the current page's frontmatter:
-        $html  = $this->getHeaderElem('head');
-        $html .= $this->getHeaderElem('description');
-        $html .= $this->getHeaderElem('keywords');
-        $html .= $this->getHeaderElem('author');
-        $html .= $this->getRobotsElem();
+        $html  = self::getHeaderElem('head');
+        $html .= self::getHeaderElem('description');
+        $html .= self::getHeaderElem('keywords');
+        $html .= self::getHeaderElem('author');
+        $html .= self::getRobotsElem();
 
         // add injections that had been supplied explicitly:
-        $html .= $this->headInjections;
+        $html .= self::$headInjections;
 
         // add CSS-Files loading instructions:
         $html .= Assets::renderCssLoadingCode();
 
         // add CSS-Code (compile if it's SCSS):
-        $css = $this->css ? "$this->css\n" : '';
+        $css = self::$css ? self::$css."\n" : '';
         $css .= PageFactory::$page->css()->value() ?? '';
 
-        $scss = $this->scss ? "$this->scss\n" : '';
+        $scss = self::$scss ? self::$scss."\n" : '';
         $scss .= PageFactory::$page->scss()->value() ?? ''; // scss from meta-file
 
         if ($scss) {
@@ -365,19 +349,21 @@ EOT;
      * Assembles and renders the body-end-injections, i.e. js-code and js-files loading instructions
      * @return string
      */
-    public function renderBodyEndInjections(): string
+    public static function renderBodyEndInjections(): string
     {
+        self::addBodyEndInjections(MdPlusHelper::getBodyEndInjections());
+
         // case override: restore assets to time of override-invokation:
-        if ($this->overrideContent) {
-            $this->css = $this->override['css'];
-            $this->scss = $this->override['scss'];
-            $this->js = $this->override['js'];
-            $this->jsWhenReady = $this->override['jsWhenReady'];
+        if (self::$overrideContent) {
+            self::$css = self::$override['css'];
+            self::$scss = self::$override['scss'];
+            self::$js = self::$override['js'];
+            self::$jsWhenReady = self::$override['jsWhenReady'];
         }
 
         $jsInjection = '';
         $jsReadyInjection = '';
-        $miscInjection = "\n$this->bodyEndInjections";
+        $miscInjection = "\n".self::$bodyEndInjections;
         $screenSizeBreakpoint = PageFactory::$config['screenSizeBreakpoint']??false;
         $screenSizeBreakpoint = $screenSizeBreakpoint ?: 480;
 
@@ -387,7 +373,7 @@ EOT;
         $js .= "const loggedinUser = '" .   PageFactory::$userName . "';\n";
         $js .= "const currLang = '" .       PageFactory::$langCode . "';\n";
         $js .= "const pageLoaded =          Math.floor(Date.now()/1000);\n";
-        $js .= $this->js ? "$this->js\n": '';
+        $js .= self::$js ? self::$js."\n": '';
         $js .= PageFactory::$page->js()->value() ?? '';
 
         if ($js) {
@@ -408,7 +394,7 @@ $js
 EOT;
         }
 
-        $jsWhenReady = $this->jsWhenReady ? "$this->jsWhenReady\n": '';
+        $jsWhenReady = self::$jsWhenReady ? self::$jsWhenReady."\n": '';
         $jsWhenReady .= PageFactory::$page->jsWhenReady()->value() ?? '';
         if ($jsWhenReady) {
             $jsWhenReady = "\t\t\t".str_replace("\n", "\n\t\t\t", rtrim($jsWhenReady, "\n"));
@@ -443,7 +429,7 @@ EOT;
      * @param string $name
      * @return string
      */
-    private function getHeaderElem(string $name): string
+    private static function getHeaderElem(string $name): string
     {
         // checks page-attrib, then site-attrib for requested keyword and returns it
         $out = PageFactory::$page->$name()->value() ?? '';
@@ -468,9 +454,9 @@ EOT;
     /**
      * @return string
      */
-    private function getRobotsElem()
+    private static function getRobotsElem()
     {
-        $robots = ($this->robots !== 'false') ? $this->robots: false;
+        $robots = (self::$robots !== 'false') ? self::$robots: false;
         $robots2 = (PageFactory::$page->robots()->value() ?? false);
         $robots3 = (PageFactory::$config['robots'] ?? false);
         if ($robots || $robots2 || $robots3) {

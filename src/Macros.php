@@ -65,12 +65,21 @@ class Macros
     } // executeMacros
 
 
+    /**
+     * @param string $macroName
+     * @return bool
+     */
     public static function exists(string $macroName): bool
     {
         return in_array($macroName, self::$macros);
     } // exists
 
 
+    /**
+     * @param string $macroName
+     * @param string $argStr
+     * @return string|false
+     */
     public static function execute(string $macroName, string $argStr): string|false
     {
         if (function_exists("PgFactory\\PageFactory\\_$macroName")) {
@@ -435,6 +444,9 @@ EOT;
     } // extractedAuxOptions
 
 
+    /**
+     * @return void
+     */
     public static function initMacros(): void
     {
         $macros = self::getMacros();

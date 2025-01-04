@@ -117,6 +117,14 @@ EOT;
     } // render
 
 
+    /**
+     * @param $str
+     * @param $pattern
+     * @param $position
+     * @param $postfix
+     * @return mixed|string
+     * @throws \Exception
+     */
     private static function doHighlight($str, $pattern, $position = 0, $postfix = '')
     {
         list($p1, $p2) = strPosMatching($str, $position, $pattern, $pattern);
