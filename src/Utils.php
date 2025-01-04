@@ -97,7 +97,7 @@ class Utils
      */
     public static function renderHeadTitle(): string
     {
-        $headTitle = TransVars::getVariable('headTitle');
+        $headTitle = TransVars::getVariable('headTitle', false);
         if (!$headTitle) {
             $headTitle = page()->title() . " / " . site()->title();
         } else {

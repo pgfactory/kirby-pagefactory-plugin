@@ -218,7 +218,7 @@ class TransVars
                         $out = PageFactory::$page->$varName1()->toBlocks()->toHtml();
                     }
                 } catch (\Exception $e) {
-                    $out = $varName1;
+                    $out = $varNameIfNotFound ? $varName1 : false;
                 }
             } else {
                 $out = self::$variables[$varName1];

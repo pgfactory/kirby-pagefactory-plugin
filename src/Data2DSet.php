@@ -228,6 +228,10 @@ class Data2DSet extends DataSet
         } elseif (is_array($value)) {
             $newValue = json_encode($value);
         }
+
+        if (($this->options2d['obfuscateRows']??false) && in_array($key, $this->options2d['obfuscateRows'])) {
+            $newValue = '*****';
+        }
         return $newValue;
     } // normalizeDataElement
 
