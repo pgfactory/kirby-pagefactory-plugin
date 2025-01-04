@@ -813,6 +813,9 @@ EOT;
     {
         // check config setting:
         if ($l = kirby()->option('pgfactory.pagefactory.options.locale')) {
+            if ($l === 'auto') {
+                $l = PageFactory::$langCode . '_' . strtoupper(PageFactory::$langCode);
+            }
             return $l;
         }
         // get locale from agent:
