@@ -44,6 +44,43 @@ class Utils
     /**
      * @return void
      */
+    public static function importKirbyFieldsToVariables(): void
+    {
+        $fields = page()->content()->fields();
+        foreach ($fields as $key => $field) {
+            $value = $field->value();
+            // check whether it's a content block, unpack it if necessary:
+            if ($value && str_starts_with($value, '[{')) {
+                $value = $field->toBlocks()->toHtml();
+            }
+            TransVars::setVariable($key, $value, propagateToField: false);
+        }
+    } // importKirbyFieldsToVariables
+
+
+    /**
+     * @return void
+     */
+    public static function prepareGenericVariables(): void
+    {
+        TransVars::setVariable('today', date('Y-m-d'));
+        TransVars::setVariable('now', date('Y-m-d H:i'));
+        TransVars::setVariable('pageTitle', page()->title()->value());
+        TransVars::setVariable('siteTitle', site()->title()->value());
+
+        $headTitle = TransVars::getVariable('headTitle', false);
+        if (!$headTitle) {
+            $headTitle = page()->title() . " / " . site()->title();
+        }
+        $headTitle = TransVars::translate($headTitle);
+        TransVars::setVariable('headTitle', $headTitle);
+    } // prepareGenericVariables
+
+
+
+    /**
+     * @return void
+     */
     public static function prepareUserRelatedVars(): void
     {
         if (Extensions::$loadedExtensions['PageElements']??false) {
@@ -84,6 +121,44 @@ class Utils
 
     /**
      * @return void
+     * @throws Exception
+     */
+    public static function prepareWebmasterEmail(): void
+    {
+        if (file_exists(PFY_WEBMASTER_EMAIL_CACHE)) {
+            $webmasterEmail = file_get_contents(PFY_WEBMASTER_EMAIL_CACHE);
+        } else {
+            if (!($webmasterEmail = PageFactory::$config['webmaster_email'] ?? false)) {
+                $webmasterEmail = TransVars::getVariable('webmaster_email');
+            }
+            if ($webmasterEmail) {
+                PageFactory::$webmasterEmail = $webmasterEmail;
+            } else {
+                // default webmaster email derived from current domain:
+                $domain = preg_replace('|^https?://([\w.-]+)(.*)|', "$1", site()->url());
+
+                // for localhost: create pseudo
+                if (str_contains($domain, 'localhost')) {
+                    $domain .= '.net';
+                }
+                PageFactory::$webmasterEmail = $webmasterEmail = 'webmaster@' . $domain;
+            }
+            preparePath(PFY_WEBMASTER_EMAIL_CACHE);
+            file_put_contents(PFY_WEBMASTER_EMAIL_CACHE, $webmasterEmail);
+        }
+        TransVars::setVariable('webmaster_email', $webmasterEmail);
+        PageFactory::$webmasterEmail = $webmasterEmail;
+
+        $webmasterLink = Link::render([
+            'url' => "mailto:$webmasterEmail",
+            'text' => 'Webmaster',
+        ]);
+        TransVars::setVariable('pfy-webmaster-link', $webmasterLink);
+    } // prepareWebmasterEmail
+
+
+    /**
+     * @return void
      */
     public static function queuePfyIconDefinitions(): void
     {
@@ -97,13 +172,7 @@ class Utils
      */
     public static function renderHeadTitle(): string
     {
-        $headTitle = TransVars::getVariable('headTitle', false);
-        if (!$headTitle) {
-            $headTitle = page()->title() . " / " . site()->title();
-        } else {
-            $headTitle = TransVars::translate($headTitle);
-        }
-        return $headTitle;
+        return TransVars::getVariable('headTitle', false);
     } // renderHeadTitle
 
 
@@ -564,7 +633,7 @@ EOT;
      * @param string $html
      * @return string
      */
-    public static function resolveUrls(string $html): string
+    public static function resolveUrls(string $html, bool $forResoucres = false): string
     {
         // special case: ~assets/ -> need to get url from Kirby:
         if (preg_match_all('|~assets/([^\s"\')]*)|', $html, $m)) {
@@ -579,7 +648,7 @@ EOT;
                 }
             }
         }
-        $appUrl = PFY_APP_BASE_URL . PFY_BASE_OFFSET;
+        $appUrl = $forResoucres ? PFY_APP_BASE_URL : PFY_APP_BASE_URL . PFY_BASE_OFFSET;
         $pageId = page()->id() . '/';
         // ~page/ for <a> tags -> replace without redir-offset:
         $html = preg_replace('|(<a\s+href=[\'"])~page/|', "$1".PFY_APP_BASE_URL.$pageId, $html);
@@ -589,10 +658,9 @@ EOT;
             '~/'        => $appUrl,
             '~download/'=> $appUrl.'download/',
             '~media/'   => $appUrl.'media/',
-            // ~page/ for <img> and other tags -> replace with redir-offset:
             '~page/'    => "$appUrl$pageId",
         ];
-        return str_replace(array_keys($patterns), array_values($patterns), $html);
+        return $html;
     } // resolveUrls
 
 

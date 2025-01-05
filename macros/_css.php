@@ -32,10 +32,8 @@ EOT,
     if (!$file = ($options['file']??false)) {
         throw new \Exception("Error: file '$file' not found");
     }
-    $file = resolvePath($file);
-    $file = Assets::translateToUrl($file);
-    $css = css($file);
-    $str .= str_replace(PFY_APP_BASE_URL, '/', $css);
+    $file = Utils::resolveUrls($file, forResoucres: true);
+    $str .= css($file);
 
     return $str;
 };

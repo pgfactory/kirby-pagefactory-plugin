@@ -150,11 +150,9 @@ class PageFactory
         if (!$pageFields) {
             self::init();
             Utils::prepareUserRelatedVars();
-            Utils::queuePfyIconDefinitions();
             $pageFields = [
                 'lang'                      => self::$langCode,
                 'baseUrl'                   => PFY_APP_BASE_URL,
-                'headTitle'                 => Utils::renderHeadTitle(),
                 'generator'                 => Utils::renderGenerator(),
                 'homeLink'                  => Utils::renderHomeLink(),
                 'adminPanelLink'            => Utils::renderAdminPanelLink(),
@@ -162,12 +160,16 @@ class PageFactory
                 'loginLink'                 => Utils::$loginLink,
                 'username'                  => self::$userName,
                 'loginButton'               => Utils::$loginButton,
-                'smallScreenHeader'         => Utils::renderSmallScreenHeader(),
-                'langSelection'             => Utils::renderLanguageSelector(),
-                'menuIcon'                  => Utils::$menuIcon,
 
                 'pageContent'               => $this->renderPageContent(),
 
+                // variables that might be defined in Frontmatter:
+                'headTitle'                 => Utils::renderHeadTitle(),
+                'smallScreenHeader'         => Utils::renderSmallScreenHeader(),
+                'menuIcon'                  => Utils::$menuIcon,
+                'langSelection'             => Utils::renderLanguageSelector(),
+
+                // the major page defining variables:
                 'headInjections'            => Page::renderHeadInjections(),
                 'bodyTagClasses'            => Utils::renderBodyTagClasses(),
                 'bodyTagAttributes'         => Page::get('bodyTagAttributes'),
@@ -212,7 +214,9 @@ class PageFactory
      */
     private function init(): void
     {
+        Utils::importKirbyFieldsToVariables();
         TransVars::init();
+        Utils::prepareWebmasterEmail();
 
         if (!file_exists(PFY_APP_BASE_PATH.'site/plugins/pagefactory/assets/css/-pagefactory.css')) {
             self::$forceAssetsUpdate = true;
@@ -232,12 +236,16 @@ class PageFactory
             Assets::compileAssets();
         }
 
-        TransVars::loadCustomVars();
+        // load custom variables:
+        TransVars::loadVariablesFromFolder('site/custom/variables/');
 
+        Utils::prepareGenericVariables();
         preparePath(PFY_LOGS_PATH);
         Utils::showPendingMessage();
         Utils::handleAgentRequests();
         Macros::initMacros();
+
+        Utils::queuePfyIconDefinitions();
     } // init
 
 

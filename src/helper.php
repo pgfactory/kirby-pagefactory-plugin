@@ -2329,6 +2329,16 @@ function strToASCII(string $str): string
 
 
  /**
+  * @param string $str
+  * @return string
+  */
+ function trimQuotes(string $str): string
+ {
+    return preg_replace('/^(["\']) (.*) \1$/x', "$2", $str);
+ } // trimQuotes
+
+
+ /**
   * Translates a given string to a legal filename
   * @param string $str
   * @param bool $appendExt

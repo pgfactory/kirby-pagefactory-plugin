@@ -5,10 +5,15 @@ namespace PgFactory\PageFactory;
 use PgFactory\PageFactory\Macros;
 use Kirby\Data\Yaml;
 use Kirby\Exception\InvalidArgumentException;
+use function PgFactory\PageFactoryElements\intlDateFormat as intlDateFormat;
+use function PgFactory\PageFactoryElements\intlDate;
+
+require_once PFY_APP_BASE_PATH . 'site/plugins/pagefactory-pageelements/src/pe_helper.php';
 
 class TransVars
 {
     public static array $variables = [];
+    private static array $tempVariables = [];
     public static array $transVars = [];
     public static array $funcIndexes = [];
     public static bool $noTranslate = false;
@@ -29,26 +34,15 @@ class TransVars
         self::$langCode = PageFactory::$langCode ?: $lang;
 
         // load PFY's standard variable definitions:
-        $files = getDir(PFY_APP_BASE_PATH . 'site/plugins/pagefactory/variables/*.yaml');
-        if (is_array($files)) {
-            foreach ($files as $file) {
-                self::loadVariables($file);
-            }
-        }
-
-        $fields = PageFactory::$page->content()->fields();
-        foreach ($fields as $key => $field) {
-            if (!str_ends_with($key, '_md')) {
-                $value = $field->value();
-                // check whether it's a content block, unpack it if necessary:
-                if ($value && str_starts_with($value, '[{')) {
-                    $value = $field->toBlocks()->toHtml();
-                }
-                self::$transVars[$key] = $value;
-            }
-        }
+        self::loadVariablesFromFolder('site/plugins/pagefactory/variables/', doTranslate: false);
         self::compileVars();
     } // init
+
+
+    public static function setTempVariables(array $variables): void
+    {
+        self::$tempVariables = $variables;
+    } // setTempVariables
 
 
     /**
@@ -109,17 +103,9 @@ class TransVars
 
         $html = str_replace(['\\{{', '\\}}', '\\('], ['{!!{', '}!!}', '⟮'], $html);
 
-        if ($forTwig) {
-            // add '|raw' to simple variables:
-            if (preg_match_all('/\{\{ ( [^}|(]+ ) }}/msx', $html, $m)) {
-                foreach ($m[1] as $i => $pattern) {
-                    $str = "$pattern|raw";
-                    $html = str_replace($m[0][$i], "{{ $str }}", $html);
-                }
-            }
-        }
         return $html;
     } // compile
+
 
 
     /**
@@ -127,17 +113,19 @@ class TransVars
      * @return void
      * @throws InvalidArgumentException
      */
-    public static function loadCustomVars(): void
+    public static function loadVariablesFromFolder(string $varPath, bool $doTranslate = true): void
     {
         // load custom variable definitions:
-        $files = getDir(PFY_APP_BASE_PATH . 'site/custom/variables/*.yaml');
+        $files = getDir(PFY_APP_BASE_PATH . $varPath . '*.yaml');
         if (is_array($files)) {
             foreach ($files as $file) {
-                self::loadVariables($file);
+                self::loadVariablesFromFile($file, false);
             }
-            self::compileVars();
+            if ($doTranslate) {
+                self::compileVars();
+            }
         }
-    } // loadCustomVars
+    } // loadVariablesFromFolder
 
 
     /**
@@ -146,7 +134,7 @@ class TransVars
      * @return void
      * @throws InvalidArgumentException
      */
-    public static function loadVariables(string $file, bool $doTranslate = false): void
+    public static function loadVariablesFromFile(string $file, bool $doTranslate): void
     {
         $transVars = loadFile($file);
         if ($transVars) {
@@ -164,7 +152,7 @@ class TransVars
                 }
             }
         }
-    } // loadVariables
+    } // loadVariablesFromFile
 
 
 
@@ -174,7 +162,7 @@ class TransVars
      * @param mixed $value
      * @return string
      */
-    public static function setVariable(string $varName, mixed $value):string
+    public static function setVariable(string $varName, mixed $value, bool $propagateToField = true):string
     {
         $varName = camelCase($varName);
         self::$transVars[$varName] = $value;
@@ -185,7 +173,9 @@ class TransVars
             $value = self::translateVariable($varName);
         }
         self::$variables[$varName] = $value;
-        PageFactory::$page->$varName()->value = $value;
+        if ($propagateToField) {
+            page()->$varName()->value = $value;
+        }
 
         return $value;
     } // setVariable
@@ -200,6 +190,12 @@ class TransVars
     public static function getVariable(string $varName, bool $varNameIfNotFound = false, string $lang = ''): mixed
     {
         $varName1 = camelCase($varName);
+        $page = page();
+
+        // first check temporary variables (as used by TemplateCompiler):
+        if (isset(self::$tempVariables[$varName1])) {
+            return self::$tempVariables[$varName1];
+        }
 
         // check for lang-selector, e.g. 'varname.de':
         if (preg_match('/(.*)\.(\w+)$/', $varName1, $m)) {
@@ -211,17 +207,18 @@ class TransVars
                 $out = self::translateVariable($varName1, $lang);
             }
         } else {
-            if (!isset(self::$variables[$varName1])) {
+            if (isset(self::$variables[$varName1])) {
+                $out = self::$variables[$varName1];
+
+            } else {
                 try {
-                    $out = PageFactory::$page->$varName1()->value; // try to get Kirby field
-                    if (str_starts_with($out, '[{')) {
-                        $out = PageFactory::$page->$varName1()->toBlocks()->toHtml();
+                    $out = $page->$varName1()->value; // try to get Kirby field
+                    if ($out && str_starts_with($out, '[{')) {
+                        $out = $page->$varName1()->toBlocks()->toHtml();
                     }
                 } catch (\Exception $e) {
-                    $out = $varNameIfNotFound ? $varName1 : false;
+                    $out = $varName1;
                 }
-            } else {
-                $out = self::$variables[$varName1];
             }
         }
         if ($out === null) {
@@ -376,6 +373,12 @@ class TransVars
         while ($p1 !== false && $p2 !== false) {
             $key = trim(substr($str, $p1+2, $p2-$p1-2));
 
+            // skip macro() calls:
+            if (preg_match('/^\w+?\(/', $key)) {
+                list($p1, $p2) = strPosMatching($str, $p2);
+                continue;
+            }
+
             // handle '|raw':
             $doShield = false;
             if (preg_match('/ \s* \| \s* raw \s* $/mx', $key, $m)) {
@@ -383,15 +386,14 @@ class TransVars
                 $key = substr($key, 0, - strlen($m[0]));
             }
 
-            // handle '|filger', e.g. '|date("l, j. F Y")
+            // handle '|filter', e.g. '|date("l, j. F Y")
             if (preg_match('/^ (.*) \s* \| \s* (.*?) \s* $/mx', $key, $m)) {
-                $key = substr($key, 0, - strlen($m[0]));
                 $varname = $m[1];
                 $value = self::getVariable($varname);
                 $fun = $m[2];
                 if (preg_match('/(.*) \((.*) \)/mx', $fun, $mm)) {
                     $fun = $mm[1];
-                    $args = $mm[2];
+                    $args = trimQuotes($mm[2]);
                     try {
                         if ($fun === 'date' || $fun === 'intlDate') {
                             $value = \PgFactory\PageFactoryElements\intlDate($args, $value);
@@ -402,14 +404,8 @@ class TransVars
                         throw new \Exception("Error in macro '$varname': $e");
                     }
                 }
+
             } else {
-
-                // skip macro() calls:
-                if (strpbrk($key, '()')) {
-                    list($p1, $p2) = strPosMatching($str, $p2);
-                    continue;
-                }
-
                 // catch in-text assignments, e.g. {{ n=3 }}:
                 if (preg_match('/^([\w-]*?)=(.*)/', $key, $m)) {
                     $key1 = trim($m[1]);
@@ -488,6 +484,7 @@ class TransVars
         return Macros::initMacro($file, $config, $args);
     } // initMacro
 
+
     /**
      * @return array
      */
@@ -496,6 +493,7 @@ class TransVars
         require_once __DIR__ . '/Macros.php';
         return Macros::findAllMacros();
     } // findAllMacros
+
 
     /**
      * Updates self::$variables to contain key:value tuples for the current language.

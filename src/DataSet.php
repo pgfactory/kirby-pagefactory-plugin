@@ -1404,12 +1404,12 @@ class DataSet
     protected function obfuscateRecKey(string $key): string
     {
         $session = kirby()->session();
-        $tableRecKeyTab = $session->get('obfuscatedKeys');
+        $tableRecKeyTab = $session->get('pfy.obfuscatedKeys');
         if (!$tableRecKeyTab || !($obfuscatedKey = array_search($key, $tableRecKeyTab))) {
             $obfuscatedKey = \PgFactory\PageFactory\createHash();
         }
         $tableRecKeyTab[$obfuscatedKey] = $key;
-        $session->set('obfuscatedKeys', $tableRecKeyTab);
+        $session->set('pfy.obfuscatedKeys', $tableRecKeyTab);
         return $obfuscatedKey;
     } // deObfuscateRecKey
 
@@ -1420,7 +1420,7 @@ class DataSet
      */
     protected function deObfuscateRecKey(string $key): string
     {
-        $tableRecKeyTab = kirby()->session()->get('obfuscatedKeys');
+        $tableRecKeyTab = kirby()->session()->get('pfy.obfuscatedKeys');
         if ($tableRecKeyTab && (isset($tableRecKeyTab[$key]))) {
             $key = $tableRecKeyTab[$key];
         }
