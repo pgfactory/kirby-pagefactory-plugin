@@ -1,6 +1,8 @@
 <?php
 namespace PgFactory\PageFactory;
 
+use PgFactory\PageFactory\Image;
+
 /*
  * Twig function
  */
@@ -35,14 +37,7 @@ return function($argStr = '')
             'wrapperClass' => ['Class to be applied to the wrapper tag.', ''],
             'caption' => ['Optional caption. If set, PageFactory will wrap the image into a &lt;figure> tag '.
                 'and wrap the caption itself in a &lt;figcaption> tag.', false],
-            'srcset' => ["Let's you override the automatic srcset mechanism.", null],
-            'relativeWidth' => ["[%] Use this option if you want to set the image width relative to the viewport width. ".
-                "For instance, if the image should cover no more than 30% of window width, use argument \"relativeWidth:30%\".<br>".
-                "Based on this value, the browser will select the smallest possible source available (according to the ".
-                "automatically generated srcset attribute).", false],
             'attributes' => ["Supplied string is put into the &lt;img> tag as is. This way you can apply advanced ".
-                "attributes, such as 'sizes' or 'crossorigin', etc.", false],
-            'imgTagAttributes' => ["Supplied string is put into the &lt;img> tag as is. This way you can apply advanced ".
                 "attributes, such as 'sizes' or 'crossorigin', etc.", false],
             'quickview' => ["If true, activates the quickview mechanism (default: false). Quickview: click on the ".
                 "image to see in full size.", null],
@@ -88,7 +83,7 @@ EOT,
 
     // assemble output:
     $img = new Image($options);
-    $str .= $img->html();
+    $str .= $img->render();
 
     return $str;
 };

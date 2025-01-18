@@ -2565,16 +2565,6 @@ function convertToPx(string $str, bool $toInt = false): float|int|false
 
 
  /**
-  * @param string $str
-  * @return bool
-  */
- function isRelativeUnit(string $str): bool
-{
-    return $str && !str_contains(',px,cm,mm,in,pt,pc,', ",$str,");
-} // isRelativeUnit
-
-
- /**
   * Remove a folder recursively, even if not empty.
   * @param string $dir
   * @return bool

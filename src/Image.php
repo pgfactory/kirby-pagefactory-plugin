@@ -4,161 +4,56 @@ namespace PgFactory\PageFactory;
 
 const DEFAULT_MAX_IMAGE_WIDTH = 1920;
 const DEFAULT_MAX_IMAGE_HEIGHT = 1440;
-const SRCSET_START_SIZE = 384;
-const SRCSET_DEFAULT_STEP_SIZE = 384;
-const SRCSET_REQUIRED_BREAKPOINT = 500;
+const DEFAULT_SIZES = [300, 600, 900, 1200, 1800, 2400, 3200];
 
 class Image
 {
-    public static $instanceCount = 0;
-    public int $inx = 0;
-    private $options;
-    private bool $isRelativeSize = false;
-    private bool|null $showQuickView = false;
-    private object|null $kirbyFileObj = null;
-    private string $srcFilePath = '';
-    private string $srcFileUrl = '';
-    private int $maxWidth = DEFAULT_MAX_IMAGE_WIDTH;
-    private int $maxHeight = DEFAULT_MAX_IMAGE_HEIGHT;
-    private int $width = 0;
-    private int $origWidth = 0;
-    private int $height = 0;
-    private int $origHeight = 0;
-    private float $ratio = 0.0;
-    private string $sizeHint = '';
-    private string $widthStr = '';
-    private string $heightStr = '';
-    private string $imgStyle = '';
-    private string $imgClass = '';
-    private bool   $ignoreMissing = false;
-    private bool   $imageMissing = false;
-    private static bool $quickViewInitialized = false;
-
+    private static $inx = 0;
+    private array $options;
+    private int $origWidth;
+    private int $origHeight;
+    private string $unit = '';
+    private float $aspectRatio;
+    private false|string $requestedWidth = false;
+    private false|string $requestedHeight = false;
+    private bool $isAbsoluteUnit = false;
 
     /**
      * @param array $options
      */
     public function __construct(array $options)
     {
-        $this->inx = self::$instanceCount++;
-        $this->parseOptions($options);
+        $this->options = $options;
+        self::$inx++;
     } // __construct
-
-
-    /**
-     * @param $options
-     * @return void
-     * @throws \Exception
-     */
-    private function parseOptions($options)
-    {
-        $this->options = &$options;
-
-        $srcFilePath = $options['src'];
-        $this->srcFilePath = &$srcFilePath;
-
-        // extract optional sizeHint:
-        if (preg_match('/(.*)\[(.*?)](\.\w+)/', $srcFilePath, $m)) {
-            $srcFilePath = $m[1] . $m[3];
-            $this->sizeHint = $m[2];
-        }
-
-        $this->ignoreMissing = $options['ignoreMissing']??false;
-
-        // determine whether file is managed by Kirby:
-        if (str_starts_with($srcFilePath, '~page/')) {
-            $file = substr($srcFilePath, 6);
-            if (str_contains($file, '/')) {
-                $this->kirbyFileObj = page()->children()->images()->find($file);
-            } else {
-                $this->kirbyFileObj = page()->images()->find($file);
-            }
-
-        } elseif (str_starts_with($srcFilePath, '~assets/')) {
-            $file = substr($srcFilePath, 1);
-            if (!$obj = page(dirname($file))) {
-                if ($this->ignoreMissing) {
-                    $this->imageMissing = true;
-                } else {
-                    throw new \Exception("Image file not found: '$srcFilePath'");
-                }
-            }
-            $images = $obj->images();
-            if (!$this->kirbyFileObj = $images->find(basename($file))) {
-                if ($this->ignoreMissing) {
-                    $this->imageMissing = true;
-                } else {
-                    throw new \Exception("Image file not found: '$srcFilePath'");
-                }
-            }
-
-        } else {
-            if (str_starts_with($srcFilePath, '~/')) {
-                $srcFilePath = substr($srcFilePath, 2);
-            } else {
-                throw new \Exception("Image file not found: '{$options['src']}'");
-            }
-            $this->kirbyFileObj = site()->index()->files()->find($srcFilePath);
-        }
-
-        if ($this->imageMissing) {
-            return;
-        }
-        $srcFilePath = $this->getPath();
-
-        // check image-info file for arguments:
-        $this->getImgAttribFileInfo();
-
-        $this->imgClass = $options['class']??'';
-
-        if ($options['quickview'] !== null) {
-            $this->showQuickView = $options['quickview'];
-        } else {
-            $this->showQuickView = PageFactory::$config['imageAutoQuickview']??false;
-        }
-
-
-        foreach ($options as $key => $value) {
-            if (isset($this->$key) && !str_contains(',width,height,srcFileUrl,', ",$key,")) {
-                $this->$key = $value;
-            }
-        }
-
-        $this->determineImageSize();
-
-    } // parseOptions
 
 
     /**
      * @return string
      * @throws \Exception
      */
-    public function html()
+    public function render(): string
     {
-        if ($this->imageMissing) {
-            return '';
-        }
+        $options = $this->options;
+        $inx = self::$inx;
+        $image = $this->getImage($options);
 
         $attributes = '';
-        $options = $this->options;
         if ($options['id']??false) {
             $attributes .= " id='{$options['id']}'";
         } else {
-            $attributes .= " id='pfy-img-$this->inx'";
+            $attributes .= " id='pfy-img-$inx'";
         }
+        $class          = $options['class']??'';
+        $wrapperTag     = ($options['wrapperTag']??false) ?: 'dev';
+        $wrapperClass   = $options['wrapperClass']??'';
+        $caption        = $options['caption']??'';
+        $alt            = $image->alt()->value() ?: ($options['alt'] ?: ' ');
+        $src            = $image->url();
+        $srcset         = $this->prepareSrcset($image);
+        $style          = "width:$this->requestedWidth$this->unit;";
+        $sizes          = " sizes='$this->requestedWidth$this->unit'";
 
-        $srcSet = $this->renderSrcset();
-        $this->srcFileUrl = $this->resizeImage([
-            'src' => $this->srcFilePath,
-            'width' => $this->width,
-            'height' => $this->height,
-        ]);
-
-        if ($options['alt']??false) {
-            $alt = str_replace("'", '&#39;', $options['alt']);
-        } else {
-            $alt = ' ';
-        }
         $attributes .= " alt='$alt'";
 
         if ($options['attributes']??false) {
@@ -167,193 +62,194 @@ class Image
         if ($options['imgTagAttributes']??false) {
             $attributes .= " {$options['imgTagAttributes']}";
         }
-        if ($this->showQuickView) {
-            $attributes .= $this->renderQuickview();
-        }
-        $attributes = "class='pfy-img pfy-img-$this->inx $this->imgClass' $attributes$srcSet";
-        if (!$this->srcFileUrl) {
-            throw new \Exception("Error: image file '{$options['src']}' not found.");
-        }
-        $attributes = "src='$this->srcFileUrl' $attributes";
-        if ($this->imgStyle) {
-            $attributes .= " style='".trim($this->imgStyle)."'";
+
+        if ($style??false) {
+            $style = " style='$style'";
         }
 
-        $html = "<img $attributes >";
+        if ($caption) {
+            $html = <<<EOT
+<figure class="pfy-img-wrapper pfy-figure $wrapperClass">
+    <img $attributes
+        class="pfy-image $class"$style
+        alt="$alt"
+        src="$src"
+        $srcset$sizes
+    >
+    <figcaption>$caption</figcaption>
+</figure>
+EOT;
 
+        } else {
+            $html = <<<EOT
+<$wrapperTag class="pfy-image-wrapper $wrapperClass">
+    <img
+        class="pfy-image $class"$style
+        alt="$alt"
+        src="$src"
+        $srcset$sizes
+    >
+</$wrapperTag><!-- .pfy-image-wrapper -->
+
+EOT;
+        }
         if ($options['link']??false) {
             $html = $this->applyLinkWrapper($html);
         }
 
-        if (($options['wrapperTag']??false) !== false) {
-            $html = $this->applyWrapper($html);
-        }
         return $html;
-    } // html
+    } // render
 
 
     /**
-     * @return string|false
-     */
-    public function root(): string|false
-    {
-        return $this->srcFilePath;
-    } // url
-
-
-    /**
-     * @return string
-     */
-    public function url(): string
-    {
-        return $this->srcFileUrl;
-    } // url
-
-
-    /**
-     * @return void
-     * @throws \Exception
-     */
-    private function determineImageSize(): void
-    {
-        $srcFilePath = &$this->srcFilePath;
-        $this->srcFileUrl = $this->getUrl();
-        $srcFilePath = $this->getPath();
-        $dim = $this->kirbyFileObj->dimensions();
-        $this->origWidth = $dim->width;
-        $this->origHeight = $dim->height;
-        $this->ratio = $this->origWidth / $this->origHeight;
-
-        // determine max values:
-        $width  = $this->maxWidth = min($this->origWidth, $this->maxWidth);
-        $height = $this->maxHeight = min($this->origHeight, $this->maxHeight);
-
-        // get requested sizes from macro args 'width'/'height':
-        $requestedWidth = $this->options['width']??false;
-        $requestedHeight = $this->options['height']??false;
-
-        // check size-hints embedded in filename, e.g. pic[20vw]:
-        if ($this->sizeHint && !$requestedWidth && !$requestedHeight) {
-            // 10xy {x ...}
-            if (preg_match('/^(\d+(px|cm|mm|in|pt|pc|%|rem|em|ex|ch|vw|vh|vmin|vmax)?)/', $this->sizeHint, $m)) {
-                $requestedWidth = $m[1];
-            }
-            // ... x 10xy:
-            if (preg_match('/x\s*(\d+(px|cm|mm|in|pt|pc|%|rem|em|ex|ch|vw|vh|vmin|vmax)?)$/', $this->sizeHint, $m)) {
-                $requestedHeight = $m[1];
-            }
-        }
-
-        // parse $requestedWidth:
-        if (preg_match('/([\d.]+)([\w%]*)/', $requestedWidth, $m)) {
-            $requestedWidth = $m[1];
-            $unit = $m[2];
-            if (isRelativeUnit($unit)) {
-                $this->widthStr = $m[0];
-                $this->isRelativeSize = true;
-                if ($this->options['quickview']) {
-                    $this->showQuickView = true;
-                }
-                $requestedWidth = false;
-            } else {
-                // absolute size:
-                $requestedWidth = convertToPx($requestedWidth.$unit, true);
-                $this->maxWidth = $requestedWidth;
-                $this->widthStr = $requestedWidth.'px';
-            }
-        } else {
-            $this->widthStr = $width.'px';
-        }
-        // parse $requestedHeight:
-        if (preg_match('/([\d.]+)([\w%]*)/', $requestedHeight, $m)) {
-            $requestedHeight = $m[1];
-            $unit = $m[2];
-            if (isRelativeUnit($unit)) {
-                $this->heightStr = $m[0];
-                $this->isRelativeSize = true;
-                if ($this->options['quickview']) {
-                    $this->showQuickView = true;
-                }
-                $requestedHeight = false;
-            } else {
-                // absolute size:
-                $requestedHeight = convertToPx($requestedHeight.$unit, true);
-                $this->maxHeight = $requestedHeight;
-                $this->heightStr = $requestedHeight.'px';
-            }
-        }
-
-        // only absolute sizes beyond this point.
-        // complement if one of width/height is missing:
-        if ($requestedWidth && !$requestedHeight) {
-            $requestedHeight = intval($requestedWidth / $this->ratio);
-        }
-        if (!$requestedWidth && $requestedHeight) {
-            $requestedWidth = intval($requestedHeight * $this->ratio);
-        }
-
-        if ($requestedWidth) {
-            $width = min($requestedWidth, $width);
-            if ($width !== $this->maxWidth) {
-                if ($this->showQuickView !== false) {
-                    $this->showQuickView = true;
-                }
-            }
-        }
-        if ($requestedHeight) {
-            $height = min($requestedHeight, $height);
-            if ($height !== $this->maxHeight) {
-                if ($this->showQuickView !== false) {
-                    $this->showQuickView = true;
-                }
-            }
-        }
-
-        $this->width = $width;
-        $this->height = $height;
-    } // determineImageSize
-
-
-    /**
-     * @return void
+     * @param array $options
+     * @return object|\Kirby\Cms\File
      * @throws \Kirby\Exception\InvalidArgumentException
      */
-    private function getImgAttribFileInfo(): void
+    private function getImage(array $options): object
     {
-        $attribFile = $this->srcFilePath . '.txt';
-        $attribs = loadFile($attribFile);
-        if ($attribs) {
-            $args = extractKirbyFrontmatter($attribs);
-            if ($args) {
-                foreach ($args as $key => $value) {
-                    $this->options[$key] = $value;
-                }
-            }
+        $file = $options['src'];
+
+        $file = $this->getSizeInstructions($file);
+
+        $page = page();
+        if (str_starts_with($file, '~page/')) {
+            $filename = basename($file);
+            $image = $page->image($filename);
+        } else {
+            throw new \Exception('Not implemented yet');
         }
-    } // getImgAttribFileInfo
+        if (!$image) {
+            throw new \Exception('Error');
+        }
+
+        $this->origWidth = $image->width();
+        $this->origHeight = $image->height();
+        $this->aspectRatio = $this->origWidth / $this->origHeight;
+
+        $effectiveWidth = 0;
+        if ($this->requestedWidth) {
+            if ($this->isAbsoluteUnit) {
+                $effectiveWidth = min($this->requestedWidth, $this->origWidth);
+            } else {
+                $effectiveWidth = DEFAULT_MAX_IMAGE_WIDTH;
+            }
+        } elseif ($this->origWidth > DEFAULT_MAX_IMAGE_WIDTH) {
+            $effectiveWidth = DEFAULT_MAX_IMAGE_WIDTH;
+        }
+
+        $effectiveHeight = 0;
+        if ($this->requestedHeight) {
+            if ($this->isAbsoluteUnit) {
+                $effectiveHeight = min($this->requestedHeight, $this->origHeight);
+            } else {
+                $effectiveHeight = DEFAULT_MAX_IMAGE_HEIGHT;
+            }
+        } elseif ($this->origHeight > DEFAULT_MAX_IMAGE_HEIGHT) {
+            $effectiveHeight = DEFAULT_MAX_IMAGE_HEIGHT;
+        }
+
+        // case height but no width defined:
+        if (!$effectiveWidth && $effectiveHeight) {
+            $effectiveWidth = $effectiveHeight * $this->aspectRatio;
+        }
+        // resize image if required:
+        if ($effectiveWidth) {
+            $image->resize(intval($effectiveWidth));
+        }
+        return $image;
+    } // getImage
 
 
     /**
+     * @param string $file
      * @return string
-     * @throws \Exception
      */
-    private function renderQuickview()
+    private function getSizeInstructions(string $file): string
     {
-        // skip quickview, if image source is small:
-        if (!$this->showQuickView && ($this->width >= $this->maxWidth || $this->height >= $this->maxHeight)) {
-           return '';
+        if ($this->requestedWidth = ($this->options['width'] ?? false)) {
+            list($this->requestedWidth, $this->unit) = $this->extractUnit($this->requestedWidth);
+        }
+        if ($this->requestedHeight = ($this->options['height'] ?? false)) {
+            list($this->requestedHeight, $this->unit) = $this->extractUnit($this->requestedHeight);
         }
 
-        $this->prepareQuickview();
+        if (preg_match('/(.*)\[(.*?)](\.\w+)/', $file, $m)) {
+            $file = $m[1] . $m[3];
+            $sizeHint = $m[2];
 
-        $largeImg = $this->resizeImage([
-            'width' => $this->maxWidth,
-            'height' => $this->maxHeight,
-        ]);
-        $attr = " data-zoom-src='$largeImg'";
-        $this->imgClass .= ' pfy-quickview';
-        return $attr;
-    } // renderQuickview
+            if ($sizeHint) {
+                $unit = false;
+                // analyze first part of expression, up to 'x' or end of string, e.g. ""200x150" or "100px":
+                if (!$this->requestedWidth && preg_match('/^([\d.]+)(\D*)/', $sizeHint, $m)) {
+                    $this->requestedWidth = $m[1];
+                    $unit = $m[2];
+                    // handle units ending in 'x', eg 'px', 'vmax' etc.
+                    if ((str_ends_with($unit, 'x')) &&
+                        ($unit !== 'px') && ($unit !== 'ex') &&
+                        !str_ends_with($unit, 'max')) {
+                        $unit = substr($unit, 0, -1);
+                    }
+                    $this->unit = $unit;
+                    $sizeHint = str_replace($m[0], '', $sizeHint);
+
+                // check whether it was only height expression written as "x100":
+                } elseif ($sizeHint[0] === 'x') {
+                    $sizeHint = substr($sizeHint, 1);
+                }
+                // analyze remaining expression
+                if (!$this->requestedHeight && preg_match('/^([\d.]+)(\w*)/', $sizeHint, $m)) {
+                    $this->requestedHeight = $m[1];
+                    if ($unit ===  false) {
+                        $this->unit = $this->unit ?: $m[2];
+                    }
+                }
+            }
+        }
+
+        if (!$this->isRelativeUnit($this->unit)) {
+            if ($this->requestedWidth) {
+                $this->requestedWidth = convertToPx($this->requestedWidth.$this->unit);
+            }
+            if ($this->requestedHeight) {
+                $this->requestedHeight = convertToPx($this->requestedHeight.$this->unit);
+            }
+            $this->unit = 'px';
+            $this->isAbsoluteUnit = true;
+        }
+        if (!$this->unit) {
+            $this->unit = 'px';
+        }
+        $this->requestedWidth = floatval($this->requestedWidth);
+        $this->requestedHeight = floatval($this->requestedHeight);
+        return $file;
+    } // getSizeInstructions
+
+
+    /**
+     * @param object $image
+     * @return string
+     */
+    public function prepareSrcset(object $image): string
+    {
+        if ($this->isAbsoluteUnit) {
+            $width = $this->requestedWidth;
+            $sizes = [];
+            foreach ([1,2,3] as $size) {
+                $sizes["{$size}x"] = $width * $size;
+            }
+        } else {
+            $width = DEFAULT_MAX_IMAGE_WIDTH;
+            $maxUsedSize = 3 * $width;
+            $sizes = array_filter(DEFAULT_SIZES, function ($size) use ($maxUsedSize) {
+                return $size <= $maxUsedSize;
+            });
+        }
+        $srcset = $image->srcset($sizes);
+        $srcset = str_replace(',', ",\n\t\t\t", $srcset);
+
+        return "srcset='$srcset'";
+    } // prepareSrcset
 
 
     /**
@@ -392,166 +288,28 @@ EOT;
 
     /**
      * @param string $str
-     * @return string
+     * @return array
      */
-    private function applyWrapper(string $str): string
+    private function extractUnit(string $str): array
     {
-        $wrapperTag = 'div';
-        if ($this->options['wrapperTag'] !== null) {
-            $wrapperTag = $this->options['wrapperTag'];
+        $unit = 'px';
+        if (preg_match('/([\d.]+)([\w%]*)/', $str, $m)) {
+            $str = $m[1];
+            $unit = $m[2];
         }
+        $value = floatval($str);
 
-        $wrapperClass = $this->options['wrapperClass'];
-        if ($this->options['caption']) {
-            $caption = $this->options['caption'];
-            $str = <<<EOT
-
-<figure class="pfy-img-wrapper pfy-figure $wrapperClass">
-$str
-<figcaption>$caption</figcaption>
-</figure>
-
-EOT;
-        } else {
-            $str = <<<EOT
-
-<$wrapperTag class="pfy-img-wrapper $wrapperClass">
-$str
-</$wrapperTag>
-
-EOT;
-        }
-        return $str;
-    } // applyWrapper
+        return [$value, $unit];
+    } // extractUnit
 
 
     /**
-     * @param $force
-     * @return string
-     * @throws \Exception
+     * @param string $unit
+     * @return bool
      */
-    public function renderSrcset($force = false)
+    private function isRelativeUnit(string $unit): bool
     {
-        // determine whether srcset is required:
-        $maxWidth = $this->maxWidth;
-        $sizes = [];
-        for ($w=SRCSET_START_SIZE; $w <= $maxWidth; $w += SRCSET_DEFAULT_STEP_SIZE) {
-            $sizes[] = $w;
-        }
-        if (!$sizes) {
-            if ($this->widthStr) {
-                $this->imgStyle .= " max-width: min(100%, $this->widthStr);";
-            }
-            if ($this->heightStr) {
-                $this->imgStyle .= " max-height: min(100%, $this->heightStr);";
-            }
-            return '';
-        }
-        $srcset = $this->kirbyFileObj->srcset($sizes);
-        $srcset = str_replace(', ', ",\n", $srcset);
-        $html = "\n\tsrcset='\n$srcset'";
-        $html .= "\n\tsizes='$this->widthStr'";
-        if ($this->isRelativeSize) {
-            $this->imgStyle .= " width: $this->widthStr;";
-        }
-        if ($this->heightStr) {
-            $this->imgStyle .= " height: $this->heightStr;";
-        } elseif ($this->widthStr) {
-            $this->imgStyle .= " max-width: min(100%, $this->widthStr);";
-        }
-        $html = rtrim($html, ",\n");
-        return $html;
-    } // renderSrcset
-
-
-    /**
-     * @param array $options
-     * @return bool|string
-     * @throws \Exception
-     */
-    public function resizeImage(array|false $options = false): bool|string
-    {
-        if (!$options) {
-            $src =          $this->srcFilePath;
-            $width =        $this->width;
-            $height =       $this->height;
-            $maxWidth =     $this->maxWidth;
-            $maxHeight =    $this->maxHeight;
-        } else {
-            $src = $options['src'] ?? false;
-            $width = $options['width'] ?? false;
-            $height = $options['height'] ?? false;
-            $maxWidth = $options['maxWidth'] ?? DEFAULT_MAX_IMAGE_WIDTH;
-            $maxHeight = $options['maxHeight'] ?? DEFAULT_MAX_IMAGE_HEIGHT;
-        }
-
-        if (!$src) {
-            $src = $this->srcFilePath;
-        }
-        if (!$src || !file_exists($src)) {
-            return false;
-        }
-
-        $ratio = $this->ratio;
-        $width = max($width, (int)ceil($height * $ratio));
-        $height = max($height, (int)ceil($width / $ratio));
-        $width = min($width, $maxWidth);
-        $height = min($height, $maxHeight);
-
-        // check and fix aspect ratio of new image:
-        $r = $width / $height;
-        if ($r !== $ratio) {
-            if ($ratio > 1) {
-                $height = intval(ceil($width / $ratio));
-            } else {
-                $width = intval(ceil($height * $ratio));
-            }
-        }
-
-        $resizedImg = $this->kirbyFileObj->resize($width, $height);
-        return $resizedImg->url();
-    } // resizeImage
-
-
-    /**
-     * @return string
-     */
-    private function getPath(): string{
-        return $this->kirbyFileObj->root();
-    } // getPath
-
-
-    /**
-     * @param string|object $url
-     * @return string
-     */
-    private function getUrl(mixed $url = false): string
-    {
-        if (!$url) {
-            $url = $this->kirbyFileObj->url();
-        } elseif (is_object($url)) {
-            $url = $url->url();
-        }
-        return $url;
-    } // getUrl
-
-
-    /**
-     * @return void
-     * @throws \Exception
-     */
-    private function prepareQuickview(): void
-    {
-        if (!self::$quickViewInitialized && ($this->options['quickview']??true)) {
-            self::$quickViewInitialized = true;
-            Assets::addAssets('media/plugins/pgfactory/pagefactory/js/medium-zoom.min.js');
-            $js = <<<EOT
-
-const zoom = mediumZoom('.pfy-quickview', {background:'#444', margin:4});
-
-EOT;
-            Page::addJsReady($js);
-        }
-    } // prepareQuickview
+        return $unit && !str_contains(',px,ex,cm,mm,in,pt,pc,', ",$unit,");
+    } // isRelativeUnit
 
 } // Image
