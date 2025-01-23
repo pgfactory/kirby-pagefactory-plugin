@@ -82,7 +82,7 @@ class Utils
 
 <div class="pfy-small-screen-header pfy-small-screen-only">
     <h1>$smallScreenTitle</h1>
-    <button id='pfy-nav-menu-icon' type="button">$menuIcon</button>
+    <button id='pfy-nav-menu-icon' type="button" aria-label="Menü">$menuIcon</button>
 </div>
 EOT;
 
@@ -311,7 +311,7 @@ EOT;
                 case 'printview':
                 case 'printpreview':
                 case 'print-preview':
-                self::printPreview();
+//                    self::printPreview();
                     break;
                 case 'print':
                     self::print();
@@ -408,14 +408,9 @@ EOT;
 
         $jq = <<<EOT
 setTimeout(function() {
-  console.log('now running paged.polyfill.js');
-  pullScript( '$pagedPolyfillScript' );
-}, 1000);
-
-setTimeout(function() {
   document.body.classList.add('pfy-print');
   window.print();
-}, 1200);
+}, 200);
 
 EOT;
 
@@ -423,6 +418,28 @@ EOT;
         PageFactory::$pg->addJq($jq);
         self::preparePrintVariables();
     } // print
+
+//    private static function print()
+//    {
+//        $pagedPolyfillScript = PageFactory::$appUrl.PAGED_POLYFILL_SCRIPT_URL;
+//
+//        $jq = <<<EOT
+//setTimeout(function() {
+//  console.log('now running paged.polyfill.js');
+//  pullScript( '$pagedPolyfillScript' );
+//}, 1000);
+//
+//setTimeout(function() {
+//  document.body.classList.add('pfy-print');
+//  window.print();
+//}, 1200);
+//
+//EOT;
+//
+//
+//        PageFactory::$pg->addJq($jq);
+//        self::preparePrintVariables();
+//    } // print
 
 
     /**
