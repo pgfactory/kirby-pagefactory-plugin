@@ -158,6 +158,10 @@ pfy-breadcrumb-title:
     de: 'Pfad zur aktuellen Seite:'
     _:  'Breadcrumb path:'
 
+smallScreenMenuLabel:
+    de: 'Hauptnavigation öffnen'
+    _:  'Open Main Navigation'
+
 pfy-nav-main-title:
     de: 'Hauptnavigation'
     _:  'Main Navigation'
