@@ -338,8 +338,8 @@ class PfyNav {
 
         // for top nav: clicks outside of nav to close open branches:
         document.body.addEventListener('click', (ev) => {
-          ev.stopImmediatePropagation();
           if (!parent.isSmallScreen && parent.navBranchIsOpen) {
+            ev.stopPropagation();
             const navEl = document.querySelector('.pfy-primary-nav');
             parent.closeAll(navEl);
           }
