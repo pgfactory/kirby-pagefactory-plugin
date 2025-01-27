@@ -44,7 +44,7 @@ EOT,
 
     $url = ($options['url']??false) ?: '~/';
     $text = ($options['text']??false) ? "<span>{$options['text']}</span>" : '';
-    $options['quickview'] = false;
+    $options['quickzoom'] = false;
     $options['id'] = "pfy-logo-$inx";
     if ($options['link']??false) {
         $options['url'] = $options['link'];

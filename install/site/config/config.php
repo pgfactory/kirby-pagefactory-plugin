@@ -42,7 +42,7 @@ return [
                 // Note: normally, nav() is used in Twig template, but that's too late for loading assets.
                 // Thus, Pfy loads NAV assets, unless option 'default-nav' is false
         // 'externalLinksToNewWindow'      => false,  // -> used by Link() -> whether to open external links in new window
-        // 'imageAutoQuickview'            => false,  // -> default for Img() macro
+        // 'imageAutoQuickzoom'            => false,  // -> default for Img() macro
         // 'imageAutoSrcset'               => false,  // -> default for Img() macro
         // 'includeMetaFileContent'        => false,  // -> option for website using '(include: *.md)' in metafile
                                                       // e.g. when converting from MdP site to Pfy

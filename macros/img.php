@@ -37,12 +37,13 @@ return function($argStr = '')
             'wrapperClass' => ['Class to be applied to the wrapper tag.', ''],
             'caption' => ['Optional caption. If set, PageFactory will wrap the image into a &lt;figure> tag '.
                 'and wrap the caption itself in a &lt;figcaption> tag.', false],
-            'attributes' => ["Supplied string is put into the &lt;img> tag as is. This way you can apply advanced ".
+            'imgTagAttributes' => ["Supplied string is put into the &lt;img> tag as is. This way you can apply advanced ".
                 "attributes, such as 'sizes' or 'crossorigin', etc.", false],
-            'quickview' => ["If true, activates the quickview mechanism (default: false). Quickview: click on the ".
+            'quickzoom' => ["If true, activates the quickzoom mechanism (default: false). Quickzoom: click on the ".
                 "image to see in full size.", null],
-            // 'lateImgLoading' => ["If true, activates the lazy-load mechanism: images get loaded after the page is ready otherwise.", false],
-    
+            'quickview' => ["Synonym for quickzoom (for backward compatibility).", null],
+            'lazyLoading' => ["If true, activates the lazy-load mechanism: images get loaded after the page is ready otherwise.", null],
+
             'link' => ["Wraps a &lt;a href='link-argument'> tag round the image..", false],
             'linkClass' => ["Class applied to &lt;a> tag", false],
             'linkTitle' => ["Title-attribute applied to &lt;a> tag, e.g. linkTitle:'opens new window'", false],
@@ -58,7 +59,7 @@ Renders an image tag.
 Configuration options in 'site/config/config.php':
 
     'pgfactory.pagefactory.options' \=> [
-        'imageAutoQuickview'  \=> true,  \// turns quickview on by default
+        'imageAutoQuickzoom'  \=> true,  \// turns quickzoom on by default
         'imageAutoSrcset'  \=> true,     \// turns srcset on by default
     ],
 
@@ -72,6 +73,10 @@ EOT,
         return $str;
     } else {
         list($options, $str) = $str;
+    }
+
+    if (($options['quickview']??null) !== null) {
+        $options['quickzoom'] = $options['quickview'];
     }
 
     if (!($options['src']??false)) {

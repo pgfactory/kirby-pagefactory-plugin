@@ -1,10 +1,10 @@
 /*
-**	Quickview Styles
+**	Quickzoom Styles
 */
 
 .pfy-default-styling {
 
-  .pfy-quickview-overlay {
+  .pfy-quickzoom-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -23,7 +23,7 @@
     cursor: zoom-out;
   }
 
-  .pfy-quickview {
+  .pfy-quickzoom {
     cursor: zoom-in;
   }
 }

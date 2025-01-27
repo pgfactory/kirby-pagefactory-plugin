@@ -4,7 +4,7 @@ namespace PgFactory\PageFactory;
 
 const DEFAULT_MAX_IMAGE_WIDTH = 1920;
 const DEFAULT_MAX_IMAGE_HEIGHT = 1440;
-const DEFAULT_SIZES = [300, 600, 900, 1200, 1800, 2400, 3200];
+const DEFAULT_SIZES = [200, 300, 600, 900, 1200, 1800, 2400, 3200];
 
 class Image
 {
@@ -13,18 +13,38 @@ class Image
     private int $origWidth;
     private int $origHeight;
     private string $unit = '';
+    private object $image;
     private float $aspectRatio;
-    private false|string $requestedWidth = false;
-    private false|string $requestedHeight = false;
+    private mixed $requestedWidth = false;
+    private mixed $requestedHeight = false;
+    private string $sizes = '';
     private bool $isAbsoluteUnit = false;
+    private bool $quickzoomActive;
+    private bool $lazyLoadingActive;
+    private string $attributes = '';
 
     /**
      * @param array $options
      */
     public function __construct(array $options)
     {
+        if (!isset($options['imgTagAttrs'])) {
+            $options['imgTagAttrs'] = $options['imgTagAttributes'] ?? '';
+        }
         $this->options = $options;
         self::$inx++;
+
+        if (($q = ($options['quickzoom']??null)) !== null) {
+            $this->quickzoomActive = $q;
+        } else {
+            $this->quickzoomActive = kirby()->option('pgfactory.pagefactory.options.quickzoom', false);
+        }
+
+        if (($l = ($options['lazyLoading']??null)) !== null) {
+            $this->lazyLoadingActive = $l;
+        } else {
+            $this->lazyLoadingActive = kirby()->option('pgfactory.pagefactory.options.lazyLoading', true);
+        }
     } // __construct
 
 
@@ -34,11 +54,14 @@ class Image
      */
     public function render(): string
     {
-        $options = $this->options;
+        $options = &$this->options;
         $inx = self::$inx;
-        $image = $this->getImage($options);
+        $image = $this->getImage();
 
-        $attributes = '';
+        $this->initQuickzoom();
+        $this->activateLazyLoading();
+
+        $attributes = $this->attributes;
         if ($options['id']??false) {
             $attributes .= " id='{$options['id']}'";
         } else {
@@ -49,50 +72,40 @@ class Image
         $wrapperClass   = $options['wrapperClass']??'';
         $caption        = $options['caption']??'';
         $alt            = $image->alt()->value() ?: ($options['alt'] ?: ' ');
-        $src            = $image->url();
+
+        if ($this->origWidth > DEFAULT_MAX_IMAGE_WIDTH) {
+            $this->origWidth = DEFAULT_MAX_IMAGE_WIDTH;
+            $image0 = $image->resize($this->origWidth);
+            $src = $image0->url();
+        } else {
+            $src = $image->url();
+        }
+        $src            = "src='$src'";
         $srcset         = $this->prepareSrcset($image);
         $style          = "width:$this->requestedWidth$this->unit;";
-        $sizes          = " sizes='$this->requestedWidth$this->unit'";
+        $sizes          = $this->sizes;
 
-        $attributes .= " alt='$alt'";
+        $attributes    .= " alt='$alt'";
 
-        if ($options['attributes']??false) {
-            $attributes .= " {$options['attributes']}";
-        }
-        if ($options['imgTagAttributes']??false) {
-            $attributes .= " {$options['imgTagAttributes']}";
+        if ($options['imgTagAttrs']??false) {
+            $attributes .= " {$options['imgTagAttrs']}";
         }
 
         if ($style??false) {
             $style = " style='$style'";
         }
-
-        if ($caption) {
-            $html = <<<EOT
-<figure class="pfy-img-wrapper pfy-figure $wrapperClass">
-    <img $attributes
-        class="pfy-image $class"$style
-        alt="$alt"
-        src="$src"
-        $srcset$sizes
-    >
-    <figcaption>$caption</figcaption>
-</figure>
-EOT;
-
-        } else {
-            $html = <<<EOT
-<$wrapperTag class="pfy-image-wrapper $wrapperClass">
-    <img
-        class="pfy-image $class"$style
-        alt="$alt"
-        src="$src"
-        $srcset$sizes
-    >
-</$wrapperTag><!-- .pfy-image-wrapper -->
-
-EOT;
+        if ($this->lazyLoadingActive) {
+            $src = 'data-' . $src;
+            if ($srcset) {
+                $srcset = 'data-' . $srcset;
+            }
         }
+        if ($this->quickzoomActive) {
+            $attributes .= ' tabindex="0"';
+        }
+
+        $html = $this->applyImgWrapper($caption, $wrapperClass, $attributes, $class, $style, $src, $srcset, $sizes, $wrapperTag);
+
         if ($options['link']??false) {
             $html = $this->applyLinkWrapper($html);
         }
@@ -102,13 +115,12 @@ EOT;
 
 
     /**
-     * @param array $options
      * @return object|\Kirby\Cms\File
      * @throws \Kirby\Exception\InvalidArgumentException
      */
-    private function getImage(array $options): object
+    private function getImage(): object
     {
-        $file = $options['src'];
+        $file = $this->options['src'];
 
         $file = $this->getSizeInstructions($file);
 
@@ -125,7 +137,7 @@ EOT;
 
         $this->origWidth = $image->width();
         $this->origHeight = $image->height();
-        $this->aspectRatio = $this->origWidth / $this->origHeight;
+        $this->aspectRatio = $this->origHeight / $this->origWidth;
 
         $effectiveWidth = 0;
         if ($this->requestedWidth) {
@@ -150,13 +162,28 @@ EOT;
         }
 
         // case height but no width defined:
-        if (!$effectiveWidth && $effectiveHeight) {
-            $effectiveWidth = $effectiveHeight * $this->aspectRatio;
+        if ($effectiveWidth && $effectiveHeight) {
+            if ($effectiveWidth > $effectiveHeight / $this->aspectRatio) {
+                $effectiveWidth = $effectiveHeight / $this->aspectRatio;
+                $this->requestedWidth = $this->requestedHeight / $this->aspectRatio;
+            } elseif ($effectiveHeight > $effectiveWidth * $this->aspectRatio) {
+                $effectiveHeight = $effectiveWidth * $this->aspectRatio;
+                $this->requestedHeight = $effectiveWidth * $this->aspectRatio;
+            }
+        } elseif (!$effectiveWidth && $effectiveHeight) {
+            $effectiveWidth = $effectiveHeight / $this->aspectRatio;
+        } elseif ($effectiveWidth && !$effectiveHeight) {
+            $effectiveHeight = $effectiveWidth / $this->aspectRatio;
         }
         // resize image if required:
         if ($effectiveWidth) {
             $image->resize(intval($effectiveWidth));
         }
+        if ($this->isAbsoluteUnit) {
+            $this->requestedWidth = round($effectiveWidth, 1);
+            $this->requestedHeight = round($effectiveHeight, 1);
+        }
+        $this->image = $image;
         return $image;
     } // getImage
 
@@ -174,37 +201,9 @@ EOT;
             list($this->requestedHeight, $this->unit) = $this->extractUnit($this->requestedHeight);
         }
 
+        // check for and extract size hints in filename:
         if (preg_match('/(.*)\[(.*?)](\.\w+)/', $file, $m)) {
-            $file = $m[1] . $m[3];
-            $sizeHint = $m[2];
-
-            if ($sizeHint) {
-                $unit = false;
-                // analyze first part of expression, up to 'x' or end of string, e.g. ""200x150" or "100px":
-                if (!$this->requestedWidth && preg_match('/^([\d.]+)(\D*)/', $sizeHint, $m)) {
-                    $this->requestedWidth = $m[1];
-                    $unit = $m[2];
-                    // handle units ending in 'x', eg 'px', 'vmax' etc.
-                    if ((str_ends_with($unit, 'x')) &&
-                        ($unit !== 'px') && ($unit !== 'ex') &&
-                        !str_ends_with($unit, 'max')) {
-                        $unit = substr($unit, 0, -1);
-                    }
-                    $this->unit = $unit;
-                    $sizeHint = str_replace($m[0], '', $sizeHint);
-
-                // check whether it was only height expression written as "x100":
-                } elseif ($sizeHint[0] === 'x') {
-                    $sizeHint = substr($sizeHint, 1);
-                }
-                // analyze remaining expression
-                if (!$this->requestedHeight && preg_match('/^([\d.]+)(\w*)/', $sizeHint, $m)) {
-                    $this->requestedHeight = $m[1];
-                    if ($unit ===  false) {
-                        $this->unit = $this->unit ?: $m[2];
-                    }
-                }
-            }
+            $file = $this->parseSizeHint($m);
         }
 
         if (!$this->isRelativeUnit($this->unit)) {
@@ -220,8 +219,10 @@ EOT;
         if (!$this->unit) {
             $this->unit = 'px';
         }
-        $this->requestedWidth = floatval($this->requestedWidth);
-        $this->requestedHeight = floatval($this->requestedHeight);
+        if ($this->isAbsoluteUnit) {
+            $this->requestedWidth = floatval($this->requestedWidth);
+            $this->requestedHeight = floatval($this->requestedHeight);
+        }
         return $file;
     } // getSizeInstructions
 
@@ -232,18 +233,18 @@ EOT;
      */
     public function prepareSrcset(object $image): string
     {
-        if ($this->isAbsoluteUnit) {
-            $width = $this->requestedWidth;
+        if ($this->isAbsoluteUnit && !$this->quickzoomActive) {
+            $width = intval($this->requestedWidth);
             $sizes = [];
             foreach ([1,2,3] as $size) {
-                $sizes["{$size}x"] = $width * $size;
+                $sizes[$width * $size] = "{$size}x";
             }
         } else {
-            $width = DEFAULT_MAX_IMAGE_WIDTH;
-            $maxUsedSize = 3 * $width;
+            $maxUsedSize = min(3 * DEFAULT_MAX_IMAGE_WIDTH, $this->origWidth);
             $sizes = array_filter(DEFAULT_SIZES, function ($size) use ($maxUsedSize) {
                 return $size <= $maxUsedSize;
             });
+            $this->sizes = " sizes='$this->requestedWidth$this->unit'";
         }
         $srcset = $image->srcset($sizes);
         $srcset = str_replace(',', ",\n\t\t\t", $srcset);
@@ -309,7 +310,130 @@ EOT;
      */
     private function isRelativeUnit(string $unit): bool
     {
-        return $unit && !str_contains(',px,ex,cm,mm,in,pt,pc,', ",$unit,");
+        return $unit && !str_contains(',px,cm,mm,in,pt,pc,', ",$unit,");
     } // isRelativeUnit
+
+
+    /**
+     * @return void
+     * @throws \Kirby\Exception\Exception
+     */
+    private function initQuickzoom(): void
+    {
+        if (!$this->quickzoomActive) {
+            return;
+        }
+
+        Assets::addAssets('QUICKZOOM');
+        $this->options['class'] = ($options['class']??'') . ' pfy-quickzoom';
+    } // renderQuickzoom
+
+
+    /**
+     * @return void
+     * @throws \Exception
+     */
+    private function activateLazyLoading(): void
+    {
+        if (!$this->lazyLoadingActive) {
+            return;
+        }
+
+        Page::addAssets('LAZY_SIZES');
+        $this->options['class'] = ($this->options['class']??'') . ' lazyload';
+
+        if ($this->quickzoomActive) {
+            if ($this->isAbsoluteUnit) {
+                $u = $this->image->resize(intval($this->requestedWidth))->url();
+            } else {
+                $u = $this->image->resize(300)->url();
+            }
+            $src = "src='$u'";
+            $this->attributes .= "\n\t\t$src";
+        }
+
+    } // activateLazyLoading
+
+
+    /**
+     * @param mixed $caption
+     * @param mixed $wrapperClass
+     * @param string $attributes
+     * @param mixed $class
+     * @param string $style
+     * @param string $src
+     * @param string $srcset
+     * @param string $sizes
+     * @param mixed $wrapperTag
+     * @return string
+     */
+    private function applyImgWrapper(mixed $caption, mixed $wrapperClass, string $attributes, mixed $class, string $style, string $src, string $srcset, string $sizes, mixed $wrapperTag): string
+    {
+        $zoomedSrc = '';
+        if ($this->lazyLoadingActive && $this->quickzoomActive) {
+            // if quickzoom, force lazy preload of large image:
+            $zoomedSrc = "\n\t<img $src class='pfy-img-preload lazyload'>";
+        }
+        if ($caption) {
+            $html = <<<EOT
+<figure class="pfy-img-wrapper pfy-figure $wrapperClass">$zoomedSrc
+    <img $attributes
+        class="pfy-image $class"$style
+        $src
+        $srcset $sizes
+    >
+    <figcaption>$caption</figcaption>
+</figure>
+EOT;
+
+        } else {
+            $html = <<<EOT
+<$wrapperTag class="pfy-image-wrapper $wrapperClass">
+    <img $attributes
+        class="pfy-image $class"$style
+        $src
+        $srcset $sizes
+    >$zoomedSrc
+</$wrapperTag><!-- .pfy-image-wrapper -->
+
+EOT;
+        }
+        return $html;
+    } // applyImgWrapper
+
+
+    private function parseSizeHint(array $m): string
+    {
+        $file = $m[1] . $m[3];
+        $sizeHint = $m[2];
+        if ($sizeHint) {
+            $unit = false;
+            // analyze first part of expression, up to 'x' or end of string, e.g. ""200x150" or "100px":
+            if (!$this->requestedWidth && preg_match('/^([\d.]+)(\D*)/', $sizeHint, $m)) {
+                $this->requestedWidth = $m[1];
+                $unit = $m[2];
+                // handle units ending in 'x', eg 'px', 'vmax' etc.
+                if ((str_ends_with($unit, 'x')) &&
+                    ($unit !== 'px') && ($unit !== 'ex') &&
+                    !str_ends_with($unit, 'max')) {
+                    $unit = substr($unit, 0, -1);
+                }
+                $this->unit = $unit;
+                $sizeHint = str_replace($m[0], '', $sizeHint);
+
+                // check whether it was only height expression written as "x100":
+            } elseif ($sizeHint[0] === 'x') {
+                $sizeHint = substr($sizeHint, 1);
+            }
+            // analyze remaining expression
+            if (!$this->requestedHeight && preg_match('/^([\d.]+)(\w*)/', $sizeHint, $m)) {
+                $this->requestedHeight = $m[1];
+                if ($unit === false) {
+                    $this->unit = $this->unit ?: $m[2];
+                }
+            }
+        }
+        return $file;
+    } // parseSizeHint
 
 } // Image

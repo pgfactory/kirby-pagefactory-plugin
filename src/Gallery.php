@@ -123,7 +123,7 @@ EOT;
             'height'    => $options['thumbHeight'],
             'maxWidth'  => convertToPx($options['maxWidth'], true),
             'maxHeight' => convertToPx($options['maxHeight'], true),
-            'quickview' => false,
+            'quickzoom' => false,
         ];
         $img = new Image($imgOptions);
         $thumb = $img->resizeImage();

@@ -69,7 +69,7 @@ define('OPTIONS_DEFAULTS', [
     'defaultLanguage'               => 'en',  // default language used, if none is available from Kirby
     'default-nav'                   => true,  // automatically loads NAV assets
     'externalLinksToNewWindow'      => true,  // -> used by Link() -> whether to open external links in new window
-    'imageAutoQuickview'            => true,  // -> default for Img() macro
+    'imageAutoQuickzoom'            => true,  // -> default for Img() macro
     'imageAutoSrcset'               => true,  // -> default for Img() macro
     'includeMetaFileContent'        => true,  // -> option for website using '(include: *.md)' in metafile
                                               // e.g. when converting from MdP site to Pfy

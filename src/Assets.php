@@ -38,9 +38,11 @@ define('ASSET_URL_DEFINITIONS', [
        'site/plugins/pagefactory/assets/js/nav.js',
        'site/plugins/pagefactory/assets/css/-nav.css',
     ],
-    'QUICKVIEW' => [
-       'site/plugins/pagefactory/assets/js/quickview.js',
-       'site/plugins/pagefactory/assets/css/-quickview.css',
+    'QUICKZOOM' => [
+       'site/plugins/pagefactory/assets/js/quickzoom.js',
+    ],
+    'LAZY_SIZES' => [
+       'site/plugins/pagefactory/assets/js/lazysizes.min.js',
     ],
     'PAGE_SWITCHER' => [
        'site/plugins/pagefactory/assets/css/-page-switcher.css',
@@ -101,7 +103,7 @@ class Assets
      */
     public static function addAssets(mixed $asset): void
     {
-        if (is_string($asset) && ctype_upper($asset)) {
+        if (is_string($asset) && preg_match('/^[A-Z_]+$/', $asset)) {
             if (in_array($asset, array_keys(self::$assetUrlDefinitions))) {
                 $asset = self::$assetUrlDefinitions[$asset];
             } else {

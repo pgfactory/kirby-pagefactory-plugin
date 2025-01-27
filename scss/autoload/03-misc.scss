@@ -208,6 +208,9 @@
         display: none;
     }
 
+    .pfy-quickzoom {
+      cursor: zoom-in;
+    }
     .pfy-img {
         max-width: 100%;
     }
@@ -215,6 +218,12 @@
     .pfy-figure {
         margin: 0;
     }
+  .pfy-img-preload {
+    width: 1px;
+    height: 1px;
+    position: absolute;
+    opacity: 0;
+  }
 
 
 
@@ -223,7 +232,9 @@
         cursor: pointer;
     }
 
-
+  .pfy-image-wrapper {
+    position: relative;
+  }
 
 
 
