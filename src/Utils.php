@@ -234,7 +234,7 @@ class Utils
 
 <div class="pfy-small-screen-header pfy-small-screen-only">
     <h1>$smallScreenTitle</h1>
-    <button id='pfy-nav-menu-icon' type="button"aria-label="$smallScreenMenuLabel">$menuIcon</button>
+    <button id='pfy-nav-menu-icon' type="button" aria-label="$smallScreenMenuLabel">$menuIcon</button>
 </div>
 EOT;
 
