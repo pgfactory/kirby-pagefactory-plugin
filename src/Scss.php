@@ -188,6 +188,13 @@ class Scss
      */
     private static function resolvePaths(string $html): string
     {
+        // special case: url(~/ -> need to get url from pagefactory:
+        if (preg_match_all('|url\(~/([^\s"\')]*)|', $html, $m)) {
+            foreach ($m[1] as $i => $item) {
+                $html = str_replace($m[0][$i], 'url('.PFY_APP_BASE_URL.$m[1][$i], $html);
+            }
+        }
+
         // special case: ~assets/ -> need to get url from Kirby:
         if (preg_match_all('|~assets/([^\s"\')]*)|', $html, $m)) {
             foreach ($m[1] as $i => $item) {
