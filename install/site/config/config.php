@@ -35,9 +35,9 @@ return [
 
     'pgfactory.pagefactory.options' => [
         // 'defaultLanguage'               => 'de',   // multilang -> configure in panel instead! (Opt. use 'Code: de2' and 'PHP locale string: de_DE')
+        // 'locale'                        => 'de_DE',// default: 'en_GB'
         // 'robots'                        => true,   // inject "robots" elem in HTML header
         // 'excludeFilesRegex'             => '\.old\.md$',// regex pattern to exclude certain .md files from rendering
-        // 'locale'                        => 'fr_FR',// if not defined, locale is derived from agent request
         // 'default-nav'                   => false,  // omit automatic loading of NAV resources
                 // Note: normally, nav() is used in Twig template, but that's too late for loading assets.
                 // Thus, Pfy loads NAV assets, unless option 'default-nav' is false
@@ -51,7 +51,7 @@ return [
 
         // 'keepDbHistory'                 => 6,      // If true, old state is copied to dated file (e.g. /.history/xx) whenever 
                                                       // a DB is updated; int arg = number of month to keep
-        // 'enablePageCache'                 => true,  // -> caching of template variables, e.g. 'pageContent' etc.
+        // 'enablePageCache'               => true,   // -> caching of template variables, e.g. 'pageContent' etc.
 
         // Options for dev phase:
         // 'debug_checkMetaFiles'          => true,   // if true, Pagefactory will skip checks for presence of metafiles

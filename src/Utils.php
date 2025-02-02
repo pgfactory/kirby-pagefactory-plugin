@@ -3,10 +3,10 @@
 namespace PgFactory\PageFactory;
 
 use Kirby;
-use Kirby\Data\Yaml;
+//use Kirby\Data\Yaml;
 use Kirby\Email\PHPMailer;
 use Exception;
-use Kirby\Http\Url;
+//use Kirby\Http\Url;
 use PgFactory\MarkdownPlus\Permission;
 
 
@@ -247,7 +247,9 @@ EOT;
      */
     public static function renderBodyTagClasses(): string
     {
-        $bodyTagClasses   = Page::get('bodyTagClasses') ?: 'pfy-large-screen';
+        $pageId = str_replace('/', '-', page()->id());
+        $bodyTagClasses   = "page-$pageId ";
+        $bodyTagClasses   .= Page::get('bodyTagClasses') ?: 'pfy-large-screen';
         if (isAdmin()) {
             $bodyTagClasses .= ' pfy-admin pfy-loggedin';
         } elseif (Permission::isLoggedIn()) {
@@ -880,15 +882,14 @@ EOT;
      */
     public static function getCurrentLocale(): string
     {
+        $l = kirby()->option('pgfactory.pagefactory.options.locale');
         // check config setting:
-        if ($l = kirby()->option('pgfactory.pagefactory.options.locale')) {
-            if ($l === 'auto') {
-                $l = PageFactory::$langCode . '_' . strtoupper(PageFactory::$langCode);
-            }
-            return $l;
+        if (!$l) {
+            $l = PFY_DEFAULT_LOCALE;
+        } elseif ($l === 'auto') {
+            $l = PageFactory::$langCode . '_' . strtoupper(PageFactory::$langCode);
         }
-        // get locale from agent:
-        return \Locale::acceptFromHttp($_SERVER['HTTP_ACCEPT_LANGUAGE']);
+        return $l;
     } // getCurrentLocale
 
 

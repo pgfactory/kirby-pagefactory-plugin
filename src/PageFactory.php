@@ -60,6 +60,7 @@ define('PFY_WEBMASTER_EMAIL_CACHE',     PFY_CACHE_PATH.'webmaster-email.txt');
 const PFY_BASE_ASSETS_URL =        PFY_APP_BASE_URL . 'media/plugins/pgfactory/';
 const PFY_ASSETS_URL =             PFY_BASE_ASSETS_URL.'pagefactory/';
 const PAGED_POLYFILL_SCRIPT_URL =  PFY_ASSETS_URL.'js/paged.polyfill.min.js';
+const PFY_DEFAULT_LOCALE =         'en_GB';
 
 
  // use this name for meta-files (aka text-files) in page folders:
