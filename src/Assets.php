@@ -220,11 +220,14 @@ class Assets
 
         $html = "\n";
         $page = page('assets/css');
-        $files = page('assets/css')->files();
+        $files = $page ? $page->files() : [];
         foreach ($cssAssets as $asset) {
             if (str_starts_with($asset, '<')) {
                 $html .= "  $asset\n";
             } elseif (str_starts_with($asset, 'content')) {
+                if (!$files) {
+                    continue;
+                }
                 $file = $files->find(basename($asset));
                 if (!$file) {
                     continue;
@@ -255,11 +258,15 @@ class Assets
         $jsAssets = array_merge($jsAssets, self::addPageAssets('js'));
 
         $html = "\n";
-        $files = page('assets/js')->files();
+        $page = page('assets/js');
+        $files = $page ? $page->files() : [];
         foreach ($jsAssets as $asset) {
             if (str_starts_with($asset, '<')) {
                 $html .= "  $asset\n";
             } elseif (str_starts_with($asset, 'content')) {
+                if (!$files) {
+                    continue;
+                }
                 $file = $files->find(basename($asset));
                 $html .= '  ' . js($file) . "\n";
             } else {
