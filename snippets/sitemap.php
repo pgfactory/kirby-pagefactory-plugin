@@ -3,7 +3,7 @@
 namespace PgFactory\PageFactory;
 
 $macroName = basename(__FILE__, '.php');
-$cachePrefix = $macroName . md5($args);
+$cachePrefix = $macroName . md5($args??'');
 
 if ($res = Cache::checkPageCache($cachePrefix)) {
     echo $res;
