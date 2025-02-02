@@ -2,13 +2,16 @@
 
 namespace PgFactory\PageFactory;
 
-use PgFactory\PageFactory\Macros;
-use Kirby\Data\Yaml;
 use Kirby\Exception\InvalidArgumentException;
-use function PgFactory\PageFactoryElements\intlDateFormat as intlDateFormat;
-use function PgFactory\PageFactoryElements\intlDate;
+//use PgFactory\PageFactory\Macros;
+//use Kirby\Data\Yaml;
+//use function PgFactory\PageFactoryElements\intlDateFormat as intlDateFormat;
+//use function PgFactory\PageFactoryElements\intlDate;
 
-require_once PFY_APP_BASE_PATH . 'site/plugins/pagefactory-pageelements/src/pe_helper.php';
+//require_once PFY_APP_BASE_PATH . 'site/plugins/pagefactory-pageelements/src/pe_helper.php';
+if (file_exists(PFY_APP_BASE_PATH . 'site/plugins/pagefactory-pageelements/src/pe_helper.php')) {
+    require_once PFY_APP_BASE_PATH . 'site/plugins/pagefactory-pageelements/src/pe_helper.php';
+}
 
 class TransVars
 {
@@ -396,7 +399,11 @@ class TransVars
                     $args = trimQuotes($mm[2]);
                     try {
                         if ($fun === 'date' || $fun === 'intlDate') {
-                            $value = \PgFactory\PageFactoryElements\intlDate($args, $value);
+                            if (function_exists('\PgFactory\PageFactoryElements\intlDate')) {
+                                $value = \PgFactory\PageFactoryElements\intlDate($args, $value);
+                            } else {
+                                $value = date($args, $value);
+                            }
                         } else {
                             $value = $fun($value, $args);
                         }
