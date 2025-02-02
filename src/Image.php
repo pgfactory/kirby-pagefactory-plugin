@@ -4,7 +4,10 @@ namespace PgFactory\PageFactory;
 
 const DEFAULT_MAX_IMAGE_WIDTH = 1920;
 const DEFAULT_MAX_IMAGE_HEIGHT = 1440;
-const DEFAULT_SIZES = [200, 300, 600, 900, 1200, 1800, 2400, 3200];
+//const DEFAULT_SIZES = [200, 300, 600, 900, 1200, 1800, 2400, 3200];
+if (!defined('DEFAULT_SIZES')) {
+    define('DEFAULT_SIZES', [200, 300, 600, 900, 1200, 1800, 2400, 3200]);
+}
 
 class Image
 {
@@ -18,6 +21,7 @@ class Image
     private mixed $requestedWidth = false;
     private mixed $requestedHeight = false;
     private string $sizes = '';
+    private array $responsiveSteps = DEFAULT_SIZES;
     private bool $isAbsoluteUnit = false;
     private bool $quickzoomActive;
     private bool $lazyLoadingActive;
@@ -45,6 +49,8 @@ class Image
         } else {
             $this->lazyLoadingActive = kirby()->option('pgfactory.pagefactory.options.lazyLoading', true);
         }
+
+        $this->responsiveSteps = $options['responsiveSteps'] ?? DEFAULT_SIZES;
     } // __construct
 
 
@@ -71,7 +77,7 @@ class Image
         $wrapperTag     = ($options['wrapperTag']??false) ?: 'dev';
         $wrapperClass   = $options['wrapperClass']??'';
         $caption        = $options['caption']??'';
-        $alt            = $image->alt()->value() ?: ($options['alt'] ?: ' ');
+        $alt            = $image->alt()->value() ?: (($options['alt']??false) ?: ' ');
 
         if ($this->origWidth > DEFAULT_MAX_IMAGE_WIDTH) {
             $this->origWidth = DEFAULT_MAX_IMAGE_WIDTH;
@@ -127,6 +133,11 @@ class Image
         $page = page();
         if (str_starts_with($file, '~page/')) {
             $filename = basename($file);
+//            $path = dirname(substr($file, 6));
+//            $children = $page->children();
+//            if ($path) {
+//                $page = page($path);
+//            }
             $image = $page->image($filename);
         } else {
             throw new \Exception('Not implemented yet');
@@ -241,7 +252,7 @@ class Image
             }
         } else {
             $maxUsedSize = min(3 * DEFAULT_MAX_IMAGE_WIDTH, $this->origWidth);
-            $sizes = array_filter(DEFAULT_SIZES, function ($size) use ($maxUsedSize) {
+            $sizes = array_filter($this->responsiveSteps, function ($size) use ($maxUsedSize) {
                 return $size <= $maxUsedSize;
             });
             $this->sizes = " sizes='$this->requestedWidth$this->unit'";

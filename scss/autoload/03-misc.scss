@@ -209,7 +209,7 @@
     }
 
     .pfy-quickzoom {
-      cursor: zoom-in;
+      cursor: url(../icons/zoom_in.png), zoom-in;
     }
     .pfy-img {
         max-width: 100%;
@@ -218,12 +218,12 @@
     .pfy-figure {
         margin: 0;
     }
-  .pfy-img-preload {
-    width: 1px;
-    height: 1px;
-    position: absolute;
-    opacity: 0;
-  }
+    .pfy-img-preload {
+        width: 1px;
+        height: 1px;
+        position: absolute;
+        opacity: 0;
+    }
 
 
 

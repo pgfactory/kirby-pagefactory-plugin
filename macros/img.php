@@ -21,6 +21,9 @@ if (!defined('DEFAULT_THUMB_WIDTH')) {
 if (!defined('DEFAULT_THUMB_HEIGHT')) {
     define('DEFAULT_THUMB_HEIGHT', 150);
 }
+if (!defined('DEFAULT_SIZES')) {
+    define('DEFAULT_SIZES', [200, 300, 600, 900, 1200, 1800, 2400, 3200]);
+}
 
 return function($argStr = '')
 {
@@ -50,6 +53,7 @@ return function($argStr = '')
             'linkTarget' => ["Target-attribute applied to &lt;a> tag, e.g. linkTarget:_blank", false],
             'linkAttributes' => ["Attributes applied to the \<a> tag, e.g. 'download'.", false],
             'ignoreMissing' => ["If true, an empty string is rendered in case the image file is missing.", false],
+            'responsiveSteps' => [".", implode(',', DEFAULT_SIZES)],
             ],
         'summary' => <<<EOT
 # img()
@@ -84,6 +88,10 @@ EOT,
     }
     if ((($c = $options['src'][0]) !== '~') && ($c !== '/') && ($c !== '.')) {
         $options['src'] = '~page/'.$options['src'];
+    }
+
+    if (is_string($options['responsiveSteps'])) {
+        $options['responsiveSteps'] = explodeTrim(',', $options['responsiveSteps']);
     }
 
     // assemble output:

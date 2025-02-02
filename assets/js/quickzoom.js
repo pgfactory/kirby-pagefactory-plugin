@@ -59,6 +59,7 @@ class Quickzoom {
     overlay.style.inset           = 0;
     overlay.style.width           = '100dvw';
     overlay.style.height          = '100dvh';
+    overlay.style.zIndex          = 10001;
 
     // define overlay image;
     const img = document.createElement('img');
