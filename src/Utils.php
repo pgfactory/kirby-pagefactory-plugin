@@ -912,12 +912,11 @@ EOT;
      */
     public static function getCurrentLocale(): string
     {
-        // check config setting:
-        if ($l = kirby()->option('pgfactory.pagefactory.options.locale')) {
-            return $l;
+        $l = kirby()->option('pgfactory.pagefactory.options.locale', PFY_DEFAULT_LOCALE);
+        if ($l === 'auto') {
+            $l = PageFactory::$langCode . '_' . strtoupper(PageFactory::$langCode);
         }
-        // get locale from agent:
-        return \Locale::acceptFromHttp($_SERVER['HTTP_ACCEPT_LANGUAGE']);
+        return $l;
     } // getCurrentLocale
 
 

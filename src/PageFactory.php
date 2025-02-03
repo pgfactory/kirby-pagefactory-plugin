@@ -43,6 +43,7 @@ const PAGED_POLYFILL_SCRIPT_URL =  PFY_ASSETS_URL.'js/paged.polyfill.min.js';
 
 const JQUERY =                     ['js' => PFY_ASSETS_URL.'js/jquery-3.7.1.min(1).js']; // '(1)' is the priority hint, will be omitted
 const DEFAULT_FRONTEND_FRAMEWORK_URLS = JQUERY;
+const PFY_DEFAULT_LOCALE =         'en_GB';
 
  // use this name for meta-files (aka text-files) in page folders:
 define('PFY_PAGE_META_FILE_BASENAME','z'); // 'define' required by site/plugins/pagefactory/index.php
