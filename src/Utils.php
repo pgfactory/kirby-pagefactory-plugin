@@ -284,7 +284,7 @@ EOT;
     public static function renderPfyIcon(string $iconName): string
     {
         $iconId = "pfy-iconset-$iconName";
-        $icon = "<svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' viewBox='0 0 1000 1000' xml:space='preserve' width='1em'><use href='#$iconId' /></svg>";
+        $icon = "<svg viewBox='0 0 1000 1000' width='1em'><use href='#$iconId' /></svg>";
         return $icon;
     } // renderSvgIcon
 
