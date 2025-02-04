@@ -44,7 +44,7 @@ class Accordion {
         this.open();
       // Check if the element is being openned or is already open
       } else if (this.isExpanding || this.el.open) {
-        this.el.classList.add('closing');
+        this.el.classList.add('pry-closing');
         this.close();
       }
     } // onClick
@@ -126,7 +126,7 @@ class Accordion {
       this.isExpanding = false;
       // Remove the overflow hidden and the fixed height
       this.el.style.height = '';
-      this.el.classList.remove('closing');
+      this.el.classList.remove('pry-closing');
     }
   } // onAnimationFinish
 

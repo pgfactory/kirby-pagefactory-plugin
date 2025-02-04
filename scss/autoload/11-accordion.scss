@@ -41,7 +41,7 @@
   details[open] > summary:before {
     transform: rotate(90deg);
   }
-  details.closing summary:before {
+  details.pry-closing summary:before {
     transform: rotate(0) !important;
   }
   summary:before {
