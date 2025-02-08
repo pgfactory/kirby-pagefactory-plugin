@@ -13,6 +13,7 @@ return function($args = '')
         'options' => [
             'label' => ['Text on the button.', null],
             'text' => ['Synonyme for "label".', null],
+            'icon' => ['Name of icon.', null],
             'id' => ['ID to apply to button', null],
             'class' => ['Class  to apply to button (class "`pfy-button`" is always applied).', null],
             'callback' => ['Optional callback function (either name or closure)', null],
@@ -50,9 +51,28 @@ EOT,
     $class = rtrim('pfy-button '.$options['class']);
     $label = $options['label'] ?: ($options['text'] ?: 'BUTTON');
     $attrib = $options['attrib'] ? " {$options['attrib']}" : '';
+    $icon = $options['icon'] ?: '';
     $title = $options['title'] ? " title='{$options['title']}'" : '';
 
-    $str .= "<button id='$id' class='$class'$title$attrib>$label</button>";
+    if (preg_match_all('/(:(\w{1,15}):)/', $label, $m)) {
+        foreach ($m[0] as $i => $rec) {
+            $iconCode = Utils::renderPfyIcon($m[2][$i]);
+            if ($iconCode) {
+                $label = str_replace($m[0][$i], $iconCode, $label);
+            }
+        }
+    }
+
+    if ($icon) {
+        $icon = trim($icon, ':');
+        $icon = Utils::renderPfyIcon($icon);
+        if ($label === 'BUTTON') {
+            $label = '';
+        }
+        $class .= " pfy-btn-icon-".$options['icon'];
+    }
+
+    $str .= "<button id='$id' class='$class'$title$attrib>$icon$label</button>";
 
     if ($callback = trim($options['callback']??'')) {
         if (str_starts_with($callback, 'function')) {
