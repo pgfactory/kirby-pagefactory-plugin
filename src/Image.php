@@ -87,8 +87,14 @@ class Image
             $src = $image->url();
         }
         $src            = "src='$src'";
+        $style = '';
         $srcset         = $this->prepareSrcset($image);
-        $style          = "width:$this->requestedWidth$this->unit;";
+        if ($this->requestedWidth == 0 && $this->unit === 'px') {
+            $this->requestedWidth = '100';
+            $this->unit = '%';
+            $style = ";max-width:{$this->origWidth}px;";
+        }
+        $style          = "width:$this->requestedWidth$this->unit;$style";
         $sizes          = $this->sizes;
 
         $attributes    .= " alt='$alt'";
