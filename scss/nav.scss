@@ -52,16 +52,14 @@ $sub-txt-color:       var(--pfy-nav-sub-txt-color, $txt-color);
 $active-txt-color:    var(--pfy-nav-active-txt-color, $txt-color);
 $curr-txt-color:      var(--pfy-nav-curr-txt-color, $txt-color);
 $hover-txt-color:     var(--pfy-nav-hover-txt-color, $txt-color);
-$surrogate-txt-color: var(--pfy-nav-surrogate-txt-color, inherit);
 
  // Background and border-left:
 $nav-bg-color:        var(--pfy-nav-bg-color, white);
 $elem-bg-color:       var(--pfy-nav-elem-bg-color, inherit);
-$hover-bg-color:      var(--pfy-nav-hover-bg-color);
-$sub-bg-color:        var(--pfy-nav-sub-bg-color, inherit);
+$hover-bg-color:      var(--pfy-nav-hover-bg-color, inherit);
+$sub-bg-color:        var(--pfy-nav-sub-bg-color, #{$elem-bg-color});
 $active-bg-color:     var(--pfy-nav-active-bg-color, $elem-bg-color);
 $curr-bg-color:       var(--pfy-nav-curr-bg-color, $elem-bg-color);
-$surrogate-bg-color:  var(--pfy-nav-surrogate-bg-color, inherit);
 
  // focus:
 $focus-frame-color1: var(--pfy-focus-frame-color1, #{$focus-frame-color1});
@@ -75,8 +73,9 @@ $nav-sub-width:       10em;
 
 $elem-height:         var(--pfy-nav-elem-height, 2em);
 $line-height:         var(--pfy-nav-line-height, $nav-line-height);
-$sub-width:           var(--pfy-nav-top-sub-width, #{$nav-sub-width});
-$horizontal-padding:  var(--pfy-nav-horizontal-padding, #{$nav-horizontal-padding});
+$sub-width:           var(--pfy-nav-top-sub-width);
+$horizontal-padding-left:  var(--pfy-nav-horizontal-padding, #{$nav-horizontal-padding});
+$horizontal-padding-right:  var(--pfy-nav-horizontal-padding, 0.5em);
 $animation-duration:  var(--pfy-nav-animation-duration, #{$nav-animation-duration});
 
 
@@ -102,12 +101,10 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
 .pfy-default-styling .pfy-nav-wrapper {
   position: relative;
 
-  //--pfy-nav-bg-color: var(--pfy-page-bg-color);
-
   // nav placeholder to avoid flicker:
   .pfy-top-nav-placeholder {
     line-height: $line-height;
-    height: calc(#{$line-height} + #{$elem-height} - 1.2em);
+    height: calc(#{$line-height} + #{$elem-height} - 1.2em + 3px);
     margin: 0;
   }
 
@@ -119,7 +116,7 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
   //=== side marker
   // default on li to inherit from:
   li {
-    border-left-color: var(--nav-side-marker-color, transparent);
+    border-left-color: var(--pfy-nav-side-marker-color, transparent);
     border-left-width: 0; // suppress sidebar on li
   }
   // all:
@@ -127,6 +124,27 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
     border-left-color: inherit;
     border-left-width: $side-marker-width;
     border-left-style: solid;
+  }
+  &.pfy-nav-horizontal {
+    li {
+      padding: 3px; // leave room for focus marker
+      > a {
+        background: $elem-bg-color;
+      }
+    }
+    li.pfy-active > a{
+      background: $active-bg-color;
+    }
+    li.pfy-curr > a {
+      background: $curr-bg-color;
+    }
+  }
+
+  &.pfy-nav-horizontal,
+  &.pfy-sitemap-horizontal {
+    li > a {
+      border-left-width: 0;
+    }
   }
 
 } // .pfy-nav-wrapper
@@ -147,42 +165,22 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
     }
     a {
       color:      inherit;
-      background: inherit;
       padding-right: 0.5em;
     }
 
     .pfy-lvl-1 > a {
       color: $txt-color;
-      background: $elem-bg-color;
+      //background: $elem-bg-color;
     }
     .pfy-lvl-2 a {
       color: $sub-txt-color;
       background: $sub-bg-color;
     }
 
-    // pfy-surrogate-elem:
-    .pfy-surrogate-elem {
-      > a {
-        color:      $surrogate-txt-color;
-        background: $surrogate-bg-color;
-      }
-    }
-
-    .pfy-nav-horizontal .pfy-lvl-1.pfy-active > a {
-      background: $active-bg-color;
-    }
-    :not(.pfy-nav-horizontal) .pfy-has-children:has(.pfy-curr):not(.pfy-open) {
-      background: $active-bg-color;
-    }
-
-    // curr:
-    .pfy-curr > a {
-      background: $curr-bg-color;
-    }
-
-    &.pfy-nav a:hover {
+    a:hover {
       color:      $hover-txt-color;
       background: $hover-bg-color;
+      //background: $hover-bg-color;
     }
 
   } // .pfy-nav
@@ -218,14 +216,6 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
       }
     }
   }
-
-  .pfy-nav-hoveropen {
-    // circle around hovered arrow:
-    .pfy-nav-arrow:hover {
-      border: 1px solid var(--nav-arrow-hover-color, $nav-arrow-hover-color);
-    }
-  }
-
 } // pfy-large-screen
 
 
@@ -276,10 +266,9 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
       overflow:         hidden;
       text-overflow:    ellipsis;
       font-size:        $nav-txt-size;
-      //font-size:        var(--pfy-nav-txt-size,  $nav-txt-size);
       line-height:      var(--pfy-nav-line-height, $nav-line-height);
-      padding-top:      calc( (var(--pfy-nav-elem-height, #{$nav-elem-height}) - 1.2em) / 2);
-      padding-bottom:   calc( (var(--pfy-nav-elem-height, #{$nav-elem-height}) - 1.2em) / 2);
+      padding-top:      calc( (var(--pfy-nav-elem-height, #{$nav-elem-height}) - 1.2em - 3px) / 2);
+      padding-bottom:   calc( (var(--pfy-nav-elem-height, #{$nav-elem-height}) - 1.2em - 3px) / 2);
       user-select:      none;
     }
 
@@ -326,8 +315,34 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
   }
 
 
+  // === horizontal top nav ============================
+
+
+
+  // === not collapsible ===============================
+  .pfy-nav-wrapper:not(.pfy-mobile-nav) .pfy-nav-not-collapsible {
+    .pfy-curr > a:hover{
+      background: var(--pfy-nav-hover-bg-color, #{$curr-bg-color});
+    }
+    .pfy-curr.pfy-curr > a {
+      color: $curr-txt-color;
+      background: $curr-bg-color;
+    }
+  }
+
+
 
   // === collapsed / collapsible ========================
+  .pfy-nav-wrapper:not(.pfy-mobile-nav) .pfy-nav-collapsible {
+    .pfy-curr:not(.pfy-has-surrogate-elem.pfy-active) > a:hover {
+      background: var(--pfy-nav-hover-bg-color, #{$curr-bg-color});
+    }
+    .pfy-curr:not(.pfy-has-surrogate-elem.pfy-active) > a {
+      color: $curr-txt-color;
+      background: $curr-bg-color;
+    }
+  }
+
   &.pfy-nav-collapsed, .pfy-nav-collapsed,
   &.pfy-nav-collapsible, .pfy-nav-collapsible {
       .pfy-nav-arrow {
@@ -356,17 +371,15 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
     .pfy-nav.pfy-nav .pfy-nav-reveal-controller {
       border-bottom: none;
     }
-    li.pfy-has-surrogate-elem > a,
-    li.pfy-nav-no-direct-child > a {
-      .pfy-nav-arrow,
-      .pfy-nav-label span {
+    .pfy-has-children {
+      &:has(a[aria-controls]),
+      > a[aria-controls] {
         cursor: s-resize;
       }
     }
-    li.pfy-has-surrogate-elem.pfy-open > a,
-    li.pfy-nav-no-direct-child.pfy-open > a {
-      .pfy-nav-arrow,
-      .pfy-nav-label span {
+    .pfy-has-children {
+      &:has(a[aria-expanded=true]),
+      > a[aria-expanded=true] {
         cursor: n-resize;
       }
     }
@@ -419,7 +432,8 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
     a:visited,
     a {
       position: relative;
-      border-left: 3px solid transparent;
+      border-left: 3px solid inherit;
+      margin: 3px; // to make focus visible
       .pfy-nav-label {
         display: block;
         hyphens: auto;
@@ -489,7 +503,8 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
     }
 
       a {
-          padding-right: $horizontal-padding;
+        padding-left: $horizontal-padding-left;
+        padding-right: $horizontal-padding-right;
       }
 
       ol {
@@ -550,7 +565,8 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
       &.pfy-nav-indented {
         // level 1 r&l padding:
           .pfy-lvl-1 > a {
-              padding-left: $horizontal-padding;
+              padding-left: $horizontal-padding-left;
+              padding-right: $horizontal-padding-right;
           }
           // below level 1 -> no arrow:
           .pfy-lvl-2 .pfy-nav-arrow {
@@ -605,17 +621,13 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
 
   // === side markers ======================================
   .pfy-nav-wrapper .pfy-nav {
-  //.pfy-nav {
     // hover:
     a:hover {
       border-left-color: $navHoverSideMarker;
     }
 
     // active top:
-    .pfy-nav-horizontal .pfy-lvl-1.pfy-active > a {
-      border-left-color: $navActiveSideMarker;
-    }
-    :not(.pfy-nav-horizontal) .pfy-has-children:has(.pfy-curr):not(.pfy-open) {
+    .pfy-lvl-1.pfy-active > a {
       border-left-color: $navActiveSideMarker;
     }
 
@@ -639,10 +651,11 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
 }
 
  // colored nav:
-.pfy-nav-colored {
+@at-root .pfy-nav-colored {
+//.pfy-nav-colored {
   --pfy-nav-elem-bg-color: hsl(#{$base-col1}, 90%);
   --pfy-nav-sub-bg-color: hsl(#{$base-col1}, 90%);
-  --pfy-nav-surrogate-bg-color: hsl(#{$base-col1}, 90%);
+  //--pfy-nav-surrogate-bg-color: hsl(#{$base-col1}, 90%);
   --pfy-nav-active-bg-color: hsl(#{$base-col2}, 85%);
   --pfy-nav-curr-bg-color: hsl(#{$base-col2}, 80%);
 

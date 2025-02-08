@@ -28,7 +28,6 @@ Renders a navigation menu that reflects the currently published pages.
 - ``pfy-nav-indented``       18em>>     sub-elements get hierarchically indented
 - ``pfy-nav-collapsed``       18em>>    sub-elements are initially collapsed and can be opened
 - ``pfy-nav-collapsible``       18em>>    sub-elements are initially open and can be collapsed
-- ``pfy-nav-hoveropen``        18em>>    sub-elements opened on mouse over
 - ``pfy-nav-open-current``       18em>>   nav tree is pre-opened down to the current page, the rest is collapsed
 - ``pfy-nav-animated``         18em>>    adds an animation effect when opening/closing
 - ``pfy-nav-colored``       18em>>    applies some default coloring based on  ``-\-nav-base-color1`` and ``-\-nav-base-color2``

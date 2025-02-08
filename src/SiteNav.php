@@ -141,6 +141,10 @@ class SiteNav
             }
         }
 
+        if (!str_contains($wrapperClass, 'pfy-nav-collapsible')) {
+            $wrapperClass .= ' pfy-nav-not-collapsible';
+        }
+
         // === render: ========
         $out = false;
         $dataPageNr = '';

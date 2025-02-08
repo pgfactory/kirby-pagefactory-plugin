@@ -17,7 +17,7 @@ class PfyNav {
     this.navWrapper = navWrapper;
     this.transitionTimeMs = 300;
     this.arrowClicks = 0;
-    this.arrowSvg = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="1em">' +
+    this.arrowSvg = '<svg viewBox="0 0 24 24" fill="none" width="1em">' +
       '<path d="M15 12L9 6V18L15 12Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>' +
       '</svg>';
 
@@ -32,7 +32,6 @@ class PfyNav {
     this.isTopNav     = navWrapper.classList.contains('pfy-nav-horizontal');
     this.collapsed    = navWrapper.classList.contains('pfy-nav-collapsed')? 1 : false;
     this.collapsible  = navWrapper.classList.contains('pfy-nav-collapsible');
-    this.hoveropen    = navWrapper.classList.contains('pfy-nav-hoveropen');
     this.preOpenCurr  = navWrapper.classList.contains('pfy-nav-open-current');
     this.navInx       = navWrapper.dataset.navInx;
     this.navElemInx   = 0;
@@ -42,41 +41,178 @@ class PfyNav {
 
     this.adaptToWidth(); // invokes this.setupMouseHandlers() if it's primary nav
 
-    this.setupKeyHandlers();
+    this.initTriggers();
 
     if (this.preOpenCurr) {
       this.openCurrentElem();
     }
 
     this.initAnimation();
-    this.setupResizeMonitor();
 
   } // init
 
 
+  initTriggers() {
+    const parent = this;
+    document.addEventListener('click', (ev) => {
+      const el = ev.target;
+
+      // handle mobile menu button:
+      const mobileMenuButton = el.closest('#pfy-nav-menu-icon');
+      if (mobileMenuButton) {
+        this.operateMobileMenu(mobileMenuButton, ev);
+        return;
+      }
+
+      // check for non-nav-related events -> return immediately:
+      const navWrapper = el.closest('.pfy-nav-wrapper');
+      if (!navWrapper) {
+        return;
+      }
+
+      // handle collapsible nav branches:
+      const isCollapsible = !!navWrapper.classList.contains('pfy-nav-collapsible');
+      if (isCollapsible) {
+        parent.operateSubmenu(ev);
+      }
+    });
+
+    // handle keys for nav manipulation:
+    document.addEventListener('keydown', (ev) => {
+      const el = ev.target;
+      const navWrapper = el.closest('.pfy-nav-wrapper');
+      if (!navWrapper) {
+        return;
+      }
+      parent.keyHandlers(ev);
+    });
+
+    this.setupResizeMonitor();
+
+  } // initTriggers
+
+
+  keyHandlers(ev) {
+    const parent = this;
+    ev.stopPropagation();
+    ev.stopImmediatePropagation();
+    const aElem = ev.target;
+    const liElem = aElem.closest('li');
+    const isTopNav = liElem.closest('.pfy-nav-wrapper').classList.contains('pfy-nav-horizontal');
+    const isCollapsible = !!liElem.closest('.pfy-nav-collapsible');
+
+    const key = ev.key;
+
+    // === ArrowDown:
+    if (key === 'ArrowDown') {
+      parent.focusOnNext(liElem);
+
+    // === ArrowUp:
+    } else if (key === 'ArrowUp') {
+      parent.focusOnPrevous(liElem);
+
+    // === ArrowRight:
+    } else if (key === 'ArrowRight') {
+      if (isTopNav) {
+        parent.focusOnNextSibling(liElem);
+      } else {
+        if (liElem.classList.contains('pfy-has-children')) {
+          parent.openBranch(liElem);
+        }
+        parent.setFocusOn(liElem);
+      }
+
+    // === ArrowLeft:
+    } else if (key === 'ArrowLeft') {
+      if (isTopNav) {
+        parent.focusOnPrevSibling(liElem);
+      } else {
+        if (parent.isOpen(liElem)) {
+          parent.closeBranch(liElem);
+          parent.setFocusOn(liElem);
+        } else {
+          parent.setFocusOnParent(liElem);
+        }
+      }
+
+    // === Shift-Tab:
+    } else if (ev.shiftKey && key === 'Tab') {
+      const liElem = ev.target.parentElement;
+      const aElem = liElem.querySelector('a');
+      const activeAElems = parent.getCurrentlyActiveAElements(liElem);
+      if (aElem.innerText === activeAElems[0].innerText) {
+        // is last element, so continue with default action
+        return;
+      }
+      ev.preventDefault();
+      parent.focusOnPrevous(liElem);
+
+    // === Tab:
+    } else if (key === 'Tab') {
+      const liElem = ev.target.parentElement;
+      const aElem = liElem.querySelector('a');
+      const activeAElems = parent.getCurrentlyActiveAElements(liElem);
+      const isCollapsible = !!liElem.closest('.pfy-nav-collapsible');
+      if (aElem.innerText === activeAElems[activeAElems.length - 1].innerText) {
+        // is first element, so continue with default action
+        return;
+      }
+
+      if (!isCollapsible) {
+        parent.focusOnNext(liElem);
+        ev.preventDefault();
+        return;
+      }
+
+      if (liElem.closest('.pfy-open')) {
+        parent.focusOnNext(liElem);
+      } else {
+        parent.focusOnNextSibling(liElem);
+      }
+      ev.preventDefault();
+
+    } else if (isCollapsible && key === ' ') {
+      if (isTopNav) {
+        parent.toggleBranch(liElem, ev, true);
+      } else {
+        parent.toggleBranch(liElem, ev);
+      }
+    }
+  } // keyHandlers
+
+
+  operateSubmenu(ev) {
+    const parent = this;
+    const parentLi = ev.target.closest('li');
+    const aEl = parentLi.querySelector('a');
+
+    // handle special case: horizontal top nav:
+    const closeOthers = parentLi.closest('.pfy-nav-horizontal.pfy-primary-nav');
+    const isArrow = !!ev.target.closest('.pfy-nav-arrow');
+    const isRevealController = !!aEl.getAttribute('aria-controls');
+    if (isArrow || isRevealController) {
+      parent.toggleBranch(parentLi, ev, closeOthers);
+    }
+  } // operateSubmenu
+
+
+  operateMobileMenu(mobileMenuButton, ev) {
+    ev.stopImmediatePropagation();
+    if (document.body.classList.contains('pfy-nav-mobile-open')) {
+      document.body.classList.remove('pfy-nav-mobile-open');
+      mobileMenuButton.setAttribute('aria-pressed', false);
+    } else {
+      document.body.classList.add('pfy-nav-mobile-open');
+      mobileMenuButton.setAttribute('aria-pressed', true);
+    }
+  } // operateMobileMenu
+
+
   initNavHtml() {
     const navWrapper = this.navWrapper;
-    this._initNavHtml(navWrapper.querySelectorAll('.pfy-nav > ol > li'), 1);
+    const lvl1LiEls = navWrapper.querySelectorAll('.pfy-nav > ol > li');
+    this._initNavHtml(lvl1LiEls, 1);
     this.fixNavLayout();
-
-    if (this.isTopNav && this.isPrimary) {
-      const liElems = navWrapper.querySelectorAll('.pfy-has-children');
-      liElems.forEach(function (liElem) {
-        const subElem = liElem.querySelector('.pfy-nav-sub-wrapper');
-        if (subElem) {
-          subElem.style.display = 'none';
-        }
-      });
-    }
-    if (this.collapsible) {
-      domForEach(navWrapper, 'li.pfy-has-surrogate-elem > a .pfy-nav-label span', (el) => {
-        el.classList.add('pfy-nav-reveal-controller');
-      })
-      domForEach(navWrapper, 'li.pfy-nav-no-direct-child > a .pfy-nav-label span', (el) => {
-        el.classList.add('pfy-nav-reveal-controller');
-      })
-    }
-
   } // initNavHtml
 
 
@@ -94,18 +230,23 @@ class PfyNav {
         liElem.classList.add('pfy-lvl-' + depth);
 
         const subOlElem = liElem.querySelector('ol,ul');
-        let needsSurrogate = subOlElem && !liElem.classList.contains('pfy-nav-no-direct-child');
-        needsSurrogate = needsSurrogate && (!parent.isTopNav || (depth === 1));
+        let needsSurrogate = false;
+        if (parent.collapsible) {
+          needsSurrogate = subOlElem && !liElem.classList.contains('pfy-nav-no-direct-child');
+          needsSurrogate = needsSurrogate && (!parent.isTopNav || (depth === 1));
+        }
 
         // mark current-page (and its parent pages):
         const aElem = liElem.querySelector('a');
         const currPage = aElem.getAttribute('aria-current')? ' aria-current="page"' : '';
-        if (currPage && !needsSurrogate) {
+        if (currPage) {
           liElem.classList.add('pfy-curr');
-          let parentLiElem = liElem.parentElement.closest('li');
-          while (parentLiElem) {
-            parentLiElem.classList.add('pfy-active');
-            parentLiElem = parentLiElem.parentElement.closest('li');
+          if (!needsSurrogate) { //???
+            let parentLiElem = liElem.parentElement.closest('li');
+            while (parentLiElem) {
+              parentLiElem.classList.add('pfy-active');
+              parentLiElem = parentLiElem.parentElement.closest('li');
+            }
           }
         }
 
@@ -122,8 +263,13 @@ class PfyNav {
 
           const href = aElem.getAttribute('href');
 
-          aElem.outerHTML = `<a href="${href}" aria-expanded="${ariaExpanded}" aria-controls="${subId}"><span class='pfy-nav-label'>` +
-            `<span>${text}</span></span><span class='pfy-nav-arrow' aria-hidden='true'>${parent.arrowSvg}</span></a>`;
+          if (!parent.isTopNav || depth === 1) {
+            aElem.outerHTML = `<a href="${href}" aria-expanded="${ariaExpanded}" aria-controls="${subId}"><span class='pfy-nav-label'>` +
+              `<span>${text}</span></span><span class='pfy-nav-arrow' aria-hidden='true'>${parent.arrowSvg}</span></a>`;
+          } else {
+            aElem.outerHTML = `<a href="${href}" ><span class='pfy-nav-label'>` +
+              `${text}</span></a>`;
+          }
 
           let olInnerHtml = subOlElem.innerHTML;
 
@@ -141,6 +287,8 @@ class PfyNav {
             parent._initNavHtml(subLiElems, depth + 1);
           }
         }
+
+        // handle current page:
         if (currPage) {
           if (needsSurrogate) {
             domForOne(liElem, '.pfy-surrogate-elem', (surrogateLi) => {
@@ -190,10 +338,9 @@ class PfyNav {
       } else {
         this.initDesktopMode();
       }
-      this.setupMouseHandlers();
     }
 
-    if (this.isPrimary) {
+    if (this.isPrimary && !this.isTopNav) {
       if (this.isSmallScreen) {
         this.openCurrentElem();
       } else {
@@ -232,39 +379,6 @@ class PfyNav {
     }
     this.setMobileMode(true);
 
-    const mobileMenuButton = document.getElementById('pfy-nav-menu-icon');
-    if (!mobileMenuButton) {
-      mylog('Error: mobileMenuButton not found.');
-      return;
-    }
-    if (!mobileMenuButton.dataset.initialized) {
-      mobileMenuButton.dataset.initialized = true;
-
-      // set button handler:
-      mobileMenuButton.addEventListener('click', function (e) {
-        e.stopPropagation();
-        const button = e.currentTarget;
-        if (document.body.classList.contains('pfy-nav-mobile-open')) {
-          document.body.classList.remove('pfy-nav-mobile-open');
-          button.setAttribute('aria-pressed', false);
-        } else {
-          document.body.classList.add('pfy-nav-mobile-open');
-          button.setAttribute('aria-pressed', true);
-        }
-      });
-
-      const main = document.querySelector('.pfy-main');
-      domForOne('.pfy-main', (el) => {
-        el.addEventListener('click', (ev) => {
-          const mobileNavOpen = document.body.classList.contains('pfy-nav-mobile-open');
-          if (mobileNavOpen) {
-            ev.stopImmediatePropagation();
-            document.body.classList.remove('pfy-nav-mobile-open');
-            mobileMenuButton.setAttribute('aria-pressed', false);
-          }
-        })
-      })
-    }
   } // initMobileMode
 
 
@@ -304,184 +418,6 @@ class PfyNav {
   } // initAnimation
 
 
-  setupMouseHandlers () {
-    const navWrapper = this.navWrapper;
-    const parent = this;
-    const isTopNav = navWrapper.classList.contains('pfy-nav-horizontal');
-    if (this.hoveropen) {
-      // if hoveropen is enabled, activate click on arrow:
-      const liElems = navWrapper.querySelectorAll('.pfy-has-children');
-      if (liElems) {
-        liElems.forEach(function (liElem) {
-          const arrow = liElem.querySelector('.pfy-nav-arrow');
-          if (arrow) {
-            if (isTopNav) {
-              arrow.addEventListener('click', parent.freezeBranchState);
-            } else {
-              arrow.addEventListener('click', parent.toggleBranch);
-            }
-          }
-        });
-      }
-      if (!isTopNav) { // hover-open and NOT topNav -> no need to set up hover-handlers on arrows
-        return;
-      }
-
-    } else { // no hover-open:
-      if (isTopNav) {
-        // setup click handler for top nav elems with children:
-        domForEach(navWrapper, '.pfy-lvl-1.pfy-has-children > a', (el) => {
-          el.addEventListener('click', (ev) => {
-            parent.toggleBranch(ev, true);
-          });
-        })
-
-        // for top nav: clicks outside of nav to close open branches:
-        document.body.addEventListener('click', (ev) => {
-          if (!parent.isSmallScreen && parent.navBranchIsOpen) {
-            ev.stopPropagation();
-            const navEl = document.querySelector('.pfy-primary-nav');
-            parent.closeAll(navEl);
-          }
-        });
-
-      } else if (this.collapsible) {
-        // setup collapse-handlers on arrows:
-        domForEach(navWrapper, '.pfy-has-children > a .pfy-nav-arrow', (el) => {
-          el.addEventListener('click', (ev) => {
-            parent.toggleBranch(ev);
-          });
-        })
-
-        // setup collapse-handlers on elements without direct children:
-        domForEach(navWrapper, '.pfy-nav-no-direct-child > a', (el) => {
-          el.addEventListener('click', (ev) => {
-            parent.toggleBranch(ev);
-          });
-        })
-        domForEach(navWrapper, '.pfy-has-surrogate-elem > a', (el) => {
-          el.addEventListener('click', (ev) => {
-            parent.toggleBranch(ev);
-          });
-        })
-      }
-
-      return;
-    }
-
-    const l1AElems = navWrapper.querySelectorAll('.pfy-lvl-1.pfy-has-children > a');
-    if (l1AElems) {
-      l1AElems.forEach(function (l1AElem) {
-        // set mouseenter-trigger on a elem:
-        l1AElem.addEventListener('mouseenter', function (ev) {
-          const elem = ev.currentTarget.parentElement;
-          if ((typeof parent.timer === 'object') && (typeof parent.timer[elem.dataset.inx] !== 'undefined') && parent.timer[elem.dataset.inx]) {
-            clearTimeout(parent.timer[elem.dataset.inx]);
-          }
-          parent.openBranch(elem);
-        });
-
-        // set mouseleave-trigger on li elem:
-        l1AElem.parentElement.addEventListener('mouseleave', function (ev) {
-          const elem = ev.currentTarget;
-          if ((typeof parent.timer === 'object') && (typeof parent.timer[elem.dataset.inx] !== 'undefined')) {
-            parent.timer[elem.dataset.inx] = setTimeout(function () {
-              parent.closeBranch(elem);
-              parent.timer[elem.dataset.inx] = false;
-            }, parent.transitionTimeMs);
-          }
-        });
-      })
-    }
-  } // setupMouseHandlers
-
-
-  setupKeyHandlers () {
-    const navWrapper = this.navWrapper;
-    const parent = this;
-    const liElems = navWrapper.querySelectorAll('li');
-
-    if (!liElems) {
-      return;
-    }
-
-    liElems.forEach(function (liElem) {
-      const aElem = liElem.querySelector('a');
-      aElem.addEventListener('keydown', function (ev) {
-        ev.stopPropagation();
-        const aElem = ev.currentTarget;
-        const liElem = aElem.closest('li');
-        const isTopNav = liElem.closest('.pfy-nav-wrapper').classList.contains('pfy-nav-horizontal');
-
-        const key = ev.key;
-        if (key === 'ArrowDown') {
-          parent.focusOnNext(liElem);
-
-        } else if (key === 'ArrowUp') {
-          parent.focusOnPrevous(liElem);
-
-        } else if (key === 'ArrowRight') {
-          if (isTopNav) {
-            parent.focusOnNextSibling(liElem);
-          } else {
-            if (liElem.classList.contains('pfy-has-children')) {
-              parent.openBranch(liElem);
-            }
-            parent.setFocusOn(liElem);
-          }
-
-        } else if (key === 'ArrowLeft') {
-          if (isTopNav) {
-            parent.focusOnPrevSibling(liElem);
-          } else {
-            if (parent.isOpen(liElem)) {
-              parent.closeBranch(liElem);
-              parent.setFocusOn(liElem);
-            } else {
-              parent.setFocusOnParent(liElem);
-            }
-          }
-
-        } else if (ev.shiftKey && key === 'Tab') {
-          const liElem = ev.target.parentElement;
-          const aElem = liElem.querySelector('a');
-          const activeAElems = parent.getCurrentlyActiveAElments(liElem);
-          if (aElem.innerText === activeAElems[0].innerText) {
-            // is last element, so continue with default action
-            return;
-          }
-          ev.preventDefault();
-          parent.focusOnPrevous(liElem);
-
-        } else if (key === 'Tab') {
-          const liElem = ev.target.parentElement;
-          const aElem = liElem.querySelector('a');
-          const activeAElems = parent.getCurrentlyActiveAElments(liElem);
-          if (aElem.innerText === activeAElems[activeAElems.length - 1].innerText) {
-            // is first element, so continue with default action
-            return;
-          }
-
-          if (liElem.closest('.pfy-open')) {
-            parent.focusOnNext(liElem);
-          } else {
-            parent.focusOnNextSibling(liElem);
-          }
-          ev.preventDefault();
-
-        } else if (key === ' ') {
-          ev.preventDefault();
-          if (isTopNav) {
-            parent.toggleBranch(liElem, true);
-          } else {
-            parent.toggleBranch(liElem);
-          }
-        }
-      });
-    });
-  } // setupKeyHandlers
-
-
   focusOnPrevSibling (liElem) {
     if (liElem.classList.contains('pfy-lvl-1') && liElem.classList.contains('pfy-open')) {
       this.closeBranch(liElem);
@@ -509,6 +445,8 @@ class PfyNav {
 
 
   focusOnNext (liElem) {
+  const isCollapsible = !!liElem.closest('.pfy-nav-collapsible');
+  const aEl = liElem.querySelector('a');
     const isTopNav = liElem.closest('.pfy-nav-wrapper').classList.contains('pfy-nav-horizontal');
     if (isTopNav && liElem.classList.contains('pfy-lvl-1') && liElem.classList.contains('pfy-has-children')) {
       if (!liElem.classList.contains('pfy-open')) {
@@ -522,7 +460,7 @@ class PfyNav {
       // not first elem in branch:
     } else {
       const nextLi = this.setFocusOn(liElem, 1);
-      if (isTopNav && nextLi.classList.contains('pfy-lvl-1')) {
+      if (nextLi && isTopNav && isCollapsible && nextLi.classList.contains('pfy-lvl-1')) {
         this.closeAllExcept(nextLi);
       }
     }
@@ -550,6 +488,9 @@ class PfyNav {
     if (liElem.tagName !== 'A') {
       nextA = this.getAElem(liElem, offset);
     }
+    if (!nextA) {
+      return false;
+    }
     setTimeout(function () {
       nextA.focus();
     }, 50);
@@ -569,20 +510,27 @@ class PfyNav {
 
   getAElem(liElem, offset) {
     const aElem = liElem.querySelector('a');
-    let activeAElems = this.getCurrentlyActiveAElments(liElem);
+    const activeAElems = this.getCurrentlyActiveAElements(liElem);
     const currI = Array.from(activeAElems).indexOf(aElem);
-    let nextI = currI + offset;
+    const nextI = currI + offset;
     return activeAElems[nextI];
   } // getAElem
 
 
-  getCurrentlyActiveAElments (liElem) {
+  getCurrentlyActiveAElements (liElem) {
     const activeAElems = [];
+    const isNotCollapsible = !liElem.closest('.pfy-nav-collapsible');
     function traverse(liElem) {
+      // skip invisible elements:
+      const styles = window.getComputedStyle(liElem);
+      if ((styles.getPropertyValue('display') === 'none')) {
+        return;
+      }
       const aElem = liElem.querySelector('a');
       if (aElem) {
         activeAElems.push(aElem);
       }
+      // recursive decent:
       if (liElem.classList.contains('pfy-has-children')) {
         const childDivElem = liElem.querySelector('div');
         if (childDivElem && childDivElem.style.display !== 'none') {
@@ -596,7 +544,7 @@ class PfyNav {
     const navL1LiElements = liElem.closest('.pfy-nav').querySelectorAll(':scope > ol > li');
     navL1LiElements.forEach(liElem => traverse(liElem));
     return activeAElems;
-  } // getCurrentlyActiveAElments
+  } // getCurrentlyActiveAElements
 
 
   handleSingleAndDoubleClick (event, singleClickCallback, doubleClickCallback) {
@@ -652,23 +600,13 @@ class PfyNav {
   } // freezeBranchState
 
 
-  toggleBranch (eventOrElem, closeOthers = false) {
+  toggleBranch (liEl, ev, closeOthers = false) {
     const parent = this;
-    if (typeof eventOrElem.currentTarget === 'undefined') {
-      this._toggleBranch(eventOrElem, closeOthers);
-
-    } else { // event:
-      eventOrElem.stopPropagation();
-      eventOrElem.preventDefault();
-      this.handleSingleAndDoubleClick(eventOrElem,
-        function (eventOrElem) {
-          parent._toggleBranch(eventOrElem, closeOthers);
-        },
-        function (eventOrElem) {
-          parent._toggleBranch(eventOrElem, closeOthers, true);
-        }
-      );
+    if (typeof ev !== 'undefined' && ev) {
+      ev.stopImmediatePropagation();
+      ev.preventDefault();
     }
+    this._toggleBranch(liEl, closeOthers);
   } // toggleBranch
 
 
