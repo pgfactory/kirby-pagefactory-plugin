@@ -3,10 +3,9 @@
 namespace PgFactory\PageFactory;
 
 use Kirby;
-//use Kirby\Data\Yaml;
 use Kirby\Email\PHPMailer;
 use Exception;
-//use Kirby\Http\Url;
+use PgFactory\MarkdownPlus\MdPlusHelper;
 use PgFactory\MarkdownPlus\Permission;
 
 
@@ -17,6 +16,7 @@ class Utils
     public static mixed $loggedIn;
     public static mixed $menuIcon;
 
+    private static string $pfyIcons = "";
     /**
      * Assign values to variables that are used in templates or in page content
      * - lang
@@ -283,10 +283,25 @@ EOT;
      */
     public static function renderPfyIcon(string $iconName): string
     {
-        $iconId = "pfy-iconset-$iconName";
-        $icon = "<svg viewBox='0 0 1000 1000' width='1em'><use href='#$iconId' /></svg>";
+        if (self::iconExists($iconName)) {
+            $iconId = "pfy-iconset-$iconName";
+            $icon = "<svg viewBox='0 0 1000 1000' width='1em'><use href='#$iconId' /></svg>";
+        } else {
+            $icon = MdPlusHelper::renderIcon($iconName);
+        }
         return $icon;
     } // renderSvgIcon
+
+
+    public static function iconExists(string $iconName): bool
+    {
+        if (!self::$pfyIcons) {
+            $pfyIconsFile = PFY_APP_BASE_PATH . 'site/plugins/pagefactory/assets/icons/_pfy-icons.svg';
+            self::$pfyIcons = getFile($pfyIconsFile);
+        }
+        $exists = str_contains(self::$pfyIcons,  "pfy-iconset-$iconName");
+        return $exists;
+    } // iconExists
 
 
 
