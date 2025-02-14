@@ -20,7 +20,7 @@
   <div class="pfy-header-wrapper">
 
     <header class='pfy-header'>
-      <div class="pfy-large-screen-only">Page-Elements</div>
+      <div class="pfy-large-screen-only">Title defined in Template</div>
     </header>
 
     <aside class="pfy-nav-outer-wrapper">
