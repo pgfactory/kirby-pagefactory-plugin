@@ -666,18 +666,22 @@ EOT;
                 }
             }
         }
-        $appUrl = $forResoucres ? PFY_APP_BASE_URL : PFY_APP_BASE_URL . PFY_BASE_OFFSET;
         $pageId = page()->id() . '/';
+
         // ~page/ for <a> tags -> replace without redir-offset:
-        $html = preg_replace('|(<a\s+href=[\'"])~page/|', "$1".PFY_APP_BASE_URL.$pageId, $html);
+        if (preg_match_all('|(<a\s+href=[\'"])~page/|', $html, $m)) {
+            $homeSlug = site()->homePage()->slug().'/';
+            foreach ($m[1] as $i => $aTag) {
+                // if it's homepage -> fix path to '':
+                if ($pageId === $homeSlug) {
+                    $pageId = '';
+                }
+                $html = str_replace($m[0][$i], $aTag.PFY_APP_BASE_URL.$pageId, $html);
+            }
+        }
+
         // ~/ for <a> tags -> replace without redir-offset:
         $html = preg_replace('|(<a\s+href=[\'"])~/|', "$1".PFY_APP_BASE_URL, $html);
-        $patterns = [
-            '~/'        => $appUrl,
-            '~download/'=> $appUrl.'download/',
-            '~media/'   => $appUrl.'media/',
-            '~page/'    => "$appUrl$pageId",
-        ];
         return $html;
     } // resolveUrls
 
