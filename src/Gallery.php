@@ -2,6 +2,13 @@
 
 namespace PgFactory\PageFactory;
 
+/*
+ * HTML structure for baguetteBox:
+<a href="path-to-large-image" title="TITLE">
+    <img src="path-to-thumbnail" alt="TITLE" style='width:200px;height:150px;object-fit:cover;'>
+</a>
+*/
+
 class Gallery
 {
     /**
@@ -14,7 +21,10 @@ class Gallery
     public static function renderImage(string $file, array $options, string $caption = ''): string
     {
         // create thumbnail and size-variants if necessary:
-        list($imgUrl, $thumb, $srcSet) = self::prepareImage($file, $options);
+        list($imgUrl, $html) = self::prepareImage($file, $options);
+        if (!$imgUrl) {
+            return '';
+        }
 
         $thumbCaption = '';
         if (($options['thumbCaptions']??false) === '') {
@@ -22,10 +32,14 @@ class Gallery
         } elseif ($options['thumbCaptions']??false) {
             $thumbCaption = "\n<div class='pfy-gallery-thumb-caption'>$caption</div>";
         }
-        $style = "style='width:{$options['thumbWidthPx']};height:{$options['thumbHeightPx']};object-fit:cover;'";
+        if (preg_match("/style='(.*?)'/", $html, $m )) {
+            $html = str_replace($m[0], "style='{$m[1]} object-fit:cover;'", $html);
+        } else {
+            $html = substr($html, 0,-1) . "style='object-fit:cover;'>";
+        }
         $html = <<<EOT
-<a href="$imgUrl" title="$caption" \n$srcSet>
-<img src="$thumb" alt="$caption" $style>$thumbCaption
+<a href="$imgUrl" title="$caption">
+$html$thumbCaption
 </a>
 
 EOT;
@@ -115,33 +129,27 @@ EOT;
      * @return array|false
      * @throws \Exception
      */
-    public static function prepareImage(string $file, array $options): array|false
+    public static function prepareImage(string $file, array $options): array
     {
         $imgOptions = [
-            'src'       => $file,
-            'width'     => $options['thumbWidth'],
-            'height'    => $options['thumbHeight'],
-            'maxWidth'  => convertToPx($options['maxWidth'], true),
-            'maxHeight' => convertToPx($options['maxHeight'], true),
-            'quickzoom' => false,
+            'src'           => $file,
+            'width'         => $options['thumbWidth'],
+            'height'        => $options['thumbHeight'],
+            'ignoreMissing' => $options['ignoreMissing']??true,
+            'maxWidth'      => convertToPx($options['maxWidth'], true),
+            'maxHeight'     => convertToPx($options['maxHeight'], true),
+            'quickzoom'     => false,
+            'wrapperTag'    => '',
         ];
         $img = new Image($imgOptions);
-        $thumb = $img->resizeImage();
-        $srcSet = $img->renderSrcset(true);
-
-        $lines = explode("\n", $srcSet);
-        array_shift($lines);
-        array_shift($lines);
-        array_pop($lines);
-        $srcSet = '';
-        foreach ($lines as $line) {
-            if (preg_match('/(\S+) (\d+)/', trim($line), $m)) {
-                $srcSet .= "  data-at-{$m[2]}=\"{$m[1]}\"\n";
-            }
+        $html = $img->render();
+        if (!$html) {
+            return ['', '', ''];
         }
         $imgUrl = $img->url();
-        return [$imgUrl, $thumb, $srcSet];
+        return [$imgUrl, $html];
     } // prepareImage
 
 
 } // Gallery
+

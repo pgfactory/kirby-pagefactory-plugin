@@ -85,7 +85,7 @@ function isProtectedTarget() {
     activeElement.closest('input') || // Focus within input field
     document.querySelector('.inhibitPageSwitch') || // class .inhibitPageSwitch found
     document.querySelector('.pfy-presentation-active') || // class .pfy-presentation-active found
-    document.querySelector('.baguetteBox-open') || // galery img open
+    document.querySelector('.baguetteBox-open') || // gallery img open
     (document.querySelector('.ug-lightbox') &&
       window.getComputedStyle(document.querySelector('.ug-lightbox')).display !== 'none') || // special case: ug-album in full screen mode
     activeElement.closest('.pfy-nav') ||
