@@ -45,6 +45,7 @@ EOT,
     $url = ($options['url']??false) ?: '~/';
     $text = ($options['text']??false) ? "<span>{$options['text']}</span>" : '';
     $options['quickzoom'] = false;
+    $options['lazyLoading'] = false;
     $options['id'] = "pfy-logo-$inx";
     if ($options['link']??false) {
         $options['url'] = $options['link'];
@@ -52,7 +53,7 @@ EOT,
     unset($options['link']);
 
     $img = new Image($options);
-    $html = $img->html();
+    $html = $img->render();
 
     if (page()->id() !== 'home') {
         $html = "<a href='$url'>$html</a>";
