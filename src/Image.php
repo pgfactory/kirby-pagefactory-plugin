@@ -63,6 +63,9 @@ class Image
         $options = &$this->options;
         $inx = self::$inx;
         $image = $this->getImage();
+        if (!$image) {
+            return '';
+        }
 
         $this->initQuickzoom();
         $this->activateLazyLoading();
@@ -130,26 +133,58 @@ class Image
      * @return object|\Kirby\Cms\File
      * @throws \Kirby\Exception\InvalidArgumentException
      */
-    private function getImage(): object
+    private function getImage(): object|null
     {
         $file = $this->options['src'];
 
         $file = $this->getSizeInstructions($file);
-
         $page = page();
+        $path = '';
         if (str_starts_with($file, '~page/')) {
-            $filename = basename($file);
-//            $path = dirname(substr($file, 6));
-//            $children = $page->children();
-//            if ($path) {
-//                $page = page($path);
-//            }
-            $image = $page->image($filename);
+            $filename = substr($file, 6);
+            if (str_contains($filename, '/')) {
+                // image in subfolder of page:
+                $path = $page->id() . '/' . dirname($filename);
+                $subdir = page($path);
+                if (!$subdir) {
+                    throw new \Exception("Error: subdirectory '$path' not found");
+                }
+                $image = $subdir->image(basename($filename));
+            } else {
+                // image in page folder:
+                $image = $page->file($filename);
+            }
+
+        } elseif (str_starts_with($file, '~assets/')) {
+            // image in folder below content/assets/:
+            $path = page(dirname(substr($file, 1)));
+            $subdir = page($path);
+            if (!$subdir) {
+                throw new \Exception("Error: subdirectory '$path' not found");
+            }
+            $image = $subdir->image(basename($file));
+
+        } elseif (str_starts_with($file, '~/')) {
+            // image in folder outside of content/:
+            $p = substr($file, 1);
+            $image = site()->file($p);
+            if (!$image) {
+                throw new \Exception("Error: file '$p' not found");
+            }
         } else {
             throw new \Exception('Not implemented yet');
         }
+
+
         if (!$image) {
-            throw new \Exception('Error');
+            $image = site()->file($path);
+        }
+
+        if (!$image) {
+            if ($this->options['ignoreMissing']??false) {
+                return null;
+            }
+            throw new \Exception("Error: file '{$this->options['src']}' not found");
         }
 
         $this->origWidth = $image->width();
@@ -203,6 +238,12 @@ class Image
         $this->image = $image;
         return $image;
     } // getImage
+
+
+    public function url()
+    {
+        return $this->image->url();
+    } // url
 
 
     /**
@@ -391,7 +432,16 @@ EOT;
             // if quickzoom, force lazy preload of large image:
             $zoomedSrc = "\n\t<img $src class='pfy-img-preload lazyload'>";
         }
-        if ($caption) {
+        if (!$wrapperTag) {
+            $html = <<<EOT
+    <img $attributes
+        class="pfy-image $class"$style
+        $src
+        $srcset $sizes
+    >
+
+EOT;
+        } elseif ($caption) {
             $html = <<<EOT
 <figure class="pfy-img-wrapper pfy-figure $wrapperClass">$zoomedSrc
     <img $attributes
