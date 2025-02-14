@@ -2,6 +2,8 @@
 
 namespace PgFactory\PageFactory;
 
+use Kirby\Filesystem\Asset;
+
 const DEFAULT_MAX_IMAGE_WIDTH = 1920;
 const DEFAULT_MAX_IMAGE_HEIGHT = 1440;
 //const DEFAULT_SIZES = [200, 300, 600, 900, 1200, 1800, 2400, 3200];
@@ -80,7 +82,7 @@ class Image
         $wrapperTag     = ($options['wrapperTag']??false) ?: 'dev';
         $wrapperClass   = $options['wrapperClass']??'';
         $caption        = $options['caption']??'';
-        $alt            = $image->alt()->value() ?: (($options['alt']??false) ?: ' ');
+        $alt            = $image->alt()->value() ?: (($options['alt'] ?? false) ?: ' ');
 
         if ($this->origWidth > DEFAULT_MAX_IMAGE_WIDTH) {
             $this->origWidth = DEFAULT_MAX_IMAGE_WIDTH;
@@ -130,6 +132,16 @@ class Image
 
 
     /**
+     * @return string
+     * @throws \Exception
+     */
+    public function html(): string
+    {
+        return $this->render();
+    } // html
+
+
+    /**
      * @return object|\Kirby\Cms\File
      * @throws \Kirby\Exception\InvalidArgumentException
      */
@@ -164,15 +176,9 @@ class Image
             }
             $image = $subdir->image(basename($file));
 
-        } elseif (str_starts_with($file, '~/')) {
-            // image in folder outside of content/:
-            $p = substr($file, 1);
-            $image = site()->file($p);
-            if (!$image) {
-                throw new \Exception("Error: file '$p' not found");
-            }
+        // } elseif (str_starts_with($file, '~/assets/')) {
         } else {
-            throw new \Exception('Not implemented yet');
+            throw new \Exception('Images from outside of content/ not supported.');
         }
 
 
@@ -240,6 +246,9 @@ class Image
     } // getImage
 
 
+    /**
+     * @return mixed
+     */
     public function url()
     {
         return $this->image->url();
@@ -469,6 +478,10 @@ EOT;
     } // applyImgWrapper
 
 
+    /**
+     * @param array $m
+     * @return string
+     */
     private function parseSizeHint(array $m): string
     {
         $file = $m[1] . $m[3];
