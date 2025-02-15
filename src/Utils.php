@@ -678,7 +678,15 @@ EOT;
                 }
                 $html = str_replace($m[0][$i], $aTag.PFY_APP_BASE_URL.$pageId, $html);
             }
+
+        // ~page/ for instances of "src=...":
+        } elseif (preg_match_all('|(src=[\'"])~page/|', $html, $m)) {
+            $pageUrl = page()->url().'/';
+            foreach ($m[1] as $i => $aTag) {
+                $html = str_replace($m[0][$i], $aTag.$pageUrl, $html);
+            }
         }
+        $html = str_replace('~page/', page()->url().'/', $html);
 
         // ~/ for <a> tags -> replace without redir-offset:
         $html = preg_replace('|(<a\s+href=[\'"])~/|', "$1".PFY_APP_BASE_URL, $html);
