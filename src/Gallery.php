@@ -9,8 +9,76 @@ namespace PgFactory\PageFactory;
 </a>
 */
 
+const PFY_GALLERY_IMAGE_TYPES = 'jpg,jpeg,png,gif,bmp,webp';
+//const PFY_GALLERY_IMAGE_TYPES = 'jpg,jpeg,png,gif,bmp';
+
 class Gallery
 {
+    private static $inx = 0;
+
+
+    /**
+     * @param array $options
+     * @return string
+     * @throws \Exception
+     */
+    public static function render(array $options): string
+    {
+        self::$inx++;
+        $inx = self::$inx;
+
+        // fix img dimensions -> support any type of absolute values:
+        if ($options['thumbWidth'] && is_string($options['thumbWidth']) && preg_match('/[\d.]+\w+/', $options['thumbWidth'])) {
+            $options['thumbWidthPx'] = convertToPx($options['thumbWidth'], true).'px';
+        } else {
+            $options['thumbWidthPx'] = $options['thumbWidth'].'px';
+        }
+
+        if ($options['thumbHeight'] && is_string($options['thumbHeight']) && preg_match('/[\d.]+\w+/', $options['thumbHeight'])) {
+            $options['thumbHeightPx'] = convertToPx($options['thumbHeight'], true).'px';
+        } else {
+            $options['thumbHeightPx'] = $options['thumbHeight'].'px';
+        }
+
+        $class = $options['class']??'';
+
+        // gallery config options:
+        if ($options['background']) {
+            $options['config']['overlayBackgroundColor'] = $options['background'];
+        }
+        if ($options['fullscreen']) {
+            $options['config']['fullScreen'] = $options['fullscreen'];
+        }
+
+        // assemble output:
+        $html = '';
+        $path = fixPath($options['path']);
+        if (!$path) { // no path means all images in page folder
+            $path = "~page/";
+        } elseif ($path[0] !== '~') {
+            $path = "~page/$path";
+        }
+
+        $images = self::getImages($path, $options['imageCaptions']);
+        if (is_array($images)) {
+            foreach ($images as $file => $caption) {
+                $html .= self::renderImage($file, $options, $caption);
+            }
+        }
+
+        $html = <<<EOT
+<div class='pfy-gallery pfy-gallery-$inx $class'>
+$html
+</div><!-- /pfy-gallery -->
+EOT;
+
+        self::loadAssets($options['config'], $inx);
+
+        return $html;
+    } // render
+
+
+
     /**
      * @param string $file
      * @param array $options
@@ -18,7 +86,7 @@ class Gallery
      * @return string
      * @throws \Exception
      */
-    public static function renderImage(string $file, array $options, string $caption = ''): string
+    private static function renderImage(string $file, array $options, string $caption = ''): string
     {
         // create thumbnail and size-variants if necessary:
         list($imgUrl, $html) = self::prepareImage($file, $options);
@@ -53,8 +121,9 @@ EOT;
      * @return void
      * @throws \Exception
      */
-    public static function loadAssets(array $config, int $inx): void
+    private static function loadAssets(array $config): void
     {
+        $inx = self::$inx;
         if ($inx === 1) {
             Assets::addAssets([
                 'media/plugins/pgfactory/pagefactory/css/baguetteBox.min.css',
@@ -84,7 +153,7 @@ EOT;
      * @param string $imageCaptionsFile
      * @return array
      */
-    public static function getImages(string $path, string $imageCaptionsFile0 = ''): array
+    private static function getImages(string $path, string $imageCaptionsFile0 = ''): array
     {
         if ($path[0] !== '~') {
             $path = "~page/$path";
@@ -111,9 +180,10 @@ EOT;
         if (!$images) {
             $galleryPath = resolvePath($path);
             $pagePath = PFY_PAGE_PATH;
-            $files = getDir("$galleryPath*");
+            $path1 = str_contains($galleryPath, '*') ? $galleryPath : "$galleryPath*";
+            $files = getDir($path1);
             foreach ($files as $image) {
-                if (is_file($image) && str_contains('jpg,jpeg,png,gif,bmp', fileExt($image))) {
+                if (is_file($image) && str_contains(PFY_GALLERY_IMAGE_TYPES, fileExt($image))) {
                     $image = str_replace([PFY_APP_BASE_PATH . 'content/assets/', $pagePath], ['~assets/', '~page/'], $image);
                     $images[$image] = '';
                 }
@@ -129,7 +199,7 @@ EOT;
      * @return array|false
      * @throws \Exception
      */
-    public static function prepareImage(string $file, array $options): array
+    private static function prepareImage(string $file, array $options): array
     {
         $imgOptions = [
             'src'           => $file,

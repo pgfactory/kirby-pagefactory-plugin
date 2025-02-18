@@ -37,7 +37,7 @@ return function($args = ''): string
             'path'          => ['[path] Path of folder containing images.', false],
             'thumbWidth'    => ['[int] Width of thumbnails/preview images. '.
                 'Supported units: in,cm,mm,pt,pc,px', DEFAULT_THUMB_WIDTH],
-            'thumbHeight'   => ['[int] Height of thumbnails/preview images.', DEFAULT_THUMB_HEIGHT],
+            'thumbHeight'   => ['[int] Height of thumbnails/preview images.', null],
             'width'         => ['[int] Synonyme for "thumbWidth".', null],
             'height'        => ['[int] Synonyme for "thumbHeight".', null],
             'maxWidth'      => ['[int] Maximum width of images (i.e. in overlay).', IMG_MAX_WIDTH],
@@ -103,51 +103,7 @@ EOT,
         $options['thumbHeight'] = $options['height'];
     }
 
-    // fix img dimensions -> support any type of absolute values:
-    if (preg_match('/[\d.]+\w+/', $options['thumbWidth'])) {
-        $options['thumbWidthPx'] = convertToPx($options['thumbWidth'], true).'px';
-    } else {
-        $options['thumbWidthPx'] = $options['thumbWidth'].'px';
-    }
-    if (preg_match('/[\d.]+\w+/', $options['thumbHeight'])) {
-        $options['thumbHeightPx'] = convertToPx($options['thumbHeight'], true).'px';
-    } else {
-        $options['thumbHeightPx'] = $options['thumbHeight'].'px';
-    }
-
-    $class = $options['class']??'';
-
-    // gallery config options:
-    if ($options['background']) {
-        $options['config']['overlayBackgroundColor'] = $options['background'];
-    }
-    if ($options['fullscreen']) {
-        $options['config']['fullScreen'] = $options['fullscreen'];
-    }
-
-    // assemble output:
-    $html = '';
-    $path = fixPath($options['path']);
-    if (!$path) { // no path means all images in page folder
-        $path = "~page/";
-    } elseif ($path[0] !== '~') {
-        $path = "~page/$path";
-    }
-
-    $images = Gallery::getImages($path, $options['imageCaptions']);
-    if (is_array($images)) {
-        foreach ($images as $file => $caption) {
-            $html .= Gallery::renderImage($file, $options, $caption);
-        }
-    }
-
-    $html = <<<EOT
-<div class='pfy-gallery pfy-gallery-$inx $class'>
-$html
-</div><!-- /pfy-gallery -->
-EOT;
-
-    Gallery::loadAssets($options['config'], $inx);
+    $html = Gallery::render($options);
 
     return $str.$html; // return [$str]; if result needs to be shielded
 }; // gallery
