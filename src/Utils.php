@@ -230,10 +230,14 @@ class Utils
         self::$menuIcon = $menuIcon = self::renderPfyIcon('menu');
         $smallScreenTitle = TransVars::$variables['smallScreenHeader']?? site()->title()->value();
         $smallScreenMenuLabel = TransVars::$variables['smallScreenMenuLabel']??'Menu';
+        $beforeTitle = TransVars::$variables['smallScreenTitleBefore']??'';
+        $afterTitle = TransVars::$variables['smallScreenTitleAfter']??'';
         $smallScreenHeader = <<<EOT
 
 <div class="pfy-small-screen-header pfy-small-screen-only">
+    $beforeTitle
     <h1>$smallScreenTitle</h1>
+    $afterTitle
     <button id='pfy-nav-menu-icon' type="button" aria-label="$smallScreenMenuLabel">$menuIcon</button>
 </div>
 EOT;
