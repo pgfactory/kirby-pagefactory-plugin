@@ -200,7 +200,7 @@ EOT;
                 self::$next = $pg;
             }
             $curr = $pg->isActive() ? ' aria-current="page"': '';
-            $url = $pg->url();
+            $url = $pg->url().'/';
             $title = $pg->title()->html();
             $hasChildren = !$pg->children()->listed()->isEmpty();
 
@@ -208,7 +208,7 @@ EOT;
             // if folder contains no md-file, fall through to first child page:
             if ($hasChildren && !$hasContent) {
                 if ($pg1 = $pg->children()->listed()->first()) {
-                    $url = $pg1->url();
+                    $url = $pg1->url().'/';
                     $class = 'pfy-nav-no-direct-child';
                 }
             }
