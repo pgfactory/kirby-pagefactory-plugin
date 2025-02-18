@@ -6,10 +6,11 @@ return function($argStr = '')
     $macroName = basename(__FILE__, '.php');
     $config =  [
         'options' => [
-            'min' => ['If set, defines the minimum number of random words to be rendered.', false],
-            'max' => ['If set, defines the maximum number of random words to be rendered (max: 99).', false],
+            'min' => ['If set, defines the minimum number of random words to be rendered.', null],
+            'max' => ['If set, defines the maximum number of random words to be rendered (max: 99).', null],
             'dot' => ['If true, a dot will be appended at the end of the output', false],
-            'class' => ['Class to be applied to the wrapper element', ''],
+            'class' => ['Class to be applied to the wrapper element', null],
+            'wrapperClass' => ['Synonym for "class".', null],
             'wrapperTag' => ['Allows to define the tag of the wrapper element', 'div'],
         ],
         'summary' => <<<EOT
