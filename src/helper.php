@@ -554,7 +554,7 @@ function dir_name(string $path): string
   */
 function fixPath(string $path): string
 {
-    if ($path) {
+    if ($path && !preg_match('|\.\w+|', $path)) {
         $path = rtrim($path, '/').'/';
     }
     return $path;
