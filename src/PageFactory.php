@@ -113,6 +113,7 @@ class PageFactory
     public static bool $forceAssetsUpdate = false;
 
     public static bool $renderingClosed = false;
+    public static bool $addSectionInnerWrapper = false;
 
     public function __construct($data)
     {
@@ -376,6 +377,14 @@ class PageFactory
             if (!$res = Frontmatter::extract($mdStr)) {
                 continue;
             }
+
+            // inner wrappers for sections -> used by PresentationSupport:
+            $innerWrapper1 = $innerWrapper2 = '';
+            if (self::$addSectionInnerWrapper) {
+                $innerWrapper1 = "<div class='pfy-section-inner'>\n";
+                $innerWrapper2 = "\n</div><!-- /.pfy-section-inner -->";
+            }
+
             list($mdStr, $wrapperTag, $wrapperClass) = $res;
 
             $wrapperId = "pfy-part-$inx";
@@ -386,8 +395,10 @@ class PageFactory
             $html = <<<EOT
 
 <$wrapperTag id='$wrapperId' class='$wrapperClass'>
-
+$innerWrapper1
 $html
+
+$innerWrapper2
 </$wrapperTag>
 
 
