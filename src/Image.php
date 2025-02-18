@@ -223,7 +223,9 @@ class Image
         if ($effectiveWidth && $effectiveHeight) {
             if ($effectiveWidth > $effectiveHeight / $this->aspectRatio) {
                 $effectiveWidth = $effectiveHeight / $this->aspectRatio;
-                $this->requestedWidth = $this->requestedHeight / $this->aspectRatio;
+                if ($this->requestedHeight && is_numeric($this->requestedHeight)) {
+                    $this->requestedWidth = $this->requestedHeight / $this->aspectRatio;
+                }
             } elseif ($effectiveHeight > $effectiveWidth * $this->aspectRatio) {
                 $effectiveHeight = $effectiveWidth * $this->aspectRatio;
                 $this->requestedHeight = $effectiveWidth * $this->aspectRatio;
