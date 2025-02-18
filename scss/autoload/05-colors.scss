@@ -11,8 +11,16 @@
 
   &.pfy-small-screen {
     .pfy-page {
-      background: var(--pfy-mobile-page-bg-color);
-      color:      var(--pfy-mobile-page-txt-color);
+      background: var(--pfy-mobile-nav-bg-color);
+      &,a {
+        color: var(--pfy-mobile-nav-txt-color);
+      }
+    }
+    .pfy-main-wrapper {
+      background: var(--pfy-mobile-page-bg-color, white);
+      &,a {
+        color: var(--pfy-mobile-page-txt-color, black);
+      }
     }
   } // .pfy-small-screen
 
