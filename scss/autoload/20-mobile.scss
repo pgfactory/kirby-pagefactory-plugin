@@ -65,9 +65,9 @@ $mobile-nav-bg-color:     var(--pfy-mobile-nav-bg-color, #{$mobile-nav-bg-color}
     background: $mobile-main-bg-color;
   } // pfy-main-wrapper
 
-  .pfy-main {
-    height: max-content;
-  }
+  //.pfy-main {
+  //  height: max-content;
+  //}
 
 
   .pfy-small-screen-header {
