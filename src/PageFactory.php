@@ -114,6 +114,7 @@ class PageFactory
 
     public static bool $renderingClosed = false;
     public static bool $addSectionInnerWrapper = false;
+    public static string $sectionWrapperClass = '';
 
     public function __construct($data)
     {
@@ -386,6 +387,7 @@ class PageFactory
             }
 
             list($mdStr, $wrapperTag, $wrapperClass) = $res;
+            $wrapperClass .= self::$sectionWrapperClass; // -> used by Presentation
 
             $wrapperId = "pfy-part-$inx";
             $fileId = translateToClassName(base_name($file, false), false);
