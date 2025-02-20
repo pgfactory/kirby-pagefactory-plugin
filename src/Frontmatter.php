@@ -53,6 +53,16 @@ class Frontmatter
             } elseif (str_contains('description,keywords,author', $key)) {
                 Page::addHead("  <meta name='$key' content='$value'>\n");
 
+            } elseif ($key === 'showtill') {
+                if (time() > strtotime($value)) {
+                    $mdStr = '';
+                }
+
+            } elseif ($key === 'showfrom') {
+                if (time() < strtotime($value)) {
+                    $mdStr = '';
+                }
+
             } elseif ($key === 'robots') {
                 Page::applyRobotsAttrib($value);
 
@@ -78,9 +88,6 @@ class Frontmatter
 
             } elseif ($key === 'jsready') {
                 Page::addJsReady($value);
-
-            } elseif ($key === 'jq') {
-                Page::addJq($value);
 
             } elseif ($key === 'assets') {
                 $assets = Yaml::decode($value);
