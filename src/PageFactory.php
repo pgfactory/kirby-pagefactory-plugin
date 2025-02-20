@@ -387,6 +387,9 @@ class PageFactory
             }
 
             list($mdStr, $wrapperTag, $wrapperClass) = $res;
+            if (!$mdStr) {
+                continue;
+            }
             $wrapperClass .= self::$sectionWrapperClass; // -> used by Presentation
 
             $wrapperId = "pfy-part-$inx";
