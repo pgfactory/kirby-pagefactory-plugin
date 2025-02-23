@@ -9,8 +9,7 @@ namespace PgFactory\PageFactory;
 </a>
 */
 
-const PFY_GALLERY_IMAGE_TYPES = 'jpg,jpeg,png,gif,bmp,webp';
-//const PFY_GALLERY_IMAGE_TYPES = 'jpg,jpeg,png,gif,bmp';
+const PFY_GALLERY_IMAGE_TYPES = 'jpg,jpeg,png,gif,webp'; // 'avif'  not supported yet
 
 class Gallery
 {

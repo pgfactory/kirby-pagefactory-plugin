@@ -53,7 +53,9 @@ return function($argStr = '')
             'linkTarget' => ["Target-attribute applied to &lt;a> tag, e.g. linkTarget:_blank", false],
             'linkAttributes' => ["Attributes applied to the \<a> tag, e.g. 'download'.", false],
             'ignoreMissing' => ["If true, an empty string is rendered in case the image file is missing.", false],
-            'responsiveSteps' => [".", implode(',', DEFAULT_SIZES)],
+            'responsiveSteps' => ["Let's you use a customized set of SRCSET sizes.", implode(',', DEFAULT_SIZES)],
+            'format' => ["Specifies the file format of images, e.g. 'jpg', 'png', 'webp' etc.", 'webp'],
+            'quality' => ["Specifies the rendered images quality, e.g. '80%'.", 80],
             ],
         'summary' => <<<EOT
 # img()

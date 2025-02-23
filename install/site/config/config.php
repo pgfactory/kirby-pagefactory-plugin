@@ -18,6 +18,7 @@ return [
 
     'thumbs' => [
         'interlace' => true,
+        'format' => 'webp',
     ],
 
     // define Kirby's login mode, e.g. allow login by mailed access-code:

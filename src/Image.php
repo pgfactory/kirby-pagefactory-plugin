@@ -17,6 +17,9 @@ class Image
     private array $options;
     private int $origWidth;
     private int $origHeight;
+    private string $src = '';
+    private string $format = '';
+    private int $quality; // %
     private string $unit = '';
     private object $image;
     private float $aspectRatio;
@@ -84,14 +87,7 @@ class Image
         $caption        = $options['caption']??'';
         $alt            = $image->alt()->value() ?: (($options['alt'] ?? false) ?: ' ');
 
-        if ($this->origWidth > DEFAULT_MAX_IMAGE_WIDTH) {
-            $this->origWidth = DEFAULT_MAX_IMAGE_WIDTH;
-            $image0 = $image->resize($this->origWidth);
-            $src = $image0->url();
-        } else {
-            $src = $image->url();
-        }
-        $src            = "src='$src'";
+        $src            = "src='$this->src'";
         $style = '';
         $srcset         = $this->prepareSrcset($image);
         if ($this->requestedWidth == 0 && $this->unit === 'px') {
@@ -147,6 +143,17 @@ class Image
      */
     private function getImage(): object|null
     {
+        $this->format  = $this->options['format']?? kirby()->option('thumbs.format', 'webp');
+        if ($this->format === 'avif') {
+            throw new \Exception('Image format ".avif" not supported yet.');
+        }
+        $quality  = $this->options['quality']?? kirby()->option('thumbs.quality', 80);
+        if (is_string($quality)) {
+            $this->quality = (int)rtrim($quality, '%');
+        } else {
+            $this->quality = (int)$quality;
+        }
+
         $file = $this->options['src'];
 
         $file = $this->getSizeInstructions($file);
@@ -235,14 +242,48 @@ class Image
         } elseif ($effectiveWidth && !$effectiveHeight) {
             $effectiveHeight = $effectiveWidth / $this->aspectRatio;
         }
+
+// ToDo: automate preparation of source image file:
+//      reformat image file in case its original has not target format or is too big:
+//        $fileFormat = fileExt($file);
+//        if ($fileFormat !== $this->format) {
+//            $w = min($this->origWidth, DEFAULT_MAX_IMAGE_WIDTH);
+//            $image = $image->thumb([
+//                'width' => $w,
+//                'format' => $this->format,
+//            ]);
+//            $newImgPath = $image->root();
+//            if (fileExt($newImgPath)) {
+//                copy($newImgPath, $file);
+//            }
+//        }
+
         // resize image if required:
+        if ($this->origWidth > DEFAULT_MAX_IMAGE_WIDTH) {
+            $this->origWidth = DEFAULT_MAX_IMAGE_WIDTH;
+            $image0 = $image->thumb([
+                'width' => $this->origWidth,
+                'format' => $this->format,
+                'quality' => $this->quality,
+            ]);
+            $this->src = $image0->url();
+        } else {
+            $this->src = $image->url();
+        }
+
+
         if ($effectiveWidth) {
-            $image->resize(intval($effectiveWidth));
+            $image->thumb([
+                'width' => intval($effectiveWidth),
+                'format' => $this->format,
+                'quality' => $this->quality,
+            ]);
         }
         if ($this->isAbsoluteUnit) {
             $this->requestedWidth = round($effectiveWidth, 1);
             $this->requestedHeight = round($effectiveHeight, 1);
         }
+
         $this->image = $image;
         return $image;
     } // getImage
@@ -316,9 +357,12 @@ class Image
             $this->sizes = " sizes='$this->requestedWidth$this->unit'";
         }
         $srcset = $image->srcset($sizes);
-        $srcset = str_replace(',', ",\n\t\t\t", $srcset);
+        if ($srcset) {
+            $srcset = str_replace(',', ",\n\t\t\t", $srcset);
+            $srcset = "srcset='$srcset'";
+        }
 
-        return "srcset='$srcset'";
+        return (string)$srcset;
     } // prepareSrcset
 
 
@@ -413,9 +457,17 @@ EOT;
 
         if ($this->quickzoomActive) {
             if ($this->isAbsoluteUnit) {
-                $u = $this->image->resize(intval($this->requestedWidth))->url();
+                $u = $this->image->thumb([
+                    'width' => intval($this->requestedWidth),
+                    'format' => $this->format,
+                    'quality' => $this->quality,
+                ])->url();
             } else {
-                $u = $this->image->resize(300)->url();
+                $u = $this->image->thumb([
+                    'width' => 300,
+                    'format' => $this->format,
+                    'quality' => $this->quality,
+                ])->url();
             }
             $src = "src='$u'";
             $this->attributes .= "\n\t\t$src";
