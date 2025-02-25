@@ -119,10 +119,6 @@ class Image
 
         $html = $this->applyImgWrapper($caption, $wrapperClass, $attributes, $class, $style, $src, $srcset, $sizes, $wrapperTag);
 
-        if ($options['link']??false) {
-            $html = $this->applyLinkWrapper($html);
-        }
-
         return $html;
     } // render
 
@@ -370,13 +366,15 @@ class Image
      * @param $str
      * @return string
      */
-    private function applyLinkWrapper($str)
+    private function applyLinkWrapper($str, $wrapperClass)
     {
         $options = $this->options;
         $href = $options['link'];
 
-        if ($options['linkClass']) {
-            $linkAttr = " class='{$options['linkClass']}'";
+        $linkClass = trim($options['linkClass']." $wrapperClass");
+
+        if ($linkClass) {
+            $linkAttr = " class='$linkClass'";
         } else {
             $linkAttr = " class='pfy-img-link'";
         }
@@ -527,6 +525,9 @@ EOT;
 </$wrapperTag><!-- .pfy-image-wrapper -->
 
 EOT;
+        }
+        if ($this->options['link']??false) {
+            $html = $this->applyLinkWrapper($html, $wrapperClass);
         }
         return $html;
     } // applyImgWrapper
