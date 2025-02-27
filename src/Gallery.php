@@ -104,8 +104,9 @@ EOT;
         } else {
             $html = substr($html, 0,-1) . "style='object-fit:cover;'>";
         }
+        $width = ($options['thumbWidth']??false) ? " style='width:{$options['thumbWidth']}'": '';
         $html = <<<EOT
-<a href="$imgUrl" title="$caption">
+<a href="$imgUrl"$width title="$caption">
 $html$thumbCaption
 </a>
 
