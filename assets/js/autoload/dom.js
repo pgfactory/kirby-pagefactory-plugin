@@ -110,3 +110,8 @@ function parseDomForArgs(elem, pattern, fun) {
   return [elem, pattern, parentPattern, childPattern, fun];
 } // parseDomForArgs
 
+
+function domReady(fun)
+{
+  document.addEventListener('DOMContentLoaded', fun);
+} // domReady
