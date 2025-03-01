@@ -82,7 +82,7 @@ class Image
             $attributes .= " id='pfy-img-$inx'";
         }
         $class          = $options['class']??'';
-        $wrapperTag     = ($options['wrapperTag']??false) ?: 'dev';
+        $wrapperTag     = ($options['wrapperTag']??false) ?: 'div';
         $wrapperClass   = $options['wrapperClass']??'';
         $caption        = $options['caption']??'';
         $alt            = $image->alt()->value() ?: (($options['alt'] ?? false) ?: ' ');
