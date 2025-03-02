@@ -37,6 +37,7 @@ return [
     'pgfactory.pagefactory.options' => [
         // 'defaultLanguage'               => 'de',   // multilang -> configure in panel instead! (Opt. use 'Code: de2' and 'PHP locale string: de_DE')
         // 'locale'                        => 'de_DE',// default: 'en_GB'
+        // 'lazyLoading'                   => false,   // disable lazy loading of images
         // 'robots'                        => true,   // inject "robots" elem in HTML header
         // 'excludeFilesRegex'             => '\.old\.md$',// regex pattern to exclude certain .md files from rendering
         // 'default-nav'                   => false,  // omit automatic loading of NAV resources
