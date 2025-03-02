@@ -838,6 +838,8 @@ EOT;
         } else {
             PageFactory::$config = OPTIONS_DEFAULTS;
         }
+        PageFactory::$lazyLoading =  $optionsFromConfigFile['lazyLoading'] ?? true;
+
 
         // add values from site/site.txt:
         $site = site();

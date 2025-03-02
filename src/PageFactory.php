@@ -112,6 +112,7 @@ class PageFactory
     public static $dataPath = PFY_CUSTOM_DATA_PATH;
     public static bool $forceAssetsUpdate = false;
 
+    public static bool $lazyLoading = false;
     public static bool $renderingClosed = false;
     public static bool $addSectionInnerWrapper = false;
     public static string $sectionWrapperClass = '';

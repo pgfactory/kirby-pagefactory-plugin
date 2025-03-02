@@ -52,7 +52,7 @@ class Image
         if (($l = ($options['lazyLoading']??null)) !== null) {
             $this->lazyLoadingActive = $l;
         } else {
-            $this->lazyLoadingActive = kirby()->option('pgfactory.pagefactory.options.lazyLoading', true);
+            $this->lazyLoadingActive = PageFactory::$lazyLoading;
         }
 
         $this->responsiveSteps = $options['responsiveSteps'] ?? DEFAULT_SIZES;
