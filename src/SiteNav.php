@@ -68,7 +68,7 @@ class SiteNav
                 // drag $prev along until $curr has been reached (but skipping pages without content):
                 self::$prev = $pg;
             }
-            if (!(self::$currPg??false)) {
+            if (!(self::$currPg??false) && $hasContent) {
                 self::$pageNr++;
             }
             $hasChildren = !$pg->children()->listed()->isEmpty();

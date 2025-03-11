@@ -57,6 +57,8 @@ class PfyNav {
     document.addEventListener('click', (ev) => {
       const el = ev.target;
 
+      parent.isTopNav    = !!el.closest('.pfy-nav-horizontal');
+
       // handle mobile menu button:
       const mobileMenuButton = el.closest('#pfy-nav-menu-icon');
       if (mobileMenuButton) {
@@ -186,6 +188,11 @@ class PfyNav {
     const parentLi = ev.target.closest('li');
     const aEl = parentLi.querySelector('a');
 
+    if (this.isTopNav && !parentLi.classList.contains('pfy-lvl-1')) {
+      ev.stopImmediatePropagation();
+      return;
+    }
+
     // handle special case: horizontal top nav:
     const closeOthers = parentLi.closest('.pfy-nav-horizontal.pfy-primary-nav');
     const isArrow = !!ev.target.closest('.pfy-nav-arrow');
@@ -228,12 +235,10 @@ class PfyNav {
         const subId = `nav-elem-${parent.navInx}-${parent.navElemInx}`;
         // apply level-class:
         liElem.classList.add('pfy-lvl-' + depth);
-
         const subOlElem = liElem.querySelector('ol,ul');
         let needsSurrogate = false;
         if (parent.collapsible) {
           needsSurrogate = subOlElem && !liElem.classList.contains('pfy-nav-no-direct-child');
-          needsSurrogate = needsSurrogate && (!parent.isTopNav || (depth === 1));
         }
 
         // mark current-page (and its parent pages):
@@ -263,13 +268,8 @@ class PfyNav {
 
           const href = aElem.getAttribute('href');
 
-          if (!parent.isTopNav || depth === 1) {
-            aElem.outerHTML = `<a href="${href}" aria-expanded="${ariaExpanded}" aria-controls="${subId}"><span class='pfy-nav-label'>` +
+          aElem.outerHTML = `<a href="${href}" aria-expanded="${ariaExpanded}" aria-controls="${subId}"><span class='pfy-nav-label'>` +
               `<span>${text}</span></span><span class='pfy-nav-arrow' aria-hidden='true'>${parent.arrowSvg}</span></a>`;
-          } else {
-            aElem.outerHTML = `<a href="${href}" ><span class='pfy-nav-label'>` +
-              `${text}</span></a>`;
-          }
 
           let olInnerHtml = subOlElem.innerHTML;
 

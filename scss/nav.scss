@@ -138,6 +138,11 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
     li.pfy-curr > a {
       background: $curr-bg-color;
     }
+
+    // sub elems in top nav don't need surrogates as they are not collapsed:
+    .pfy-lvl-2 .pfy-surrogate-elem {
+      display: none;
+    }
   }
 
   &.pfy-nav-horizontal,
@@ -218,6 +223,15 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
   }
 } // pfy-large-screen
 
+
+// === small screen =======================================================
+.pfy-default-styling.pfy-small-screen {
+  .pfy-footer {
+    a {
+      color: inherit;
+    }
+  }
+}
 
 
 .pfy-default-styling {
