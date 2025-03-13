@@ -46,7 +46,7 @@ $base-col1: var(--nav-base-color1); // --nav-base-color1: 0, 0%;
 $base-col2: var(--nav-base-color2); // --nav-base-color2: 0, 0%;
 
  // Text:
-$nav-txt-size:        var(--pfy-nav-txt-size, 12pt);
+$nav-txt-size:        var(--pfy-nav-txt-size, 1rem);
 $txt-color:           var(--pfy-nav-txt-color, currentColor);
 $sub-txt-color:       var(--pfy-nav-sub-txt-color, $txt-color);
 $active-txt-color:    var(--pfy-nav-active-txt-color, $txt-color);
@@ -104,8 +104,11 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
   // nav placeholder to avoid flicker:
   .pfy-top-nav-placeholder {
     line-height: $line-height;
+    width: 0;
     height: calc(#{$line-height} + #{$elem-height} - 1.2em + 3px);
     margin: 0;
+    padding: 0;
+    overflow: hidden;
   }
 
   .pfy-nav-empty,
@@ -193,13 +196,6 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
   // nav placeholder:
   .pfy-top-nav-placeholder {
     color: transparent;
-  }
-  &.debug .pfy-top-nav-placeholder {
-    outline: 1px solid gray;
-    outline-offset: -1px;
-    padding: 0 0.5em;
-    color: #077 !important;
-    background: #eff;
   }
 
   &.pfy-sitemap,

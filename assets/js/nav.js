@@ -316,12 +316,7 @@ class PfyNav {
   fixNavLayout() {
     const navWrapper = this.navWrapper;
     const nav = navWrapper.querySelector('.pfy-nav');
-    const fsVar = getComputedStyle(navWrapper).getPropertyValue('--pfy-nav-txt-size');
-    if (!fsVar) {
-      const fs = getComputedStyle(navWrapper).getPropertyValue('font-size');
-      navWrapper.style.setProperty('--pfy-nav-txt-size', fs);
-    }
-    nav.style.display = 'block';
+    nav.style.display = null;
     const placeHolder = navWrapper.querySelector('.pfy-top-nav-placeholder');
     if (placeHolder) {
       placeHolder.style.display = 'none';
