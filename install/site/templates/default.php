@@ -20,13 +20,12 @@
   <div class="pfy-header-wrapper">
 
     <header class='pfy-header'>
-      <div class="pfy-large-screen-only">Title defined in Template</div>
+      <div class="pfy-large-screen-only v-align-with-nav">Title defined in Template</div>
     </header>
 
-    <aside class="pfy-nav-outer-wrapper">
+    <div class="pfy-nav-outer-wrapper">
          <?php snippet('nav', ['args' => "type:top, wrapperClass: 'pfy-nav-top-right-aligned pfy-nav-colored pfy-mobile-nav-colored'" ]); ?>
-
-    </aside>
+    </div>
 
   </div><!-- /pfy-header-wrapper -->
 
