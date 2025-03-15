@@ -8,6 +8,13 @@
  *    > sel1      -> :scope > sel1
  *      [+>|~]
  */
+
+
+function domForAll(elem = document, pattern = null, fun = null) {
+  domForEach(elem, pattern, fun);
+} // domForAll
+
+
 function domForEach(elem = document, pattern = null, fun = null) {
     let parentPattern, childPattern;
     if (typeof elem === 'undefined' || elem === null) {
