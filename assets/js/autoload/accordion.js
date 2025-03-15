@@ -9,18 +9,14 @@ class Accordion {
       // Store the <div class="mdp-accordion-body"> element
       this.content = el.querySelector('.mdp-accordion-body');
 
-      this.duration = 250;
+      this.duration = 200;
       // Store the animation object (so we can cancel it if needed)
       this.animation = null;
       // Store if the element is closing
       this.isClosing = false;
       // Store if the element is expanding
       this.isExpanding = false;
-      this.autoCloseAll = (el.closest('.mdp-accordion-auto-close') !== null);
-      if (closeAll) {
-        this.close();
-        return;
-      }
+      this.autoCloseAllEl = el.closest('.mdp-accordion-auto-close');
       // Detect user clicks on the summary element
       this.summary.addEventListener('click', (e) => this.onClick(e));
     }
@@ -35,52 +31,22 @@ class Accordion {
       e.preventDefault();
 
       // handle autoClose feature:
-      if (this.autoCloseAll) {
-        closeAllAccordions();
+      if (this.autoCloseAllEl) {
+        this.closeSiblings();
       }
       // Add an overflow on the <details> to avoid content overflowing
       // Check if the element is being closed or is already closed
       if (this.isClosing || !this.el.open) {
         this.open();
-      // Check if the element is being openned or is already open
+      // Check if the element is being opened or is already open
       } else if (this.isExpanding || this.el.open) {
-        this.el.classList.add('pry-closing');
         this.close();
       }
     } // onClick
 
-    close() {
-      // Set the element as "being closed"
-      this.isClosing = true;
-
-      // Store the current height of the element
-      const startHeight = `${this.el.offsetHeight}px`;
-      // Calculate the height of the summary
-      const endHeight = `${this.summary.offsetHeight}px`;
-
-      // If there is already an animation running
-      if (this.animation) {
-        // Cancel the current animation
-        this.animation.cancel();
-      } // close
-
-      // Start a WAAPI animation
-      this.animation = this.el.animate({
-        // Set the keyframes from the startHeight to endHeight
-        height: [startHeight, endHeight]
-      }, {
-        duration: this.duration,
-        easing: 'ease-out'
-      });
-
-      // When the animation is complete, call onAnimationFinish()
-      this.animation.onfinish = () => this.onAnimationFinish(false);
-      // If the animation is cancelled, isClosing variable is set to false
-      this.animation.oncancel = () => this.isClosing = false;
-    } // close
-
     open() {
       // Apply a fixed height on the element
+      this.el.dataset.style = this.el.getAttribute('style');
       this.el.style.height = `${this.el.offsetHeight}px`;
       // Force the [open] attribute on the details element
       this.el.open = true;
@@ -116,29 +82,112 @@ class Accordion {
       this.animation.oncancel = () => this.isExpanding = false;
     } // expand
 
-    onAnimationFinish(open) {
+
+  close() {
+    // Set the element as "being closed"
+    this.isClosing = true;
+
+    // Store the current height of the element
+    const startHeight = `${this.el.offsetHeight}px`;
+    // Calculate the height of the summary
+    const endHeight = `${this.summary.offsetHeight}px`;
+
+    // If there is already an animation running
+    if (this.animation) {
+      // Cancel the current animation
+      this.animation.cancel();
+    } // close
+
+    // Start a WAAPI animation
+    this.animation = this.el.animate({
+      // Set the keyframes from the startHeight to endHeight
+      height: [startHeight, endHeight]
+    }, {
+      duration: this.duration,
+      easing: 'ease-out'
+    });
+
+    // When the animation is complete, call onAnimationFinish()
+    this.animation.onfinish = () => this.onAnimationFinish(false);
+    // If the animation is cancelled, isClosing variable is set to false
+    this.animation.oncancel = () => this.isClosing = false;
+  } // close
+
+
+  onAnimationFinish(open, el) {
       // Set the open attribute based on the parameter
-      this.el.open = open;
+      if (typeof el === 'undefined') {
+        el = this.el;
+      }
+
+      if (!open) {
+        el.open = null;
+      }
       // Clear the stored animation
       this.animation = null;
       // Reset isClosing & isExpanding
       this.isClosing = false;
       this.isExpanding = false;
       // Remove the overflow hidden and the fixed height
-      this.el.style.height = '';
-      this.el.classList.remove('pry-closing');
-    }
-  } // onAnimationFinish
-
-  document.querySelectorAll('.mdp-accordion details').forEach((el) => {
-    new Accordion(el);
-  });
+      el.setAttribute('style', el.dataset.style);
+    } // onAnimationFinish
 
 
-function closeAllAccordions() {
-  document.querySelectorAll('details').forEach((el) => {
-    if (el.closest('.mdp-accordion-auto-close') !== null) {
-      new Accordion(el, true);
-    }
-  });
-} // closeAllAccordions
+    closeSiblings() {
+      const parent = this;
+      if (this.autoCloseAllEl) {
+        domForEach(this.autoCloseAllEl, 'details', el => {
+          if (el.open && parent.el !== el) {
+            parent.closeSibling(el);
+          }
+        })
+      }
+    } // closeSiblings
+
+
+  closeSibling(el) {
+    // Store the current height of the element
+    const startHeight = `${el.offsetHeight}px`;
+    const summary = el.querySelector('summary');
+    // Calculate the height of the summary
+    const endHeight = `${summary.offsetHeight}px`;
+
+    // If there is already an animation running
+    if (el.animation) {
+      // Cancel the current animation
+      el.animation.cancel();
+    } // close
+
+    // Start a WAAPI animation
+    el.animation = el.animate({
+      // Set the keyframes from the startHeight to endHeight
+      height: [startHeight, endHeight]
+    }, {
+      duration: this.duration,
+      easing: 'ease-out'
+    });
+
+    // When the animation is complete, call onAnimationFinish()
+    el.animation.onfinish = () => this.onAnimationFinish(false, el);
+    // If the animation is cancelled, isClosing variable is set to false
+    el.animation.oncancel = () => this.isClosing = false;
+  } // closeSibling
+
+} // Accordion
+
+
+domReady(() => {
+  if (!CSS.supports("selector(::details-content)")) {
+    domForEach('details.mdp-accordion, .mdp-accordion details', el => {
+      new Accordion(el);
+    })
+  }
+  // for printing, open all accordions:
+  if (window.matchMedia('print').matches) {
+    mylog('opening accordions for printing...');
+    domForEach('details.mdp-accordion, .mdp-accordion details', el => {
+      el.removeAttribute('name');
+      el.open = true;
+    })
+  }
+})
