@@ -39,6 +39,8 @@ class PfyNav {
 
     this.initNavHtml();
 
+    this.prepareMobileMode();
+
     this.adaptToWidth(); // invokes this.setupMouseHandlers() if it's primary nav
 
     this.initTriggers();
@@ -55,38 +57,53 @@ class PfyNav {
   initTriggers() {
     const parent = this;
     document.addEventListener('click', (ev) => {
-      const aEl = ev.target.closest('a');
+      const el = ev.target;
 
-      parent.isTopNav    = !!aEl.closest('.pfy-nav-horizontal');
+      parent.isTopNav    = !!el.closest('.pfy-nav-horizontal');
 
       // handle mobile menu button:
-      const mobileMenuButton = aEl.closest('#pfy-nav-menu-icon');
+      const mobileMenuButton = el.closest('#pfy-nav-menu-icon');
       if (mobileMenuButton) {
         this.operateMobileMenu(mobileMenuButton, ev);
         return;
       }
 
       // check for non-nav-related events -> return immediately:
-      const navWrapper = aEl.closest('.pfy-nav-wrapper');
+      const navWrapper = el.closest('.pfy-nav-wrapper');
       if (!navWrapper) {
         return;
       }
-
-      const isMenuOperator = aEl.hasAttribute('aria-expanded');
-      if (!isMenuOperator) {
+      // check for non-collapsible nav -> return immediately:
+      const isCollapsible = !!el.closest('.pfy-nav-collapsible');
+      if (!isCollapsible) {
         return;
       }
+      const aEl = el.closest('a');
+      if (!aEl) {
+        return;
+      }
+      if (parent.isTopNav) {
+        // in top-nav, all elements below lvl-1 are links:
+        if (aEl.closest('.pfy-lvl-2')) {
+          return;
+        }
+
+      } else {
+        // outside top-nav elements with aria-expanded attrib are menu operators, not links:
+        const isMenuOperator = aEl.hasAttribute('aria-expanded');
+        if (!isMenuOperator) {
+          return;
+        }
+      }
+
+      // handle collapsible nav branches:
       ev.preventDefault();
       ev.stopImmediatePropagation();
-      // handle collapsible nav branches:
-      const isCollapsible = !!navWrapper.classList.contains('pfy-nav-collapsible');
-      if (isCollapsible) {
-        if (parent.isTopNav) {
-          parent.operateSubmenu(ev);
+      if (parent.isTopNav) {
+        parent.operateSubmenu(ev);
 
-        } else {
-          parent.handleSingleAndDoubleClick(ev);
-        }
+      } else {
+        parent.handleSingleAndDoubleClick(ev);
       }
     });
 
@@ -100,7 +117,7 @@ class PfyNav {
       parent.keyHandlers(ev);
     });
 
-    this.setupResizeMonitor();
+    this.initResizeMonitor();
 
   } // initTriggers
 
@@ -340,9 +357,9 @@ class PfyNav {
     if (this.prevScreenMode !== this.isSmallScreen) {
       this.prevScreenMode = this.isSmallScreen;
       if (this.isSmallScreen) {
-        this.initMobileMode();
+        this.activateMobileMode();
       } else {
-        this.initDesktopMode();
+        this.activateDesktopMode();
       }
     }
 
@@ -356,61 +373,44 @@ class PfyNav {
   } //adaptToWidth
 
 
-  // === desktop mode =====================================
-  initDesktopMode () {
-    // mylog('initDesktopMode()');
-    const navWrapper = this.navWrapper;
-    if (this.isTopNav && this.isPrimary) {
-      this.setMobileMode(false);
-      this.collapsible = true;
+  prepareMobileMode() {
+    if (this.isPrimary) {
+      this.navWrapper.dataset.classList = this.navWrapper.classList.value;
     }
-    this.presetSubElemHeights();
+  } // prepareMobileMode
+
+
+  // === desktop mode =====================================
+  activateDesktopMode () {
+    if (this.isPrimary) {
+      this.navWrapper.classList.value = this.navWrapper.dataset.classList;
+    }
     if (this.collapsed && !this.isTopNav && !this.isPrimary) {
       this.openCurrentElem();
     }
-    this.presetSubElemHeights();
-  } // initDesktopMode
+  } // activateDesktopMode
 
 
 
   // === mobile mode =====================================
-  initMobileMode () {
-
+  activateMobileMode () {
     if (this.collapsed) {
       this.openCurrentElem();
     }
 
-    if (!this.isPrimary) {
-      return;
-    }
-    this.setMobileMode(true);
-
-  } // initMobileMode
-
-
-  setMobileMode(activate){
     const navWrapper = this.navWrapper;
-    if (!this.isPrimary) {
+    const isPrimary= navWrapper.classList.contains('pfy-primary-nav');
+    if (!isPrimary) {
       return;
     }
 
-    if (activate) {    // small screen:
-      navWrapper.dataset.classList = navWrapper.classList.value;
-      let cls = 'pfy-nav-wrapper pfy-mobile-nav pfy-primary-nav pfy-nav-indented pfy-nav-collapsible pfy-nav-animated pfy-encapsulated';
-      if (navWrapper.classList.contains('pfy-mobile-nav-colored')) {
-        cls += ' pfy-mobile-nav-colored';
-      }
-      //mylog('setMobileMode: ' + this.navWrapper.getAttribute('id'));
-      navWrapper.classList.value = cls;
-      this.openCurrentElem(navWrapper);
-
-    } else {                                              // large screen:
-      if (typeof navWrapper.dataset.classList === 'string') {
-        navWrapper.classList.value = navWrapper.dataset.classList;
-        navWrapper.dataset.classList = null;
-      }
+    // set mobile specific classes:
+    let cls = 'pfy-nav-wrapper pfy-mobile-nav pfy-primary-nav pfy-nav-indented pfy-nav-collapsible pfy-nav-animated pfy-encapsulated';
+    if (navWrapper.classList.contains('pfy-mobile-nav-colored')) {
+      cls += ' pfy-mobile-nav-colored';
     }
-    this.presetSubElemHeights();
+    navWrapper.classList.value = cls;
+    this.openCurrentElem(navWrapper);
   } // setMobileMode
 
 
@@ -649,14 +649,11 @@ class PfyNav {
     } else {
       liElem = eventOrElem.currentTarget;
     }
-    this.navBranchIsOpen = true;
 
     const isTopNav = liElem.closest('.pfy-nav-wrapper').classList.contains('pfy-nav-horizontal');
     if (isTopNav && !override && liElem.classList.contains('pfy-branch-frozen')) {
       return;
     }
-
-    this.presetSubElemHeight(liElem);
 
     this.openLi(liElem);
     if (recursive) {
@@ -695,8 +692,6 @@ class PfyNav {
     } else {
       liElem = eventOrElem.currentTarget;
     }
-    this.presetSubElemHeight(liElem, true);
-    this.navBranchIsOpen = false;
 
     const isTopNav = liElem.closest('.pfy-nav-wrapper').classList.contains('pfy-nav-horizontal');
     if (isTopNav && !override && (liElem.classList.contains('pfy-branch-frozen'))) {
@@ -736,7 +731,6 @@ class PfyNav {
     if (typeof navWrapper === 'undefined') {
       navWrapper = this.navWrapper;
     }
-    this.navBranchIsOpen = false;
 
     const liElems = navWrapper.querySelectorAll('.pfy-has-children');
     if (liElems) {
@@ -806,51 +800,12 @@ class PfyNav {
   } // openCurrentElem
 
 
-  presetSubElemHeights(){
-    let navWrapper = this.navWrapper;
-    if (!this.collapsible) {
-      return;
-    }
-
-    const parent = this;
-    let pfyNavSubWrappers;
-    if (this.navWrapper.classList.contains('pfy-nav-horizontal')) {
-      pfyNavSubWrappers = navWrapper.querySelectorAll('.pfy-lvl-1.pfy-has-children');
-    } else {
-      pfyNavSubWrappers = navWrapper.querySelectorAll('.pfy-has-children');
-    }
-
-    if (pfyNavSubWrappers) {
-      pfyNavSubWrappers.forEach(function (liElem) {
-        parent.presetSubElemHeight(liElem, true);
-      });
-    }
-  } // presetSubElemHeights
-
-
-  presetSubElemHeight(liElem, leaveOpen = false){
-    const subDivElem = liElem.querySelector('div');
-    if (!subDivElem) {
-      return;
-    }
-    const olElem = liElem.querySelector('div > ol');
-    if (!olElem) {
-      return;
-    }
-    subDivElem.style.display = null;
-    const h = olElem.offsetHeight;
-    if (subDivElem && !leaveOpen) {
-      subDivElem.style.display = 'none';
-    }
-  } // presetSubElemHeight
-
-
-  setupResizeMonitor() {
+  initResizeMonitor() {
     const parent = this;
     window.addEventListener('resize', function() {
       parent.adaptToWidth();
     });
-  } // setupResizeMonitor
+  } // initResizeMonitor
 
 } // PfyNav
 

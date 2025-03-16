@@ -330,17 +330,23 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
     li.pfy-lvl-1.pfy-open div {
       height: unset;
     }
+    li.pfy-lvl-1 .pfy-has-surrogate-elem > a {
+      cursor: pointer;
+    }
   }
 
 
   // === not collapsible ===============================
-  .pfy-nav-wrapper:not(.pfy-mobile-nav) .pfy-nav-not-collapsible {
-    .pfy-curr > a:hover{
+  .pfy-nav-wrapper.pfy-nav-not-collapsible:not(.pfy-mobile-nav) {
+    .pfy-curr > a:hover {
       background: var(--pfy-nav-hover-bg-color, #{$curr-bg-color});
     }
     .pfy-curr.pfy-curr > a {
       color: $curr-txt-color;
       background: $curr-bg-color;
+    }
+    .pfy-nav-no-direct-child > a {
+      cursor: text;
     }
   }
 
