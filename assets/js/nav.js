@@ -246,99 +246,100 @@ class PfyNav {
   initNavHtml() {
     const navWrapper = this.navWrapper;
     const lvl1LiEls = navWrapper.querySelectorAll('.pfy-nav > ol > li');
-    this._initNavHtml(lvl1LiEls, 1);
+    this._initNavHtmlRecursively(lvl1LiEls, 1);
     this.fixNavLayout();
   } // initNavHtml
 
 
-  _initNavHtml (liElems, depth) {
+  _initNavHtmlRecursively (liElems, depth) {
+    if (!liElems.length) {
+      return;
+    }
+
     const parent = this;
-    if (liElems.length) {
+    let inx = 0;
+    liElems.forEach(function (liElem) {
+      inx++;
+      parent.navElemInx++;
 
-      let inx = 0;
-      liElems.forEach(function (liElem) {
-        inx++;
-        parent.navElemInx++;
+      const subId = `nav-elem-${parent.navInx}-${parent.navElemInx}`;
+      // apply level-class:
+      liElem.classList.add('pfy-lvl-' + depth);
+      const subOlElem = liElem.querySelector('ol,ul');
+      let needsSurrogate = false;
+      if (parent.collapsible) {
+        needsSurrogate = subOlElem && !liElem.classList.contains('pfy-nav-no-direct-child');
+      }
 
-        const subId = `nav-elem-${parent.navInx}-${parent.navElemInx}`;
-        // apply level-class:
-        liElem.classList.add('pfy-lvl-' + depth);
-        const subOlElem = liElem.querySelector('ol,ul');
-        let needsSurrogate = false;
-        if (parent.collapsible) {
-          needsSurrogate = subOlElem && !liElem.classList.contains('pfy-nav-no-direct-child');
-        }
-
-        // mark current-page (and its parent pages):
-        const aElem = liElem.querySelector('a');
-        const currPage = aElem.getAttribute('aria-current')? ' aria-current="page"' : '';
-        if (currPage) {
-          liElem.classList.add('pfy-curr');
-          if (!needsSurrogate) {
-            let parentLiElem = liElem.parentElement.closest('li');
-            while (parentLiElem) {
-              parentLiElem.classList.add('pfy-active');
-              parentLiElem = parentLiElem.parentElement.closest('li');
-            }
-          }
-        }
-
-        // handle sub-branches:
-        if (subOlElem) {
-          liElem.classList.add('pfy-has-children');
-          let ariaExpanded = parent.isTopNav ? 'false' : 'true';
-          if (!parent.isTopNav) {
-            liElem.classList.add('pfy-open');
-          }
-
-          // inject arrow into <a>:
-          const text = liElem.querySelector('a').textContent;
-
-          const href = aElem.getAttribute('href');
-
-          aElem.outerHTML = `<a href="${href}" aria-expanded="${ariaExpanded}" aria-controls="${subId}"><span class='pfy-nav-label'>` +
-              `<span>${text}</span></span><span class='pfy-nav-arrow' aria-hidden='true'>${parent.arrowSvg}</span></a>`;
-
-          let olInnerHtml = subOlElem.innerHTML;
-
-          if (needsSurrogate) {
-            const aHref = aElem.getAttribute('href');
-            const aText = aElem.innerHTML;
-            olInnerHtml = '<li class="pfy-lvl-' + (depth + 1) + ` pfy-surrogate-elem"><a href="${aHref}">${aText}</a></li>` + olInnerHtml;
-            liElem.classList.add('pfy-has-surrogate-elem');
-          }
-          subOlElem.outerHTML = `<div id="${subId}" class="pfy-nav-sub-wrapper"><ol>` + olInnerHtml + '</ol>';
-
-          // process all contained <li> recursively:
-          const subLiElems = liElem.querySelectorAll(':scope > div > ol > li');
-          if (subLiElems.length) {
-            parent._initNavHtml(subLiElems, depth + 1);
-          }
-        }
-
-        // handle current page:
-        if (currPage) {
-          if (needsSurrogate) {
-            domForOne(liElem, '.pfy-surrogate-elem', (surrogateLi) => {
-              surrogateLi.classList.add('pfy-curr');
-              surrogateLi.setAttribute('aria-current', 'page');
-            })
-            liElem.classList.add('pfy-active');
-          } else {
-            liElem.classList.add('pfy-curr');
-            liElem.setAttribute('aria-current', 'page');
-          }
-
+      // mark current-page (and its parent pages):
+      const aElem = liElem.querySelector('a');
+      const currPage = aElem.getAttribute('aria-current')? ' aria-current="page"' : '';
+      if (currPage) {
+        liElem.classList.add('pfy-curr');
+        if (!needsSurrogate) {
           let parentLiElem = liElem.parentElement.closest('li');
           while (parentLiElem) {
             parentLiElem.classList.add('pfy-active');
             parentLiElem = parentLiElem.parentElement.closest('li');
           }
         }
+      }
 
-      });
-    }
-  } // _initNavHtml
+      // handle sub-branches:
+      if (subOlElem) {
+        liElem.classList.add('pfy-has-children');
+        let ariaExpanded = parent.isTopNav ? 'false' : 'true';
+        if (!parent.isTopNav) {
+          liElem.classList.add('pfy-open');
+        }
+
+        // inject arrow into <a>:
+        const text = liElem.querySelector('a').textContent;
+
+        const href = aElem.getAttribute('href');
+
+        aElem.outerHTML = `<a href="${href}" aria-expanded="${ariaExpanded}" aria-controls="${subId}"><span class='pfy-nav-label'>` +
+            `<span>${text}</span></span><span class='pfy-nav-arrow' aria-hidden='true'>${parent.arrowSvg}</span></a>`;
+
+        let olInnerHtml = subOlElem.innerHTML;
+
+        if (needsSurrogate) {
+          const aHref = aElem.getAttribute('href');
+          const aText = aElem.innerHTML;
+          olInnerHtml = '<li class="pfy-lvl-' + (depth + 1) + ` pfy-surrogate-elem"><a href="${aHref}">${aText}</a></li>` + olInnerHtml;
+          liElem.classList.add('pfy-has-surrogate-elem');
+        }
+        subOlElem.outerHTML = `<div id="${subId}" class="pfy-nav-sub-wrapper"><ol>` + olInnerHtml + '</ol>';
+
+        // process all contained <li> recursively:
+        const subLiElems = liElem.querySelectorAll(':scope > div > ol > li');
+        if (subLiElems.length) {
+          parent._initNavHtmlRecursively(subLiElems, depth + 1);
+        }
+      }
+
+      // handle current page:
+      if (currPage) {
+        if (needsSurrogate) {
+          domForOne(liElem, '.pfy-surrogate-elem', (surrogateLi) => {
+            surrogateLi.classList.add('pfy-curr');
+            surrogateLi.setAttribute('aria-current', 'page');
+          })
+          liElem.classList.add('pfy-active');
+        } else {
+          liElem.classList.add('pfy-curr');
+          liElem.setAttribute('aria-current', 'page');
+        }
+
+        let parentLiElem = liElem.parentElement.closest('li');
+        while (parentLiElem) {
+          parentLiElem.classList.add('pfy-active');
+          parentLiElem = parentLiElem.parentElement.closest('li');
+        }
+      }
+
+    });
+  } // _initNavHtmlRecursively
 
 
   fixNavLayout() {

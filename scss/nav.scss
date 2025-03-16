@@ -3,9 +3,66 @@
 **
 **    CSS Variables:
 
+ // Colors:
+--nav-base-color1:
+--nav-base-color2:
+
+ // Text:
+--pfy-nav-txt-size:
+--pfy-nav-txt-color:
+--pfy-nav-sub-txt-color:
+--pfy-nav-active-txt-color:
+--pfy-nav-curr-txt-color:
+--pfy-nav-hover-txt-color:
+
+ // Background and border-left:
+--pfy-nav-bg-color:
+--pfy-nav-elem-bg-color:
+--pfy-nav-hover-bg-color:
+--pfy-nav-sub-bg-color:
+--pfy-nav-active-bg-color:
+--pfy-nav-curr-bg-color:
+
+ // focus:
+--pfy-focus-frame-color1:
+--pfy-focus-frame-color2:
 
 
+ // Layout:
+--pfy-nav-elem-height:
+--pfy-nav-line-height:
+--pfy-nav-top-sub-width);
+--pfy-nav-horizontal-padding:
+--pfy-nav-horizontal-padding:
+--pfy-nav-animation-duration:
+--pfy-nav-horizontal-col-gap:
 
+
+ // Side Markers:
+--pfy-nav-side-marker-color:
+--pfy-nav-side-marker-curr-color:
+--pfy-nav-side-marker-active-color:
+--pfy-nav-side-marker-hover-color:
+
+
+ // indentation:
+--pfy-nav-horizontal-first-indent:
+--pfy-nav-horizontal-indent-step:
+
+
+** =====================================================
+**  To style surrogate elements:
+.pfy-nav-wrapper:not(.pfy-nav-horizontal .pfy-lvl-1) {
+	.pfy-nav-no-direct-child,
+	.pfy-has-surrogate-elem {
+		> a {
+			font-style: italic;
+			--pfy-nav-txt-color: red;
+			--pfy-nav-side-marker-curr-color: transparent;
+		}
+	}
+}
+**
 ****************************/
 
 @import '_scss-variables.scss';
