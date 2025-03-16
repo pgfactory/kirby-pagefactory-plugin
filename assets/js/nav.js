@@ -5,8 +5,8 @@
     ol
       li.pfy-has-children
         a
-        div.pfy-nav-sub-wrapper
-          ol [margin-top: -Hpx  aria-hidden: true];
+        div.pfy-nav-sub-wrapper height:0
+          ol aria-hidden: true];
             li
               a
  */
@@ -55,27 +55,38 @@ class PfyNav {
   initTriggers() {
     const parent = this;
     document.addEventListener('click', (ev) => {
-      const el = ev.target;
+      const aEl = ev.target.closest('a');
 
-      parent.isTopNav    = !!el.closest('.pfy-nav-horizontal');
+      parent.isTopNav    = !!aEl.closest('.pfy-nav-horizontal');
 
       // handle mobile menu button:
-      const mobileMenuButton = el.closest('#pfy-nav-menu-icon');
+      const mobileMenuButton = aEl.closest('#pfy-nav-menu-icon');
       if (mobileMenuButton) {
         this.operateMobileMenu(mobileMenuButton, ev);
         return;
       }
 
       // check for non-nav-related events -> return immediately:
-      const navWrapper = el.closest('.pfy-nav-wrapper');
+      const navWrapper = aEl.closest('.pfy-nav-wrapper');
       if (!navWrapper) {
         return;
       }
 
+      const isMenuOperator = aEl.hasAttribute('aria-expanded');
+      if (!isMenuOperator) {
+        return;
+      }
+      ev.preventDefault();
+      ev.stopImmediatePropagation();
       // handle collapsible nav branches:
       const isCollapsible = !!navWrapper.classList.contains('pfy-nav-collapsible');
       if (isCollapsible) {
-        parent.operateSubmenu(ev);
+        if (parent.isTopNav) {
+          parent.operateSubmenu(ev);
+
+        } else {
+          parent.handleSingleAndDoubleClick(ev);
+        }
       }
     });
 
@@ -183,7 +194,7 @@ class PfyNav {
   } // keyHandlers
 
 
-  operateSubmenu(ev) {
+  operateSubmenu(ev, recursive = false) {
     const parent = this;
     const parentLi = ev.target.closest('li');
     const aEl = parentLi.querySelector('a');
@@ -198,7 +209,7 @@ class PfyNav {
     const isArrow = !!ev.target.closest('.pfy-nav-arrow');
     const isRevealController = !!aEl.getAttribute('aria-controls');
     if (isArrow || isRevealController) {
-      parent.toggleBranch(parentLi, ev, closeOthers);
+      parent.toggleBranch(parentLi, ev, closeOthers, recursive);
     }
   } // operateSubmenu
 
@@ -246,7 +257,7 @@ class PfyNav {
         const currPage = aElem.getAttribute('aria-current')? ' aria-current="page"' : '';
         if (currPage) {
           liElem.classList.add('pfy-curr');
-          if (!needsSurrogate) { //???
+          if (!needsSurrogate) {
             let parentLiElem = liElem.parentElement.closest('li');
             while (parentLiElem) {
               parentLiElem.classList.add('pfy-active');
@@ -542,27 +553,22 @@ class PfyNav {
   } // getCurrentlyActiveAElements
 
 
-  handleSingleAndDoubleClick (event, singleClickCallback, doubleClickCallback) {
+  handleSingleAndDoubleClick (event) {
     const parent = this;
     const el = event.target??event.currentTarget?? false;
     if (!el) {
-      return;
-    }
-    const isTopNav = el.closest('.pfy-nav-wrapper').classList.contains('pfy-nav-horizontal');
-    if (isTopNav) {
-      doubleClickCallback(event);
       return;
     }
 
     this.arrowClicks++;
     if (this.arrowClicks > 1) {
       this.arrowClicks = 0;
-      doubleClickCallback(event);
+      this.operateSubmenu(event, true); // double click handler
     } else {
       setTimeout(function () {
         if (parent.arrowClicks === 1) {
           parent.arrowClicks = 0;
-          singleClickCallback(event);
+          parent.operateSubmenu(event); // single click handler
         }
       }, 250);
     }
@@ -595,13 +601,13 @@ class PfyNav {
   } // freezeBranchState
 
 
-  toggleBranch (liEl, ev, closeOthers = false) {
+  toggleBranch (liEl, ev, closeOthers = false, recursive = false) {
     const parent = this;
     if (typeof ev !== 'undefined' && ev) {
       ev.stopImmediatePropagation();
       ev.preventDefault();
     }
-    this._toggleBranch(liEl, closeOthers);
+    this._toggleBranch(liEl, closeOthers, recursive);
   } // toggleBranch
 
 
@@ -833,7 +839,6 @@ class PfyNav {
     }
     subDivElem.style.display = null;
     const h = olElem.offsetHeight;
-    olElem.style.marginTop = -h + 'px';
     if (subDivElem && !leaveOpen) {
       subDivElem.style.display = 'none';
     }
@@ -850,7 +855,7 @@ class PfyNav {
 } // PfyNav
 
 
-document.addEventListener('DOMContentLoaded', function() {
+domReady(function() {
   domForEach('.pfy-nav-wrapper', (navWrapper) => {
     new PfyNav(navWrapper);
   })

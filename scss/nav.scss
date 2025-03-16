@@ -326,7 +326,11 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
 
 
   // === horizontal top nav ============================
-
+  .pfy-nav-horizontal {
+    li.pfy-lvl-1.pfy-open div {
+      height: unset;
+    }
+  }
 
 
   // === not collapsible ===============================
@@ -358,17 +362,16 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
       .pfy-nav-arrow {
           display: block;
       }
-
-      // avoid flicker during slow loading:
-      &.pfy-nav-horizontal li.pfy-lvl-1.pfy-has-children > div > ol {
-          margin-top: -10000px;
-      }
   } // pfy-nav-collapsed / collapsible
 
 
   // === collapsible open ===============================
-  li.pfy-has-children.pfy-open > div > ol {
-    margin-top: 0 !important;
+  li.pfy-has-children > div {
+    height: 0;
+    transition: height 0.2s;
+  }
+  li.pfy-has-children.pfy-open > div {
+    height: unset;
   } // pfy-open
 
 
