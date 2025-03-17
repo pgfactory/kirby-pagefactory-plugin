@@ -83,8 +83,9 @@ class PfyNav {
         return;
       }
       if (parent.isTopNav) {
-        // in top-nav, all elements below lvl-1 are links:
-        if (aEl.closest('.pfy-lvl-2')) {
+        // in top-nav, need to distinguish several cases:
+        if (aEl.closest('.pfy-lvl-2') ||
+          !(aEl.parentElement.classList.contains('pfy-has-surrogate-elem') || aEl.parentElement.classList.contains('pfy-has-children'))) {
           return;
         }
 
