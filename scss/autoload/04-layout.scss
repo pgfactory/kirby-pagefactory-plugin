@@ -81,5 +81,25 @@ $dl-as-table-dt-width: 6em;
     }
   }
 
+  // === columns ==========================
+  .pfy-2col {
+    display: inline-block;
+    width: calc(50% - 1em);
+    vertical-align: top;
+  }
+
+  .pfy-2col33 {
+    display: inline-block;
+    width: calc(33% - 1em);
+    vertical-align: top;
+  }
+
+  .pfy-2col66 {
+    display: inline-block;
+    width: calc(66% - 1em);
+    vertical-align: top;
+  }
+
+
 } // pfy-default-styling
 
