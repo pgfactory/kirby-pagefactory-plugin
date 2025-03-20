@@ -355,4 +355,10 @@ class Assets
         }
     } // compileAggregatedAssets
 
+
+    public static function activateBrowserCacheBusting(): void
+    {
+
+    } // activateBrowserCacheBusting
+
 } // Assets
