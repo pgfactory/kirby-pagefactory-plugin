@@ -54,6 +54,7 @@ define('PFY_DOWNLOAD_PATH',             PFY_APP_BASE_PATH . 'download/');
 define('PFY_TEMP_DOWNLOAD_PATH',        PFY_DOWNLOAD_PATH.'temp/'); // for temp download of datasets (excel-format)
 
 define('PFY_WEBMASTER_EMAIL_CACHE',     PFY_CACHE_PATH.'webmaster-email.txt');
+define('PFY_INSTALLATION_PATH_CHECK',   PFY_CACHE_PATH.'installation-path.txt');
 
 
  // misc constants:
@@ -236,6 +237,8 @@ class PageFactory
         self::$userName = is_object(self::$user) ? (string)self::$user->nameOrEmail() : (self::$user ?: '');
 
         Extensions::loadExtensions();
+        Utils::checkInstallationPath();
+
         if (self::$dev) {
             Assets::compileAssets();
         }

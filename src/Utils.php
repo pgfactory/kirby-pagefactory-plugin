@@ -41,6 +41,25 @@ class Utils
      * @throws \Kirby\Exception\LogicException|\Kirby\Exception\InvalidArgumentException
      */
 
+
+    /**
+     * Forces system reset when new or moved installation is detected.
+     * @return void
+     */
+    public static function checkInstallationPath(): void
+    {
+        $currInstallationPath = getcwd();
+        $prevInstallationPath = getFile(PFY_INSTALLATION_PATH_CHECK);
+        if ($prevInstallationPath === $currInstallationPath) {
+            return;
+        }
+
+        self::resetAll();
+        writeFile(PFY_INSTALLATION_PATH_CHECK, $currInstallationPath);
+        reloadAgent(message: "Automatic reset executed");
+    } // checkInstallationPath
+
+
     /**
      * @return void
      */
