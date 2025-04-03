@@ -1766,7 +1766,8 @@ function parseArgumentStr(string $str, string $delim = ','): array
         $ch = ltrim($rest);
         $ch = $ch[0]??'';
         if ($ch !== ':') {
-            $json .= "\"$index\": $key,";
+            // argument without key -> identify by "_anonInxN":
+            $json .= "\"_anonInx$index\": $key,";
             $rest = ltrim($rest, " $delim\n");
         } else {
             $rest = ltrim(substr($rest, 1));

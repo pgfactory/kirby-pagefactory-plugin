@@ -247,9 +247,12 @@ EOT;
                 $optVal = fixDataType($optVal);
             }
         }
+
+        // handle arguments defined by position -> submitted as "_anonInxN":
         foreach ($options as $key => $value) {
-            if (is_int($key) && ($value !== null)) {
-                $key1 = array_keys($config['options'])[$key];
+            if (str_starts_with($key,'_anonInx') && ($value !== null)) {
+                $k = substr($key, 8);
+                $key1 = array_keys($config['options'])[$k];
                 $options[$key1] = fixDataType($value);
                 unset($options[$key]);
             }
