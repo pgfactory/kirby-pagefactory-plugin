@@ -621,11 +621,12 @@ EOT;
 [?printpreview](./?printpreview)  	>> presents the page in print-view mode    
 [?reset](./?reset)		    	>> resets all state-defining information: caches, tokens, session-vars.
 [?release](./?release)		    >> like reset, but recompiles SCSS files without line numbers.
-[?bust=](./?bust)      >> activates 'browser cache busting'
+[?bust](./?bust)      >> activates 'browser cache busting'
 
 @@@
 EOT;
                 $str = removeCStyleComments($str);
+                $str .= Extensions::showHelp();
             } else {
                 $str = <<<EOT
 # Help

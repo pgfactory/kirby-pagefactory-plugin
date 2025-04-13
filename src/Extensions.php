@@ -73,6 +73,19 @@ class Extensions
 
 
     /**
+     * @return string
+     */
+    public static function showHelp(): string
+    {
+        $str = '';
+        foreach (self::$loadedExtensionObjects as $obj) {
+            $str .= $obj->showHelp();
+        }
+        return $str;
+    } // extensionsFinalCode
+
+
+    /**
      * @return void
      * @throws \Exception
      */
