@@ -20,16 +20,15 @@
   }
 
   a {
+    text-underline-offset: 0.12em;
+    &:not(:is(:hover, :focus)) {
+      text-decoration-color:
+        color-mix(in srgb, currentColor, transparent 75%);
+    }
+  }
+
+  nav a:not(:is(:hover, :focus)) {
     text-decoration: none;
-    border-bottom: 1px dotted gray;
-  }
-
-  a:hover, a:focus {
-    border-bottom: 1px solid gray;
-  }
-
-  nav a {
-    border-bottom: none;
   }
 
   .pfy-logo a, .pfy-logo a:hover {
@@ -71,7 +70,6 @@
   figure a:hover,
   figure a {
     text-decoration: none;
-    border-bottom: none;
   }
 
   .sup {
