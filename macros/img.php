@@ -45,6 +45,8 @@ return function($argStr = '')
             'quickzoom' => ["If true, activates the quickzoom mechanism (default: false). Quickzoom: click on the ".
                 "image to see in full size.", null],
             'quickview' => ["Synonym for quickzoom (for backward compatibility).", null],
+            'kenburns' => ["[options] Applies a Ken-Burns effect. ".
+                "Options: duration, direction, distance, scale. "."E.g. kenburns: {direction:'rand', scale: 1.3}}", null],
             'lazyLoading' => ["If true, activates the lazy-load mechanism: images get loaded after the page is ready otherwise.", null],
 
             'link' => ["Wraps a &lt;a href='link-argument'> tag round the image..", false],

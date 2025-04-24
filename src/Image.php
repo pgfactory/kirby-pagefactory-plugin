@@ -75,6 +75,8 @@ class Image
         $this->initQuickzoom();
         $this->activateLazyLoading();
 
+        $this->handleKenBurns();
+
         $attributes = $this->attributes;
         if ($options['id']??false) {
             $attributes .= " id='{$options['id']}'";
@@ -570,5 +572,34 @@ EOT;
         }
         return $file;
     } // parseSizeHint
+
+
+    /**
+     * @return void
+     * @throws \Exception
+     */
+    private function handleKenBurns(): void
+    {
+        $options = &$this->options;
+        $inx = self::$inx;
+        $kenBurns = $options['kenburns'] ?? false;
+        if ($kenBurns) {
+            if (!($options['id'] ?? false)) {
+                $id = $options['id'] = "pfy-img-$inx";
+            } else {
+                $id = $options['id'];
+            }
+            $kenBurnsStr = '';
+            foreach ($kenBurns as $k => $v) {
+                $kenBurnsStr .= "$k: $v, ";
+            }
+            $js = <<<EOT
+let kenBurnsEffect$inx = new KenBurns('#$id', { $kenBurnsStr });
+
+EOT;
+            Page::addJsReady($js);
+            Page::addAssets('KEN_BURNS');
+        }
+    } // handleKenBurns
 
 } // Image
