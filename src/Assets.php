@@ -48,6 +48,9 @@ define('ASSET_URL_DEFINITIONS', [
        'site/plugins/pagefactory/assets/css/-page-switcher.css',
        'site/plugins/pagefactory/assets/js/page-switcher.js',
     ],
+    'KEN_BURNS' => [
+       'site/plugins/pagefactory/assets/js/kenburns.js',
+    ],
 ]);
 
  // define system assets:
@@ -74,6 +77,7 @@ class Assets
     private static array $jsAssets = [];
     private static array $cssPriorityAssets = [];
     private static array $jsPriorityAssets = [];
+    private static string $bustCache = '';
 
 
     /**
@@ -218,6 +222,7 @@ class Assets
         $cssAssets = array_merge($cssAssets, array_keys(self::$cssAssets));
         $cssAssets = array_merge($cssAssets, self::addPageAssets('css'));
 
+        $bustCache = self::$bustCache;
         $html = "\n";
         $page = page('assets/css');
         $files = $page ? $page->files() : [];
@@ -232,10 +237,12 @@ class Assets
                 if (!$file) {
                     continue;
                 }
-                $html .= '  ' . css($file) . "\n";
+                $code = css($file);
             } else {
-                $html .= '  ' . css($asset) . "\n";
+                $code = css($asset);
             }
+            $code = str_replace('.css', ".css$bustCache", $code);
+            $html .= "  $code\n";
         }
         $html = str_replace('/site/plugins/markdownplus/assets/',
                             '/media/plugins/pgfactory/markdownplus/', $html);
@@ -257,6 +264,7 @@ class Assets
         $jsAssets = array_merge($jsAssets, array_keys(self::$jsAssets));
         $jsAssets = array_merge($jsAssets, self::addPageAssets('js'));
 
+        $bustCache = self::$bustCache;
         $html = "\n";
         $page = page('assets/js');
         $files = $page ? $page->files() : [];
@@ -268,10 +276,12 @@ class Assets
                     continue;
                 }
                 $file = $files->find(basename($asset));
-                $html .= '  ' . js($file) . "\n";
+                $code = js($file);
             } else {
-                $html .= '  ' . js($asset) . "\n";
+                $code = js($asset);
             }
+            $code = str_replace('.js', ".js$bustCache", $code);
+            $html .= "  $code\n";
         }
         $html = preg_replace('|/site/plugins/pagefactory(-.*?)?/assets/|', '/media/plugins/pgfactory/pagefactory\1/', $html);
         if (PFY_BASE_OFFSET) {
@@ -358,7 +368,7 @@ class Assets
 
     public static function activateBrowserCacheBusting(): void
     {
-
+        self::$bustCache = '?bust='.rand(10,99);
     } // activateBrowserCacheBusting
 
 } // Assets
