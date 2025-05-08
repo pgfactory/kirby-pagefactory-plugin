@@ -144,34 +144,19 @@ class Utils
      */
     public static function prepareWebmasterEmail(): void
     {
-        if (file_exists(PFY_WEBMASTER_EMAIL_CACHE)) {
-            $webmasterEmail = file_get_contents(PFY_WEBMASTER_EMAIL_CACHE);
-        } else {
-            if (!($webmasterEmail = PageFactory::$config['webmaster_email'] ?? false)) {
-                $webmasterEmail = TransVars::getVariable('webmaster_email');
-            }
-            if ($webmasterEmail) {
-                PageFactory::$webmasterEmail = $webmasterEmail;
-            } else {
-                // default webmaster email derived from current domain:
-                $domain = preg_replace('|^https?://([\w.-]+)(.*)|', "$1", site()->url());
-
-                // for localhost: create pseudo
-                if (str_contains($domain, 'localhost')) {
-                    $domain .= '.net';
-                }
-                PageFactory::$webmasterEmail = $webmasterEmail = 'webmaster@' . $domain;
-            }
-            preparePath(PFY_WEBMASTER_EMAIL_CACHE);
-            file_put_contents(PFY_WEBMASTER_EMAIL_CACHE, $webmasterEmail);
+        if (!($webmasterEmail = kirby()->option('pgfactory.pagefactory.options.webmaster_email'))) {
+            $webmasterEmail = TransVars::getVariable('webmaster_email');
         }
-        TransVars::setVariable('webmaster_email', $webmasterEmail);
-        PageFactory::$webmasterEmail = $webmasterEmail;
-
+        if ($webmasterEmail) {
+            PageFactory::$webmasterEmail = $webmasterEmail;
+        } elseif (!isLocalhost()) {
+            exit('Please define "webmaster_email" in config.php.');
+        }
         $webmasterLink = Link::render([
             'url' => "mailto:$webmasterEmail",
             'text' => 'Webmaster',
         ]);
+        TransVars::setVariable('webmaster_email', $webmasterEmail);
         TransVars::setVariable('pfy-webmaster-link', $webmasterLink);
     } // prepareWebmasterEmail
 

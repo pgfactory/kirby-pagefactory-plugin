@@ -35,6 +35,7 @@ return [
     ],
 
     'pgfactory.pagefactory.options' => [
+        // 'webmaster_email'               => 'webmaster@MY-DOMAIN.NET', // define a webmaster address
         // 'defaultLanguage'               => 'de',   // multilang -> configure in panel instead! (Opt. use 'Code: de2' and 'PHP locale string: de_DE')
         // 'locale'                        => 'de_DE',// default: 'en_GB'
         // 'lazyLoading'                   => false,   // disable lazy loading of images
