@@ -42,6 +42,10 @@ class TransVars
     } // init
 
 
+    /**
+     * @param array $variables
+     * @return void
+     */
     public static function setTempVariables(array $variables): void
     {
         self::$tempVariables = $variables;
@@ -54,21 +58,36 @@ class TransVars
      */
     public static function preprocess(string $str): string
     {
-        $p1end = 0;
+        return self::compileTwigInstructions($str);
+    } // preprocess
+
+
+    /**
+     * @param string $str
+     * @return string
+     */
+    public static function compileTwigInstructions(string $str): string
+    {
+        // compile Twig {% if:
         while ($p1 = strpos($str, '{% if')) {
             $p1end = strpos($str, '%}', $p1) + 3;
             $p2 = strpos($str, '{% endif', $p1end);
             $p2end = strpos($str, '%}', $p2) + 3;
 
-            $s1 = substr($str, 0, $p1);
-            $s2 = substr($str, $p2end);
+            $s1 = substr($str, 0, $p1); // before if
+            $s2 = substr($str, $p1end - 1, $p2 - $p1end + 1); // inside if
+            $s3 = substr($str, $p2end); // after if
 
             $varname = trim(substr($str, $p1+5, $p1end-$p1-9));
             $value = self::getVariable($varname);
-            $str = $s1 . $value . $s2;
+            if ($value) {
+                $str = $s1 . $s2 . $s3;
+            } else {
+                $str = $s1 . $s3;
+            }
         }
         return $str;
-    } // preprocess
+    } // compileTwigInstructions
 
 
     /**
@@ -220,12 +239,12 @@ class TransVars
                         $out = $page->$varName1()->toBlocks()->toHtml();
                     }
                 } catch (\Exception $e) {
-                    $out = $varName1;
+                    $out = $varNameIfNotFound ? $varName1 : null;
                 }
             }
         }
         if ($out === null) {
-            $out = $varNameIfNotFound ? $varName: false;
+            $out = $varNameIfNotFound ? $varName: null;
         } elseif (is_array($out)) {
             $out = reset($out);
         }
