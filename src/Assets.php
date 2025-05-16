@@ -19,16 +19,20 @@ define('DEFAULT_AGGREGATED_ASSETS', [
 
     // 2) Custom Assets
     'content/assets/css/-app.css' => 'content/assets/css/autoload/*',
+    'assets/css/-app.css' => 'assets/css/autoload/*',
 
     'content/assets/css/-app-async.css' => 'content/assets/css/autoload-async/*',
+    'assets/css/-app-async.css' => 'assets/css/autoload-async/*',
 
     'content/assets/js/-app.js' => 'content/assets/js/autoload/*',
+    'assets/js/-app.js' => 'assets/js/autoload/*',
 ]);
 
 define('DEFAULT_SCSS_ASSET_LOCATIONS', [
     // scss-compile to site/plugins/pagefactory/css/xy.css, where xy is filename of source
    'site/plugins/pagefactory/assets/css/' => 'site/plugins/pagefactory/scss/*',
    'content/assets/css/' => 'content/assets/css/scss/*',
+   'assets/css/' => 'assets/css/scss/*',
 ]);
 
 
@@ -60,10 +64,12 @@ define('SYSTEM_ASSETS', [
        'site/plugins/pagefactory/assets/css/-pagefactory.css',
        'site/plugins/pagefactory/assets/css/-pagefactory-async.css',
        'content/assets/css/-app.css',
+       'assets/css/-app.css',
     ],
     'js' => [
        'site/plugins/pagefactory/assets/js/-pagefactory.js',
        'content/assets/js/-app.js',
+       'assets/js/-app.js',
     ],
 ]);
 
@@ -181,6 +187,9 @@ class Assets
         // compile aggregated system assets:
         self::compileAggregatedAssets();
 
+        // compile template assets:
+        self::compileTemplateAssets();
+
         $assetLocations = self::$assetsLocation;
         $tmp = getDirDeep(PFY_APP_BASE_PATH.'content/*.scss');
         $l = strlen(PFY_APP_BASE_PATH);
@@ -208,7 +217,6 @@ class Assets
                 }
             }
         }
-
     } // compileAssets
 
 
@@ -227,6 +235,10 @@ class Assets
         $page = page('assets/css');
         $files = $page ? $page->files() : [];
         foreach ($cssAssets as $asset) {
+            // skip empty files:
+            if (!str_contains($asset, 'media/') && (!file_exists($asset) || !filesize($asset))) {
+                continue;
+            }
             if (str_starts_with($asset, '<')) {
                 $html .= "  $asset\n";
             } elseif (str_starts_with($asset, 'content')) {
@@ -271,12 +283,17 @@ class Assets
         foreach ($jsAssets as $asset) {
             if (str_starts_with($asset, '<')) {
                 $html .= "  $asset\n";
+                $code = '';
             } elseif (str_starts_with($asset, 'content')) {
                 if (!$files) {
                     continue;
                 }
                 $file = $files->find(basename($asset));
-                $code = js($file);
+                if ($file) {
+                    $code = js($file);
+                } else {
+                    $code = "<script src='$file'></script>";
+                }
             } else {
                 $code = js($asset);
             }
@@ -339,33 +356,55 @@ class Assets
             $srcPath = PFY_APP_BASE_PATH.$srcPath;
             $tTarg = fileTime($destFile);
             $modified = false;
-            $files = getDir($srcPath);
+            $ext = fileExt($destFile);
+            $files = getDir("$srcPath*$ext");
             foreach ($files as $srcFile) {
                 $modified = $modified || fileTime($srcFile) > $tTarg;
             }
             if (!$modified) {
                 continue;
             }
-
-            $str = '';
-            foreach ($files as $srcFile) {
-                $basename = base_name($srcFile, false);
-                if (!ctype_alnum($basename[0])) {
-                    continue;
+            if ($ext === 'css') {
+                $str = '';
+                foreach ($files as $srcFile) {
+                    $basename = base_name($srcFile, false);
+                    if (!ctype_alnum($basename[0])) {
+                        continue;
+                    }
+                    if (($ext = fileExt($srcFile)) === 'scss') {
+                        $str .= Scss::compileFileToString($srcFile);
+                    } elseif ($ext === 'css') {
+                        $str .= "/* === Copied from " . basename($srcFile) . " - do not modify! === */\n\n";
+                        $str .= getFile($srcFile);
+                    }
                 }
-                if (($ext = fileExt($srcFile)) === 'scss') {
-                    $str .= Scss::compileFileToString($srcFile);
-                } elseif ($ext === 'css' || $ext === 'js') {
-                    $str .= "/* === Copied from " . basename($srcFile) . " - do not modify! === */\n\n";
-                    $str .= getFile($srcFile);
-                }
+                writeFile($destFile, $str);
+                mylog("Assets: '$destFile' compiled");
+            } else {
+                CompileJs::compileAll($srcPath, dirname($destFile).'/');
             }
-            writeFile($destFile, $str);
-            mylog("Assets: '$destFile' compiled");
         }
     } // compileAggregatedAssets
 
 
+    /**
+     * @return void
+     * @throws \ScssPhp\ScssPhp\Exception\SassException
+     */
+    private static function compileTemplateAssets(): void
+    {
+        $templateCssFiles = getDir('assets/css/scss/templates/*');
+        foreach ($templateCssFiles as $file) {
+            $filename = basename($file, '.scss');
+            $destFile = "assets/css/templates/$filename.css";
+            Scss::compileFile($file, $destFile);
+        }
+    } // compileTemplateAssets
+
+
+    /**
+     * @return void
+     */
     public static function activateBrowserCacheBusting(): void
     {
         self::$bustCache = '?bust='.rand(10,99);
