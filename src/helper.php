@@ -2509,12 +2509,12 @@ function var_r($var, string $varName = '', bool $flat = false, bool $toHtml = fa
   * @param mixed  $target
   * @param string  $message   if set, text will be briefly shown in message banner
   */
-function reloadAgent(mixed $target = '', string $message = ''): void
+function reloadAgent(mixed $target = '', mixed $message = ''): void
 {
     if (!$target) {
         $target = page()->url();
     }
-    if ($message) {
+    if (is_string($message) && $message) {
         if (str_contains($message, '{{')) {
             $message = TransVars::translate($message);
         }
