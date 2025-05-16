@@ -11,6 +11,8 @@
               a
  */
 
+var pfyNavTriggersInitialized = false;
+
 class PfyNav {
 
   constructor(navWrapper) {
@@ -55,6 +57,10 @@ class PfyNav {
 
 
   initTriggers() {
+    if (pfyNavTriggersInitialized) {
+      return;
+    }
+    pfyNavTriggersInitialized = true;
     const parent = this;
     document.addEventListener('click', (ev) => {
       const el = ev.target;
