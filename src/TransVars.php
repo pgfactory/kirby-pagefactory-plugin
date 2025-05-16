@@ -199,7 +199,7 @@ class TransVars
             page()->$varName()->value = $value;
         }
 
-        return $value;
+        return (string)$value;
     } // setVariable
 
 
