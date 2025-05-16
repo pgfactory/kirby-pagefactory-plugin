@@ -381,7 +381,7 @@ class Assets
                 writeFile($destFile, $str);
                 mylog("Assets: '$destFile' compiled");
             } else {
-                CompileJs::compileAll($srcPath, dirname($destFile).'/');
+                CompileJs::compileAll($srcPath, $destFile);
             }
         }
     } // compileAggregatedAssets
