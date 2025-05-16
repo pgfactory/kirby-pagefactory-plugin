@@ -15,6 +15,7 @@ return function ($args = '')
             'class' => ['Class applied to the wrapper tag.', 'pfy-field'],
             'wrapperClass' => ['Synonym for "class".', null],
             'wrapperTag' => ['Wrapper tag applied to the output.', 'div'],
+            'markdown' => ['If true, field value will be markdown compiled.', false],
             'literal' => ['If true, field value will be rendered as is.', false],
         ],
         'summary' => <<<EOT
@@ -29,7 +30,7 @@ paage content elements which you can set and modify in Kirby's panel
 such as titles, text, images etc.
 
 **Note:**:  
-Use blocks of type "markdown" to render markdown content.  
+Use option "markdown: true" to markdown compile content.  
 MarkdownPlus syntax extensions are active in this case.
 
 EOT,
@@ -50,12 +51,18 @@ EOT,
     $tag = $options['wrapperTag'];
 
     // get field from kirby:
-    $out = page()->$name()->toBlocks()->toHtml();
+    $out = page()->$name()->value();
 
     if ($options['literal']) {
         $str .= shieldStr($out);
 
     } else {
+        // markdown compile:
+        if ($out && $options['markdown']) {
+            $out = markdown($out);
+        }
+
+        // resolve variables and macros:
         if (str_contains($out, "{{")) {
             $out = TransVars::translate($out);
         }
