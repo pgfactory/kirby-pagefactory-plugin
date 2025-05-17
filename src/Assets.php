@@ -236,7 +236,8 @@ class Assets
         $files = $page ? $page->files() : [];
         foreach ($cssAssets as $asset) {
             // skip empty files:
-            if (!str_contains($asset, 'media/') && (!file_exists($asset) || !filesize($asset))) {
+            $f = PFY_BASE_OFFSET.$asset;
+            if (!str_contains($asset, 'media/') && (!file_exists($f) || !filesize($f))) {
                 continue;
             }
             if (str_starts_with($asset, '<')) {
@@ -294,14 +295,20 @@ class Assets
                 } else {
                     $code = "<script src='$file'></script>";
                 }
+            } elseif (str_starts_with($asset, 'site/plugins')) {
+                $asset = preg_replace('|site/plugins/pagefactory(-.*?)?/assets/|', 'media/plugins/pgfactory/pagefactory\1/', $asset);
+                $code = js($asset);
             } else {
                 $code = js($asset);
             }
-            $code = str_replace('.js', ".js$bustCache", $code);
+            if ($bustCache) {
+                $code = str_replace('.js', ".js$bustCache", $code);
+            }
             $html .= "  $code\n";
         }
-        $html = preg_replace('|/site/plugins/pagefactory(-.*?)?/assets/|', '/media/plugins/pgfactory/pagefactory\1/', $html);
+
         if (PFY_BASE_OFFSET) {
+            // if base offset is set, we need to inject offset into js urls::
             $html = preg_replace('|'.PFY_APP_BASE_URL.'(?!'.PFY_BASE_OFFSET.')|',PFY_APP_BASE_URL.PFY_BASE_OFFSET, $html);
         }
         return $html;
