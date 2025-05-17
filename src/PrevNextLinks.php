@@ -59,7 +59,8 @@ class PrevNextLinks
             if (!self::$initialized) {
                 self::$initialized = true;
                 // inject script code for page-switching:
-                $url = PFY_APP_BASE_URL . PFY_BASE_OFFSET . "media/plugins/pgfactory/pagefactory/js/page-switcher.js";
+                $url = PFY_APP_BASE_URL . "media/plugins/pgfactory/pagefactory/js/page-switcher.js";
+                // note: not using Assets::addAssets() because this may be called from corresponding snippet.
                 $out .= "\t<script src='$url'></script>\n";
             }
             $out .= <<<EOT

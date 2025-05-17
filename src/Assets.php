@@ -240,8 +240,12 @@ class Assets
             if (!str_contains($asset, 'media/') && (!file_exists($f) || !filesize($f))) {
                 continue;
             }
+
+            // assets already provided as html:
             if (str_starts_with($asset, '<')) {
                 $html .= "  $asset\n";
+
+            // assets in content folder:
             } elseif (str_starts_with($asset, 'content')) {
                 if (!$files) {
                     continue;
@@ -251,18 +255,30 @@ class Assets
                     continue;
                 }
                 $code = css($file);
+
+            // assets in plugin folders:
+            } elseif (str_starts_with($asset, 'site/plugins')) {
+                $asset = str_replace('site/plugins/markdownplus/assets/',
+                    'media/plugins/pgfactory/markdownplus/', $asset);
+                $asset = preg_replace('|site/plugins/pagefactory(-.*?)?/assets/|',
+                    'media/plugins/pgfactory/pagefactory\1/', $asset);
+                $code = css($asset);
+
+            // assets in ~/assets folder:
+            } elseif (str_starts_with($asset, 'assets/')) {
+                $asset = PFY_BASE_OFFSET.$asset;
+                $code = css($asset);
+
+            // any other assets:
             } else {
                 $code = css($asset);
             }
-            $code = str_replace('.css', ".css$bustCache", $code);
+
+            // handle cache busting request:
+            if ($bustCache) {
+                $code = str_replace('.css', ".css$bustCache", $code);
+            }
             $html .= "  $code\n";
-        }
-        $html = str_replace('/site/plugins/markdownplus/assets/',
-                            '/media/plugins/pgfactory/markdownplus/', $html);
-        $html = preg_replace('|/site/plugins/pagefactory(-.*?)?/assets/|',
-                          '/media/plugins/pgfactory/pagefactory\1/', $html);
-        if (PFY_BASE_OFFSET) {
-            $html = preg_replace('|'.PFY_APP_BASE_URL.'(?!'.PFY_BASE_OFFSET.')|',PFY_APP_BASE_URL.PFY_BASE_OFFSET, $html);
         }
         return $html;
     } // renderCssLoadingCode
@@ -282,9 +298,12 @@ class Assets
         $page = page('assets/js');
         $files = $page ? $page->files() : [];
         foreach ($jsAssets as $asset) {
+            // assets already provided as html:
             if (str_starts_with($asset, '<')) {
                 $html .= "  $asset\n";
                 $code = '';
+
+            // assets in content folder:
             } elseif (str_starts_with($asset, 'content')) {
                 if (!$files) {
                     continue;
@@ -295,21 +314,27 @@ class Assets
                 } else {
                     $code = "<script src='$file'></script>";
                 }
+
+            // assets in plugin folders:
             } elseif (str_starts_with($asset, 'site/plugins')) {
                 $asset = preg_replace('|site/plugins/pagefactory(-.*?)?/assets/|', 'media/plugins/pgfactory/pagefactory\1/', $asset);
                 $code = js($asset);
+
+            // assets in ~/assets folder:
+            } elseif (str_starts_with($asset, 'assets/')) {
+                $asset = PFY_BASE_OFFSET.$asset;
+                $code = js($asset);
+
+            // any other assets:
             } else {
                 $code = js($asset);
             }
+
+            // handle cache busting request:
             if ($bustCache) {
                 $code = str_replace('.js', ".js$bustCache", $code);
             }
             $html .= "  $code\n";
-        }
-
-        if (PFY_BASE_OFFSET) {
-            // if base offset is set, we need to inject offset into js urls::
-            $html = preg_replace('|'.PFY_APP_BASE_URL.'(?!'.PFY_BASE_OFFSET.')|',PFY_APP_BASE_URL.PFY_BASE_OFFSET, $html);
         }
         return $html;
     } // renderJsLoadingCode
