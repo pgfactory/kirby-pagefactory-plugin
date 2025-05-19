@@ -237,6 +237,7 @@ class Assets
         $page = page('assets/css');
         $files = $page ? $page->files() : [];
         foreach ($cssAssets as $asset) {
+            $code = '';
             // skip empty files:
             $f = PFY_BASE_OFFSET.$asset;
             if (!str_contains($asset, 'media/') && (!file_exists($f) || !filesize($f))) {
@@ -276,11 +277,13 @@ class Assets
                 $code = css($asset);
             }
 
-            // handle cache busting request:
-            if ($bustCache) {
-                $code = str_replace('.css', ".css$bustCache", $code);
+            if ($code) {
+                // handle cache busting request:
+                if ($bustCache) {
+                    $code = str_replace('.css', ".css$bustCache", $code);
+                }
+                $html .= "  $code\n";
             }
-            $html .= "  $code\n";
         }
         return $html;
     } // renderCssLoadingCode
@@ -300,6 +303,7 @@ class Assets
         $page = page('assets/js');
         $files = $page ? $page->files() : [];
         foreach ($jsAssets as $asset) {
+            $code = '';
             // assets already provided as html:
             if (str_starts_with($asset, '<')) {
                 $html .= "  $asset\n";
@@ -313,9 +317,6 @@ class Assets
                 $file = $files->find(basename($asset));
                 if ($file) {
                     $code = js($file);
-                } else {
-                    $file = PFY_BASE_OFFSET.$asset;
-                    $code = "<script src='$file'></script>";
                 }
 
             // assets in plugin folders:
@@ -324,19 +325,21 @@ class Assets
                 $code = js(PFY_BASE_OFFSET.$asset);
 
             // assets in ~/assets folder:
-            } elseif (str_starts_with($asset, 'assets/')) {
+            } elseif (file_exists($asset)) {
                 $code = js(PFY_BASE_OFFSET.$asset);
 
             // any other assets:
             } else {
-                $code = js(PFY_BASE_OFFSET.$asset);
+                continue;
             }
 
-            // handle cache busting request:
-            if ($bustCache) {
-                $code = str_replace('.js', ".js$bustCache", $code);
+            if ($code) {
+                // handle cache busting request:
+                if ($bustCache) {
+                    $code = str_replace('.js', ".js$bustCache", $code);
+                }
+                $html .= "  $code\n";
             }
-            $html .= "  $code\n";
         }
         return $html;
     } // renderJsLoadingCode
