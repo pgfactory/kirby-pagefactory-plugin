@@ -48,14 +48,13 @@ class Utils
      */
     public static function checkInstallationPath(): void
     {
-        $currInstallationPath = getcwd();
         $prevInstallationPath = getFile(PFY_INSTALLATION_PATH_CHECK);
-        if ($prevInstallationPath === $currInstallationPath) {
+        if ($prevInstallationPath === PFY_APP_BASE_PATH) {
             return;
         }
 
         self::resetAll();
-        writeFile(PFY_INSTALLATION_PATH_CHECK, $currInstallationPath);
+        self::setInstallationCheckFile();
         reloadAgent(message: "Automatic reset executed");
     } // checkInstallationPath
 
@@ -403,7 +402,8 @@ EOT;
                     self::resetDevState();
                     if (isLocalhost()) { // exception: reset on localhost
                         self::resetAll();
-                        reloadAgent();
+                        self::setInstallationCheckFile();
+                        reloadAgent(message: 'Reset executed.');
                     }
                     break;
                 case 'iframe':
@@ -544,7 +544,8 @@ EOT;
 
                 case 'reset': // ?reset
                     self::resetAll();
-                    reloadAgent();
+                    self::setInstallationCheckFile();
+                    reloadAgent(message: 'Reset executed.');
 
                 case 'release': // ?release
                     PageFactory::$dev = false;
@@ -1171,5 +1172,11 @@ EOT;
         }
         return $userLabels;
     } // getUserRecLabels
+
+
+    private static function setInstallationCheckFile(): void
+    {
+        writeFile(PFY_INSTALLATION_PATH_CHECK, PFY_APP_BASE_PATH);
+    } // setInstallationCheckFile
 
 } // Utils
