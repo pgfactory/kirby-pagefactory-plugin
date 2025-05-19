@@ -5,17 +5,19 @@ namespace PgFactory\PageFactory;
 use Kirby\Exception\Exception;
 
 const JQUERY = ['js' => PFY_ASSETS_URL.'js/jquery-3.7.1.min.js', 'priority' => true];
+const PFY_PATH = 'site/plugins/pagefactory/';
+const PFY_ASSETS_PATH = PFY_PATH.'assets/';
 
  // DEFAULT_ASSET_GROUPS define where PageFactory will look for assets, compiling and aggregating them where necessary.
 define('DEFAULT_AGGREGATED_ASSETS', [
 
     // 1) Plugin-Assets
     // Note: plugin assets are made available via URL 'media/plugins/pgfactory/pagefactory/...':
-    'site/plugins/pagefactory/assets/css/-pagefactory.css' => 'site/plugins/pagefactory/scss/autoload/*',               // $sources
+    PFY_ASSETS_PATH.'css/-pagefactory.css' => PFY_PATH.'scss/autoload/*',               // $sources
 
-    'site/plugins/pagefactory/assets/js/-pagefactory.js' => 'site/plugins/pagefactory/assets/js/autoload/*',
+    PFY_ASSETS_PATH.'js/-pagefactory.js' => PFY_ASSETS_PATH.'js/autoload/*',
 
-    'site/plugins/pagefactory/assets/css/-pagefactory-async.css' => 'site/plugins/pagefactory/scss/autoload-async/*',
+    PFY_ASSETS_PATH.'css/-pagefactory-async.css' => PFY_PATH.'scss/autoload-async/*',
 
     // 2) Custom Assets
     'content/assets/css/-app.css' => 'content/assets/css/autoload/*',
@@ -30,30 +32,30 @@ define('DEFAULT_AGGREGATED_ASSETS', [
 
 define('DEFAULT_SCSS_ASSET_LOCATIONS', [
     // scss-compile to site/plugins/pagefactory/css/xy.css, where xy is filename of source
-   'site/plugins/pagefactory/assets/css/' => 'site/plugins/pagefactory/scss/*',
+   PFY_ASSETS_PATH.'css/' => PFY_PATH.'scss/*',
    'content/assets/css/' => 'content/assets/css/scss/*',
    'assets/css/' => 'assets/css/scss/*',
 ]);
 
 
-define('ASSET_URL_DEFINITIONS', [
+define('ASSETS_PATH_DEFINITIONS', [
     'JQUERY' => JQUERY,
     'NAV' => [
-       'site/plugins/pagefactory/assets/js/nav.js',
-       'site/plugins/pagefactory/assets/css/-nav.css',
+       PFY_ASSETS_PATH.'js/nav.js',
+       PFY_ASSETS_PATH.'css/-nav.css',
     ],
     'QUICKZOOM' => [
-       'site/plugins/pagefactory/assets/js/quickzoom.js',
+       PFY_ASSETS_PATH.'js/quickzoom.js',
     ],
     'LAZY_SIZES' => [
-       'site/plugins/pagefactory/assets/js/lazysizes.min.js',
+       PFY_ASSETS_PATH.'js/lazysizes.min.js',
     ],
     'PAGE_SWITCHER' => [
-       'site/plugins/pagefactory/assets/css/-page-switcher.css',
-       'site/plugins/pagefactory/assets/js/page-switcher.js',
+       PFY_ASSETS_PATH.'css/-page-switcher.css',
+       PFY_ASSETS_PATH.'js/page-switcher.js',
     ],
     'KEN_BURNS' => [
-       'site/plugins/pagefactory/assets/js/kenburns.js',
+       PFY_ASSETS_PATH.'js/kenburns.js',
     ],
 ]);
 
@@ -61,13 +63,13 @@ define('ASSET_URL_DEFINITIONS', [
 define('SYSTEM_ASSETS', [
     'css' => [
        'site/plugins/markdownplus/assets/css/markdownplus.css',
-       'site/plugins/pagefactory/assets/css/-pagefactory.css',
-       'site/plugins/pagefactory/assets/css/-pagefactory-async.css',
+       PFY_ASSETS_PATH.'css/-pagefactory.css',
+       PFY_ASSETS_PATH.'css/-pagefactory-async.css',
        'content/assets/css/-app.css',
        'assets/css/-app.css',
     ],
     'js' => [
-       'site/plugins/pagefactory/assets/js/-pagefactory.js',
+       PFY_ASSETS_PATH.'js/-pagefactory.js',
        'content/assets/js/-app.js',
        'assets/js/-app.js',
     ],
@@ -76,7 +78,7 @@ define('SYSTEM_ASSETS', [
 
 class Assets
 {
-    private static array $assetUrlDefinitions = ASSET_URL_DEFINITIONS;
+    private static array $assetUrlDefinitions = ASSETS_PATH_DEFINITIONS;
     private static array $aggregatedAssets = DEFAULT_AGGREGATED_ASSETS;
     private static array $assetsLocation = DEFAULT_SCSS_ASSET_LOCATIONS;
     private static array $cssAssets = [];
@@ -259,9 +261,9 @@ class Assets
             // assets in plugin folders:
             } elseif (str_starts_with($asset, 'site/plugins')) {
                 $asset = str_replace('site/plugins/markdownplus/assets/',
-                    'media/plugins/pgfactory/markdownplus/', $asset);
+                    PFY_BASE_OFFSET.'media/plugins/pgfactory/markdownplus/', $asset);
                 $asset = preg_replace('|site/plugins/pagefactory(-.*?)?/assets/|',
-                    'media/plugins/pgfactory/pagefactory\1/', $asset);
+                    PFY_BASE_OFFSET.'media/plugins/pgfactory/pagefactory\1/', $asset);
                 $code = css($asset);
 
             // assets in ~/assets folder:
@@ -312,22 +314,22 @@ class Assets
                 if ($file) {
                     $code = js($file);
                 } else {
+                    $file = PFY_BASE_OFFSET.$asset;
                     $code = "<script src='$file'></script>";
                 }
 
             // assets in plugin folders:
             } elseif (str_starts_with($asset, 'site/plugins')) {
                 $asset = preg_replace('|site/plugins/pagefactory(-.*?)?/assets/|', 'media/plugins/pgfactory/pagefactory\1/', $asset);
-                $code = js($asset);
+                $code = js(PFY_BASE_OFFSET.$asset);
 
             // assets in ~/assets folder:
             } elseif (str_starts_with($asset, 'assets/')) {
-                $asset = PFY_BASE_OFFSET.$asset;
-                $code = js($asset);
+                $code = js(PFY_BASE_OFFSET.$asset);
 
             // any other assets:
             } else {
-                $code = js($asset);
+                $code = js(PFY_BASE_OFFSET.$asset);
             }
 
             // handle cache busting request:
