@@ -1,0 +1,5 @@
+# requests to domain.net/onair are (permanently) redirecte to root folder domain.net/
+
+RewriteEngine on
+
+RewriteRule (.*) /$1 [R=301,L]
