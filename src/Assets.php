@@ -272,6 +272,10 @@ class Assets
                 $asset = PFY_BASE_OFFSET.$asset;
                 $code = css($asset);
 
+            // explicitly provided urls:
+            } elseif (str_starts_with($asset, 'http')) {
+                $code = "<link href='$asset' rel='stylesheet'>";
+
             // any other assets:
             } else {
                 $code = css($asset);
@@ -327,6 +331,10 @@ class Assets
             // assets in ~/assets folder:
             } elseif (file_exists($asset)) {
                 $code = js(PFY_BASE_OFFSET.$asset);
+
+            // explicitly provided urls:
+            } elseif (str_starts_with($asset, 'http')) {
+                $code = "<script src='$asset'></script>";
 
             // any other assets:
             } else {
