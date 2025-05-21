@@ -126,7 +126,8 @@ class PageFactory
         self::$page = $data['page'];
         self::$site = $data['site'];
 
-        self::$dev = self::$productionMode = Utils::determineDevState();
+        self::$dev = Utils::determineDevState();
+        self::$productionMode = !self::$dev;
         Utils::prepareDataPaths();
         Cache::init(); // force cache reset on first request every day, inhibit cache in debug mode
 
