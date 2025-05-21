@@ -35,11 +35,12 @@ return [
     ],
 
     'pgfactory.pagefactory.options' => [
-        // 'webmaster_email'               => 'webmaster@MY-DOMAIN.NET', // define a webmaster address
-        // 'email_dev_mode_override'       => 'test@MY-DOMAIN.NET',     // email used for forms in dev mode
-        // 'productive_host_path_pattern'  => 'onair', // if defined, mismatch of (regex) pattern in URL triggers dev mode (docroot always assumed productive)
         // 'defaultLanguage'               => 'de',   // multilang -> configure in panel instead! (Opt. use 'Code: de2' and 'PHP locale string: de_DE')
         // 'locale'                        => 'de_DE',// default: 'en_GB'
+        // 'webmaster_email'               => 'webmaster@MY-DOMAIN.NET', // define a webmaster address
+        // 'email_dev_mode_override'       => 'test@MY-DOMAIN.NET',     // email used for forms in dev mode
+        // 'production_host_path_pattern'  => 'onair', // if defined, mismatch of (regex) pattern in URL triggers dev mode (docroot always assumed productive)
+        // 'production_mode_data_path'     => PFY_APP_BASE_PATH . 'production_mode_db/', // if defined, ~data/ is redirected here in production mode
         // 'lazyLoading'                   => false,   // disable lazy loading of images
         // 'robots'                        => true,   // inject "robots" elem in HTML header
         // 'excludeFilesRegex'             => '\.old\.md$',// regex pattern to exclude certain .md files from rendering

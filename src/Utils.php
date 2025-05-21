@@ -300,6 +300,10 @@ EOT;
     } // renderSvgIcon
 
 
+    /**
+     * @param string $iconName
+     * @return bool
+     */
     public static function iconExists(string $iconName): bool
     {
         if (!self::$pfyIcons) {
@@ -788,19 +792,23 @@ EOT;
         $appRoot = dirname($_SERVER['SCRIPT_FILENAME']);
         $docRoot = $_SERVER['DOCUMENT_ROOT']??'';
         if ($appRoot !== $docRoot) {
-            // app in subfolder -> check against productive_host_path_pattern:
-            $patt = kirby()->option('pgfactory.pagefactory.options.productive_host_path_pattern');
+            // app in subfolder -> check against production_host_path_pattern:
+            $patt = kirby()->option('pgfactory.pagefactory.options.production_host_path_pattern');
             if ($patt) {
                 $devMode = !preg_match("#$patt#", $appRoot);
-            } else {
-                $devMode = Permission::isAdmin() || Permission::isLocalhost();
             }
         } else {
-            // app in docroot -> never dev mode unless admin or localhost:
-            $devMode = Permission::isAdmin() || Permission::isLocalhost();
+            $devMode = false;
         }
+        $devMode = $devMode || Permission::isAdmin();
 
         if (!isset($_GET['dev'])) {
+            session_abort();
+            return $devMode;
+        }
+
+        // if not on localhost, only admins may proceed with ?dev requests:
+        if (!(Permission::isAdmin() || Permission::isLocalhost())) {
             session_abort();
             return $devMode;
         }
@@ -838,6 +846,24 @@ EOT;
         }
         self::determineDevState();
     } // resetDevState
+
+
+    /**
+     * @return void
+     */
+    public static function prepareDataPaths(): void
+    {
+        // in productive mode, if config option is set, override $dataPath and $customConfigPath:
+        if (PageFactory::$productionMode) {
+            $dataPath = kirby()->option('pgfactory.pagefactory.options.production_mode_data_path');
+            if ($dataPath) {
+                PageFactory::$dataPath = $dataPath . 'data/';
+                PageFactory::$customConfigPath = $dataPath . 'config/';
+            }
+        }
+        preparePath(PageFactory::$dataPath);
+        preparePath(PageFactory::$customConfigPath);
+    } // prepareDataPaths
 
 
     /**
@@ -1182,6 +1208,10 @@ EOT;
     } // getUserRecLabels
 
 
+    /**
+     * @return void
+     * @throws Exception
+     */
     private static function setInstallationCheckFile(): void
     {
         writeFile(PFY_INSTALLATION_PATH_CHECK, PFY_APP_BASE_PATH);

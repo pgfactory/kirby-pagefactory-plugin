@@ -94,6 +94,7 @@ class PageFactory
 
     public static $debug;
     public static $dev;
+    public static $productionMode;
     public static $lang;
     public static $langCode;
     public static $defaultLanguage;
@@ -125,7 +126,8 @@ class PageFactory
         self::$page = $data['page'];
         self::$site = $data['site'];
 
-        self::$dev = Utils::determineDevState();
+        self::$dev = self::$productionMode = Utils::determineDevState();
+        Utils::prepareDataPaths();
         Cache::init(); // force cache reset on first request every day, inhibit cache in debug mode
 
         // find available icons:
