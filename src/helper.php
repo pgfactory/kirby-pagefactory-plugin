@@ -54,14 +54,7 @@ function isLoggedIn(): bool
   */
 function isAdmin(): bool
 {
-    $user = Permission::getLoggedInUser();
-    if ($user) {
-        $role = (string)$user->role();
-        if ($role === 'admin') {
-            return true;
-        }
-    }
-    return false;
+    return Permission::isAdmin();
 } // isAdmin
 
 
