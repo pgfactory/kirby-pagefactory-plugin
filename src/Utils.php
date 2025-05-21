@@ -857,6 +857,7 @@ EOT;
         if (PageFactory::$productionMode) {
             $dataPath = kirby()->option('pgfactory.pagefactory.options.production_mode_data_path');
             if ($dataPath) {
+                $dataPath = normalizePath(PFY_APP_BASE_PATH . $dataPath);
                 PageFactory::$dataPath = $dataPath . 'data/';
                 PageFactory::$customConfigPath = $dataPath . 'config/';
             }
