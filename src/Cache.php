@@ -125,7 +125,7 @@ class Cache
     public static function flushAll(): void
     {
         rrmdir(CACHE_PATH);
-        rrmdir('media');
+        rrmdir(PFY_APP_BASE_PATH.'media');
     } // flushAll
 
 
