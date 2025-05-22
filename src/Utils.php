@@ -791,14 +791,22 @@ EOT;
 
         $appRoot = dirname($_SERVER['SCRIPT_FILENAME']);
         $docRoot = $_SERVER['DOCUMENT_ROOT']??'';
+        $patt = kirby()->option('pgfactory.pagefactory.options.production_host_path_pattern');
         if ($appRoot !== $docRoot) {
             // app in subfolder -> check against production_host_path_pattern:
-            $patt = kirby()->option('pgfactory.pagefactory.options.production_host_path_pattern');
-            if ($patt) {
+            if ($patt && is_string($patt)) {
                 $devMode = !preg_match("#$patt#", $appRoot);
+            } elseif ($patt === false) {
+                // special case for debugging: $patt = false -> always in dev-mode:
+                $devMode = true;
             }
         } else {
-            $devMode = false;
+            if ($patt === false) {
+                // special case for debugging: $patt = false -> always in dev-mode:
+                $devMode = true;
+            } else {
+                $devMode = false;
+            }
         }
         $devMode = $devMode || Permission::isAdmin();
 
