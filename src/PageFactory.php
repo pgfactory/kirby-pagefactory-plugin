@@ -9,11 +9,6 @@ use PgFactory\MarkdownPlus\MdPlusHelper;
 use ScssPhp\ScssPhp\Exception\SassException;
 use PgFactory\MarkdownPlus\Permission;
 
- // System ULRs:
-define('PFY_HOST_URL',                  $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST'] . '/'); // https://domain.net/
-define('PFY_APP_BASE_URL',              URL::index().'/');    // https://domain.net/webapp/
-define('PFY_PAGE_URL',                  page()->url() . '/'); // https://domain.net/webapp/pg1/
-
  // System Paths:
  // defined in config.php:
  //  PFY_DOCROOT
@@ -30,6 +25,12 @@ if (!defined('PFY_APP_BASE_PATH')) {
     define('PFY_APP_BASE_PATH', PFY_DOCROOT . PFY_BASE_OFFSET);
 }
 
+// System ULRs:
+define('PFY_HOST_URL',                  $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST'] . '/'); // https://domain.net/
+define('PFY_APP_BASE_URL',              URL::index().'/');    // https://domain.net/webapp/
+define('PFY_PAGE_URL',                  page()->url() . '/'); // https://domain.net/webapp/pg1/
+
+// Further Urls and Paths:
 define('PFY_PAGEFACTORY_PATH',          dirname(__DIR__) . '/'); // site/plugins/pagefactory/
 define('PFY_CONTENT_ASSETS_PATH',       PFY_APP_BASE_PATH . 'content/assets/');
 define('PFY_PAGEFACTORY_ASSETS_PATH',   PFY_PAGEFACTORY_PATH . 'assets/');
