@@ -796,16 +796,14 @@ EOT;
             // app in subfolder -> check against production_host_path_pattern:
             if ($patt && is_string($patt)) {
                 $devMode = !preg_match("#$patt#", $appRoot);
-            } elseif ($patt === false) {
-                // special case for debugging: $patt = false -> always in dev-mode:
-                $devMode = true;
+            } elseif (is_bool($patt)) {
+                $devMode = !$patt;
             }
         } else {
-            if ($patt === false) {
-                // special case for debugging: $patt = false -> always in dev-mode:
-                $devMode = true;
+            if (is_bool($patt)) {
+                $devMode = !$patt;
             } else {
-                $devMode = false;
+                $devMode = Permission::isLocalhost();
             }
         }
         $devMode = $devMode || Permission::isAdmin();
