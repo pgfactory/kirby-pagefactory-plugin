@@ -4,9 +4,9 @@ namespace PgFactory\PageFactory;
 
 use Kirby\Exception\Exception;
 
-const JQUERY = ['js' => PFY_ASSETS_URL.'js/jquery-3.7.1.min.js', 'priority' => true];
 const PFY_PATH = 'site/plugins/pagefactory/';
 const PFY_ASSETS_PATH = PFY_PATH.'assets/';
+const JQUERY = ['js' => PFY_ASSETS_PATH.'js/jquery-3.7.1.min.js', 'priority' => true];
 
  // DEFAULT_ASSET_GROUPS define where PageFactory will look for assets, compiling and aggregating them where necessary.
 define('DEFAULT_AGGREGATED_ASSETS', [
