@@ -703,7 +703,11 @@ EOT;
         $html = str_replace('~page/', page()->url().'/', $html);
 
         // ~/ for <a> tags -> replace without redir-offset:
-        $html = preg_replace('|(<a\s+href=[\'"])~/|', "$1".PFY_APP_BASE_URL, $html);
+        if (!$forResoucres) {
+            $html = preg_replace('|(<a\s+href=[\'"])~/|', "$1" . PFY_APP_BASE_URL, $html);
+        } else {
+            $html = preg_replace('|~/|', PFY_APP_BASE_URL.PFY_BASE_OFFSET, $html);
+        }
         return $html;
     } // resolveUrls
 
