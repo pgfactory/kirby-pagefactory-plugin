@@ -86,7 +86,7 @@ class Scss
      */
     private static function getFile(string $file): string
     {
-        $compileScssWithLineNumbers = kirby()->option('pgfactory.pagefactory.options.debug_compileScssWithSrcRef', false) &&
+        $compileScssWithLineNumbers = kirby()->option('pgfactory.pagefactory.debug_compileScssWithSrcRef', false) &&
             (PageFactory::$dev || isAdminOrLocalhost());
         if ($compileScssWithLineNumbers) {
             if (!file_exists($file)) {

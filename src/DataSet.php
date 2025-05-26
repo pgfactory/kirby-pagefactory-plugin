@@ -1150,7 +1150,7 @@ class DataSet
             }
 
             // handle option 'keepDbHistory' -> keep previous file state and limit max age of history:
-            if ($maxAge = kirby()->option('pgfactory.pagefactory.options.keepDbHistory', false)) {
+            if ($maxAge = kirby()->option('pgfactory.pagefactory.keepDbHistory', false)) {
                 $historyFile = dirname($this->file).'/.history/'.date('Y-m-d_H.i.s_').basename($this->file);
                 preparePath($historyFile);
                 writeFileLocking($historyFile, $data, false);

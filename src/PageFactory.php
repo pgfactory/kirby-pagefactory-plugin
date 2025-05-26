@@ -353,7 +353,7 @@ class PageFactory
             return '';
         }
 
-        $excludePattern = kirby()->option('pgfactory.pagefactory.options.excludeFilesRegex');
+        $excludePattern = kirby()->option('pgfactory.pagefactory.excludeFilesRegex');
         $path = self::$page->root();
         $files = getDir("$path/*.md");
 

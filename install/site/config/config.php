@@ -28,13 +28,14 @@ return [
     // 'auth.challenge.email.from' => 'webmaster@domain.net',
 
 
-    'pgfactory.markdownplus.options' => [
+    'pgfactory.markdownplus' => [
         // 'divblockChars'		=> '@%:',  // chars identifying DIV-Blocks, default is '@%'
         // 'accessCodeKey'      => 'key' , // URL-key to submit AccessCode, default: 'a' (e.g. ?a=ABCDEF)
         // 'autoConvertLinks'   => true,   // automatically convert URLs and email addresses to <link> tags
+        // 'enableIcons'        => true,   // makes icons available in markdown
     ],
 
-    'pgfactory.pagefactory.options' => [
+    'pgfactory.pagefactory' => [
         // 'defaultLanguage'               => 'de',   // multilang -> configure in panel instead! (Opt. use 'Code: de2' and 'PHP locale string: de_DE')
         // 'locale'                        => 'de_DE',// default: 'en_GB'
         // 'webmaster_email'               => 'webmaster@MY-DOMAIN.NET', // define a webmaster address

@@ -2,8 +2,9 @@
 
 // Defaults recommended by PageFactory plugin:
 return [
-   'debug'  => true,
-    'pgfactory.pagefactory.options' => [
+    'debug'  => true,
+    'isLocalhost'  => true,
+    'pgfactory.pagefactory' => [
         // 'debug_checkMetaFiles'        => true, // if false, Pagefactory will not check presence of metafiles
         'debug_compileScssWithSrcRef' => true, // injects refs to source SCSS file&line in compiled CSS
     ],

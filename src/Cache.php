@@ -19,7 +19,7 @@ class Cache
      */
     public static function init(): void
     {
-        self::$pageCachingEnabled = kirby()->option('pgfactory.pagefactory.options.enablePageCache') &&
+        self::$pageCachingEnabled = kirby()->option('pgfactory.pagefactory.enablePageCache') &&
             !kirby()->session()->pull('pfy.message');
         self::preparePath();
         $lastCacheRefresh = file_exists(LAST_CACHE_UPDATE_FILE) ? filemtime(LAST_CACHE_UPDATE_FILE) : 0;

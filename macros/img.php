@@ -66,7 +66,7 @@ Renders an image tag.
 
 Configuration options in 'site/config/config.php':
 
-    'pgfactory.pagefactory.options' \=> [
+    'pgfactory.pagefactory' \=> [
         'imageAutoQuickzoom'  \=> true,  \// turns quickzoom on by default
         'imageAutoSrcset'  \=> true,     \// turns srcset on by default
     ],

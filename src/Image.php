@@ -46,7 +46,7 @@ class Image
         if (($q = ($options['quickzoom']??null)) !== null) {
             $this->quickzoomActive = $q;
         } else {
-            $this->quickzoomActive = kirby()->option('pgfactory.pagefactory.options.quickzoom', false);
+            $this->quickzoomActive = kirby()->option('pgfactory.pagefactory.quickzoom', false);
         }
 
         if (($l = ($options['lazyLoading']??null)) !== null) {

@@ -78,7 +78,7 @@ function onPanelLoad($path)
  */
 function checkMetaFiles(): void
 {
-    if (!kirby()->option('pgfactory.pagefactory.options.debug_checkMetaFiles')) {
+    if (!kirby()->option('pgfactory.pagefactory.debug_checkMetaFiles')) {
         return;
     }
 
