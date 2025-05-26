@@ -143,7 +143,7 @@ class Utils
      */
     public static function prepareWebmasterEmail(): void
     {
-        if (!($webmasterEmail = kirby()->option('pgfactory.pagefactory.options.webmaster_email'))) {
+        if (!($webmasterEmail = kirby()->option('pgfactory.pagefactory.webmaster_email'))) {
             $webmasterEmail = TransVars::getVariable('webmaster_email');
         }
         if ($webmasterEmail) {
@@ -406,13 +406,14 @@ EOT;
                     self::resetDevState();
                     if (isLocalhost()) { // exception: reset on localhost
                         self::resetAll();
+                        self::handleDevDataUpdate();
                         self::setInstallationCheckFile();
                         reloadAgent(message: 'Reset executed.');
                     }
                     break;
                 case 'iframe':
                     if (!($a = page()->supportExportAsIframe()->value())) {
-                        $a = kirby()->option('pgfactory.pagefactory.options.supportExportAsIframe');
+                        $a = kirby()->option('pgfactory.pagefactory.supportExportAsIframe');
                     }
                     if ($a) {
                         if ($a === true || $a === 'true') {
@@ -548,6 +549,7 @@ EOT;
 
                 case 'reset': // ?reset
                     self::resetAll();
+                    self::handleDevDataUpdate();
                     self::setInstallationCheckFile();
                     reloadAgent(message: 'Reset executed.');
 
@@ -584,6 +586,47 @@ EOT;
         PageFactory::$forceAssetsUpdate = true;
         Assets::compileAssets();
     } // resetAll
+
+
+    private static function handleDevDataUpdate(): void
+    {
+        if (!isset($_GET['data'])) {
+            return;
+        }
+        if (!PageFactory::$config['production_mode_data_path']??false) {
+            return;
+        }
+
+        $prodDataPath = resolvePath('~/'.PageFactory::$config['production_mode_data_path']);
+        $prodDataPath = normalizePath($prodDataPath);
+        $configPath = resolvePath('~/site/config/');
+
+        // copy files to site/config/:
+        $files = getDir($prodDataPath.'config/*', true);
+        foreach ($files as $file) {
+            $filename = basename($file);
+            $path = "$configPath$filename";
+            copy($file, $path);
+        }
+
+        // copy files to site/custom/data/:
+        $customPath = resolvePath('~/site/custom/');
+        $dataPath = $customPath.'data/';
+        // if folder already exists, move it to .history/:
+        if (!is_dir($customPath)) {
+            preparePath($customPath . '.history');
+            rename($dataPath, "$customPath.history/" . date('Y-m-d_H-i-s') . '_data');
+        }
+
+        $files = getDirDeep($prodDataPath.'data/*');
+        $l = strlen($prodDataPath.'data/');
+        foreach ($files as $file) {
+            $filename = substr($file, $l);
+            $path = "$dataPath$filename";
+            preparePath($path);
+            copy($file, $path);
+        }
+    } // handleDevDataUpdate
 
 
     /**
@@ -795,7 +838,7 @@ EOT;
 
         $appRoot = dirname($_SERVER['SCRIPT_FILENAME']);
         $docRoot = $_SERVER['DOCUMENT_ROOT']??'';
-        $patt = kirby()->option('pgfactory.pagefactory.options.production_host_path_pattern');
+        $patt = kirby()->option('pgfactory.pagefactory.production_host_path_pattern');
         if ($appRoot !== $docRoot) {
             // app in subfolder -> check against production_host_path_pattern:
             if ($patt && is_string($patt)) {
@@ -804,7 +847,9 @@ EOT;
                 $devMode = !$patt;
             }
         } else {
-            if (is_bool($patt)) {
+            if ($patt === '/') {
+                $devMode = false;
+            } elseif (is_bool($patt)) {
                 $devMode = !$patt;
             } else {
                 $devMode = Permission::isLocalhost();
@@ -865,7 +910,7 @@ EOT;
     {
         // in productive mode, if config option is set, override $dataPath and $customConfigPath:
         if (PageFactory::$productionMode) {
-            $dataPath = kirby()->option('pgfactory.pagefactory.options.production_mode_data_path');
+            $dataPath = kirby()->option('pgfactory.pagefactory.production_mode_data_path');
             if ($dataPath) {
                 $dataPath = normalizePath(PFY_APP_BASE_PATH . $dataPath);
                 PageFactory::$dataPath = $dataPath . 'data/';
@@ -883,7 +928,7 @@ EOT;
      */
     public static function loadPfyConfig():void
     {
-        $optionsFromConfigFile = kirby()->option('pgfactory.pagefactory.options');
+        $optionsFromConfigFile = kirby()->option('pgfactory.pagefactory');
         if ($optionsFromConfigFile) {
             PageFactory::$config = array_replace_recursive(OPTIONS_DEFAULTS, $optionsFromConfigFile);
         } else {
@@ -966,7 +1011,7 @@ EOT;
      */
     public static function getCurrentLocale(): string
     {
-        $l = kirby()->option('pgfactory.pagefactory.options.locale', PFY_DEFAULT_LOCALE);
+        $l = kirby()->option('pgfactory.pagefactory.locale', PFY_DEFAULT_LOCALE);
         if ($l === 'auto') {
             $l = PageFactory::$langCode . '_' . strtoupper(PageFactory::$langCode);
         }
@@ -1036,7 +1081,7 @@ EOT;
         $config = (string)fileGetContents(PFY_CONFIG_FILE);
 
         // check whether section pagefactory already exists, then inject values accordingly:
-        if (preg_match("/(['\"]pgfactory.pagefactory.options['\"]\s*=>\s*\[)/", $config, $m)) {
+        if (preg_match("/(['\"]pgfactory.pagefactory['\"]\s*=>\s*\[)/", $config, $m)) {
             $str = "\n\t\t'$key'\t\t=> '$value',$comment,";
             $config = str_replace($m[0], $m[0].$str, $config);
             file_put_contents(PFY_CONFIG_FILE, $config);
@@ -1044,7 +1089,7 @@ EOT;
         } elseif (preg_match("/(];)/", $config, $m)) {
             $str = <<<EOT
 
-    'pgfactory.pagefactory.options' => [
+    'pgfactory.pagefactory' => [
         '$key'		=> '$value',$comment
     ],
 
