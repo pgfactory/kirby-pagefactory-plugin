@@ -527,8 +527,8 @@ function localPath(string $absPath): string
   */
 function dir_name(string $path): string
 {
-    if (!$path || str_starts_with($path, '/')) {
-        return $path;
+    if (!str_contains($path, '/')) {
+        return '';
     }
     $path = preg_replace('/[#?*].*/', '', $path); //
     if (str_contains(basename($path), '.')) {  // if it contains a '.' we assume it's a file
@@ -1063,13 +1063,16 @@ function getGitTag(): string
   * @param int $flags        e.g. FILE_APPEND
   * @throws Exception
   */
-function writeFile(string $file, string $content, int $flags = 0): void
+function writeFile(string $file, string $content, int $flags = 0, int $permissions = 0): void
 {
     $file = resolvePath($file);
     preparePath($file);
     if (file_put_contents($file, $content, $flags) === false) {
         $file = basename($file);
         throw new \Exception("Writing to file '$file' failed");
+    }
+    if ($permissions !== 0) {
+        chmod($file, $permissions);
     }
 } // writeFile
 
