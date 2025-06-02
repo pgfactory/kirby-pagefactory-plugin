@@ -399,6 +399,7 @@ EOT;
                         $name = (string)$user->nameOrEmail();
                         $user->logout();
                     }
+                    header('Clear-Site-Data: "cache", "cookies", "storage", "executionContexts", "prefetchCache", "prerenderCache"');
                     mylog("User '$name' logged out.", PFY_LOGIN_LOG_FILE);
                     reloadAgent(message: '{{ pfy-logged-out-now }}'); // get rid of url-command
                     break;
@@ -424,6 +425,8 @@ EOT;
                     }
                     break;
                 case 'bust':  // ?bust
+                    header('Clear-Site-Data: "cache", "executionContexts", "prefetchCache", "prerenderCache"');
+                    header('Cache-Control: no-cache, no-store, must-revalidate');
                     Assets::activateBrowserCacheBusting();
                     break;
             }
