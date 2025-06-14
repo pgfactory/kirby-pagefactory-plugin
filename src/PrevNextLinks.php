@@ -35,10 +35,10 @@ class PrevNextLinks
 
             $center = '';
             if ($args['center']??false) {
-                $center = $args['center'];
+                $center = (string)$args['center'];
                 while (preg_match('/%(\w{2,32})%/', $center, $m)) {
                     $value = TransVars::getVariable($m[1]);
-                    $center = str_replace($m[0], $value, $center);
+                    $center = str_replace($m[0], (string)$value, $center);
                 }
                 // handle transvars in {{}} notation:
                 if (str_contains($center, '{{')) {
