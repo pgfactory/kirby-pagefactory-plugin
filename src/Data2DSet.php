@@ -317,16 +317,14 @@ class Data2DSet extends DataSet
      *    $ds->export('output/export2.csv', includeMeta: true); -> includes meta-data
      *    $ds->export('output/export3.csv', includeHeader: false); -> includes meta-data and omits header-row
      *      *) before exporting to csv, data is 2D-normalized to fit in a rectangular table
-     * @param mixed $toFile
+     * @param mixed $targetFile
      * @param mixed $includeMeta
-     * @param mixed|null $includeHeader
      * @param mixed|null $fileType
      * @return string
      * @throws \Exception
      */
-    public function export(mixed $toFile = false,
+    public function export(mixed $targetFile = false,
                            bool  $includeMeta = false,
-                           bool  $includeHeader = true,
                            mixed $fileType = false): string
     {
         if ($fileType === true || $fileType === 'office') {
@@ -337,13 +335,13 @@ class Data2DSet extends DataSet
             }
         }
 
-        if (!$toFile) {
-            $toFile = $this->getDownloadFilename();
+        if (!$targetFile) {
+            $targetFile = $this->getDownloadFilename();
         }
         if (!$fileType) {
-            $fileType = fileExt($toFile);
+            $fileType = fileExt($targetFile);
         }
-        $toFile = resolvePath($toFile);
+        $toFile = Utils::resolvePath($targetFile);
         if ($toFile === $this->file) {
             throw new \Exception("Export to original data file '$toFile' is not allowed.");
         }
@@ -354,11 +352,13 @@ class Data2DSet extends DataSet
         }
         try {
             if ($fileType === 'office') {
+                $targetFile .= 'xlsx';
                 $toFile .= 'xlsx';
-                $this->exportToOfficeDoc($toFile, $includeMeta, $includeHeader);
+                $this->exportToOfficeDoc($toFile);
             } elseif ($fileType === 'csv') {
+                $targetFile .= 'csv';
                 $toFile .= 'csv';
-                $this->exportToCsv($toFile, $includeMeta, $includeHeader);
+                $this->exportToCsv($toFile);
             } else {
                 $data = $this->data($includeMeta);
                 writeFileLocking($toFile, $data);
@@ -366,7 +366,7 @@ class Data2DSet extends DataSet
         } catch (\Exception $e) {
             throw new \Exception($e->getMessage());
         }
-        return $toFile;
+        return Utils::resolveUrls($targetFile, forResoucres:true);
     } // export
 
 
@@ -393,14 +393,10 @@ class Data2DSet extends DataSet
 
     /**
      * @param string $file
-     * @param bool $includeMeta
-     * @param bool $includeHeader
      * @return string
      * @throws \Exception
      */
-    public function exportToOfficeDoc(string $file,
-                                      bool   $includeMeta = false,
-                                      bool   $includeHeader = true): string
+    public function exportToOfficeDoc(string $file): string
     {
         if (!self::$officeFormatAvailable) {
             throw new \Exception("Support for Office Formats not available in this installation.");
