@@ -226,6 +226,49 @@ class Utils
 
     /**
      * @return string
+     * @throws Kirby\Exception\InvalidArgumentException
+     */
+    public static function renderFavicon()
+    {
+        $defaultIcon = option('pgfactory.pagefactory.favicon') ?: PFY_DEFAULT_FAVICON;
+        $defaultIcon = option('pgfactory.pagefactory.favicon') ?: PFY_BASE_OFFSET.'assets/favicon/favicon.png';
+        $png = asset( $defaultIcon );
+        if (!file_exists($png->root())) {
+$f = $png->root();
+mylog("favicon not found: '$f'");
+            return '';
+        }
+
+        $sizes = [32, 96, 16];
+        $html = '';
+        $l = PFY_BASE_OFFSET ? strlen(PFY_HOST_URL): 0;
+        foreach( $sizes as $size ){
+            $url = $png->thumb([
+                'width'   => $size,
+                'height'  => $size,
+                'quality' => 50,
+                'format'  => 'png',
+            ])->url();
+            if ($l) {
+                $url = PFY_APP_BASE_URL . substr($url, $l);
+            }
+mylog($url);
+            $s = $size . 'x' . $size;
+            $html .= "  <link href='$url' rel='icon' type='image/png' sizes='$s'>\n";
+        }
+        $url = $png->thumb([
+            'width'   => 180,
+            'height'  => 180,
+            'quality' => 50,
+            'format'  => 'png',
+        ])->url();
+        $html .="  <link href='$url' rel='alternate icon' type='image/png'>\n";
+        return $html;
+    } // renderFavicon
+
+
+    /**
+     * @return string
      * @throws Exception
      */
     public static function renderSmallScreenHeader(): string
@@ -588,6 +631,10 @@ EOT;
     } // resetAll
 
 
+    /**
+     * @return void
+     * @throws Exception
+     */
     private static function handleDevDataUpdate(): void
     {
         if (!isset($_GET['data'])) {

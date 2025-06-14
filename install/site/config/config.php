@@ -43,6 +43,7 @@ return [
         // 'productionHostPathPattern'     => 'onair', // if defined, mismatch of (regex) pattern in URL triggers dev mode (docroot always assumed productive)
         // 'productionModeDataPath'        => '../production_mode_db/', // if defined, ~data/ is redirected here in production mode
         // 'lazyLoading'                   => false,   // disable lazy loading of images
+        // 'favicon'                       => PFY_BASE_OFFSET.'assets/favicon/favicon.png', // defines source favicon file
         // 'robots'                        => true,   // inject "robots" elem in HTML header
         // 'excludeFilesRegex'             => '\.old\.md$',// regex pattern to exclude certain .md files from rendering
         // 'default-nav'                   => false,  // omit automatic loading of NAV resources

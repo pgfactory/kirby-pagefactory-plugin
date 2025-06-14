@@ -63,6 +63,7 @@ const PFY_BASE_ASSETS_URL =        PFY_APP_BASE_URL . 'media/plugins/pgfactory/'
 const PFY_ASSETS_URL =             PFY_BASE_ASSETS_URL.'pagefactory/';
 const PAGED_POLYFILL_SCRIPT_URL =  PFY_ASSETS_URL.'js/paged.polyfill.min.js';
 const PFY_DEFAULT_LOCALE =         'en_GB';
+const PFY_DEFAULT_FAVICON =        'assets/favicon/favicon.png';
 
 
  // use this name for meta-files (aka text-files) in page folders:
@@ -168,20 +169,21 @@ class PageFactory
                 'lang'                      => self::$langCode,
                 'baseUrl'                   => PFY_APP_BASE_URL,
                 'generator'                 => Utils::renderGenerator(),
-//                'homeLink'                  => Utils::renderHomeLink(),
                 'adminPanelLink'            => Utils::renderAdminPanelLink(),
-//                'loggedIn'                  => Utils::$loggedIn,
-//                'loginLink'                 => Utils::$loginLink,
-//                'username'                  => self::$userName,
-//                'loginButton'               => Utils::$loginButton,
+                'favicon'                   => Utils::renderFavicon(),
+                //'homeLink'                  => Utils::renderHomeLink(),
+                //'loggedIn'                  => Utils::$loggedIn,
+                //'loginLink'                 => Utils::$loginLink,
+                //'username'                  => self::$userName,
+                //'loginButton'               => Utils::$loginButton,
 
                 'pageContent'               => $this->renderPageContent(),
 
                 // variables that might be defined in Frontmatter:
                 'headTitle'                 => Utils::renderHeadTitle(),
                 'smallScreenHeader'         => Utils::renderSmallScreenHeader(),
-//                'menuIcon'                  => Utils::$menuIcon,
-//                'langSelection'             => Utils::renderLanguageSelector(),
+                //'menuIcon'                  => Utils::$menuIcon,
+                //'langSelection'             => Utils::renderLanguageSelector(),
 
                 // the major page defining variables:
                 'headInjections'            => Page::renderHeadInjections(),
@@ -197,33 +199,6 @@ class PageFactory
         $pageFields['debug'] = self::$debug;
         $pageFields['dev'] = self::$dev;
         return $pageFields;
-//        self::$pageFields = $pageFields;
-
-//        $page->lang()->value                = $pageFields['lang'];
-//        $page->baseUrl()->value             = $pageFields['baseUrl'];
-//        $page->headTitle()->value           = $pageFields['headTitle'];
-//        $page->generator()->value           = $pageFields['generator'];
-//        $page->homeLink()->value            = $pageFields['homeLink'];
-//        $page->localhost()->value           = isLocalhost();
-//        $page->debug()->value               = PageFactory::$debug;
-//        $page->dev()->value                 = PageFactory::$dev;
-//        $page->adminPanelLink()->value      = $pageFields['adminPanelLink'];
-//        $page->loggedIn()->value            = $pageFields['loggedIn'];
-//        $page->loginLink()->value           = $pageFields['loginLink'];
-//        $page->username()->value            = $pageFields['username'];
-//        $page->loginButton()->value         = $pageFields['loginButton'];
-//        $page->smallScreenHeader()->value   = $pageFields['smallScreenHeader'];
-//        $page->langSelection()->value       = $pageFields['langSelection'];
-//        $page->menuIcon()->value            = $pageFields['menuIcon'];
-//        $page->cacheIndicator()->value      = $pageFields['cacheIndicator'];
-//
-//        $page->headInjections()->value      = $pageFields['headInjections'];
-//        $page->bodyTagClasses()->value      = $pageFields['bodyTagClasses'];
-//        $page->bodyTagAttributes()->value   = $pageFields['bodyTagAttributes'];
-//        $page->bodyEndInjections()->value   = $pageFields['bodyEndInjections'];
-//
-//        $page->pageContent()->value         = $pageFields['pageContent'];
-
     } // prepareTemplateFields
 
 
