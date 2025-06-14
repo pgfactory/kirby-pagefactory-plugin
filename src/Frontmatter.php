@@ -43,9 +43,11 @@ class Frontmatter
                 $value = str_replace('{{', "'{=={'", $value);
                 $values = Yaml::decode($value);
                 foreach ($values as $k => $v) {
-                    $v = str_replace("'{=={'", '{{', $v);
-                    if (is_string($v) && str_contains($v, '{{')) {
-                        $v = TransVars::translate($v);
+                    if (is_string($v)) {
+                        $v = str_replace("'{=={'", '{{', $v);
+                        if (str_contains($v, '{{')) {
+                            $v = TransVars::translate($v);
+                        }
                     }
                     TransVars::setVariable($k, $v);
                 }
