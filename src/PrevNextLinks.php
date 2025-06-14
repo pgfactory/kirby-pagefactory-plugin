@@ -21,11 +21,11 @@ class PrevNextLinks
     public function render(array $args): string
     {
         self::$inx++;
-        $this->class = $args['class'];
+        $this->class = $args['class']??'';
         $this->page  = PageFactory::$page;
         $this->pages = PageFactory::$pages;
 
-        $wrapperClass = $args['wrapperClass'];
+        $wrapperClass = $args['wrapperClass']??'';
 
         if (($args['type'][0]??'') === 'h') {
             $out = $this->renderHeadLinkElements();
