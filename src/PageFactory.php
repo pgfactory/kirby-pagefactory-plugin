@@ -51,8 +51,8 @@ if (!defined('PFY_CACHE_PATH')) {
     define('PFY_CACHE_PATH',            PFY_APP_BASE_PATH . 'site/cache/pagefactory/');
 }
 define('PFY_LOGIN_LOG_FILE',           'login-log.txt');
-define('PFY_DOWNLOAD_PATH',             PFY_APP_BASE_PATH . 'download/');
-define('PFY_TEMP_DOWNLOAD_PATH',        PFY_DOWNLOAD_PATH.'temp/'); // for temp download of datasets (excel-format)
+define('PFY_TEMP_PATH',                 '~/media/pgfactory/');
+define('PFY_TEMP_DOWNLOAD_PATH',        PFY_TEMP_PATH.'download/'); // for temp download of datasets (excel-format)
 
 define('PFY_WEBMASTER_EMAIL_CACHE',     PFY_CACHE_PATH.'webmaster-email.txt');
 define('PFY_INSTALLATION_PATH_CHECK',   PFY_CACHE_PATH.'installation-path.txt');
@@ -120,12 +120,16 @@ class PageFactory
     public static bool $addSectionInnerWrapper = false;
     public static string $sectionWrapperClass = '';
 
-    public function __construct($data)
+    public function __construct($page, $pages, $site, $kirby)
     {
-        self::$kirby = $data['kirby'];
-        self::$pages = $data['pages'];
-        self::$page = $data['page'];
-        self::$site = $data['site'];
+        self::$kirby = $kirby;
+        self::$pages = $pages;
+        self::$page = $page;
+        self::$site = $site;
+//        self::$kirby = $data['kirby'];
+//        self::$pages = $data['pages'];
+//        self::$page = $data['page'];
+//        self::$site = $data['site'];
 
         self::$dev = Utils::determineDevState();
         self::$productionMode = !self::$dev;
@@ -148,7 +152,8 @@ class PageFactory
      * @throws Kirby\Exception\InvalidArgumentException
      * @throws Kirby\Exception\LogicException
      */
-    public function prepareTemplateFields(): void
+    public function prepareTemplateFields(): array
+//    public function prepareTemplateFields(): void
     {
         $page = self::$page;
         $pageFields = false;
@@ -163,20 +168,20 @@ class PageFactory
                 'lang'                      => self::$langCode,
                 'baseUrl'                   => PFY_APP_BASE_URL,
                 'generator'                 => Utils::renderGenerator(),
-                'homeLink'                  => Utils::renderHomeLink(),
+//                'homeLink'                  => Utils::renderHomeLink(),
                 'adminPanelLink'            => Utils::renderAdminPanelLink(),
-                'loggedIn'                  => Utils::$loggedIn,
-                'loginLink'                 => Utils::$loginLink,
-                'username'                  => self::$userName,
-                'loginButton'               => Utils::$loginButton,
+//                'loggedIn'                  => Utils::$loggedIn,
+//                'loginLink'                 => Utils::$loginLink,
+//                'username'                  => self::$userName,
+//                'loginButton'               => Utils::$loginButton,
 
                 'pageContent'               => $this->renderPageContent(),
 
                 // variables that might be defined in Frontmatter:
                 'headTitle'                 => Utils::renderHeadTitle(),
                 'smallScreenHeader'         => Utils::renderSmallScreenHeader(),
-                'menuIcon'                  => Utils::$menuIcon,
-                'langSelection'             => Utils::renderLanguageSelector(),
+//                'menuIcon'                  => Utils::$menuIcon,
+//                'langSelection'             => Utils::renderLanguageSelector(),
 
                 // the major page defining variables:
                 'headInjections'            => Page::renderHeadInjections(),
@@ -188,31 +193,36 @@ class PageFactory
             self::$renderingClosed = true;
             Cache::updatePageCache($pageFields);
         }
+        $pageFields['localhost'] = isLocalhost();
+        $pageFields['debug'] = self::$debug;
+        $pageFields['dev'] = self::$dev;
+        return $pageFields;
+//        self::$pageFields = $pageFields;
 
-        $page->lang()->value                = $pageFields['lang'];
-        $page->baseUrl()->value             = $pageFields['baseUrl'];
-        $page->headTitle()->value           = $pageFields['headTitle'];
-        $page->generator()->value           = $pageFields['generator'];
-        $page->homeLink()->value            = $pageFields['homeLink'];
-        $page->localhost()->value           = isLocalhost();
-        $page->debug()->value               = PageFactory::$debug;
-        $page->dev()->value                 = PageFactory::$dev;
-        $page->adminPanelLink()->value      = $pageFields['adminPanelLink'];
-        $page->loggedIn()->value            = $pageFields['loggedIn'];
-        $page->loginLink()->value           = $pageFields['loginLink'];
-        $page->username()->value            = $pageFields['username'];
-        $page->loginButton()->value         = $pageFields['loginButton'];
-        $page->smallScreenHeader()->value   = $pageFields['smallScreenHeader'];
-        $page->langSelection()->value       = $pageFields['langSelection'];
-        $page->menuIcon()->value            = $pageFields['menuIcon'];
-        $page->cacheIndicator()->value      = $pageFields['cacheIndicator'];
-
-        $page->headInjections()->value      = $pageFields['headInjections'];
-        $page->bodyTagClasses()->value      = $pageFields['bodyTagClasses'];
-        $page->bodyTagAttributes()->value   = $pageFields['bodyTagAttributes'];
-        $page->bodyEndInjections()->value   = $pageFields['bodyEndInjections'];
-
-        $page->pageContent()->value         = $pageFields['pageContent'];
+//        $page->lang()->value                = $pageFields['lang'];
+//        $page->baseUrl()->value             = $pageFields['baseUrl'];
+//        $page->headTitle()->value           = $pageFields['headTitle'];
+//        $page->generator()->value           = $pageFields['generator'];
+//        $page->homeLink()->value            = $pageFields['homeLink'];
+//        $page->localhost()->value           = isLocalhost();
+//        $page->debug()->value               = PageFactory::$debug;
+//        $page->dev()->value                 = PageFactory::$dev;
+//        $page->adminPanelLink()->value      = $pageFields['adminPanelLink'];
+//        $page->loggedIn()->value            = $pageFields['loggedIn'];
+//        $page->loginLink()->value           = $pageFields['loginLink'];
+//        $page->username()->value            = $pageFields['username'];
+//        $page->loginButton()->value         = $pageFields['loginButton'];
+//        $page->smallScreenHeader()->value   = $pageFields['smallScreenHeader'];
+//        $page->langSelection()->value       = $pageFields['langSelection'];
+//        $page->menuIcon()->value            = $pageFields['menuIcon'];
+//        $page->cacheIndicator()->value      = $pageFields['cacheIndicator'];
+//
+//        $page->headInjections()->value      = $pageFields['headInjections'];
+//        $page->bodyTagClasses()->value      = $pageFields['bodyTagClasses'];
+//        $page->bodyTagAttributes()->value   = $pageFields['bodyTagAttributes'];
+//        $page->bodyEndInjections()->value   = $pageFields['bodyEndInjections'];
+//
+//        $page->pageContent()->value         = $pageFields['pageContent'];
 
     } // prepareTemplateFields
 

@@ -1,19 +1,19 @@
-<!doctype html><?= $page->cacheIndicator() ?>
-<html lang="<?= $page->lang() ?>">
+<!doctype html><?= $cacheIndicator ?>
+<html lang="<?= $lang ?>">
 <head>
   <meta charset="utf-8">
-  <title><?= $page->headTitle() ?></title>
+  <title><?= $headTitle ?></title>
 
-  <base href="<?= $page->baseUrl() ?>">
+  <base href="<?= $baseUrl ?>">
   <meta name="viewport" content="width=device-width, user-scalable=yes, initial-scale=1">
-  <meta name="generator" content="<?= $page->generator() ?>)">
+  <meta name="generator" content="<?= $generator ?>)">
   <?php snippet('prevnextlinks', ['args' => "type:'header-links'"]) ?>
   <?php snippet('favicon') ?>
 
-  <?= $page->headInjections() ?>
+  <?= $headInjections ?>
 </head>
 
-<body id='pfy' class='pfy-default-styling pfy-auto-tabulator <?= $page->bodyTagClasses() ?>' <?= $page->bodyTagAttributes() ?>>
+<body id='pfy' class='pfy-default-styling pfy-auto-tabulator <?= $bodyTagClasses ?>' <?= $bodyTagAttributes ?>>
 
 <div class='pfy-page'>
 
@@ -39,7 +39,7 @@
     <main id='main' class='pfy-main'>
 
 
-      <?= $page->pageContent() ?>
+      <?= $pageContent ?>
 
     </main>
     <!-- === /page content =============== -->
@@ -56,11 +56,11 @@
 
       </div>
 
-<?php if ($page->localhost()->value): ?>
+<?php if ($localhost): ?>
 
       <div class="dev-footer">
         <div>
-          <?= $page->adminPanelLink() ?>
+          <?= $adminPanelLink ?>
         </div>
         <div>
         </div>
@@ -75,13 +75,13 @@
 
 
 
-  <?= $page->smallScreenHeader() ?>
+  <?= $smallScreenHeader ?>
 
   </div><!-- /pfy-main-wrapper -->
 
 </div><!-- /.pfy-page -->
 
-<?= $page->bodyEndInjections() ?>
+<?= $bodyEndInjections ?>
 </body>
 </html>
 

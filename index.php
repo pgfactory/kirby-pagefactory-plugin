@@ -15,6 +15,7 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 use PgFactory\PageFactory\PageFactory as PageFactory;
 
+define('PFY_DOWNLOAD_PATH', '~/download/');
 
 Kirby::plugin('pgfactory/pagefactory', [
 
@@ -27,6 +28,11 @@ Kirby::plugin('pgfactory/pagefactory', [
         'sitemap' =>        __DIR__ . '/snippets/sitemap.php',
     ],
 
+    'controllers' => [
+        'site' => function ($page, $pages, $site, $kirby) {
+            return (new PageFactory($page, $pages, $site, $kirby))->prepareTemplateFields();
+        }
+    ],
 
     'hooks' => [
         // experimental: avoid requests for .map files
@@ -34,13 +40,11 @@ Kirby::plugin('pgfactory/pagefactory', [
             if (str_ends_with($path, '.map')) {
                 exit();
             }
+            if (str_starts_with($path, 'download') && \PgFactory\PageFactory\Download::handler($path)) {
+                exit();
+            }
         },
 
-        'page.render:before' => function (string $contentType, array $data, Kirby\Cms\Page $page) {
-            // render page content and store in page.text variable, where the twig template picks it up:
-            (new PageFactory($data))->prepareTemplateFields();
-            return $data;
-        },
 
         'page.render:after' => function (string $contentType, array $data, string $html, Kirby\Cms\Page $page) {
             return PageFactory::cleanUp($html);
