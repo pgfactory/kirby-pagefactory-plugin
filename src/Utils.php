@@ -399,7 +399,6 @@ EOT;
                         $name = (string)$user->nameOrEmail();
                         $user->logout();
                     }
-                    header('Clear-Site-Data: "cache", "cookies", "storage", "executionContexts", "prefetchCache", "prerenderCache"');
                     mylog("User '$name' logged out.", PFY_LOGIN_LOG_FILE);
                     reloadAgent(message: '{{ pfy-logged-out-now }}'); // get rid of url-command
                     break;
@@ -425,8 +424,6 @@ EOT;
                     }
                     break;
                 case 'bust':  // ?bust
-                    header('Clear-Site-Data: "cache", "executionContexts", "prefetchCache", "prerenderCache"');
-                    header('Cache-Control: no-cache, no-store, must-revalidate');
                     Assets::activateBrowserCacheBusting();
                     break;
             }
@@ -596,11 +593,11 @@ EOT;
         if (!isset($_GET['data'])) {
             return;
         }
-        if (!PageFactory::$config['production_mode_data_path']??false) {
+        if (!PageFactory::$config['productionModeDataPath']??false) {
             return;
         }
 
-        $prodDataPath = resolvePath('~/'.PageFactory::$config['production_mode_data_path']);
+        $prodDataPath = resolvePath('~/'.PageFactory::$config['productionModeDataPath']);
         $prodDataPath = normalizePath($prodDataPath);
         $configPath = resolvePath('~/site/config/');
 
@@ -707,6 +704,83 @@ EOT;
 
 
     /**
+     * Looks for special path patterns starting with '~'. If found replaces them with propre values.
+     *   Supported path patterns: ~/, ~page/, ~pagefactory/, ~media/, ~assets/, ~data/
+     * @param string $path
+     * @param bool $returnAbsPath
+     * @return string
+     */
+    public static function resolvePath(string $path): string
+    {
+        if (($path[0]??'') !== '~') {
+            return $path;
+        }
+        // first check for root-paths defined by kirby:
+        if (($path[1]??'') !== '/') {
+            $path1 = preg_replace('|/.*|', '', substr($path, 1));
+
+            // '~assets/' is an exception: it shall point to 'content/assets/' rather than 'assets/':
+            if (!str_contains( 'assets,config,cache', $path1) && (strpos(KIRBY_ROOT_PATTERNS, ",$path1,") !== false)) {
+                $path = KIRBY_ROOTS[$path1].substr($path, strlen($path1)+1);
+                return $path;
+            }
+        }
+
+        // resolve PFY's specific folders:
+        $appRoot = PFY_APP_BASE_PATH;
+        // ~pages/ is special case -> use Kirby to determine actual path:
+        if (str_starts_with($path, '~pages/')) {
+            $filename = basename($path);
+            $path = dirname(substr($path, 7));
+            $pg = page($path);
+            if ($pg) {
+                $path = $pg->root().'/'.$filename;
+            }
+
+            // other patterns:
+        } else {
+            $pathPatterns = [
+                '~/'            => $appRoot,
+                '~media/'       => $appRoot . 'media/',
+                '~assets/'      => $appRoot . 'content/assets/',
+                '~config/'      => PageFactory::$customConfigPath, // normally /site/config/
+                '~custom/'      => $appRoot . 'site/custom/',
+                '~cache/'       => $appRoot . 'site/cache/pagefactory/',
+                '~download/'    => $appRoot . 'download/',
+                '~data/'        => PageFactory::$dataPath,
+                '~pagefactory/' => $appRoot . 'site/plugins/pagefactory/assets/',
+                '~page/'        => PFY_PAGE_PATH,
+            ];
+            $path = str_replace(array_keys($pathPatterns), array_values($pathPatterns), $path);
+            if (str_contains($path, '../')) {
+                $path = self::normalizePath($path);
+            }
+        }
+        return $path;
+    } // resolvePath
+
+
+    /**
+     * @param string $path
+     * @return string
+     */
+    public static function normalizePath(string $path): string
+    {
+        $hdr = '';
+        if (preg_match('|^ ((\.\./)+) (.*)|x', $path, $m)) {
+            $hdr = $m[1];
+            $path = $m[3];
+        }
+        while ($path && preg_match('|(.*?) ([^/.]+/\.\./) (.*)|x', $path, $m)) {
+            $path = $m[1] . $m[3];
+        }
+        $path = str_replace('/./', '/', $path);
+        $path = preg_replace('|(?<!:)//|', '/', $path);
+        return $hdr.$path;
+    } // normalizePath
+
+
+    /**
      * Resolves path patterns of type '~x/' to correct urls
      * @param string $html
      * @return string
@@ -751,6 +825,7 @@ EOT;
         // ~/ for <a> tags -> replace without redir-offset:
         if (!$forResoucres) {
             $html = preg_replace('|(<a\s+href=[\'"])~/|', "$1" . PFY_APP_BASE_URL, $html);
+            $html = str_replace('~/', PFY_APP_BASE_URL, $html);
         } else {
             $html = preg_replace('|~/|', PFY_APP_BASE_URL.PFY_BASE_OFFSET, $html);
         }
@@ -841,9 +916,9 @@ EOT;
 
         $appRoot = dirname($_SERVER['SCRIPT_FILENAME']);
         $docRoot = $_SERVER['DOCUMENT_ROOT']??'';
-        $patt = kirby()->option('pgfactory.pagefactory.production_host_path_pattern');
+        $patt = kirby()->option('pgfactory.pagefactory.productionHostPathPattern');
         if ($appRoot !== $docRoot) {
-            // app in subfolder -> check against production_host_path_pattern:
+            // app in subfolder -> check against productionHostPathPattern:
             if ($patt && is_string($patt)) {
                 $devMode = !preg_match("#$patt#", $appRoot);
             } elseif (is_bool($patt)) {
@@ -913,7 +988,7 @@ EOT;
     {
         // in productive mode, if config option is set, override $dataPath and $customConfigPath:
         if (PageFactory::$productionMode) {
-            $dataPath = kirby()->option('pgfactory.pagefactory.production_mode_data_path');
+            $dataPath = kirby()->option('pgfactory.pagefactory.productionModeDataPath');
             if ($dataPath) {
                 $dataPath = normalizePath(PFY_APP_BASE_PATH . $dataPath);
                 PageFactory::$dataPath = $dataPath . 'data/';

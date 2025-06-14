@@ -977,68 +977,8 @@ function findAvailableIcons(): array
   */
 function resolvePath(string $path): string
 {
-    if (($path[0]??'') !== '~') {
-        return $path;
-    }
-    // first check for root-paths defined by kirby:
-    if (($path[1]??'') !== '/') {
-        $path1 = preg_replace('|/.*|', '', substr($path, 1));
-
-        // '~assets/' is an exception: it shall point to 'content/assets/' rather than 'assets/':
-        if (!str_contains( 'assets,config,cache', $path1) && (strpos(KIRBY_ROOT_PATTERNS, ",$path1,") !== false)) {
-            $path = KIRBY_ROOTS[$path1].substr($path, strlen($path1)+1);
-            return $path;
-        }
-    }
-
-    // resolve PFY's specific folders:
-     $appRoot = PFY_APP_BASE_PATH;
-    // ~pages/ is special case -> use Kirby to determine actual path:
-    if (str_starts_with($path, '~pages/')) {
-        $filename = basename($path);
-        $path = dirname(substr($path, 7));
-        $pg = page($path);
-        if ($pg) {
-            $path = $pg->root().'/'.$filename;
-        }
-
-    // other patterns:
-    } else {
-        $pathPatterns = [
-            '~/'            => $appRoot,
-            '~media/'       => $appRoot . 'media/',
-            '~assets/'      => $appRoot . 'content/assets/',
-            '~config/'      => PageFactory::$customConfigPath, // normally /site/config/
-            '~custom/'      => $appRoot . 'site/custom/',
-            '~cache/'       => $appRoot . 'site/cache/pagefactory/',
-            '~download/'    => $appRoot . 'download/',
-            '~data/'        => PageFactory::$dataPath,
-            '~pagefactory/' => $appRoot . 'site/plugins/pagefactory/assets/',
-            '~page/'        => PFY_PAGE_PATH,
-        ];
-        $path = str_replace(array_keys($pathPatterns), array_values($pathPatterns), $path);
-    }
-    return $path;
+    return Utils::resolvePath($path);
 } // resolvePath
-
-
- /**
-  * Runs an array of paths through resolvePath()
-  * @param mixed $paths
-  * @return mixed|string
-  */
-function resolvePaths(mixed $paths): string
-{
-    if (is_string($paths)) {
-        $paths = resolvePath($paths);
-
-    } elseif (is_array($paths)) {
-        foreach ($paths as $i => $path) {
-            $paths[$i] = resolvePath($path);
-        }
-    }
-    return $paths;
-} // resolvePaths
 
 
  /**
@@ -1586,17 +1526,7 @@ function preparePath(string $path0, $accessRights = false): void
   */
 function normalizePath(string $path): string
 {
-     $hdr = '';
-     if (preg_match('|^ ((\.\./)+) (.*)|x', $path, $m)) {
-         $hdr = $m[1];
-         $path = $m[3];
-     }
-     while ($path && preg_match('|(.*?) ([^/.]+/\.\./) (.*)|x', $path, $m)) {
-         $path = $m[1] . $m[3];
-     }
-     $path = str_replace('/./', '/', $path);
-     $path = preg_replace('|(?<!:)//|', '/', $path);
-     return $hdr.$path;
+    return Utils::normalizePath($path);
 } // normalizePath
 
 
