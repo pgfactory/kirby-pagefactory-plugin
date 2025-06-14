@@ -3,12 +3,7 @@
 namespace PgFactory\PageFactory;
 
 use Kirby\Exception\InvalidArgumentException;
-//use PgFactory\PageFactory\Macros;
-//use Kirby\Data\Yaml;
-//use function PgFactory\PageFactoryElements\intlDateFormat as intlDateFormat;
-//use function PgFactory\PageFactoryElements\intlDate;
 
-//require_once PFY_APP_BASE_PATH . 'site/plugins/pagefactory-pageelements/src/pe_helper.php';
 if (file_exists(PFY_APP_BASE_PATH . 'site/plugins/pagefactory-pageelements/src/pe_helper.php')) {
     require_once PFY_APP_BASE_PATH . 'site/plugins/pagefactory-pageelements/src/pe_helper.php';
 }
@@ -272,30 +267,47 @@ class TransVars
      */
     private static function translateVariable(string $varName, string $lang = ''): mixed
     {
+        $varName = trim($varName);
+        // find variable definition:
+        if (isset(self::$transVars[$varName])) {
+            $var = self::$transVars[$varName];
+            // if value is array -> determine which to use depending on current language/variant:
+            $out = self::selectLangVariantOfTransVar($var, $lang);
+        }
+        return $out;
+    } // translateVariable
+
+
+    /**
+     * @param mixed $var
+     * @param string|false $lang
+     * @return mixed
+     */
+    public static function selectLangVariantOfTransVar(mixed $var, string|false $lang = false): mixed
+    {
+        if (!is_array($var)) {
+            return $var;
+        }
+
         $lang0 = $lang;
         if (!$lang) {
             $lang = self::$lang;
         }
-        $varName = trim($varName);
-        $out = false;
-        // find variable definition:
-        if (isset(self::$transVars[ $varName ])) {
-            $out = self::$transVars[ $varName ];
-            // if value is array -> determine which to use depending on current language/variant:
-            if (is_array($out)) {
-                if (isset($out[$lang])) {             // check language-variant (e.g. de2)
-                    $out = $out[$lang];
-                } elseif (!$lang0 && isset($out[self::$langCode])) {   // check base language (e.g. de)
-                    $out = $out[self::$langCode];
-                } elseif (isset($out['_'])) {               // check default language
-                    $out = $out['_'];
-                } else {
-                    $out = false;                           // nothing found
-                }
+        $lang0 = $lang0 ?: $lang;
+        $val = false;
+        if (is_array($var)) {
+            if (isset($var[$lang])) {             // check language-variant (e.g. de2)
+                $val = $var[$lang];
+            } elseif (!$lang0 && isset($var[self::$langCode])) {   // check base language (e.g. de)
+                $val = $var[self::$langCode];
+            } elseif (isset($var['_'])) {               // check default language
+                $val = $var['_'];
+            } else {
+                $val = false;                           // nothing found
             }
         }
-        return $out;
-    } // translateVariable
+        return $val;
+    } // selectLangVariantOfTransVar
 
 
     /**
@@ -411,7 +423,7 @@ class TransVars
             // handle '|filter', e.g. '|date("l, j. F Y")
             if (preg_match('/^ (.*) \s* \| \s* (.*?) \s* $/mx', $key, $m)) {
                 $varname = $m[1];
-                $value = self::getVariable($varname);
+                $value = self::getVariable($varname, true);
                 $fun = $m[2];
                 if (preg_match('/(.*) \((.*) \)/mx', $fun, $mm)) {
                     $fun = $mm[1];
