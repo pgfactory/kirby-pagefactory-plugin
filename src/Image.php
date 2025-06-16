@@ -181,14 +181,10 @@ class Image
             }
             $image = $subdir->image(basename($file));
 
-        // } elseif (str_starts_with($file, '~/assets/')) {
         } else {
-            throw new \Exception('Images from outside of content/ not supported.');
-        }
-
-
-        if (!$image) {
-            $image = site()->file($path);
+            // image outside of content/:
+            $fPath = Utils::resolvePath($file, true);
+            $image = image($fPath);
         }
 
         if (!$image) {
