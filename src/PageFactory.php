@@ -54,6 +54,8 @@ define('PFY_LOGIN_LOG_FILE',           'login-log.txt');
 define('PFY_TEMP_PATH',                 '~/media/pgfactory/');
 define('PFY_TEMP_DOWNLOAD_PATH',        PFY_TEMP_PATH.'download/'); // for temp download of datasets (excel-format)
 
+const PFY_GITTAG_FILE                   = PFY_APP_BASE_PATH.'site/custom/gittag.txt';
+
 define('PFY_WEBMASTER_EMAIL_CACHE',     PFY_CACHE_PATH.'webmaster-email.txt');
 define('PFY_INSTALLATION_PATH_CHECK',   PFY_CACHE_PATH.'installation-path.txt');
 

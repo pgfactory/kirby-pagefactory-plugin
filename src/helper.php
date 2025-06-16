@@ -987,12 +987,14 @@ function resolvePath(string $path): string
   */
 function getGitTag(): string
 {
-    $v = '';
-    $s = @file_get_contents(dirname(__DIR__, 1) . '/.git/packed-refs');
-    if (preg_match('|refs/tags/(\S*)[^/]+$|', $s, $m)) {
-        $v = $m[1];
+    if (isLocalhost()) {
+        $tag = exec('cd '.PFY_PAGEFACTORY_PATH.';git describe --tags');
+        writeFile(PFY_GITTAG_FILE, $tag);
+    } else {
+        $tag = readFile(PFY_GITTAG_FILE);
     }
-    return $v;
+
+    return $tag;
 } // getGitTag
 
 
