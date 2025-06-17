@@ -1,15 +1,7 @@
 <?php
-/*
-// index.php -> version hiding app path in URL
-//  -> place in docroot, just above app folder
-//
-// for debugging:
-// if (str_ends_with($_SERVER["REQUEST_URI"], '.js.map') || str_ends_with($_SERVER["REQUEST_URI"], 'com.chrome.devtools.json')) {
-//     exit('');
-// }
-// $ts = date('Y-m-d H:i:s  ');
-// file_put_contents('log.txt', $ts.$_SERVER["REQUEST_URI"]."\n", FILE_APPEND);
-*/
+
+// index.php of parent folder
+// ==========================
 
 define('PFY_DOCROOT',        __DIR__ . '/');
 define('PFY_BASE_OFFSET',    'onair/');     // your app's folder
@@ -26,7 +18,7 @@ $kirby = new Kirby([
     // specify paths to main folders:
     'roots' => [
         'index'    => __DIR__,
-        'base'     => $basePath,
+        'base'     => __DIR__,
         'assets'   => $basePath . 'assets',
         'content'  => $basePath . 'content',
         'media'    => $basePath . 'media',
@@ -34,9 +26,7 @@ $kirby = new Kirby([
     ],
     // specify relevant URLs:
     'urls' => [
-        'index'    => $rootUrl,
         'media'    => $baseUrl . 'media',
-        'assets'   => $baseUrl . 'assets',
     ],
 
 ]);
