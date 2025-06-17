@@ -267,6 +267,7 @@ class TransVars
      */
     private static function translateVariable(string $varName, string $lang = ''): mixed
     {
+        $out = '';
         $varName = trim($varName);
         // find variable definition:
         if (isset(self::$transVars[$varName])) {
