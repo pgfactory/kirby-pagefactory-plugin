@@ -230,8 +230,7 @@ class Utils
      */
     public static function renderFavicon()
     {
-        $defaultIcon = option('pgfactory.pagefactory.favicon') ?: PFY_DEFAULT_FAVICON;
-        $defaultIcon = option('pgfactory.pagefactory.favicon') ?: PFY_BASE_OFFSET.'assets/favicon/favicon.png';
+        $defaultIcon = option('pgfactory.pagefactory.favicon') ?: PFY_BASE_OFFSET.PFY_DEFAULT_FAVICON;
         $png = asset( $defaultIcon );
         if (!file_exists($png->root())) {
             return '';
@@ -809,6 +808,9 @@ EOT;
      */
     public static function normalizePath(string $path): string
     {
+        if ($p = realpath($path)) {
+            return $p;
+        }
         $hdr = '';
         if (preg_match('|^ ((\.\./)+) (.*)|x', $path, $m)) {
             $hdr = $m[1];
