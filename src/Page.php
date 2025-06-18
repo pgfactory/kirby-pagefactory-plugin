@@ -464,7 +464,7 @@ EOT;
             if (is_bool($val) || $val === 'true' || $val === 'false') {
                 $val = 'noindex,nofollow,noarchive';
             }
-            return "\t<meta name='robots' content='$val'>\n";
+            return "<meta name='robots' content='$val'>\n";
         } else {
             return '';
         }

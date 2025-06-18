@@ -40,11 +40,11 @@ return [
         // 'locale'                        => 'de_DE',// default: 'en_GB'
         // 'webmaster_email'               => 'webmaster@MY-DOMAIN.NET', // define a webmaster address
         // 'emailDevModeOverride'          => 'test@MY-DOMAIN.NET',     // email used for forms in dev mode
+        // 'robots'                        => true,   // inject "robots" elem in HTML header
         // 'productionHostPathPattern'     => 'onair', // if defined, mismatch of (regex) pattern in URL triggers dev mode (docroot always assumed productive)
         // 'productionModeDataPath'        => '../production_mode_db/', // if defined, ~data/ is redirected here in production mode
         // 'lazyLoading'                   => false,   // disable lazy loading of images
         // 'favicon'                       => PFY_BASE_OFFSET.'assets/favicon/favicon.png', // defines source favicon file
-        // 'robots'                        => true,   // inject "robots" elem in HTML header
         // 'excludeFilesRegex'             => '\.old\.md$',// regex pattern to exclude certain .md files from rendering
         // 'default-nav'                   => false,  // omit automatic loading of NAV resources
                 // Note: normally, nav() is used in Twig template, but that's too late for loading assets.
