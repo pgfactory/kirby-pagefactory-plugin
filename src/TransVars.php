@@ -64,7 +64,8 @@ class TransVars
     public static function compileTwigInstructions(string $str): string
     {
         // compile Twig {% if:
-        while ($p1 = strpos($str, '{% if')) {
+        $p1 = strpos($str, '{% if');
+        while ($p1 !== false) {
             $p1end = strpos($str, '%}', $p1) + 3;
             $p2 = strpos($str, '{% endif', $p1end);
             $p2end = strpos($str, '%}', $p2) + 3;
@@ -80,6 +81,7 @@ class TransVars
             } else {
                 $str = $s1 . $s3;
             }
+            $p1 = strpos($str, '{% if');
         }
         return $str;
     } // compileTwigInstructions
