@@ -279,6 +279,10 @@ class Assets
             // any other assets:
             } else {
                 $code = css($asset);
+                // double check that code points to the right location in case we have a PFY_BASE_OFFSET:
+                if ($code && PFY_BASE_OFFSET && !str_contains($code, PFY_HOST_URL . PFY_BASE_OFFSET)) {
+                    $code = str_replace(PFY_HOST_URL, PFY_HOST_URL . PFY_BASE_OFFSET, $code);
+                }
             }
 
             if ($code) {
@@ -287,6 +291,8 @@ class Assets
                     $code = str_replace('.css', ".css$bustCache", $code);
                 }
                 $html .= "  $code\n";
+            } else {
+                $html .= "  <!-- file not found: '$asset' -->\n";
             }
         }
         return $html;
@@ -338,7 +344,12 @@ class Assets
 
             // any other assets:
             } else {
-                continue;
+                $code = js($asset);
+
+                // double check that code points to the right location in case we have a PFY_BASE_OFFSET:
+                if ($code && PFY_BASE_OFFSET && !str_contains($code, PFY_HOST_URL . PFY_BASE_OFFSET)) {
+                    $code = str_replace(PFY_HOST_URL, PFY_HOST_URL . PFY_BASE_OFFSET, $code);
+                }
             }
 
             if ($code) {
@@ -347,6 +358,8 @@ class Assets
                     $code = str_replace('.js', ".js$bustCache", $code);
                 }
                 $html .= "  $code\n";
+            } else {
+                $html .= "  <!-- file not found: '$asset' -->\n";
             }
         }
         return $html;
