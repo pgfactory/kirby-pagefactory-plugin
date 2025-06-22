@@ -601,7 +601,7 @@ EOT;
      * Resets Kirby and PageFactory
      * @return void
      */
-    private static function resetAll(): void
+    public static function resetAll(): void
     {
         kirby()->session()->clear(); // Resets all Kirby sessions
 
@@ -627,7 +627,7 @@ EOT;
      * @return void
      * @throws Exception
      */
-    private static function handleDevDataUpdate(): void
+    public static function handleDevDataUpdate(): void
     {
         if (!isset($_GET['data'])) {
             return;
@@ -1388,7 +1388,7 @@ EOT;
      * @return void
      * @throws Exception
      */
-    private static function setInstallationCheckFile(): void
+    public static function setInstallationCheckFile(): void
     {
         writeFile(PFY_INSTALLATION_PATH_CHECK, PFY_KIRBY_BASE_PATH);
     } // setInstallationCheckFile
