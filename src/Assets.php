@@ -451,7 +451,7 @@ class Assets
      */
     private static function compileTemplateAssets(): void
     {
-        $templateCssFiles = getDir('assets/css/scss/templates/*');
+        $templateCssFiles = getDir(PFY_KIRBY_BASE_PATH.'assets/css/scss/templates/*');
         foreach ($templateCssFiles as $file) {
             $filename = basename($file, '.scss');
             $destFile = "assets/css/templates/$filename.css";
