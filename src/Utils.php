@@ -808,9 +808,6 @@ EOT;
      */
     public static function normalizePath(string $path): string
     {
-        if ($p = realpath($path)) {
-            return $p;
-        }
         $hdr = '';
         if (preg_match('|^ ((\.\./)+) (.*)|x', $path, $m)) {
             $hdr = $m[1];
