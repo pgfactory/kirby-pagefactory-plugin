@@ -125,6 +125,8 @@ class PageFactory
 
     public function __construct($page, $pages, $site, $kirby)
     {
+        self::checkInstallation();
+
         self::$kirby = $kirby;
         self::$pages = $pages;
         self::$page = $page;
@@ -156,9 +158,7 @@ class PageFactory
      * @throws Kirby\Exception\LogicException
      */
     public function prepareTemplateFields(): array
-//    public function prepareTemplateFields(): void
     {
-        $page = self::$page;
         $pageFields = false;
         if (Cache::$pageCachingEnabled && $this->checkAccessRestriction()) {
             $pageFields = Cache::checkPageCache();
@@ -452,4 +452,32 @@ EOT;
         $html = Utils::resolveUrls($html);
         return unshieldStr($html, true, true);
     } // cleanUp
+
+
+    /**
+     * @return void
+     * @throws \Exception
+     */
+    private static function checkInstallation(): void
+    {
+        // check presence of .htaccess file in app root, depending on presence of app-base-offset:
+        $htaccessFile = PFY_APP_BASE_PATH . '.htaccess';
+        $htaccessDisabledFile = PFY_APP_BASE_PATH . '#.htaccess';
+        if (PFY_BASE_OFFSET) {
+            if (file_exists($htaccessFile)) {
+                mylog("Installation Check: BASE_OFFSET active -> renaming '.htaccess' to '#.htaccess'");
+                @rename($htaccessFile, $htaccessDisabledFile);
+                reloadAgent(PFY_PAGE_URL);
+            }
+        } elseif (!file_exists($htaccessFile)) {
+            if (file_exists($htaccessDisabledFile)) {
+                mylog("Installation Check: BASE_OFFSET inactive -> renaming '#.htaccess' to '.htaccess'");
+                @rename($htaccessDisabledFile, $htaccessFile);
+                reloadAgent(PFY_PAGE_URL);
+            } else {
+                exit('Fatal error: file ".htaccess" is missing');
+            }
+        }
+    } // checkInstallation
+
 } // PageFactory

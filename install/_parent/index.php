@@ -10,6 +10,7 @@ $basePath = PFY_DOCROOT . PFY_BASE_OFFSET;  // folder where kirby&content reside
 if (!is_dir($basePath)) {
 	exit();
 }
+
 require $basePath . 'kirby/bootstrap.php';
 $rootUrl = \Kirby\Http\Url::index();        // URL to docroot (resp. folder above kirby)
 $baseUrl = $rootUrl. '/'.PFY_BASE_OFFSET;   // URL to relevant folders
