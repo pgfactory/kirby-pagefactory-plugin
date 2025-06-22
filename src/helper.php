@@ -844,7 +844,7 @@ function getDirDeep(string $path, bool $onlyDir = false, bool $assoc = false, bo
     $inclPat = base_name($path);
     if (!$returnAll && $inclPat && ($inclPat !== '*')) {
         $inclPat = str_replace(['{',',','}','.','*','[!','-','/'],['(','|',')','\\.','.*','[^','\\-','\\/'], $inclPat);
-        $inclPat = "/^$inclPat$/";
+        $inclPat = "|^$inclPat$|";
         $path = dirname($path);
     } else {
         $path = rtrim($path, ' *');
@@ -860,12 +860,17 @@ function getDirDeep(string $path, bool $onlyDir = false, bool $assoc = false, bo
         $f = $fileRec->getFilename();
         $p = $fileRec->getPathname();
         if ($onlyDir) {
+            $p = rtrim($p, './');
             if (($f === '.') && !preg_match('|/#|', $p)) {
+                $name = basename(rtrim($p, './'));
+                if ($inclPat && !preg_match($inclPat, $name)) {
+                    continue;
+                }
                 if ($assoc) {
-                    $f = basename(rtrim($p, '/.'));
-                    $files[$f] = rtrim($p, '.');
+                    $f = basename($p);
+                    $files[$f] = $p.'/';
                 } else {
-                    $files[] = rtrim($p, '.');
+                    $files[] = $p.'/';
                 }
             }
             continue;
