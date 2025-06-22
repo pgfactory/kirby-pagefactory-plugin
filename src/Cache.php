@@ -3,7 +3,7 @@
 namespace PgFactory\PageFactory;
 
 
-const CACHE_PATH = PFY_APP_BASE_PATH.'site/cache/';
+const CACHE_PATH = PFY_KIRBY_BASE_PATH.'site/cache/';
 const PFY_CACHE_PATH = CACHE_PATH.'pagefactory/';
 const LAST_CACHE_UPDATE_FILE = PFY_CACHE_PATH . 'last-cache-update.txt';
 const PFY_PAGE_CACHE_PATH = PFY_CACHE_PATH . 'page-cache/';
@@ -125,7 +125,7 @@ class Cache
     public static function flushAll(): void
     {
         rrmdir(CACHE_PATH);
-        rrmdir(PFY_APP_BASE_PATH.'media');
+        rrmdir(PFY_KIRBY_BASE_PATH.'media');
     } // flushAll
 
 

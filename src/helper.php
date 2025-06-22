@@ -512,7 +512,7 @@ function base_name(string $file, bool $incl_ext = true, bool $incl_args = false)
 function localPath(string $absPath): string
 {
     if (($absPath[0]??'') === '/') {
-        return substr($absPath, strlen(PFY_APP_BASE_PATH));
+        return substr($absPath, strlen(PFY_KIRBY_BASE_PATH));
     } else {
         return $absPath;
     }
@@ -1507,8 +1507,8 @@ function preparePath(string $path0, $accessRights = false): void
 
     // apply access rights if requested:
     if ($accessRights) {
-        $path = substr($path, strlen(PFY_APP_BASE_PATH));
-        $path1 = PFY_APP_BASE_PATH;
+        $path = substr($path, strlen(PFY_KIRBY_BASE_PATH));
+        $path1 = PFY_KIRBY_BASE_PATH;
         foreach (explode('/', $path) as $p) {
             $path1 .= "$p/";
             try {

@@ -11,19 +11,11 @@ use PgFactory\MarkdownPlus\Permission;
 
  // System Paths:
  // defined in config.php:
- //  PFY_DOCROOT
- //  PFY_BASE_OFFSET    = onair/
- //  PFY_APP_BASE_PATH  = PFY_DOCROOT . PFY_BASE_OFFSET
+ //  PFY_DOCROOT            = /path/to/localhost/
+ //  PFY_APP_BASE_PATH      = /path/to/localhost/app/
+ //  PFY_BASE_OFFSET        = onair/
+ //  PFY_KIRBY_BASE_PATH    = /path/to/localhost/app/onair/     = PFY_APP_BASE_PATH . PFY_BASE_OFFSET
 
-if (!defined('PFY_DOCROOT')) {
-    define('PFY_DOCROOT', dirname($_SERVER['SCRIPT_FILENAME']) . '/');
-}
-if (!defined('PFY_BASE_OFFSET')) {
-    define('PFY_BASE_OFFSET', '');
-}
-if (!defined('PFY_APP_BASE_PATH')) {
-    define('PFY_APP_BASE_PATH', PFY_DOCROOT . PFY_BASE_OFFSET);
-}
 
 // System ULRs:
 define('PFY_HOST_URL',                  $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST'] . '/'); // https://domain.net/
@@ -32,29 +24,29 @@ define('PFY_PAGE_URL',                  page()->url() . '/'); // https://domain.
 
 // Further Urls and Paths:
 define('PFY_PAGEFACTORY_PATH',          dirname(__DIR__) . '/'); // site/plugins/pagefactory/
-define('PFY_CONTENT_ASSETS_PATH',       PFY_APP_BASE_PATH . 'content/assets/');
+define('PFY_CONTENT_ASSETS_PATH',       PFY_KIRBY_BASE_PATH . 'content/assets/');
 define('PFY_PAGEFACTORY_ASSETS_PATH',   PFY_PAGEFACTORY_PATH . 'assets/');
 define('PFY_PAGEFACTORY_ICONS_PATH',    PFY_PAGEFACTORY_PATH . 'assets/icons/');
 
 define('PFY_PAGE_PATH',                 page()->root() . '/');
 define('PFY_PAGE_URI',                  page()->uri() . '/');
 
-define('PFY_SVG_ICONS_PATH',            PFY_APP_BASE_PATH . 'site/plugins/markdownplus/assets/svg-icons/');
-define('PFY_CONFIG_PATH',               PFY_APP_BASE_PATH . 'site/config/');
+define('PFY_SVG_ICONS_PATH',            PFY_KIRBY_BASE_PATH . 'site/plugins/markdownplus/assets/svg-icons/');
+define('PFY_CONFIG_PATH',               PFY_KIRBY_BASE_PATH . 'site/config/');
 define('PFY_CONFIG_FILE',               PFY_CONFIG_PATH.'config.php');
-define('PFY_CUSTOM_PATH',               PFY_APP_BASE_PATH . 'site/custom/');
+define('PFY_CUSTOM_PATH',               PFY_KIRBY_BASE_PATH . 'site/custom/');
 define('PFY_CUSTOM_DATA_PATH',          PFY_CUSTOM_PATH.'data/');
 if (!defined('PFY_LOGS_PATH')) {
-    define('PFY_LOGS_PATH',             PFY_APP_BASE_PATH . 'site/logs/');
+    define('PFY_LOGS_PATH',             PFY_KIRBY_BASE_PATH . 'site/logs/');
 }
 if (!defined('PFY_CACHE_PATH')) {
-    define('PFY_CACHE_PATH',            PFY_APP_BASE_PATH . 'site/cache/pagefactory/');
+    define('PFY_CACHE_PATH',            PFY_KIRBY_BASE_PATH . 'site/cache/pagefactory/');
 }
 define('PFY_LOGIN_LOG_FILE',           'login-log.txt');
 define('PFY_TEMP_PATH',                 '~/media/pgfactory/');
 define('PFY_TEMP_DOWNLOAD_PATH',        PFY_TEMP_PATH.'download/'); // for temp download of datasets (excel-format)
 
-const PFY_GITTAG_FILE                   = PFY_APP_BASE_PATH.'site/custom/gittag.txt';
+const PFY_GITTAG_FILE                   = PFY_KIRBY_BASE_PATH.'site/custom/gittag.txt';
 
 define('PFY_WEBMASTER_EMAIL_CACHE',     PFY_CACHE_PATH.'webmaster-email.txt');
 define('PFY_INSTALLATION_PATH_CHECK',   PFY_CACHE_PATH.'installation-path.txt');
@@ -214,7 +206,7 @@ class PageFactory
         TransVars::init();
         Utils::prepareWebmasterEmail();
 
-        if (!file_exists(PFY_APP_BASE_PATH.'site/plugins/pagefactory/assets/css/-pagefactory.css')) {
+        if (!file_exists(PFY_KIRBY_BASE_PATH.'site/plugins/pagefactory/assets/css/-pagefactory.css')) {
             self::$forceAssetsUpdate = true;
         }
 
@@ -461,8 +453,8 @@ EOT;
     private static function checkInstallation(): void
     {
         // check presence of .htaccess file in app root, depending on presence of app-base-offset:
-        $htaccessFile = PFY_APP_BASE_PATH . '.htaccess';
-        $htaccessDisabledFile = PFY_APP_BASE_PATH . '#.htaccess';
+        $htaccessFile = PFY_KIRBY_BASE_PATH . '.htaccess';
+        $htaccessDisabledFile = PFY_KIRBY_BASE_PATH . '#.htaccess';
         if (PFY_BASE_OFFSET) {
             if (file_exists($htaccessFile)) {
                 mylog("Installation Check: BASE_OFFSET active -> renaming '.htaccess' to '#.htaccess'");

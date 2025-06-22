@@ -18,7 +18,7 @@ class Extensions
     {
         $extensions = getDir(rtrim(PFY_PAGEFACTORY_PATH, '/').'-*');
         foreach ($extensions as $extension) {
-            $extensionName = rtrim(substr($extension, strlen(PFY_APP_BASE_PATH)+25), '/');
+            $extensionName = rtrim(substr($extension, strlen(PFY_KIRBY_BASE_PATH)+25), '/');
             self::$availableExtensions[$extensionName] = $extension;
         }
     } // findExtensions

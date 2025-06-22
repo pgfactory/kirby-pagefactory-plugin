@@ -268,8 +268,8 @@ EOT;
     public static function findAllMacros(): array
     {
         $functions = [];
-        $pfyPlugins = glob(PFY_APP_BASE_PATH . 'site/plugins/pagefactory*'); // check pagefactory and its extensions
-        $pfyPlugins[] = PFY_APP_BASE_PATH . 'site/custom';                           // check place for custom macros
+        $pfyPlugins = glob(PFY_KIRBY_BASE_PATH . 'site/plugins/pagefactory*'); // check pagefactory and its extensions
+        $pfyPlugins[] = PFY_KIRBY_BASE_PATH . 'site/custom';                           // check place for custom macros
         foreach ($pfyPlugins as $plugin) {
             $dir = glob("$plugin/macros/*.php");
             foreach ($dir as $file) {

@@ -184,7 +184,7 @@ EOT;
             $files = getDir($path1);
             foreach ($files as $image) {
                 if (is_file($image) && str_contains(PFY_GALLERY_IMAGE_TYPES, fileExt($image))) {
-                    $image = str_replace([PFY_APP_BASE_PATH . 'content/assets/', $pagePath], ['~assets/', '~page/'], $image);
+                    $image = str_replace([PFY_KIRBY_BASE_PATH . 'content/assets/', $pagePath], ['~assets/', '~page/'], $image);
                     $images[$image] = '';
                 }
             }

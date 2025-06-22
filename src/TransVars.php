@@ -4,8 +4,8 @@ namespace PgFactory\PageFactory;
 
 use Kirby\Exception\InvalidArgumentException;
 
-if (file_exists(PFY_APP_BASE_PATH . 'site/plugins/pagefactory-pageelements/src/pe_helper.php')) {
-    require_once PFY_APP_BASE_PATH . 'site/plugins/pagefactory-pageelements/src/pe_helper.php';
+if (file_exists(PFY_KIRBY_BASE_PATH . 'site/plugins/pagefactory-pageelements/src/pe_helper.php')) {
+    require_once PFY_KIRBY_BASE_PATH . 'site/plugins/pagefactory-pageelements/src/pe_helper.php';
 }
 
 class TransVars
@@ -135,7 +135,7 @@ class TransVars
     public static function loadVariablesFromFolder(string $varPath, bool $doTranslate = true): void
     {
         // load custom variable definitions:
-        $files = getDir(PFY_APP_BASE_PATH . $varPath . '*.yaml');
+        $files = getDir(PFY_KIRBY_BASE_PATH . $varPath . '*.yaml');
         if (is_array($files)) {
             foreach ($files as $file) {
                 self::loadVariablesFromFile($file, false);

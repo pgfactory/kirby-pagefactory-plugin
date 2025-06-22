@@ -1,13 +1,17 @@
 <?php
 
-if (!defined('PFY_DOCROOT')) {      // possibly defined in index.php of parent folder
-    define('PFY_DOCROOT', dirname($_SERVER['SCRIPT_FILENAME']) . '/');
+if (!defined('PFY_DOCROOT')) {
+    define('PFY_DOCROOT', $_SERVER['DOCUMENT_ROOT'].'/');
 }
-if (!defined('PFY_BASE_OFFSET')) { // possibly defined in index.php of parent folder
+if (!defined('PFY_BASE_OFFSET')) { // if not defined in parent folder, offset is ''
     define('PFY_BASE_OFFSET', '');
 }
-
-define('PFY_APP_BASE_PATH', PFY_DOCROOT . PFY_BASE_OFFSET);
+if (!defined('PFY_APP_BASE_PATH')) {
+    define('PFY_APP_BASE_PATH', dirname($_SERVER['SCRIPT_FILENAME']).'/');
+}
+if (!defined('PFY_KIRBY_BASE_PATH')) {
+    define('PFY_KIRBY_BASE_PATH', PFY_APP_BASE_PATH . PFY_BASE_OFFSET);
+}
 
 
 // Defaults recommended by PageFactory plugin:

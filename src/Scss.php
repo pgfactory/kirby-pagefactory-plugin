@@ -209,8 +209,8 @@ class Scss
             }
         }
         $patterns = [
-            '~/'        => PFY_APP_BASE_PATH,
-            '~data/'    => PFY_APP_BASE_PATH.'site/custom/data/',
+            '~/'        => PFY_KIRBY_BASE_PATH,
+            '~data/'    => PFY_KIRBY_BASE_PATH.'site/custom/data/',
         ];
         $html = str_replace(array_keys($patterns), array_values($patterns), $html);
         return $html;

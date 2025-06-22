@@ -31,7 +31,7 @@ class Download
             $basename = pathinfo($path, PATHINFO_BASENAME);
             $basename = self::translateToFilename($basename, false);
             $filename = "media/download/$basename.zip";
-            $destFile = PFY_APP_BASE_PATH. $filename;
+            $destFile = PFY_KIRBY_BASE_PATH. $filename;
             self::zipFolder($path, $destFile);
             $path = $destFile;
         }
@@ -169,8 +169,8 @@ class Download
         }
 
         // apply access rights if requested:
-        $path = substr($path, strlen(PFY_APP_BASE_PATH));
-        $path1 = PFY_APP_BASE_PATH;
+        $path = substr($path, strlen(PFY_KIRBY_BASE_PATH));
+        $path1 = PFY_KIRBY_BASE_PATH;
         foreach (explode('/', $path) as $p) {
             $path1 .= "$p/";
             try {

@@ -49,7 +49,7 @@ class Utils
     public static function checkInstallationPath(): void
     {
         $prevInstallationPath = getFile(PFY_INSTALLATION_PATH_CHECK);
-        if ($prevInstallationPath === PFY_APP_BASE_PATH) {
+        if ($prevInstallationPath === PFY_KIRBY_BASE_PATH) {
             return;
         }
 
@@ -165,7 +165,7 @@ class Utils
      */
     public static function queuePfyIconDefinitions(): void
     {
-        $pfyIcons = svg(PFY_APP_BASE_PATH.'site/plugins/pagefactory/assets/icons/_pfy-icons.svg');
+        $pfyIcons = svg(PFY_KIRBY_BASE_PATH.'site/plugins/pagefactory/assets/icons/_pfy-icons.svg');
         Page::addBodyEndInjections($pfyIcons);
     } // queuePfyIconDefinitions
 
@@ -342,7 +342,7 @@ EOT;
     public static function iconExists(string $iconName): bool
     {
         if (!self::$pfyIcons) {
-            $pfyIconsFile = PFY_APP_BASE_PATH . 'site/plugins/pagefactory/assets/icons/_pfy-icons.svg';
+            $pfyIconsFile = PFY_KIRBY_BASE_PATH . 'site/plugins/pagefactory/assets/icons/_pfy-icons.svg';
             self::$pfyIcons = getFile($pfyIconsFile);
         }
         $exists = str_contains(self::$pfyIcons,  "pfy-iconset-$iconName");
@@ -766,7 +766,7 @@ EOT;
         }
 
         // resolve PFY's specific folders:
-        $appRoot = PFY_APP_BASE_PATH;
+        $appRoot = PFY_KIRBY_BASE_PATH;
         // ~pages/ is special case -> use Kirby to determine actual path:
         if (str_starts_with($path, '~pages/')) {
             $filename = basename($path);
@@ -796,7 +796,7 @@ EOT;
             }
         }
         if ($localToApproot) {
-            $path = substr($path, strlen(PFY_APP_BASE_PATH));
+            $path = substr($path, strlen(PFY_KIRBY_BASE_PATH));
         }
         return $path;
     } // resolvePath
@@ -1035,7 +1035,7 @@ EOT;
         if (PageFactory::$productionMode) {
             $dataPath = kirby()->option('pgfactory.pagefactory.productionModeDataPath');
             if ($dataPath) {
-                $dataPath = normalizePath(PFY_APP_BASE_PATH . $dataPath);
+                $dataPath = normalizePath(PFY_KIRBY_BASE_PATH . $dataPath);
                 PageFactory::$dataPath = $dataPath . 'data/';
                 PageFactory::$customConfigPath = $dataPath . 'config/';
             }
@@ -1393,7 +1393,7 @@ EOT;
      */
     private static function setInstallationCheckFile(): void
     {
-        writeFile(PFY_INSTALLATION_PATH_CHECK, PFY_APP_BASE_PATH);
+        writeFile(PFY_INSTALLATION_PATH_CHECK, PFY_KIRBY_BASE_PATH);
     } // setInstallationCheckFile
 
 } // Utils

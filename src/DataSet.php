@@ -112,7 +112,7 @@ class DataSet
                 throw new \Exception("Error: DataSet invoked with unsupported file-type: '$this->type'");
             }
             $this->file = $file;
-            $p = substr(dirname($file), strlen(PFY_APP_BASE_PATH));
+            $p = substr(dirname($file), strlen(PFY_KIRBY_BASE_PATH));
             $dataFile = str_replace('/', '_', $p) . '_' . base_name($file, false);
             $this->cacheFile = PFY_CACHE_PATH . "data/$dataFile.cache.dat";
             // lockFile needs to be absolute because it may be used by __destruct():

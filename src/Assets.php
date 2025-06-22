@@ -193,8 +193,8 @@ class Assets
         self::compileTemplateAssets();
 
         $assetLocations = self::$assetsLocation;
-        $tmp = getDirDeep(PFY_APP_BASE_PATH.'content/*.scss');
-        $l = strlen(PFY_APP_BASE_PATH);
+        $tmp = getDirDeep(PFY_KIRBY_BASE_PATH.'content/*.scss');
+        $l = strlen(PFY_KIRBY_BASE_PATH);
         foreach ($tmp as $file) {
             $path = substr(dirname($file).'/', $l);
             if (str_starts_with($path, 'content/assets')) {
@@ -203,8 +203,8 @@ class Assets
             $assetLocations[$path] = $path.'*';
         }
         foreach ($assetLocations as $destPath => $srcPath) {
-            $destPath = PFY_APP_BASE_PATH.$destPath;
-            $srcPath = PFY_APP_BASE_PATH.$srcPath;
+            $destPath = PFY_KIRBY_BASE_PATH.$destPath;
+            $srcPath = PFY_KIRBY_BASE_PATH.$srcPath;
             $files = getDir($srcPath);
             foreach ($files as $file) {
                 $basename = base_name($file, false);
@@ -392,7 +392,7 @@ class Assets
         $dir = array_merge(
             getDirDeep(PFY_PAGEFACTORY_ASSETS_PATH.'css/'),
             getDirDeep(PFY_PAGEFACTORY_ASSETS_PATH.'js/'),
-            getDirDeep(PFY_APP_BASE_PATH.'content/-*.css'),
+            getDirDeep(PFY_KIRBY_BASE_PATH.'content/-*.css'),
         );
 
         foreach ($dir as $file) {
@@ -410,8 +410,8 @@ class Assets
     private static function compileAggregatedAssets(): void
     {
         foreach (self::$aggregatedAssets as $destFile => $srcPath) {
-            $destFile = PFY_APP_BASE_PATH.$destFile;
-            $srcPath = PFY_APP_BASE_PATH.$srcPath;
+            $destFile = PFY_KIRBY_BASE_PATH.$destFile;
+            $srcPath = PFY_KIRBY_BASE_PATH.$srcPath;
             $tTarg = fileTime($destFile);
             $modified = false;
             $ext = fileExt($destFile);
