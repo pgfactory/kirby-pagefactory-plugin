@@ -27,6 +27,7 @@ $kirby = new Kirby([
     ],
     // specify relevant URLs:
     'urls' => [
+        'assets'   => $baseUrl . 'assets',
         'media'    => $baseUrl . 'media',
     ],
 
