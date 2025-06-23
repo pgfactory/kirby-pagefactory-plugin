@@ -37,7 +37,11 @@ class PrevNextLinks
             if ($args['center']??false) {
                 $center = (string)$args['center'];
                 while (preg_match('/%(\w{2,32})%/', $center, $m)) {
-                    $value = TransVars::getVariable($m[1]);
+                    $k = $m[1];
+                    $value = TransVars::getVariable($k);
+                    if (!$value && (Utils::$$k ?? false)) { // if not a TransVar, check Utils special vars
+                        $value = Utils::$$k;
+                    }
                     $center = str_replace($m[0], (string)$value, $center);
                 }
                 // handle transvars in {{}} notation:
