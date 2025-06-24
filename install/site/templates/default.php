@@ -6,7 +6,7 @@
 
   <base href="<?= $baseUrl ?>">
   <meta name="viewport" content="width=device-width, user-scalable=yes, initial-scale=1">
-  <meta name="generator" content="<?= $generator ?>)">
+  <meta name="generator" content="<?= $generator ?>">
   <?php snippet('prevnextlinks', ['args' => "type:'header-links'"]) ?>
 <?= $favicon ?>
 
