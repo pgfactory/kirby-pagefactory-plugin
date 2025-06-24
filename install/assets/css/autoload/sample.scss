@@ -2,7 +2,7 @@
 
 html {
 	// define font-size of 1rem:
-	font-size: clamp(10pt, 2.5vw, 22pt);
+	font-size: clamp(12pt, 2.5vw, 22pt);
 }
 
 body {
@@ -166,5 +166,3 @@ body.dev::before {
 	padding: 0.2em;
 	z-index: 1000;
 }
-
-
