@@ -48,46 +48,6 @@ class TransVars
 
 
     /**
-     * @param string $str
-     * @return string
-     */
-    public static function preprocess(string $str): string
-    {
-        return self::compileTwigInstructions($str);
-    } // preprocess
-
-
-    /**
-     * @param string $str
-     * @return string
-     */
-    public static function compileTwigInstructions(string $str): string
-    {
-        // compile Twig {% if:
-        $p1 = strpos($str, '{% if');
-        while ($p1 !== false) {
-            $p1end = strpos($str, '%}', $p1) + 3;
-            $p2 = strpos($str, '{% endif', $p1end);
-            $p2end = strpos($str, '%}', $p2) + 3;
-
-            $s1 = substr($str, 0, $p1); // before if
-            $s2 = substr($str, $p1end - 1, $p2 - $p1end + 1); // inside if
-            $s3 = substr($str, $p2end); // after if
-
-            $varname = trim(substr($str, $p1+5, $p1end-$p1-9));
-            $value = self::getVariable($varname);
-            if ($value) {
-                $str = $s1 . $s2 . $s3;
-            } else {
-                $str = $s1 . $s3;
-            }
-            $p1 = strpos($str, '{% if');
-        }
-        return $str;
-    } // compileTwigInstructions
-
-
-    /**
      * Resolves given string: variables and macros, finally md-compiles, optionally for input to Twig
      * @param string $mdStr
      * @param $inx
@@ -124,7 +84,6 @@ class TransVars
 
         return $html;
     } // compile
-
 
 
     /**
