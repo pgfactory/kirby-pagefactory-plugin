@@ -53,7 +53,8 @@ define('PFY_INSTALLATION_PATH_CHECK',   PFY_CACHE_PATH.'installation-path.txt');
 
 
  // misc constants:
-const PFY_BASE_ASSETS_URL =        PFY_APP_BASE_URL . 'media/plugins/pgfactory/';
+const PFY_BASE_ASSETS_URL =        PFY_APP_BASE_URL . PFY_BASE_OFFSET . 'media/plugins/pgfactory/';
+//const PFY_BASE_ASSETS_URL =        PFY_APP_BASE_URL . 'media/plugins/pgfactory/'; //??? correct?
 const PFY_ASSETS_URL =             PFY_BASE_ASSETS_URL.'pagefactory/';
 const PAGED_POLYFILL_SCRIPT_URL =  PFY_ASSETS_URL.'js/paged.polyfill.min.js';
 const PFY_DEFAULT_LOCALE =         'en_GB';
