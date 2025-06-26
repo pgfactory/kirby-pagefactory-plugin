@@ -6,7 +6,7 @@ use Kirby\Filesystem\Asset;
 
 const DEFAULT_MAX_IMAGE_WIDTH = 1920;
 const DEFAULT_MAX_IMAGE_HEIGHT = 1440;
-//const DEFAULT_SIZES = [200, 300, 600, 900, 1200, 1800, 2400, 3200];
+
 if (!defined('DEFAULT_SIZES')) {
     define('DEFAULT_SIZES', [200, 300, 600, 900, 1200, 1800, 2400, 3200]);
 }
