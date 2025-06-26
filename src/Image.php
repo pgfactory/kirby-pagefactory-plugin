@@ -83,7 +83,7 @@ class Image
         } else {
             $attributes .= " id='pfy-img-$inx'";
         }
-        $class          = $options['class']??'';
+        $class          = ($options['class']??'') . " pfy-img-$inx";
         $wrapperTag     = ($options['wrapperTag']??false) ?: 'div';
         $wrapperClass   = $options['wrapperClass']??'';
         $caption        = $options['caption']??'';
@@ -92,12 +92,18 @@ class Image
         $src            = "src='$this->src'";
         $style = '';
         $srcset         = $this->prepareSrcset($image);
+        $isVectorGrafic = fileExt($this->src) !== 'svg';
         if ($this->requestedWidth == 0 && $this->unit === 'px') {
             $this->requestedWidth = '100';
             $this->unit = '%';
-            $style = ";max-width:{$this->origWidth}px;";
+            if ($isVectorGrafic) { // only pixel images:
+                $style = "max-width:{$this->origWidth}px;";
+            }
         }
-        $style          = "width:$this->requestedWidth$this->unit;$style";
+        if ($isVectorGrafic) { // only pixel images:
+            $style = "width:$this->requestedWidth$this->unit;$style;height: auto;";
+//            $style = "width:$this->requestedWidth$this->unit;$style"; //???
+        }
         $sizes          = $this->sizes;
 
         $attributes    .= " alt='$alt'";
@@ -434,7 +440,7 @@ EOT;
         }
 
         Assets::addAssets('QUICKZOOM');
-        $this->options['class'] = ($options['class']??'') . ' pfy-quickzoom';
+        $this->options['class'] = ($this->options['class']??'') . ' pfy-quickzoom';
     } // renderQuickzoom
 
 
@@ -514,13 +520,13 @@ EOT;
 
         } else {
             $html = <<<EOT
-<$wrapperTag class="pfy-image-wrapper $wrapperClass">
+<$wrapperTag class="pfy-img-wrapper $wrapperClass">
     <img $attributes
         class="pfy-image $class"$style
         $src
         $srcset $sizes
     >$zoomedSrc
-</$wrapperTag><!-- .pfy-image-wrapper -->
+</$wrapperTag><!-- .pfy-img-wrapper -->
 
 EOT;
         }
