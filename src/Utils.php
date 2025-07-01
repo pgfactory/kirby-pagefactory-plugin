@@ -494,7 +494,7 @@ setTimeout(function() {
 }, 1200);
 
 EOT;
-        Page::addJq($jq);
+        Page::addJsReady($jq);
         self::preparePrintVariables();
     } // printPreview
 
@@ -521,7 +521,7 @@ setTimeout(function() {
 EOT;
 
 
-        Page::addJq($jq);
+        Page::addJsReady($jq);
         self::preparePrintVariables();
     } // print
 
