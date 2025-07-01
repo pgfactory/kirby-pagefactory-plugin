@@ -251,7 +251,7 @@ class Image
         } elseif ($effectiveWidth && !$effectiveHeight) {
             $effectiveHeight = $effectiveWidth / $this->aspectRatio;
         }
-        
+
         // resize image if required:
         if ($this->origWidth > DEFAULT_MAX_IMAGE_WIDTH) {
             $this->origWidth = DEFAULT_MAX_IMAGE_WIDTH;

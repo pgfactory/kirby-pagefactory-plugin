@@ -342,7 +342,7 @@ class PageFactory
             if (str_contains('#-_', basename($file)[0])) {
                 continue;
             }
-            if (str_ends_with($file, '_meta.md')) {
+            if (str_ends_with($file, '.meta.md')) {
                 $mdStr = getFile($file, 'cstyle,emptylines,twig');
                 Frontmatter::extract($mdStr);
                 Frontmatter::propagaterStyles('pfy-main');
