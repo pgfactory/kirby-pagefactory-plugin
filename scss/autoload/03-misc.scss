@@ -219,7 +219,8 @@
       cursor: url(../icons/zoom_in.png), zoom-in;
     }
     .pfy-img {
-        max-width: 100%;
+        width: 100%;
+        //max-width: 100%;
     }
 
     .pfy-figure {
@@ -239,7 +240,7 @@
         cursor: pointer;
     }
 
-  .pfy-image-wrapper {
+  .pfy-img-wrapper {
     position: relative;
   }
 

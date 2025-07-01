@@ -45,7 +45,7 @@ class KenBurns {
   parseOptions(wrapperSel, options) {
     if (typeof wrapperSel === 'object' && this.isEmpty(options)) {
       options = wrapperSel;
-      wrapperSel = '.pfy-image-wrapper';
+      wrapperSel = '.pfy-img-wrapper';
     }
     options = {
       duration: '10s',
@@ -199,7 +199,7 @@ class KenBurns {
     }
     domForOne('head', el => {
       const newStyle = document.createElement("style");
-      newStyle.innerHTML = `\n.pfy-image {\n\ttransform: ${transform1};\n }\n`;
+      newStyle.innerHTML = `\n.pfy-img {\n\ttransform: ${transform1};\n }\n`;
       el.append(newStyle);
     })
   } // debug

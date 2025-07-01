@@ -3,6 +3,7 @@
 namespace PgFactory\PageFactory;
 
 use Kirby\Filesystem\Asset;
+use Throwable;
 
 const DEFAULT_MAX_IMAGE_WIDTH = 1920;
 const DEFAULT_MAX_IMAGE_HEIGHT = 1440;
@@ -87,22 +88,26 @@ class Image
         $wrapperTag     = ($options['wrapperTag']??false) ?: 'div';
         $wrapperClass   = $options['wrapperClass']??'';
         $caption        = $options['caption']??'';
-        $alt            = $image->alt()->value() ?: (($options['alt'] ?? false) ?: ' ');
+        try {
+            $alt = $image->alt()->value() ?: (($options['alt'] ?? false) ?: ' ');
+        } catch (Throwable $e) {
+            $alt = ($options['alt'] ?? false) ?: ' ';
+        }
 
         $src            = "src='$this->src'";
         $style = '';
         $srcset         = $this->prepareSrcset($image);
-        $isVectorGrafic = fileExt($this->src) !== 'svg';
+        $isVectorGrafic = (fileExt($this->src) === 'svg');
         if ($this->requestedWidth == 0 && $this->unit === 'px') {
             $this->requestedWidth = '100';
             $this->unit = '%';
-            if ($isVectorGrafic) { // only pixel images:
+            if (!$isVectorGrafic) { // only pixel images:
                 $style = "max-width:{$this->origWidth}px;";
             }
         }
-        if ($isVectorGrafic) { // only pixel images:
+        if ($this->requestedWidth) {
             $style = "width:$this->requestedWidth$this->unit;$style;height: auto;";
-//            $style = "width:$this->requestedWidth$this->unit;$style"; //???
+
         }
         $sizes          = $this->sizes;
 
@@ -147,18 +152,22 @@ class Image
      */
     private function getImage(): object|null
     {
-        $this->format  = $this->options['format']?? kirby()->option('thumbs.format', 'webp');
-        if ($this->format === 'avif') {
-            throw new \Exception('Image format ".avif" not supported yet.');
-        }
-        $quality  = $this->options['quality']?? kirby()->option('thumbs.quality', 80);
-        if (is_string($quality)) {
-            $this->quality = (int)rtrim($quality, '%');
-        } else {
-            $this->quality = (int)$quality;
-        }
-
         $file = $this->options['src'];
+        if (fileExt($file) === 'svg') {
+            $this->format  = 'svg';
+            $this->quality = 100;
+        } else {
+            $this->format  = $this->options['format']?? kirby()->option('thumbs.format', 'webp');
+            if ($this->format === 'avif') {
+                throw new \Exception('Image format ".avif" not supported yet.');
+            }
+            $quality  = $this->options['quality']?? kirby()->option('thumbs.quality', 80);
+            if (is_string($quality)) {
+                $this->quality = (int)rtrim($quality, '%');
+            } else {
+                $this->quality = (int)$quality;
+            }
+        }
 
         $file = $this->getSizeInstructions($file);
         $page = page();
@@ -190,7 +199,7 @@ class Image
         } else {
             // image outside of content/:
             $fPath = Utils::resolvePath($file, true);
-            $image = image($fPath);
+            $image = new Asset($fPath);
         }
 
         if (!$image) {
@@ -242,22 +251,7 @@ class Image
         } elseif ($effectiveWidth && !$effectiveHeight) {
             $effectiveHeight = $effectiveWidth / $this->aspectRatio;
         }
-
-// ToDo: automate preparation of source image file:
-//      reformat image file in case its original has not target format or is too big:
-//        $fileFormat = fileExt($file);
-//        if ($fileFormat !== $this->format) {
-//            $w = min($this->origWidth, DEFAULT_MAX_IMAGE_WIDTH);
-//            $image = $image->thumb([
-//                'width' => $w,
-//                'format' => $this->format,
-//            ]);
-//            $newImgPath = $image->root();
-//            if (fileExt($newImgPath)) {
-//                copy($newImgPath, $file);
-//            }
-//        }
-
+        
         // resize image if required:
         if ($this->origWidth > DEFAULT_MAX_IMAGE_WIDTH) {
             $this->origWidth = DEFAULT_MAX_IMAGE_WIDTH;
@@ -500,7 +494,7 @@ EOT;
         if (!$wrapperTag) {
             $html = <<<EOT
     <img $attributes
-        class="pfy-image $class"$style
+        class="pfy-img $class"$style
         $src
         $srcset $sizes
     >
@@ -510,7 +504,7 @@ EOT;
             $html = <<<EOT
 <figure class="pfy-img-wrapper pfy-figure $wrapperClass">$zoomedSrc
     <img $attributes
-        class="pfy-image $class"$style
+        class="pfy-img $class"$style
         $src
         $srcset $sizes
     >
@@ -522,7 +516,7 @@ EOT;
             $html = <<<EOT
 <$wrapperTag class="pfy-img-wrapper $wrapperClass">
     <img $attributes
-        class="pfy-image $class"$style
+        class="pfy-img $class"$style
         $src
         $srcset $sizes
     >$zoomedSrc
