@@ -187,7 +187,6 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
   }
   &.pfy-nav-horizontal {
     li {
-      padding: 3px; // leave room for focus marker
       > a {
         background: $elem-bg-color;
       }
@@ -695,7 +694,10 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
 
 
   // === side markers ======================================
-  .pfy-nav-wrapper .pfy-nav {
+  .pfy-nav-wrapper.pfy-sitemap {
+    &.pfy-sitemap.pfy-sitemap-horizontal a {
+      padding-left: 3px; // leave room for focus marker
+    }
     // hover:
     a:hover {
       border-left-color: $navHoverSideMarker;
