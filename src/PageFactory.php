@@ -357,6 +357,7 @@ class PageFactory
         // process remaining .md files:
         $inx = 0;
         $finalHtml = '';
+        $abort = false;
         foreach ($files as $file) {
             if (str_contains('#-_', basename($file)[0])) {
                 continue;
@@ -378,6 +379,13 @@ class PageFactory
             if (!$mdStr) {
                 continue;
             }
+
+            // check for end-of-page tag:
+            if (str_contains($mdStr, '__EOP__')) {
+                $abort = true; // skip any forther md files
+                $mdStr = substr($mdStr, 0, strpos($mdStr, '__EOP__')); // cut off tag and all that follows
+            }
+
             $wrapperClass .= self::$sectionWrapperClass; // -> used by Presentation
 
             $wrapperId = "pfy-part-$inx";
@@ -401,6 +409,9 @@ EOT;
             Frontmatter::propagaterStyles($wrapperId);
 
             $finalHtml .= $html;
+            if ($abort) {
+                break;
+            }
         } // loop over files
 
         return $finalHtml;
