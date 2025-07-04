@@ -18,10 +18,20 @@ class Image
     private array $options;
     private int $origWidth;
     private int $origHeight;
+    private string $absFile = '';
     private string $src = '';
+    private string $class = '';
+    private string $style = '';
+    private string $alt = '';
+    private string $attributes = '';
+    private string $srcset = '';
+    private string $caption = '';
+    private string $wrapperTag = '';
+    private string $wrapperClass = '';
     private string $format = '';
     private int $quality; // %
     private string $unit = '';
+    private bool $isRasterImage = true;
     private object $image;
     private float $aspectRatio;
     private mixed $requestedWidth = false;
@@ -31,7 +41,6 @@ class Image
     private bool $isAbsoluteUnit = false;
     private bool $quickzoomActive;
     private bool $lazyLoadingActive;
-    private string $attributes = '';
 
     /**
      * @param array $options
@@ -66,71 +75,21 @@ class Image
      */
     public function render(): string
     {
-        $options = &$this->options;
-        $inx = self::$inx;
-        $image = $this->getImage();
+        $image = $this->image = $this->getImage();
         if (!$image) {
             return '';
         }
+        $this->parseOptions();
 
         $this->initQuickzoom();
         $this->activateLazyLoading();
+        $this->activateKenBurns();
 
-        $this->handleKenBurns();
+        $html = $this->renderImage();
 
-        $attributes = $this->attributes;
-        if ($options['id']??false) {
-            $attributes .= " id='{$options['id']}'";
-        } else {
-            $attributes .= " id='pfy-img-$inx'";
+        if ($this->options['link']??false) {
+            $html = $this->applyLinkWrapper($html);
         }
-        $class          = ($options['class']??'') . " pfy-img-$inx";
-        $wrapperTag     = ($options['wrapperTag']??false) ?: 'div';
-        $wrapperClass   = $options['wrapperClass']??'';
-        $caption        = $options['caption']??'';
-        try {
-            $alt = $image->alt()->value() ?: (($options['alt'] ?? false) ?: ' ');
-        } catch (Throwable $e) {
-            $alt = ($options['alt'] ?? false) ?: ' ';
-        }
-
-        $src            = "src='$this->src'";
-        $style = '';
-        $srcset         = $this->prepareSrcset($image);
-        $isVectorGrafic = (fileExt($this->src) === 'svg');
-        if ($this->requestedWidth == 0 && $this->unit === 'px') {
-            $this->requestedWidth = '100';
-            $this->unit = '%';
-            if (!$isVectorGrafic) { // only pixel images:
-                $style = "max-width:{$this->origWidth}px;";
-            }
-        }
-        if ($this->requestedWidth) {
-            $style = "width:$this->requestedWidth$this->unit;$style;height: auto;";
-
-        }
-        $sizes          = $this->sizes;
-
-        $attributes    .= " alt='$alt'";
-
-        if ($options['imgTagAttrs']??false) {
-            $attributes .= " {$options['imgTagAttrs']}";
-        }
-
-        if ($style??false) {
-            $style = " style='$style'";
-        }
-        if ($this->lazyLoadingActive) {
-            $src = 'data-' . $src;
-            if ($srcset) {
-                $srcset = 'data-' . $srcset;
-            }
-        }
-        if ($this->quickzoomActive) {
-            $attributes .= ' tabindex="0"';
-        }
-
-        $html = $this->applyImgWrapper($caption, $wrapperClass, $attributes, $class, $style, $src, $srcset, $sizes, $wrapperTag);
 
         return $html;
     } // render
@@ -147,143 +106,6 @@ class Image
 
 
     /**
-     * @return object|\Kirby\Cms\File
-     * @throws \Kirby\Exception\InvalidArgumentException
-     */
-    private function getImage(): object|null
-    {
-        $file = $this->options['src'];
-        if (fileExt($file) === 'svg') {
-            $this->format  = 'svg';
-            $this->quality = 100;
-        } else {
-            $this->format  = $this->options['format']?? kirby()->option('thumbs.format', 'webp');
-            if ($this->format === 'avif') {
-                throw new \Exception('Image format ".avif" not supported yet.');
-            }
-            $quality  = $this->options['quality']?? kirby()->option('thumbs.quality', 80);
-            if (is_string($quality)) {
-                $this->quality = (int)rtrim($quality, '%');
-            } else {
-                $this->quality = (int)$quality;
-            }
-        }
-
-        $file = $this->getSizeInstructions($file);
-        $page = page();
-        $path = '';
-        if (str_starts_with($file, '~page/')) {
-            $filename = substr($file, 6);
-            if (str_contains($filename, '/')) {
-                // image in subfolder of page:
-                $path = $page->id() . '/' . dirname($filename);
-                $subdir = page($path);
-                if (!$subdir) {
-                    throw new \Exception("Error: subdirectory '$path' not found");
-                }
-                $image = $subdir->image(basename($filename));
-            } else {
-                // image in page folder:
-                $image = $page->file($filename);
-            }
-
-        } elseif (str_starts_with($file, '~assets/')) {
-            // image in folder below content/assets/:
-            $path = page(dirname(substr($file, 1)));
-            $subdir = page($path);
-            if (!$subdir) {
-                throw new \Exception("Error: subdirectory '$path' not found");
-            }
-            $image = $subdir->image(basename($file));
-
-        } else {
-            // image outside of content/:
-            $fPath = Utils::resolvePath($file, true);
-            $image = new Asset($fPath);
-        }
-
-        if (!$image) {
-            if ($this->options['ignoreMissing']??false) {
-                return null;
-            }
-            throw new \Exception("Error: file '{$this->options['src']}' not found");
-        }
-
-        $this->origWidth = $image->width();
-        $this->origHeight = $image->height();
-        $this->aspectRatio = $this->origHeight / $this->origWidth;
-
-        $effectiveWidth = 0;
-        if ($this->requestedWidth) {
-            if ($this->isAbsoluteUnit) {
-                $effectiveWidth = min($this->requestedWidth, $this->origWidth);
-            } else {
-                $effectiveWidth = DEFAULT_MAX_IMAGE_WIDTH;
-            }
-        } elseif ($this->origWidth > DEFAULT_MAX_IMAGE_WIDTH) {
-            $effectiveWidth = DEFAULT_MAX_IMAGE_WIDTH;
-        }
-
-        $effectiveHeight = 0;
-        if ($this->requestedHeight) {
-            if ($this->isAbsoluteUnit) {
-                $effectiveHeight = min($this->requestedHeight, $this->origHeight);
-            } else {
-                $effectiveHeight = DEFAULT_MAX_IMAGE_HEIGHT;
-            }
-        } elseif ($this->origHeight > DEFAULT_MAX_IMAGE_HEIGHT) {
-            $effectiveHeight = DEFAULT_MAX_IMAGE_HEIGHT;
-        }
-
-        // case height but no width defined:
-        if ($effectiveWidth && $effectiveHeight) {
-            if ($effectiveWidth > $effectiveHeight / $this->aspectRatio) {
-                $effectiveWidth = $effectiveHeight / $this->aspectRatio;
-                if ($this->requestedHeight && is_numeric($this->requestedHeight)) {
-                    $this->requestedWidth = $this->requestedHeight / $this->aspectRatio;
-                }
-            } elseif ($effectiveHeight > $effectiveWidth * $this->aspectRatio) {
-                $effectiveHeight = $effectiveWidth * $this->aspectRatio;
-                $this->requestedHeight = $effectiveWidth * $this->aspectRatio;
-            }
-        } elseif (!$effectiveWidth && $effectiveHeight) {
-            $effectiveWidth = $effectiveHeight / $this->aspectRatio;
-        } elseif ($effectiveWidth && !$effectiveHeight) {
-            $effectiveHeight = $effectiveWidth / $this->aspectRatio;
-        }
-
-        // resize image if required:
-        if ($this->origWidth > DEFAULT_MAX_IMAGE_WIDTH) {
-            $this->origWidth = DEFAULT_MAX_IMAGE_WIDTH;
-            $image0 = $image->thumb([
-                'width' => $this->origWidth,
-                'format' => $this->format,
-                'quality' => $this->quality,
-            ]);
-            $this->src = $image0->url();
-        } else {
-            $this->src = $image->url();
-        }
-
-
-        if ($effectiveWidth) {
-            $image->thumb([
-                'width' => intval($effectiveWidth),
-                'format' => $this->format,
-                'quality' => $this->quality,
-            ]);
-        }
-        if ($this->isAbsoluteUnit) {
-            $this->requestedWidth = round($effectiveWidth, 1);
-            $this->requestedHeight = round($effectiveHeight, 1);
-        }
-
-        $this->image = $image;
-        return $image;
-    } // getImage
-
-
-    /**
      * @return mixed
      */
     public function url()
@@ -293,83 +115,94 @@ class Image
 
 
     /**
-     * @param string $file
      * @return string
      */
-    private function getSizeInstructions(string $file): string
+    private function renderImage(): string
     {
-        if ($this->requestedWidth = ($this->options['width'] ?? false)) {
-            list($this->requestedWidth, $this->unit) = $this->extractUnit($this->requestedWidth);
-        }
-        if ($this->requestedHeight = ($this->options['height'] ?? false)) {
-            list($this->requestedHeight, $this->unit) = $this->extractUnit($this->requestedHeight);
-        }
-
-        // check for and extract size hints in filename:
-        if (preg_match('/(.*)\[(.*?)](\.\w+)/', $file, $m)) {
-            $file = $this->parseSizeHint($m);
-        }
-
-        if (!$this->isRelativeUnit($this->unit)) {
-            if ($this->requestedWidth) {
-                $this->requestedWidth = convertToPx($this->requestedWidth.$this->unit);
-            }
-            if ($this->requestedHeight) {
-                $this->requestedHeight = convertToPx($this->requestedHeight.$this->unit);
-            }
-            $this->unit = 'px';
-            $this->isAbsoluteUnit = true;
-        }
-        if (!$this->unit) {
-            $this->unit = 'px';
-        }
-        if ($this->isAbsoluteUnit) {
-            $this->requestedWidth = floatval($this->requestedWidth);
-            $this->requestedHeight = floatval($this->requestedHeight);
-        }
-        return $file;
-    } // getSizeInstructions
-
-
-    /**
-     * @param object $image
-     * @return string
-     */
-    public function prepareSrcset(object $image): string
-    {
-        if ($this->isAbsoluteUnit && !$this->quickzoomActive) {
-            $width = intval($this->requestedWidth);
-            $sizes = [];
-            foreach ([1,2,3] as $size) {
-                $sizes[$width * $size] = "{$size}x";
-            }
+        $src            = "src='$this->src'";
+        $sizes          = $this->sizes;
+        $srcset         = '';
+        if ($this->isRasterImage) {
+            $srcset = $this->determineSrcset();
         } else {
-            $maxUsedSize = min(3 * DEFAULT_MAX_IMAGE_WIDTH, $this->origWidth);
-            $sizes = array_filter($this->responsiveSteps, function ($size) use ($maxUsedSize) {
-                return $size <= $maxUsedSize;
-            });
-            $this->sizes = " sizes='$this->requestedWidth$this->unit'";
+            $this->lazyLoadingActive = false;
         }
-        $srcset = $image->srcset($sizes);
-        if ($srcset) {
-            $srcset = str_replace(',', ",\n\t\t\t", $srcset);
-            $srcset = "srcset='$srcset'";
+        if ($this->lazyLoadingActive) {
+            $this->class     .= ' lazyload';
+            if ($srcset) {
+                $srcset = 'data-' . $srcset;
+            }
+            $src = 'data-' . $src;
+            $u = $this->image->thumb([
+                'width' => 200,
+                'format' => $this->format,
+                'quality' => 50,
+            ])->url();
+            $src = "src='$u'\n\t\t$src";
         }
 
-        return (string)$srcset;
-    } // prepareSrcset
+        if ($this->requestedWidth) {
+            $w = $this->requestedWidth;
+            $u = $this->unit;
+            if ($u === 'px') {
+                $w = intval($w);
+            }
+            $this->style = "width:$w$u;height: auto;";
+        }
+        $style = $this->style ? " style='$this->style'" : '';
+
+        $zoomedSrc = '';
+        if ($this->lazyLoadingActive && $this->quickzoomActive) {
+            // if quickzoom, force lazy preload of large image:
+            $zoomedSrc = "\n\t<img $src class='pfy-img-preload lazyload'>";
+        }
+        if (!$this->wrapperTag) {
+            $html = <<<EOT
+    <img $this->attributes
+        class="pfy-img $this->class"$style
+        $src
+        $srcset $sizes
+    >
+
+EOT;
+        } elseif ($this->caption) {
+            $html = <<<EOT
+<figure class="pfy-img-wrapper pfy-figure $this->wrapperClass">$zoomedSrc
+    <img $this->attributes
+        class="pfy-img $this->class"$style
+        $src
+        $srcset $sizes
+    >
+    <figcaption>$this->caption</figcaption>
+</figure>
+EOT;
+
+        } else {
+            $html = <<<EOT
+<$this->wrapperTag class="pfy-img-wrapper $this->wrapperClass">
+    <img $this->attributes
+        class="pfy-img $this->class"$style
+        $src
+        $srcset $sizes
+    >$zoomedSrc
+</$this->wrapperTag><!-- .pfy-img-wrapper -->
+
+EOT;
+        }
+        return $html;
+    } // renderImage
 
 
     /**
-     * @param $str
+     * @param $html
      * @return string
      */
-    private function applyLinkWrapper($str, $wrapperClass)
+    private function applyLinkWrapper(string $html): string
     {
         $options = $this->options;
         $href = $options['link'];
 
-        $linkClass = trim($options['linkClass']." $wrapperClass");
+        $linkClass = trim($options['linkClass']." $this->wrapperClass");
 
         if ($linkClass) {
             $linkAttr = " class='$linkClass'";
@@ -389,11 +222,40 @@ class Image
             $linkAttr .= " {$options['linkAttributes']}";
         }
 
-        $str = <<<EOT
-<a href='$href'$linkAttr>$str</a>
+        $html = <<<EOT
+<a href='$href'$linkAttr>$html</a>
 EOT;
-        return $str;
+        return $html;
     } // applyLinkWrapper
+
+
+    /**
+     * @param object $image
+     * @return string
+     */
+    private function determineSrcset(): string
+    {
+        if ($this->isAbsoluteUnit && !$this->quickzoomActive) {
+            $width = intval($this->requestedWidth);
+            $sizes = [];
+            foreach ([1,2,3] as $size) {
+                $sizes[$width * $size] = "{$size}x";
+            }
+        } else {
+            $maxUsedSize = min(3 * DEFAULT_MAX_IMAGE_WIDTH, $this->origWidth);
+            $sizes = array_filter($this->responsiveSteps, function ($size) use ($maxUsedSize) {
+                return $size <= $maxUsedSize;
+            });
+            $this->sizes = " sizes='$this->requestedWidth$this->unit'";
+        }
+        $srcset = $this->image->srcset($sizes);
+        if ($srcset) {
+            $srcset = str_replace(',', ",\n\t\t\t", $srcset);
+            $srcset = "srcset='$srcset'";
+        }
+
+        return (string)$srcset;
+    } // determineSrcset
 
 
     /**
@@ -468,7 +330,6 @@ EOT;
             $src = "src='$u'";
             $this->attributes .= "\n\t\t$src";
         }
-
     } // activateLazyLoading
 
 
@@ -532,49 +393,10 @@ EOT;
 
 
     /**
-     * @param array $m
-     * @return string
-     */
-    private function parseSizeHint(array $m): string
-    {
-        $file = $m[1] . $m[3];
-        $sizeHint = $m[2];
-        if ($sizeHint) {
-            $unit = false;
-            // analyze first part of expression, up to 'x' or end of string, e.g. ""200x150" or "100px":
-            if (!$this->requestedWidth && preg_match('/^([\d.]+)(\D*)/', $sizeHint, $m)) {
-                $this->requestedWidth = $m[1];
-                $unit = $m[2];
-                // handle units ending in 'x', eg 'px', 'vmax' etc.
-                if ((str_ends_with($unit, 'x')) &&
-                    ($unit !== 'px') && ($unit !== 'ex') &&
-                    !str_ends_with($unit, 'max')) {
-                    $unit = substr($unit, 0, -1);
-                }
-                $this->unit = $unit;
-                $sizeHint = str_replace($m[0], '', $sizeHint);
-
-                // check whether it was only height expression written as "x100":
-            } elseif ($sizeHint[0] === 'x') {
-                $sizeHint = substr($sizeHint, 1);
-            }
-            // analyze remaining expression
-            if (!$this->requestedHeight && preg_match('/^([\d.]+)(\w*)/', $sizeHint, $m)) {
-                $this->requestedHeight = $m[1];
-                if ($unit === false) {
-                    $this->unit = $this->unit ?: $m[2];
-                }
-            }
-        }
-        return $file;
-    } // parseSizeHint
-
-
-    /**
      * @return void
      * @throws \Exception
      */
-    private function handleKenBurns(): void
+    private function activateKenBurns(): void
     {
         $options = &$this->options;
         $inx = self::$inx;
@@ -596,6 +418,312 @@ EOT;
             Page::addJsReady($js);
             Page::addAssets('KEN_BURNS');
         }
-    } // handleKenBurns
+    } // activateKenBurns
 
+
+    /**
+     * @return void
+     */
+    private function parseOptions()
+    {
+        $options = &$this->options;
+        $inx = self::$inx;
+
+        $this->determineRequestedSize(); // -> $this->requestedWidth and $this->requestedHeight
+
+        $this->class          = ($options['class']??'') . " pfy-img-$inx";
+        $this->wrapperTag     = ($options['wrapperTag']??false) ?: 'div';
+        $this->wrapperClass   = $options['wrapperClass']??'';
+        $this->caption        = $options['caption']??'';
+        $this->lazyLoadingActive = $options['lazyLoading']??false;
+        try {
+            $this->alt = $this->image->alt()->value() ?: (($options['alt'] ?? false) ?: ' ');
+        } catch (Throwable $e) {
+            $this->alt = ($options['alt'] ?? false) ?: ' ';
+        }
+
+        $attributes           = $this->attributes;
+        if ($options['id']??false) {
+            $attributes .= " id='{$options['id']}'";
+        } else {
+            $attributes .= " id='pfy-img-$inx'";
+        }
+        $attributes    .= " alt='$this->alt'";
+        if ($options['imgTagAttrs']??false) {
+            $attributes .= " {$options['imgTagAttrs']}";
+        }
+        if ($this->quickzoomActive) {
+            $attributes .= ' tabindex="0"';
+        }
+
+        $this->attributes = $attributes;
+    } // parseOptions
+
+
+    /**
+     * @return object|\Kirby\Cms\File
+     * @throws \Kirby\Exception\InvalidArgumentException
+     */
+    private function getImage(): object|null
+    {
+        $file = $this->options['src'];
+        $file = $this->extractSizeDirectiveFromFilename($file);
+
+        $this->absFile = Utils::resolvePath($file);
+        if (!file_exists($this->absFile)) {
+            if ($this->options['ignoreMissing']??false) {
+                return null;
+            }
+            throw new \Exception("Error: file '{$this->options['src']}' not found");
+        }
+
+        $this->format  = fileExt($file);
+        $this->isRasterImage = ($this->format !== 'svg');
+
+        $image = $this->getImageObject($file);
+
+        if ($this->isRasterImage) {
+            $this->getRasterImage($image);
+        } else {
+            $this->getVectorImage();
+        }
+        $this->isAbsoluteUnit = !$this->isRelativeUnit($this->unit);
+
+        $effectiveWidth = 0;
+        if ($this->requestedWidth) {
+            if ($this->isAbsoluteUnit) {
+                $effectiveWidth = min($this->requestedWidth, $this->origWidth);
+            } else {
+                $effectiveWidth = DEFAULT_MAX_IMAGE_WIDTH;
+            }
+        } elseif (!$this->requestedHeight && $this->isRasterImage) {
+            $effectiveWidth = min($this->origWidth, DEFAULT_MAX_IMAGE_WIDTH);
+        }
+
+        $effectiveHeight = 0;
+        if ($this->requestedHeight) {
+            if ($this->isAbsoluteUnit) {
+                $effectiveHeight = min($this->requestedHeight, $this->origHeight);
+            } else {
+                $effectiveHeight = DEFAULT_MAX_IMAGE_HEIGHT;
+            }
+        } elseif (!$this->requestedHeight && $this->isRasterImage) {
+            $effectiveHeight = min($this->origHeight, DEFAULT_MAX_IMAGE_HEIGHT);
+        }
+
+        // case height but no width defined:
+        if ($effectiveWidth && $effectiveHeight) {
+            if ($effectiveWidth > $effectiveHeight / $this->aspectRatio) {
+                $effectiveWidth = $effectiveHeight / $this->aspectRatio;
+                if ($this->requestedHeight && is_numeric($this->requestedHeight)) {
+                    $this->requestedWidth = $this->requestedHeight / $this->aspectRatio;
+                }
+            } elseif ($effectiveHeight > $effectiveWidth * $this->aspectRatio) {
+                $effectiveHeight = $effectiveWidth * $this->aspectRatio;
+                $this->requestedHeight = $effectiveWidth * $this->aspectRatio;
+            }
+        } elseif (!$effectiveWidth && $effectiveHeight) {
+            $effectiveWidth = $effectiveHeight / $this->aspectRatio;
+        } elseif ($effectiveWidth && !$effectiveHeight) {
+            $effectiveHeight = $effectiveWidth / $this->aspectRatio;
+        }
+
+        // resize image if required:
+        if ($this->origWidth > DEFAULT_MAX_IMAGE_WIDTH) {
+            $this->origWidth = DEFAULT_MAX_IMAGE_WIDTH;
+            $image0 = $image->thumb([
+                'width' => $this->origWidth,
+                'format' => $this->format,
+                'quality' => $this->quality,
+            ]);
+            $this->src = $image0->url();
+        } else {
+            $this->src = $image->url();
+        }
+
+
+        if ($effectiveWidth) {
+            $image->thumb([
+                'width' => intval($effectiveWidth),
+                'format' => $this->format,
+                'quality' => $this->quality,
+            ]);
+        }
+        if ($this->isAbsoluteUnit) {
+            $this->requestedWidth = round($effectiveWidth, 1);
+            $this->requestedHeight = round($effectiveHeight, 1);
+        }
+
+        $this->image = $image;
+        return $image;
+    } // getImage
+
+
+    /**
+     * @param string $file
+     * @return object|\Kirby\Cms\File|Asset|null
+     * @throws \Exception
+     */
+    private function getImageObject(string $file): object
+    {
+        $page = page();
+        if (str_starts_with($file, '~page/')) {
+            $filename = substr($file, 6);
+            if (str_contains($filename, '/')) {
+                // image in subfolder of page:
+                $path = $page->id() . '/' . dirname($filename);
+                $subdir = page($path);
+                if (!$subdir) {
+                    throw new \Exception("Error: subdirectory '$path' not found");
+                }
+                $image = $subdir->image(basename($filename));
+            } else {
+                // image in page folder:
+                $image = $page->file($filename);
+            }
+
+        } elseif (str_starts_with($file, '~assets/')) {
+            // image in folder below content/assets/:
+            $path = page(dirname(substr($file, 1)));
+            $subdir = page($path);
+            if (!$subdir) {
+                throw new \Exception("Error: subdirectory '$path' not found");
+            }
+            $image = $subdir->image(basename($file));
+
+        } else {
+            // image outside of content/:
+            $fPath = Utils::resolvePath($file, true);
+            $image = new Asset($fPath);
+        }
+
+        return $image;
+    } // getImageObject
+
+
+    /**
+     * @param object $image
+     * @return void
+     * @throws \Exception
+     */
+    private function getRasterImage(object $image): void
+    {
+        $this->format  = $this->options['format']?? kirby()->option('thumbs.format', 'webp');
+        if ($this->format === 'avif') {
+            throw new \Exception('Image format ".avif" not supported yet.');
+        }
+        $quality  = $this->options['quality']?? kirby()->option('thumbs.quality', 80);
+        if (is_string($quality)) {
+            $this->quality = (int)rtrim($quality, '%');
+        } else {
+            $this->quality = (int)$quality;
+        }
+        $this->origWidth = $image->width();
+        $this->origHeight = $image->height();
+        $this->aspectRatio = $this->origHeight / $this->origWidth;
+    } // getRasterImage
+
+
+    /**
+     * @return void
+     */
+    private function getVectorImage(): void
+    {
+        $xmlget = simplexml_load_file($this->absFile);
+        $xmlattributes = $xmlget->attributes();
+        $width = (string) $xmlattributes->width;
+        $height = (string) $xmlattributes->height;
+        $unit = false;
+        if (!$width && !$height) {
+            $viewBox = (string) $xmlattributes->viewBox;
+            $elems = explode(' ', $viewBox);
+            $width = (int)$elems[2] - (int)$elems[0];
+            $height = (int)$elems[3] - (int)$elems[1];
+            $unit = 'px';
+        } else {
+            if ($height) {
+                list($height, $unit) = $this->extractUnit($height);
+            }
+            if ($width) {
+                list($width, $unit) = $this->extractUnit($width);
+            }
+        }
+
+        $this->quality = 100;
+        $this->aspectRatio = $height / $width;
+        if ($unit) {
+            $this->unit = $unit;
+        }
+        $this->origWidth = DEFAULT_MAX_IMAGE_WIDTH;
+        $this->origHeight = (int) (DEFAULT_MAX_IMAGE_WIDTH * $this->aspectRatio);
+    } // getRasterImage
+
+
+    /**
+     * @return void
+     */
+    private function determineRequestedSize(): void
+    {
+        $this->requestedHeight = ($this->options['height'] ?? false) ?: $this->requestedHeight;
+        if ($this->requestedHeight) {
+            list($this->requestedHeight, $unit) = $this->extractUnit($this->requestedHeight);
+            if ($unit) {
+                $this->unit = $unit;
+            }
+        }
+        $this->requestedWidth = ($this->options['width'] ?? false) ?: $this->requestedWidth;
+        if ($this->requestedWidth) {
+            list($this->requestedWidth, $unit) = $this->extractUnit($this->requestedWidth);
+            if (!$this->unit && $unit) {
+                $this->unit = $unit;
+            }
+        }
+    } // determineRequestedSize
+
+
+    /**
+     * @param string $file
+     * @return string
+     */
+    private function extractSizeDirectiveFromFilename(string $file): string
+    {
+        // check for and extract size hints in filename:
+        if (!preg_match('/(.*)\[(.*?)](\.\w+)/', $file, $m)) {
+            return $file;
+        }
+        
+        $file = $m[1] . $m[3];
+        $sizeHint = $m[2];
+        if ($sizeHint) {
+            $unit = false;
+            // analyze first part of expression, up to 'x' or end of string, e.g. ""200x150" or "100px":
+            if (preg_match('/^([\d.]+)(\D*)/', $sizeHint, $m)) {
+                $this->requestedWidth = $m[1];
+                $unit = $m[2] ?: 'px';
+                // handle units ending in 'x', eg 'px', 'vmax' etc.
+                if ($unit === 'x') {
+                    $unit = 'px';
+                } elseif ((str_ends_with($unit, 'x')) &&
+                    ($unit !== 'px') && ($unit !== 'ex') &&
+                    !str_ends_with($unit, 'max')) {
+                    $unit = substr($unit, 0, -1);
+                }
+                $this->unit = $unit;
+                $sizeHint = str_replace($m[0], '', $sizeHint);
+
+                // check whether it was only height expression written as "x100":
+            } elseif ($sizeHint[0] === 'x') {
+                $sizeHint = substr($sizeHint, 1);
+            }
+            // analyze remaining expression
+            if (preg_match('/^([\d.]+)(\w*)/', $sizeHint, $m)) {
+                $this->requestedHeight = $m[1];
+                if ($unit === false) {
+                    $this->unit = $this->unit ?: ($m[2] ?: 'px');
+                }
+            }
+        }
+        return $file;
+    } // extractSizeDirectiveFromFilename
+    
 } // Image
