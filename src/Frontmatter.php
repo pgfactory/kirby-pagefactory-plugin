@@ -102,6 +102,24 @@ class Frontmatter
                     $continue = false;
                 }
 
+            } elseif ($key === 'showfrom') {
+                $value = trim($value, '\'"');
+                if (strlen($value) <= 10) { // if no time, assume beginning of this day
+                    $value .= ' 00:00:00';
+                }
+                if (time() < strtotime($value)) {
+                    $continue = false;
+                }
+
+            } elseif ($key === 'showtill') {
+                $value = trim($value, '\'"');
+                if (strlen($value) <= 10) { // if no time, assume end of this day
+                    $value .= ' 23:59:59';
+                }
+                if (time() > strtotime($value)) {
+                    $continue = false;
+                }
+
             } else {
                 // unescape escaped dividers within a field
                 TransVars::setVariable($key, $value);
