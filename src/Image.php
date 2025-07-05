@@ -591,6 +591,15 @@ EOT;
             }
             $image = $subdir->image(basename($file));
 
+        } elseif (str_starts_with($file, '~pages/')) {
+            // image in folder below content/assets/:
+            $path = page(dirname(substr($file, 7)));
+            $subdir = page($path);
+            if (!$subdir) {
+                throw new \Exception("Error: subdirectory '$path' not found");
+            }
+            $image = $subdir->image(basename($file));
+
         } else {
             // image outside of content/:
             $fPath = Utils::resolvePath($file, true);
@@ -599,7 +608,7 @@ EOT;
 
         return $image;
     } // getImageObject
-
+    
 
     /**
      * @param object $image
@@ -620,6 +629,10 @@ EOT;
         }
         $this->origWidth = $image->width();
         $this->origHeight = $image->height();
+        if (!$this->origWidth) {
+            $file = basename($this->absFile);
+            throw new \Exception("Error: unable to determine dimensions of image '$file'.");
+        }
         $this->aspectRatio = $this->origHeight / $this->origWidth;
     } // getRasterImage
 
@@ -650,6 +663,10 @@ EOT;
         }
 
         $this->quality = 100;
+        if (!$width) {
+            $file = basename($this->absFile);
+            throw new \Exception("Error: unable to determine dimensions of image '$file'.");
+        }
         $this->aspectRatio = $height / $width;
         if ($unit) {
             $this->unit = $unit;
