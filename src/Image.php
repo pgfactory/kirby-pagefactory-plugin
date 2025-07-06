@@ -541,6 +541,10 @@ EOT;
             $this->src = $image->url();
         }
 
+        // check and fix erroneous asset Url:
+        if (PFY_BASE_OFFSET && !str_starts_with($this->src, PFY_KIRBY_ASSETS_BASE_URL)) {
+            $this->src = Utils::resolveUrls($file, forResoucres:true);
+        }
 
         if ($effectiveWidth) {
             $image->thumb([
@@ -602,13 +606,13 @@ EOT;
 
         } else {
             // image outside of content/:
-            $fPath = Utils::resolvePath($file, true);
+            $fPath = Utils::resolvePath($file, localToApproot:true);
             $image = new Asset($fPath);
         }
 
         return $image;
     } // getImageObject
-    
+
 
     /**
      * @param object $image
