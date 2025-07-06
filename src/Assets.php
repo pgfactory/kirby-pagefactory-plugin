@@ -390,8 +390,8 @@ class Assets
     public static function reset(): void
     {
         $dir = array_merge(
-            getDirDeep(PFY_PAGEFACTORY_ASSETS_PATH.'css/'),
-            getDirDeep(PFY_PAGEFACTORY_ASSETS_PATH.'js/'),
+            getDirDeep(PFY_PLUGIN_PFY_PATH.'assets/css/'),
+            getDirDeep(PFY_PLUGIN_PFY_PATH.'assets/js/'),
             getDirDeep(PFY_KIRBY_BASE_PATH.'content/-*.css'),
         );
 

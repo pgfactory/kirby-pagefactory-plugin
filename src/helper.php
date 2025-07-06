@@ -968,7 +968,7 @@ function deleteFiles(mixed $files): void
 function findAvailableIcons(): array
  {
      $availableIcons = getDir(PFY_SVG_ICONS_PATH, 'name_only');
-     $availableIcons = array_merge($availableIcons, getDir(PFY_PAGEFACTORY_ICONS_PATH, 'name_only'));
+     $availableIcons = array_merge($availableIcons, getDir(PFY_PLUGIN_PFY_PATH . 'assets/icons/', 'name_only'));
      return $availableIcons;
  } // findAvailableIcons
 
@@ -993,7 +993,7 @@ function resolvePath(string $path): string
 function getGitTag(): string
 {
     if (isLocalhost()) {
-        $tag = exec('cd '.PFY_PAGEFACTORY_PATH.';git describe --tags');
+        $tag = exec('cd '.PFY_PLUGIN_PFY_PATH.';git describe --tags');
         writeFile(PFY_GITTAG_FILE, $tag);
     } else {
         $tag = readFile(PFY_GITTAG_FILE);

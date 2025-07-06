@@ -17,16 +17,14 @@ use PgFactory\MarkdownPlus\Permission;
  //  PFY_KIRBY_BASE_PATH    = /path/to/localhost/app/onair/     = PFY_APP_BASE_PATH . PFY_BASE_OFFSET
 
 
-// System ULRs:
+ // System ULRs:
 define('PFY_HOST_URL',                  $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST'] . '/'); // https://domain.net/
 define('PFY_APP_BASE_URL',              URL::index().'/');    // https://domain.net/webapp/
 define('PFY_PAGE_URL',                  page()->url() . '/'); // https://domain.net/webapp/pg1/
 
-// Further Urls and Paths:
-define('PFY_PAGEFACTORY_PATH',          dirname(__DIR__) . '/'); // site/plugins/pagefactory/
+ // Further Urls and Paths:
+define('PFY_PLUGIN_PFY_PATH',           dirname(__DIR__) . '/'); // site/plugins/pagefactory/
 define('PFY_CONTENT_ASSETS_PATH',       PFY_KIRBY_BASE_PATH . 'content/assets/');
-define('PFY_PAGEFACTORY_ASSETS_PATH',   PFY_PAGEFACTORY_PATH . 'assets/');
-define('PFY_PAGEFACTORY_ICONS_PATH',    PFY_PAGEFACTORY_PATH . 'assets/icons/');
 
 define('PFY_PAGE_PATH',                 page()->root() . '/');
 define('PFY_PAGE_URI',                  page()->uri() . '/');
@@ -46,19 +44,17 @@ define('PFY_LOGIN_LOG_FILE',           'login-log.txt');
 define('PFY_TEMP_PATH',                 '~/media/pgfactory/');
 define('PFY_TEMP_DOWNLOAD_PATH',        PFY_TEMP_PATH.'download/'); // for temp download of datasets (excel-format)
 
-const PFY_GITTAG_FILE                   = PFY_KIRBY_BASE_PATH.'site/custom/gittag.txt';
+const PFY_GITTAG_FILE =                 PFY_KIRBY_BASE_PATH.'site/custom/gittag.txt';
 
 define('PFY_WEBMASTER_EMAIL_CACHE',     PFY_CACHE_PATH.'webmaster-email.txt');
 define('PFY_INSTALLATION_PATH_CHECK',   PFY_CACHE_PATH.'installation-path.txt');
 
 
  // misc constants:
-const PFY_BASE_ASSETS_URL =        PFY_APP_BASE_URL . PFY_BASE_OFFSET . 'media/plugins/pgfactory/';
-//const PFY_BASE_ASSETS_URL =        PFY_APP_BASE_URL . 'media/plugins/pgfactory/'; //??? correct?
-const PFY_ASSETS_URL =             PFY_BASE_ASSETS_URL.'pagefactory/';
-const PAGED_POLYFILL_SCRIPT_URL =  PFY_ASSETS_URL.'js/paged.polyfill.min.js';
-const PFY_DEFAULT_LOCALE =         'en_GB';
-const PFY_DEFAULT_FAVICON =        'assets/favicon/favicon.png';
+const PFY_KIRBY_ASSETS_BASE_URL =       PFY_APP_BASE_URL . PFY_BASE_OFFSET;
+const PAGED_POLYFILL_SCRIPT =           PFY_BASE_OFFSET.'media/plugins/pgfactory/pagefactory/js/paged.polyfill.min.js';
+const PFY_DEFAULT_LOCALE =              'en_GB';
+const PFY_DEFAULT_FAVICON_FILE =        PFY_KIRBY_BASE_PATH . 'assets/favicon/favicon.png';
 
 
  // use this name for meta-files (aka text-files) in page folders:
@@ -124,10 +120,6 @@ class PageFactory
         self::$pages = $pages;
         self::$page = $page;
         self::$site = $site;
-//        self::$kirby = $data['kirby'];
-//        self::$pages = $data['pages'];
-//        self::$page = $data['page'];
-//        self::$site = $data['site'];
 
         self::$dev = Utils::determineDevState();
         self::$productionMode = !self::$dev;

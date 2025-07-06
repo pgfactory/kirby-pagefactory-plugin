@@ -230,7 +230,10 @@ class Utils
      */
     public static function renderFavicon()
     {
-        $defaultIcon = option('pgfactory.pagefactory.favicon') ?: PFY_BASE_OFFSET.PFY_DEFAULT_FAVICON;
+        $defaultIcon = option('pgfactory.pagefactory.favicon') ?: PFY_DEFAULT_FAVICON_FILE;
+        if (str_starts_with($defaultIcon, PFY_APP_BASE_PATH)) {
+            $defaultIcon = substr($defaultIcon, strlen(PFY_APP_BASE_PATH));
+        }
         $png = asset( $defaultIcon );
         if (!file_exists($png->root())) {
             return '';
@@ -472,7 +475,7 @@ EOT;
      */
     private static function printPreview()
     {
-        $pagedPolyfillScript = PFY_APP_BASE_URL.PAGED_POLYFILL_SCRIPT_URL;
+        $pagedPolyfillScript = PAGED_POLYFILL_SCRIPT;
         $printNow = TransVars::getVariable('pfy-print-now');
         $printClose = TransVars::getVariable('pfy-close');
         $jq = <<<EOT
@@ -505,7 +508,7 @@ EOT;
      */
     private static function print()
     {
-        $pagedPolyfillScript = PFY_APP_BASE_URL.PAGED_POLYFILL_SCRIPT_URL;
+        $pagedPolyfillScript = PAGED_POLYFILL_SCRIPT;
 
         $jq = <<<EOT
 setTimeout(function() {
