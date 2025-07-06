@@ -236,7 +236,7 @@ EOT;
     private function determineSrcset(): string
     {
         if ($this->isAbsoluteUnit && !$this->quickzoomActive) {
-            $width = intval($this->requestedWidth);
+            $width = intval(convertToPx($this->requestedWidth.$this->unit));
             $sizes = [];
             foreach ([1,2,3] as $size) {
                 $sizes[$width * $size] = "{$size}x";
