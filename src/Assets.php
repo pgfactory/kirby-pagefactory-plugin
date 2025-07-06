@@ -392,6 +392,7 @@ class Assets
         $dir = array_merge(
             getDirDeep(PFY_PLUGIN_PFY_PATH.'assets/css/'),
             getDirDeep(PFY_PLUGIN_PFY_PATH.'assets/js/'),
+            getDirDeep(PFY_KIRBY_BASE_PATH.'assets/-*.css'),
             getDirDeep(PFY_KIRBY_BASE_PATH.'content/-*.css'),
         );
 
