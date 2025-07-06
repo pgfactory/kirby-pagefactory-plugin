@@ -52,7 +52,7 @@ define('PFY_INSTALLATION_PATH_CHECK',   PFY_CACHE_PATH.'installation-path.txt');
 
  // misc constants:
 const PFY_KIRBY_ASSETS_BASE_URL =       PFY_APP_BASE_URL . PFY_BASE_OFFSET;
-const PAGED_POLYFILL_SCRIPT =           PFY_BASE_OFFSET.'media/plugins/pgfactory/pagefactory/js/paged.polyfill.min.js';
+const PAGED_POLYFILL_SCRIPT =           PFY_KIRBY_ASSETS_BASE_URL.'media/plugins/pgfactory/pagefactory/js/paged.polyfill.min.js';
 const PFY_DEFAULT_LOCALE =              'en_GB';
 const PFY_DEFAULT_FAVICON_FILE =        PFY_KIRBY_BASE_PATH . 'assets/favicon/favicon.png';
 
