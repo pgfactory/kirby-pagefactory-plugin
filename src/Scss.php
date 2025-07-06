@@ -191,7 +191,7 @@ class Scss
         // special case: url(~/ -> need to get url from pagefactory:
         if (preg_match_all('|url\((\'?)~/([^\s"\')]*)|', $html, $m)) {
             foreach ($m[1] as $i => $q) {
-                $html = str_replace($m[0][$i], "url($q".PFY_APP_BASE_URL.$m[2][$i], $html);
+                $html = str_replace($m[0][$i], "url($q".PFY_KIRBY_ASSETS_BASE_URL.$m[2][$i], $html);
             }
         }
 
