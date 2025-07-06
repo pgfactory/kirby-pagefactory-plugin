@@ -339,6 +339,7 @@ EOT;
     <style>
 $css
     </style>
+
 EOT;
         }
         return $html;
