@@ -1396,4 +1396,28 @@ EOT;
         writeFile(PFY_INSTALLATION_PATH_CHECK, PFY_KIRBY_BASE_PATH);
     } // setInstallationCheckFile
 
+
+    /**
+     * @param string $file
+     * @return string
+     * @throws Exception
+     */
+    public static function css(string $file): string
+    {
+        $url = self::resolveUrls($file, true);
+        return "<link href='$url' rel='stylesheet'>\n";
+    } // setInstallationCheckFile
+
+
+    /**
+     * @param string $file
+     * @return string
+     * @throws Exception
+     */
+    public static function js(string $file): string
+    {
+        $url = self::resolveUrls($file, true);
+        return "<script src='$url'></script>\n";
+    } // setInstallationCheckFile
+
 } // Utils
