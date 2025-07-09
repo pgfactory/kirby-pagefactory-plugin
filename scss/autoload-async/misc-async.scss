@@ -62,13 +62,13 @@
     width: 1em;
     height: 1em;
     padding: 0;
-    font-size: 1.8em;
+    font-size: 1.4em;
     cursor: pointer;
     user-select: none;
     display: flex;
     justify-content: center;
     align-items: center;
-    opacity: 0;
+    opacity: 0.3;
     @at-root .pfy-has-copy-btn:hover .pfy-copy-btn.pfy-button {
       opacity: 0.4;
       &:hover {
@@ -93,8 +93,12 @@
     inset: 8px;
     font-size: 28pt;
     color: black;
+    background: #ffffd6;
+    outline: 1px solid #c1c196;
     text-align: center;
-    margin-top: 2%;
+    height: 1.2em;
+    width: 6em;
+    margin: 2% auto 0 auto;
     font-family: arial, sans-serif;
     font-weight: bold;
     -webkit-text-stroke-width: 1px;
