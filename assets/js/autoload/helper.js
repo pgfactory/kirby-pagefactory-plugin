@@ -168,6 +168,7 @@ function initCopyButton() {
         }
         // if content not empty, copy it to clipboard:
         if (txt) {
+          txt = txt.replace(/^\n+|\n+$/g, '');
           copyToClipboard(txt, containerEl);
         }
       });
