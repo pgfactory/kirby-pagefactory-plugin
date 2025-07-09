@@ -122,3 +122,13 @@ function domReady(fun)
 {
   document.addEventListener('DOMContentLoaded', fun);
 } // domReady
+
+
+function handleEvent(selector, func, trigger = 'click') {
+  document.addEventListener(trigger, (ev) => {
+    if (!ev.target.closest(selector)) {
+      return;
+    }
+    func(ev.target);
+  });
+} // handleEvent
