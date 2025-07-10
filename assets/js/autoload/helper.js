@@ -257,9 +257,34 @@ function scrollAnchorIntoView() {
 
 } // scrollAnchorIntoView
 
+function showBusySpinner() {
+  const spinnerOverlay =  document.querySelector('.pfy-spinner-overlay');
+  spinnerOverlay.style.display = 'block';
+  document.body.dataset.overflow = document.body.style.overflow;
+  document.body.style.overflow = 'hidden';
+  mylog('spinnerOverlay activated');
+} // showBusySpinner
+
+
+function hideBusySpinner() {
+  const spinnerOverlay =  document.querySelector('.pfy-spinner-overlay');
+  spinnerOverlay.style.display = 'none';
+  document.body.style.overflow = document.body.dataset.overflow;
+  document.body.removeAttribute('data-overflow');
+  mylog('spinnerOverlay deactivated');
+} // removeBusySpinner
+
+
+function initBusySpinner() {
+  const spinnerImg =  document.querySelector('.pfy-spinner-overlay img');
+  const url = spinnerImg.dataset.src;
+  spinnerImg.setAttribute('src', url);
+} // initBusySpinner
+
 
 document.addEventListener('DOMContentLoaded', function() {
   initCopyButton();
   adaptToWidth();
   scrollAnchorIntoView();
+  initBusySpinner();
 });
