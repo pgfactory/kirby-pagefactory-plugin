@@ -2,12 +2,12 @@
 
 "use strict";
 
-// let touchstartX = 0
-// let touchendX = 0
-// let touchstartY = 0
-// let touchendY = 0
-// const swipeMinDistanceX = 10;
-// const swipeMaxDistanceY = 5;
+ let touchstartX = 0
+ let touchendX = 0
+ let touchstartY = 0
+ let touchendY = 0
+ const swipeMinDistanceX = 10;
+ const swipeMaxDistanceY = 5;
 
 document.addEventListener("DOMContentLoaded", function () {
   const prevLinkElem = document.querySelector('.pfy-previous-page-link a');
@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const keycode = e.key;
 
     // Standard arrow key handling:
-    if (keycode === 'ArrowLeft' || keycode === 'ArrowUp') { // left or pgup
+    if (keycode === 'ArrowLeft') { // left
       if (prevLink) {
         console.log('prevLink: ' + prevLink);
         e.preventDefault();
@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", function () {
         return false;
       }
     }
-    if (keycode === 'ArrowRight' || keycode === 'ArrowDown') { // right or pgdown
+    if (keycode === 'ArrowRight') { // right
       if (nextLink) {
         console.log('nextLink: ' + nextLink);
         e.preventDefault();
@@ -49,8 +49,8 @@ document.addEventListener("DOMContentLoaded", function () {
     return document.defaultAction;
   });
 
-  /*
-  if (false) {
+  const touchSupport = ('ontouchstart' in window || window.navigator.msPointerEnabled);
+  if (touchSupport && typeof pfyPageSwipeEnabled !== 'undefined' && pfyPageSwipeEnabled) {
     // Swipe handling:
     document.addEventListener('touchstart', e => {
       touchstartX = e.changedTouches[0].screenX;
@@ -63,18 +63,16 @@ document.addEventListener("DOMContentLoaded", function () {
       const dY = Math.abs(touchstartX - e.changedTouches[0].screenY);
       const isHorizontalSwipe = true;
       if (isHorizontalSwipe && (touchendX < touchstartX - swipeMinDistanceX)) { // swiped left
-        // window.location.href = nextLink;
-        document.body.classList.add('right');
-        document.body.classList.remove('left');
+        showBusySpinner();
+        window.location.href = nextLink;
 
       } else if (isHorizontalSwipe && (touchendX > touchstartX + swipeMinDistanceX)) { // swiped right
-        // window.location.href = prevLink;
-        document.body.classList.add('left');
-        document.body.classList.remove('right');
+        showBusySpinner();
+        window.location.href = prevLink;
       }
     });
   }
-  */
+
 }); // document ready
 
 
