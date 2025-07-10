@@ -267,7 +267,7 @@ class Utils
      */
     public static function renderBusySpinner()
     {
-        $url = PFY_APP_BASE_URL . 'media/plugins/pgfactory/pagefactory/icons/spinner.gif';
+        $url = PFY_KIRBY_ASSETS_BASE_URL . 'media/plugins/pgfactory/pagefactory/icons/spinner.gif';
         return "<div class='pfy-spinner-overlay' style='display:none'><img data-src='$url'></div>";
     } // renderBusySpinner
 
