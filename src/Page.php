@@ -20,6 +20,9 @@ class Page
 
     public static array $override = [];
 
+    private static string  $description = '';
+    private static string  $keywords = '';
+    private static string  $author = '';
     private static string|bool  $robots = false;
     public static array|null $asset = [];
     private static string|false $overrideContent = false;
@@ -71,10 +74,10 @@ class Page
      */
     public static function append(string $key, $value): void
     {
-        if (PageFactory::$renderingClosed && !str_contains(PageFactory::$page->$key()->value, $value)) {
-            PageFactory::$page->$key()->value .= $value;
+        if (PageFactory::$renderingClosed) {
+            throw new \Exception("Error: Rendering closed for $key = '$value'");
 
-        } elseif (!str_contains(self::$$key, $value)) {
+        } elseif (!str_contains(self::$$key, $value)) { // avoid repetitions
             self::$$key .= $value;
         }
     } // append
@@ -315,7 +318,7 @@ EOT;
         $html .= self::getHeaderElem('description');
         $html .= self::getHeaderElem('keywords');
         $html .= self::getHeaderElem('author');
-        $html .= self::getRobotsElem();
+        $html .= self::getHeaderElem('robots');
 
         // add injections that had been supplied explicitly:
         $html .= self::$headInjections;
@@ -325,7 +328,7 @@ EOT;
 
         // add CSS-Code (compile if it's SCSS):
         $css = self::$css ? self::$css."\n" : '';
-        $css .= PageFactory::$page->css()->value() ?? '';
+        $css .= PageFactory::$page->css()->value() ?? '';   // css from meta-file
 
         $scss = self::$scss ? self::$scss."\n" : '';
         $scss .= PageFactory::$page->scss()->value() ?? ''; // scss from meta-file
@@ -375,7 +378,11 @@ EOT;
         $js .= "const currLang = '" .       PageFactory::$langCode . "';\n";
         $js .= "const pageLoaded =          Math.floor(Date.now()/1000);\n";
         $js .= self::$js ? self::$js."\n": '';
-        $js .= PageFactory::$page->js()->value() ?? '';
+        $js .= PageFactory::$page->js()->value() ?? ''; // js from meta-file
+
+        if (option('pgfactory.pagefactory.pfyPageSwipeEnabled', false)) {
+            $js .= "const pfyPageSwipeEnabled = true;\n";
+        }
 
         if ($js) {
             $js = "\t\t".str_replace("\n", "\n\t\t", rtrim($js, "\n"));
@@ -396,7 +403,7 @@ EOT;
         }
 
         $jsWhenReady = self::$jsWhenReady ? self::$jsWhenReady."\n": '';
-        $jsWhenReady .= PageFactory::$page->jsWhenReady()->value() ?? '';
+        $jsWhenReady .= PageFactory::$page->jsWhenReady()->value() ?? ''; // jsReady from meta-file
         if ($jsWhenReady) {
             $jsWhenReady = "\t\t\t".str_replace("\n", "\n\t\t\t", rtrim($jsWhenReady, "\n"));
             $jsReadyInjection .= <<<EOT
@@ -412,9 +419,12 @@ EOT;
 
         $jsFilesInjection = Assets::renderJsLoadingCode();
 
+        $busySpinner = Utils::renderBusySpinner();
+
         // now assemble final output for body end injection:
         $html = <<<EOT
 
+$busySpinner
 $jsInjection
 $jsFilesInjection
 $jsReadyInjection
@@ -437,35 +447,40 @@ EOT;
         if (!$out) {
             $out = site()->$name()->value();
         }
+        if (str_contains('description,keywords,author,robots', $name) && (self::$$name?? false)) {
+            $out = self::$$name; // overridden by frontmatter
+        }
 
-        if ($out) {
-            if (stripos($out, '<meta') === false) {
-                $out = "\t<meta name='$name' content='$out'>\n";
-            } else {
-                $out = trim($out, "\n\t ");
-                $out = "\t$out\n";
-            }
-            return $out;
-        } else {
+        if (!$out) {
             return '';
         }
+
+        if ($name === 'robots') {
+            $out = self::getRobotsElem($out);
+        } else {
+            if (stripos($out, '<meta') === false) {
+                $out = "  <meta name='$name' content='$out'>\n";
+            } else {
+                $out = trim($out, "\n\t ");
+                $out = "  $out\n";
+            }
+        }
+        return $out;
     } // getHeaderElem
 
 
     /**
+     * @param string $value
      * @return string
      */
-    private static function getRobotsElem()
+    private static function getRobotsElem(string $value)
     {
-        $robots = (self::$robots !== 'false') ? self::$robots: false;
-        $robots2 = (PageFactory::$page->robots()->value() ?? false);
-        $robots3 = (PageFactory::$config['robots'] ?? false);
-        if ($robots || $robots2 || $robots3) {
-            $val = is_string(($robots)) ? $robots : (is_string(($robots2)) ? $robots2 : (is_string(($robots3)) ? $robots3 : true));
+        if ($value) {
+            $val = is_string(($value)) ? $value : true;
             if (is_bool($val) || $val === 'true' || $val === 'false') {
                 $val = 'noindex,nofollow,noarchive';
             }
-            return "<meta name='robots' content='$val'>\n";
+            return "  <meta name='robots' content='$val'>\n";
         } else {
             return '';
         }

@@ -52,8 +52,11 @@ class Frontmatter
                     TransVars::setVariable($k, $v);
                 }
 
-            } elseif (str_contains('description,keywords,author', $key)) {
-                Page::addHead("  <meta name='$key' content='$value'>\n");
+            } elseif (str_contains('description,keywords,author,robots', $key)) {
+                Page::append($key, $value);
+
+            } elseif ($key === 'title') {
+                TransVars::setVariable('headTitle', $value);
 
             } elseif ($key === 'showtill') {
                 if (time() > strtotime($value)) {

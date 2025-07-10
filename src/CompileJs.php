@@ -5,6 +5,7 @@ namespace PgFactory\PageFactory;
 class CompileJs
 {
     private static array $translated = [];
+
     /**
      * Checks and compiles all js files in $srcPath.
      * If $targPath is a file, compiles all js files into $targPath. Otherwise, compiles into
@@ -15,42 +16,85 @@ class CompileJs
      * 'compiling means: find variables like '{{ xy }}', replace them with a call to translateVar()
      *    at the same time assembles var definitions in the file head, such as
      *          var _pfyCancel = translateVar({"de":"Abbrechen","_":"Cancel"});
+     * @param string $srcPath
+     * @param string $targPath
      * @return void
      * @throws \Exception
      */
-    public static function compileAll(string $srcPath, $targPath): void
+    public static function compileAll(string $srcPath, string $targPath): void
     {
         $aggregatedTargetFile = preg_match('/\.(js|css)$/', $targPath) ? $targPath : '';
+        // in case of $aggregatedTargetFile, check whether update is required:
+        if ($aggregatedTargetFile) {
+            self::compileAggregatedFile($srcPath, $aggregatedTargetFile);
+        }
+
         $srcPath = rtrim($srcPath, '*');
         $files = getDir($srcPath.'*.js');
-        $out = '';
         foreach ($files as $file) {
             self::$translated = [];
             $filename = basename($file);
-            if ($aggregatedTargetFile) {
-                $out .= "/* === Automatically created from $filename - do not modify! === */\n";
-            } else {
-                $out = "/* === Automatically created from $filename - do not modify! === */\n";
-            }
-            $target = $aggregatedTargetFile ?: $targPath."-$filename";
-            $tSrc = fileTime($file);
+            $target = $targPath."-$filename";
             $tTarg = fileTime($target);
+            $tSrc = fileTime($file);
             if (($tTarg >= $tSrc) && !PageFactory::$forceAssetsUpdate) {
                 continue;
             }
+
+            $out = "/* === Automatically created from $filename - do not modify! === */\n";
             $out .= self::compile($file);
-            if (!$aggregatedTargetFile) {
-                writeFile($target, $out);
-            }
+            writeFile($target, $out);
             mylog("JS: '$target' compiled");
         } // foreach file
-
-        if ($aggregatedTargetFile) {
-            writeFile($aggregatedTargetFile, $out);
-        }
     } // compileAll
 
 
+    /**
+     * @param string $srcPath
+     * @param $aggregatedTargetFile
+     * @return void
+     * @throws \Exception
+     */
+    public static function compileAggregatedFile(string $srcPath, $aggregatedTargetFile): void
+    {
+        $srcPath = rtrim($srcPath, '*');
+        $files = getDir($srcPath.'*.js');
+        $out = '';
+        $tTarg = fileTime($aggregatedTargetFile);
+        if ($tTarg) {
+            $update = false;
+            foreach ($files as $file) {
+                $tSrc = fileTime($file);
+                if (($tTarg >= $tSrc) && !PageFactory::$forceAssetsUpdate) {
+                    continue;
+                }
+                $update = true;
+            }
+            if (!$update) {
+                return;
+            }
+        }
+
+        foreach ($files as $file) {
+            self::$translated = [];
+            $filename = basename($file);
+            $out .= "/* === Automatically created from $filename - do not modify! === */\n";
+            $out .= self::compile($file);
+            if (!$aggregatedTargetFile) {
+                writeFile($aggregatedTargetFile, $out);
+            }
+            mylog("JS: '$aggregatedTargetFile' compiled");
+        } // foreach file
+
+        writeFile($aggregatedTargetFile, $out);
+    } // compileAggregatedFile
+
+
+    /**
+     * @param $file
+     * @return string
+     * @throws \Exception
+     */
     public static function compile($file): string
     {
         $out = '';
