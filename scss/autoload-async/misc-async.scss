@@ -233,3 +233,20 @@
 } // pfy-help
 
 
+ // === busy spinner =========================
+.pfy-spinner-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100dvw;
+  height: 100dvh;
+  background: #0008;
+  z-index: 9998;
+  img {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    margin-top: calc(50vh - 40px);
+    margin-left: calc(50vw - 40px);
+    z-index: 1;
+  }
+}
