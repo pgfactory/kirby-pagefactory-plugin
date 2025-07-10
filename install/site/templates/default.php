@@ -10,7 +10,7 @@
   <?php snippet('prevnextlinks', ['args' => "type:'header-links'"]) ?>
 <?= $favicon ?>
 
-  <?= $headInjections ?>
+<?= $headInjections ?>
 </head>
 
 <body id='pfy' class='pfy-default-styling pfy-auto-tabulator <?= $bodyTagClasses ?>' <?= $bodyTagAttributes ?>>
@@ -75,7 +75,8 @@
 
 
 
-  <?= $smallScreenHeader ?>
+    <?= $smallScreenHeader ?>
+
 
   </div><!-- /pfy-main-wrapper -->
 
