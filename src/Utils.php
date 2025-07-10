@@ -264,6 +264,16 @@ class Utils
 
     /**
      * @return string
+     */
+    public static function renderBusySpinner()
+    {
+        $url = PFY_APP_BASE_URL . 'media/plugins/pgfactory/pagefactory/icons/spinner.gif';
+        return "<div class='pfy-spinner-overlay' style='display:none'><img data-src='$url'></div>";
+    } // renderBusySpinner
+
+
+    /**
+     * @return string
      * @throws Exception
      */
     public static function renderSmallScreenHeader(): string
@@ -1070,12 +1080,6 @@ EOT;
         }
         if ($s = $site->author()->value()) {
             PageFactory::$config['author'] = $s;
-        }
-        if ($s = $site->description()->value()) {
-            PageFactory::$config['description'] = $s;
-        }
-        if ($s = $site->keywords()->value()) {
-            PageFactory::$config['keywords'] = $s;
         }
     } // loadPfyConfig
 
