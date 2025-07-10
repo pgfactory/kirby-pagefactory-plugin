@@ -143,10 +143,12 @@ class PfyNav {
     // === ArrowDown:
     if (key === 'ArrowDown') {
       parent.focusOnNext(liElem);
+      ev.preventDefault();
 
     // === ArrowUp:
     } else if (key === 'ArrowUp') {
       parent.focusOnPrevous(liElem);
+      ev.preventDefault();
 
     // === ArrowRight:
     } else if (key === 'ArrowRight') {
@@ -158,6 +160,7 @@ class PfyNav {
         }
         parent.setFocusOn(liElem);
       }
+      ev.preventDefault();
 
     // === ArrowLeft:
     } else if (key === 'ArrowLeft') {
@@ -171,6 +174,7 @@ class PfyNav {
           parent.setFocusOnParent(liElem);
         }
       }
+      ev.preventDefault();
 
     // === Shift-Tab:
     } else if (ev.shiftKey && key === 'Tab') {
