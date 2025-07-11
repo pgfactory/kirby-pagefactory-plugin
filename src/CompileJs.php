@@ -27,6 +27,7 @@ class CompileJs
         // in case of $aggregatedTargetFile, check whether update is required:
         if ($aggregatedTargetFile) {
             self::compileAggregatedFile($srcPath, $aggregatedTargetFile);
+            return;
         }
 
         $srcPath = rtrim($srcPath, '*');
