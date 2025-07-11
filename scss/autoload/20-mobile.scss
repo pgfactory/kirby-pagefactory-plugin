@@ -156,6 +156,13 @@ $mobile-nav-bg-color:     var(--pfy-mobile-nav-bg-color, #{$mobile-nav-bg-color}
     }
   } // .pfy-auto-tabulator
 
+  .pfy-form .pfy-elem-wrapper {
+    input,
+    textarea {
+      font-size: 12pt;
+    }
+  }
+
 
 } // .pfy-small-screen
 
