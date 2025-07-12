@@ -58,16 +58,6 @@ class Frontmatter
             } elseif ($key === 'title') {
                 TransVars::setVariable('headTitle', $value);
 
-            } elseif ($key === 'showtill') {
-                if (time() > strtotime($value)) {
-                    $mdStr = '';
-                }
-
-            } elseif ($key === 'showfrom') {
-                if (time() < strtotime($value)) {
-                    $mdStr = '';
-                }
-
             } elseif ($key === 'robots') {
                 Page::applyRobotsAttrib($value);
 
@@ -100,7 +90,7 @@ class Frontmatter
                     Assets::addAssets($asset);
                 }
 
-            } elseif ($key === 'visibility') {
+            } elseif (($key === 'visibility') || ($key === 'visible')) {
                 if (!Permission::evaluate($value)) {
                     $continue = false;
                 }
