@@ -335,8 +335,10 @@ class Assets
                 $code = js(PFY_BASE_OFFSET.$asset);
 
             // assets in ~/assets folder:
-            } elseif (file_exists($asset)) {
-                $code = js(PFY_BASE_OFFSET.$asset);
+            } elseif (str_starts_with($asset, 'assets/')) {
+                if (file_exists($asset)) {
+                    $code = js(PFY_BASE_OFFSET . $asset);
+                }
 
             // explicitly provided urls:
             } elseif (str_starts_with($asset, 'http')) {
