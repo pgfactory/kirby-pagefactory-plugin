@@ -87,12 +87,12 @@ EOT;
         } else {
             // function name
             if (preg_match('/^\w+$/', $callback)) {
-                $callback = "$callback();";
+                $callback = "$callback(ev);";
             }
             $jq = <<<EOT
 pfyButton = document.querySelector('#$id');
 if (pfyButton) {
-    pfyButton.addEventListener('click', function(e) {
+    pfyButton.addEventListener('click', function(ev) {
         try {
           $callback
         } catch (error) {

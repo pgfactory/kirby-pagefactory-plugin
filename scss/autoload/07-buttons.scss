@@ -23,6 +23,7 @@
     .pfy-button-active {
         box-shadow: inset 0 0 4px red;
     }
+    [aria-pressed=true],
     .pfy-button-pressed,
     &.pfy-button-pressed {
       box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
