@@ -324,7 +324,7 @@ class Data2DSet extends DataSet
      * @throws \Exception
      */
     public function export(mixed $targetFile = false,
-                           bool  $includeMeta = false,
+                           mixed  $includeMeta = false,
                            mixed $fileType = false): string
     {
         if ($fileType === true || $fileType === 'office') {
@@ -348,7 +348,18 @@ class Data2DSet extends DataSet
         preparePath($toFile, 0755);
 
         if (!$this->data2D) {
-            $this->data2D = $this->normalizeData(false, '', $this->elementKeys);
+            $recElements = $this->elementKeys;
+            if (is_string($includeMeta)) {
+                if (str_contains($includeMeta, 'reckey')) {
+                    $recElements['Key'] = 'reckey';
+                } elseif (str_contains($includeMeta, 'timestamp')) {
+                    $recElements['_timestamp'] = TransVars::getVariable('pfy-table-timestamp-header');
+                }
+            } elseif ($includeMeta) {
+                $recElements['_reckey'] = TransVars::getVariable('pfy-table-reckey-header');
+                $recElements['_timestamp'] = TransVars::getVariable('pfy-table-timestamp-header');
+            }
+            $this->data2D = $this->normalizeData(false, '', $recElements, $includeMeta);
         }
         try {
             if ($fileType === 'office') {
