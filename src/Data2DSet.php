@@ -210,6 +210,15 @@ class Data2DSet extends DataSet
 
 
     /**
+     * @return array
+     */
+    public function getElementNames(): array
+    {
+        return $elementNames = array_keys($this->elementKeys);
+    } // getElementNames
+
+
+    /**
      * @param string $key
      * @param mixed $value
      * @return string
