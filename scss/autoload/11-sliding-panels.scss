@@ -1,0 +1,85 @@
+// === SkipLinks
+
+.pfy-default-styling {
+  .pfy-panels-wrapper {
+    --pfy-panels-width: calc(100vw - 2 * var(--pfy-page-padding, 4vw));
+    width: var(--pfy-panels-width);
+    overflow-x: hidden;
+    > div {
+      outline-offset: -1px;
+      width: 10000vw;
+      > section:first-child button.pfy-panel-arrow-prev,
+      > section:last-child button.pfy-panel-arrow-next {
+        opacity: 0;
+        pointer-events: none;
+      }
+    }
+    position: relative;
+  }
+  .pfy-panel {
+    display: inline-block;
+    vertical-align: top;
+    width: 0;
+    transition-property: width;
+    overflow: hidden;
+    margin-top: -1px;
+    background: var(--pfy-panel-center-background, inherit);
+    &.pfy-panel-open {
+      width: var(--pfy-panels-width);
+    }
+    > div {
+      width: calc(var(--pfy-panels-width) - 4px); //??? woher?
+    }
+  }
+  .pfy-panel-arrows {
+    font-size: max(10.1pt, 1em);
+    height: 3.5em;
+    display: flex;
+    justify-content: space-between;
+    button {
+      background: transparent;
+      border: none;
+    }
+    > button {
+      width: 3em;
+      padding: 0;
+    }
+    .pfy-panel-arrow-prev {
+      text-align: left;
+    }
+    .pfy-panel-arrow-next {
+      text-align: right;
+    }
+    .pfy-panel-header-center {
+      button {
+        width: 1.6em;
+        height: 1.6em;
+        line-height: 1.6em;
+        text-align: center;
+        border: 1px solid #bbb;
+        color: #555;
+        border-radius: 50%;
+        margin: 1px 0.25em;
+        background: var(--pfy-panel-center-button-background, inherit);
+      }
+      button::after {
+        content: attr(title);
+        transform: translate(-50%, 90%);
+        position: absolute;
+        text-align: center;
+      }
+      span {
+        width: var(--pfy-panel-center-space, 6em);
+        border-bottom: 1px solid gray;
+        display: inline-block;
+        margin-bottom: 3px;
+        height: 1px;
+        vertical-align: middle;
+      }
+    }
+    .pfy-panel-header-center button.pfy-curr-panel {
+      border: 1px solid #888;
+      color: #333;
+    }
+  }
+} // .pfy-default-styling

@@ -6,8 +6,17 @@ vgap: "<div class='pfy-vgap' style='margin:0.7em 0;'>&nbsp;</div>"
 space: "<span class='pfy-h-space' style='width:4ch'></span>"
 clear: '<div style="clear:both;"></div>'
 
-#--- Login Link ----------------------------------
+#--- Sliding Panels ----------------------------------
+pfy-goto-prev-panel-title:
+    de: Zur vorherigen Seite wechseln
+    _:  Go to previous panel
 
+pfy-goto-next-panel-title:
+    de: Zur nächsten Seite wechseln
+    _:  Go to next panel
+
+
+#--- Login Link ----------------------------------
 
 pfy-login-icon: "<span class='pfy-icon -user_male_circle'></span>"
 
