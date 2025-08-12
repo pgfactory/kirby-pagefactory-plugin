@@ -43,6 +43,45 @@ class Utils
 
 
     /**
+     * @param string $key
+     * @param mixed $value
+     * @return mixed
+     */
+    public static function setSessionVar(string $key, mixed $value): void
+    {
+        $pageId = str_replace('/', '-', page()->id());
+        $sessKey = "pfy.$pageId:$key";
+        kirby()->session()->set($sessKey, $value);
+    } // setSessionVar
+
+
+    /**
+     * @param string $key
+     * @param mixed $default
+     * @return mixed
+     */
+    public static function getSessionVar(string $key, mixed $default = false): mixed
+    {
+        $pageId = str_replace('/', '-', page()->id());
+        $sessKey = "pfy.$pageId:$key";
+        return kirby()->session()->get($sessKey, $default);
+    } // getSessionVar
+
+
+    /**
+     * @param string $key
+     * @param mixed $default
+     * @return mixed
+     */
+    public static function pullSessionVar(string $key, mixed $default = false): mixed
+    {
+        $pageId = str_replace('/', '-', page()->id());
+        $sessKey = "pfy.$pageId:$key";
+        return kirby()->session()->pull($sessKey, $default);
+    } // pullSessionVar
+
+
+    /**
      * Forces system reset when new or moved installation is detected.
      * @return void
      */
@@ -113,6 +152,7 @@ class Utils
         if ($user) {
             // user is already logged in, so inform and offer logout:
             $username = PageFactory::$userName;
+            TransVars::setVariable('username', $username);
             $logout = TransVars::getVariable('pfy-logout');
             self::$loginLink = "<a href='$logoutLink'>$logout</a>";
 
