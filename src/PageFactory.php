@@ -111,6 +111,7 @@ class PageFactory
     public static bool $renderingClosed = false;
     public static bool $addSectionInnerWrapper = false;
     public static string $sectionWrapperClass = '';
+    public static bool $slidingPanels = false;
 
     public function __construct($page, $pages, $site, $kirby)
     {
@@ -332,6 +333,7 @@ class PageFactory
         // first find _meta.md files (only containing frontmatter but no content):
         foreach ($files as $i => $file) {
             if (str_contains('#-_', basename($file)[0])) {
+                unset($files[$i]);
                 continue;
             }
             if (str_ends_with($file, '.meta.md')) {
@@ -346,20 +348,46 @@ class PageFactory
             }
         }
 
+        $slidingPanelsMode = !strcasecmp((string)page()->mode()->value(), 'slidingPanels');
+        $slidingPanelsHeader = '';
+        $sectionTitles = [];
+        $mdContents = [];
+        $outerWrapper1 = $outerWrapper2 = '';
+
+        // sort out remaining files:
+        foreach ($files as $i => $file) {
+            $mdStr = getFile($file, 'cstyle,emptylines,twig');
+
+            // extract frontmatter:
+            if ((!$res = Frontmatter::extract($mdStr)) || !trim($res[0], " \n\t")) {
+                // frontmatter indicated that this file shall be supressed
+                unset($files[$i]);
+                continue;
+            }
+
+            $mdContents[] = $res;
+            if (preg_match("/\n#\s+(.*?)\n/ms", "\n".$res[0], $m)) {
+                $sectionTitle = $m[1];
+                $sectionTitle = preg_replace('/\s*\{:.*/', '', $sectionTitle);
+                $sectionTitles[] = $sectionTitle;
+            } else {
+                $sectionTitle = base_name($file, false);
+                $sectionTitle = ucfirst(preg_replace('/^\S_/', '', $sectionTitle));
+                $sectionTitles[] = $sectionTitle;
+            }
+        }
+
+        $slidingPanelsMode |= self::$slidingPanels;
+        if ($slidingPanelsMode) {
+            $outerWrapper1 = "<div>\n";
+            $outerWrapper2 = "\n</div><!-- /.pfy-section-outer -->";
+        }
+
         // process remaining .md files:
         $inx = 0;
         $finalHtml = '';
         $abort = false;
         foreach ($files as $file) {
-            if (str_contains('#-_', basename($file)[0])) {
-                continue;
-            }
-            $inx++;
-            $mdStr = getFile($file, 'cstyle,emptylines,twig');
-            if (!$res = Frontmatter::extract($mdStr)) {
-                continue;
-            }
-
             // inner wrappers for sections -> used by PresentationSupport:
             $innerWrapper1 = $innerWrapper2 = '';
             if (self::$addSectionInnerWrapper) {
@@ -367,10 +395,8 @@ class PageFactory
                 $innerWrapper2 = "\n</div><!-- /.pfy-section-inner -->";
             }
 
-            list($mdStr, $wrapperTag, $wrapperClass) = $res;
-            if (!$mdStr) {
-                continue;
-            }
+            list($mdStr, $wrapperTag, $wrapperClass) = $mdContents[$inx];
+            $inx++;
 
             // check for end-of-page tag:
             if (str_contains($mdStr, '__EOP__')) {
@@ -380,6 +406,11 @@ class PageFactory
 
             $wrapperClass .= self::$sectionWrapperClass; // -> used by Presentation
 
+            if ($slidingPanelsMode) {
+                list($wrapperCls, $innerWrapper1, $innerWrapper2, $slidingPanelsHeader) = $this->handleSlidingPanels($inx, $sectionTitles);
+                $wrapperClass .= $wrapperCls;
+            }
+
             $wrapperId = "pfy-part-$inx";
             $fileId = translateToClassName(base_name($file, false), false);
             $fileId = 'pfy-src-'.preg_replace('/^\d+[_\s]?/', '', $fileId);
@@ -388,7 +419,7 @@ class PageFactory
             $html = <<<EOT
 
 <$wrapperTag id='$wrapperId' class='$wrapperClass'>
-$innerWrapper1
+$slidingPanelsHeader$innerWrapper1
 $html
 
 $innerWrapper2
@@ -406,6 +437,15 @@ EOT;
             }
         } // loop over files
 
+        if ($slidingPanelsMode) {
+            $finalHtml = <<<EOT
+<div class="pfy-panels-wrapper">
+$outerWrapper1$finalHtml$outerWrapper2
+</div><!-- /panels-wrapper -->
+
+EOT;
+
+        }
         return $finalHtml;
     } // loadMdFiles
 
@@ -475,5 +515,44 @@ EOT;
             }
         }
     } // checkInstallation
+
+
+    /**
+     * @param mixed $inx
+     * @param array $sectionTitles
+     * @return string[]
+     */
+    private function handleSlidingPanels(mixed $inx, array $sectionTitles): array
+    {
+        $wrapperClass = " pfy-panel pfy-panel-$inx";
+        if ($inx === 1) {
+            $wrapperClass .= ' pfy-panel-open';
+        }
+
+        $panelCenter = "";
+        foreach ($sectionTitles as $i => $label) {
+            $pInx = ($i + 1);
+            $class = ($inx === $i+1) ? 'pfy-curr-panel' : '';
+            $title = ($sectionTitles[$i] ?? false) ? " title='{$sectionTitles[$i]}'" : '';
+            $panelCenter .= "<button data-panel='$pInx' class='$class'$title>$pInx</button><span></span>";
+        }
+        $panelCenter = substr($panelCenter, 0, strlen($panelCenter)-13);
+
+        $innerWrapper1 = "  <div class='pfy-section-inner'>\n";
+        $innerWrapper2 = "\n  </div><!-- /.pfy-section-inner -->";
+        $labelPrev = ($sectionTitles[$inx-2] ?? false) ? '&larr; ' . ($inx-1) : '';
+        $labelNext = ($sectionTitles[$inx] ?? false) ? ($inx+1) ." &rarr;" : '';
+        $titlePrev = ($sectionTitles[$inx-2] ?? false) ? " title='{$sectionTitles[$inx-2]}'" : '';
+        $titleNext = ($sectionTitles[$inx] ?? false) ? " title='{$sectionTitles[$inx]}'" : '';
+        $slidingPanelsHeader = <<<EOT
+    <div class='pfy-panel-arrows'>
+        <button class='pfy-panel-arrow-prev'$titlePrev><span>$labelPrev</span></button>
+        <div class='pfy-panel-header-center'>$panelCenter</div>
+        <button class='pfy-panel-arrow-next'$titleNext><span>$labelNext</span></button>
+    </div>
+
+EOT;
+        return [$wrapperClass, $innerWrapper1, $innerWrapper2, $slidingPanelsHeader];
+    } // handleSlidingPanels
 
 } // PageFactory
