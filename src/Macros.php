@@ -82,7 +82,7 @@ class Macros
      */
     public static function execute(string $macroName, string $argStr): string|false
     {
-        $argStr = TransVars::resolveShortFormVariables($argStr);
+        $argStr = TransVars::resolveShortFormVariables($argStr, keepUnknows: true);
         if (function_exists("PgFactory\\PageFactory\\_$macroName")) {
             $macroName = "_$macroName";
         } elseif (!function_exists("PgFactory\\PageFactory\\$macroName")) {

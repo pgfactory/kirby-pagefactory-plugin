@@ -277,30 +277,20 @@ class TransVars
      * @param string $str
      * @return string
      */
-    public static function resolveShortFormVariables(string $str): string
+    public static function resolveShortFormVariables(string $str, bool $keepUnknows = false): string
     {
         if (str_contains($str, '%')) {
-            $p1 = strpos($str, '%');
-            while ($p1 !== false) {
-                $p2 = strpos($str, '%',$p1 + 1);
-                if ($p2 === false) {
-                    break;
-                }
-                $shield = $str[$p1-1]??false;
-                if (($shield === '\\') || ($p2-$p1 > 16)) {
-                    $p1 = strpos($str, '%', $p1+1);
-                    continue;
-                } else {
-                    $varName = substr($str, $p1+1, $p2-$p1-1);
+            if (preg_match_all('/%(\w{1,30})%/', $str, $m)) {
+                foreach($m[1] as $varName => $v) {
                     $value = self::getVariable($varName);
-                    if ($value !== false) {
-                        $str = substr($str, 0, $p1).$value.substr($str, $p2+1);
+                    if ($value !== null) {
+                        $str = str_replace($m[0], $value, $str);
+                    } elseif (!$keepUnknows) {
+                        $str = str_replace($m[0], '', $str);
                     }
-
                 }
-                $p1 = strpos($str, '%', $p1+1);
             }
-            // remove \ from shielded vars:
+
             if (str_contains($str, '\\%')) {
                 $str = str_replace('\\%', '%', $str);
             }
