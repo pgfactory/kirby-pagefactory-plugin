@@ -113,6 +113,9 @@ class Frontmatter
                     $continue = false;
                 }
 
+            } elseif ($key === 'slidingpanels') {
+                PageFactory::$slidingPanels = $value;
+
             } else {
                 // unescape escaped dividers within a field
                 TransVars::setVariable($key, $value);

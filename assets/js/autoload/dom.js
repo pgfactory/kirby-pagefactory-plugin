@@ -16,51 +16,54 @@ function domForAll(elem = document, pattern = null, fun = null) {
 
 
 function domForEach(elem = document, pattern = null, fun = null) {
-    let parentPattern, childPattern;
-    if (typeof elem === 'undefined' || elem === null) {
-      elem = document;
+  [elem, pattern, fun] = handleParentPattern(elem, pattern, fun);
+  if (pattern) {
+    const elems = elem.querySelectorAll(pattern);
+    if (elems) {
+      elems.forEach((el) => {
+        fun(el);
+      });
     }
-    [elem, pattern, parentPattern, childPattern, fun] = parseDomForArgs(elem, pattern, fun);
-    if (!fun) {
-       console.log('domForEach(): nothing to do');
-       return;
-   }
-
-   const elems = elem.querySelectorAll(pattern);
-   if (elems.length === 0) return;
-   elems.forEach((el) => {
-       if (parentPattern) el = el.closest(parentPattern);
-       if (el && childPattern) {
-         const els = el.querySelectorAll(childPattern);
-         if (els) {
-           els.forEach((el) => {
-             fun(el);
-           });
-         }
-       } else {
-         fun(el);
-       }
-   });
+  }
 } // domForEach
 
 
 function domForOne(elem = document, pattern = null, fun = null) {
-   let parentPattern, childPattern;
-   [elem, pattern, parentPattern, childPattern, fun] = parseDomForArgs(elem, pattern, fun);
-     if (!fun) {
-         console.log('domForEach(): nothing to do');
-         return;
-     }
-
-     if (elem && pattern) elem = elem.querySelector(pattern);
-     if (elem && parentPattern) elem = elem.closest(parentPattern);
-     if (elem && childPattern) elem = elem.querySelector(childPattern);
-     if (elem) fun(elem);
+  [elem, pattern, fun] = handleParentPattern(elem, pattern, fun);
+  if (pattern) {
+    elem = elem.querySelector(pattern);
+  }
+  if (elem) {
+   fun(elem);
+  }
 } // domForOne
 
 
-function parseDomForArgs(elem, pattern, fun) {
+function handleParentPattern(elem, pattern, fun) {
+  [elem, pattern, parentPattern, fun] = parseDomForArgs(elem, pattern, fun);
+  if (!fun) {
+    console.log('domForXY(): nothing to do');
+    return [false, false, false];
+  }
+  if (!elem || !elem instanceof Element) {
+    console.log(`DOM element is not a valid: ${elem}`);
+    return [false, false, false];
+  }
 
+  if (parentPattern) {
+    if (elem === document) {
+      console.log('When using ^ in pattern, elem must be defined (other than document).');
+    }
+    elem = elem.closest(parentPattern);
+  }
+  if (!elem) {
+    return [false, false, false];
+  }
+  return [elem, pattern, fun];
+} // handleParentPattern
+
+
+function parseDomForArgs(elem, pattern, fun) {
   if (typeof elem !== 'object') {
     const tmp = elem;
     fun = pattern;
@@ -70,7 +73,6 @@ function parseDomForArgs(elem, pattern, fun) {
 
   let m;
   let parentPattern = '';
-  let childPattern = '';
   pattern = pattern.trim();
   if (!pattern.includes('^')) {   // normal case, i.e. without parent selector syntax:
     // check whether pattern contains multiple comma separated segments:
@@ -96,25 +98,14 @@ function parseDomForArgs(elem, pattern, fun) {
       alert('Syntax error is argument: ' + pattern);
       return;
     }
-    m = pattern.match(/(.*)\^(.*)/);
-    if (m) {
-      pattern = m[1];
-      parentPattern = m[2];
-      m = parentPattern.match(/^\s*\{(.*?)}(.*)/);
-      if (m) {
-        parentPattern = m[1];
-        childPattern = m[2];
 
-      } else {
-        m = parentPattern.match(/(.*?)\s+(.*)/);
-        if (m) {
-          parentPattern = m[1];
-          childPattern = m[2];
-        }
-      }
+    m = pattern.match(/\^(\S*)\s*(.*)/);
+    if (m) {
+      parentPattern = m[1];
+      pattern = m[2];
     }
   }
-  return [elem, pattern, parentPattern, childPattern, fun];
+  return [elem, pattern, parentPattern, fun];
 } // parseDomForArgs
 
 
@@ -124,11 +115,16 @@ function domReady(fun)
 } // domReady
 
 
-function handleEvent(selector, func, trigger = 'click') {
-  document.addEventListener(trigger, (ev) => {
-    if (!ev.target.closest(selector)) {
-      return;
-    }
-    func(ev.target);
+function handleEvent(selector, func, trigger = 'click', containerEl = null) {
+  document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener(trigger, (ev) => {
+      if (containerEl && !containerEl.contains(ev.target)) {
+        return;
+      }
+      if (!ev.target.closest(selector)) {
+        return;
+      }
+      func(ev, ev.target);
+    });
   });
 } // handleEvent

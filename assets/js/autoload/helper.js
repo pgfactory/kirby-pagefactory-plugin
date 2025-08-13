@@ -82,7 +82,27 @@ function timeStamp() {
   return now.toLocaleString(undefined, options);
 }
 
+function isEmpty(obj) {
+  if (typeof obj !== 'object') {
+    return true;
+  }
+  return Object.keys(obj).length === 0;
+} // isEmpty
 
+
+function foreach(obj, fun) {
+  Object.entries(obj).forEach(entry => {
+    const [key, value] = entry;
+    console.log(key, value);
+    fun(key, value);
+  });
+} // foreach
+
+
+// usage: await sleep(<duration>);
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+} // sleep
 
 
 function scrollIntoView( selector, container ) {

@@ -14,32 +14,100 @@ namespace PgFactory\PageFactory;
 
 use PgFactory\PageFactory\DataSet;
 
-class Data2DSet extends DataSet
+class Data2DSet
 {
-    private mixed $includeSystemElements;
+    private string $file = '';
+    private string $downloadFilename = '';
+    private $officeDoc = false;
+    private array $options = [];
+    private array $data = [];
     private array $data2D = [];
-    private array $recElements = [];  // recKey:Label
-    private array $recKeys = [];
-    private bool  $markLocked = false;
-    private string $placeholderForUndefined = '?';
-    private array $options2d;
+    private array $colHeaders = [];  // recKey:Label
+    private bool  $markLocked;
+    private mixed $order;
+    private mixed $filter;
+    private object $db;
+    private int $nRows = 0;
+    private string $placeholderForUndefined = '';
+    public static $officeFormatAvailable;
 
+
+    /**
+     * @param string|array $file
+     * @param array $options
+     * @throws \Exception
+     */
     public function __construct(string|array $file, array $options = [])
     {
-        $this->options2d = $options;
-        $this->markLocked = $options['markLocked'] ?? false;
+        $this->parseOptions($options);
 
         if (is_array($file)) {
-            $this->data2D = $file;
-            $file = false;
+            $this->data = $file;
+        } else {
+            $this->file = $file;
+            $this->db = new DataSet($file, $options);
+            $this->data = $this->db->data(includeMetaFields: true);
         }
-        parent::__construct($file, $options);
-        $unknown = $options['unknownValue'] ?? ($options['placeholderForUndefined']??false);
-        if ($unknown !== false) {
-            $this->placeholderForUndefined = $unknown;
-        }
-        $this->includeSystemElements = $this->options['includeSystemElements']??false;
+
+        $this->normalizeData();
     } // __construct
+
+
+    /**
+     * @return array
+     */
+    public function data(): array
+    {
+        return $this->data2D;
+    } // data
+
+
+    /**
+     * @return int
+     */
+    public function getSize(): int
+    {
+        return $this->nRows;
+    } // getSize
+
+
+    /**
+     * @return array
+     */
+    public function getColHeaders(): array
+    {
+        return $this->colHeaders;
+    } // getColHeaders
+
+
+    public function addRec(array $rec, bool $flush = true, $recKeyToUse = false): object|string
+    {
+        return $this->db->addRec($rec, $flush, $recKeyToUse);
+    } // addRec
+
+
+    public function find(string $key): mixed
+    {
+        return $this->db->find($key);
+    } // find
+
+
+    public function remove(string $key): void
+    {
+        $this->db->remove($key);
+    } // remove
+
+
+    public function flush(): void
+    {
+        $this->db->flush();
+    } // flush
+
+
+    public function purge(): void
+    {
+        $this->db->purge();
+    } // purge
 
 
     /**
@@ -47,166 +115,84 @@ class Data2DSet extends DataSet
      * @return array
      * @throws \Exception
      */
-    public function getNormalized2Ddata($headerElems = true): array
+    public function normalizeData(): array
     {
-        $this->determineRecElements($headerElems);
+        $this->determineColHeaders();
 
-        $data2D = $this->normalizeData();
+        $this->data2D = $this->doNormalizeData();
 
-        $this->nRows = sizeof($data2D)-1;
-        $this->nCols = sizeof($this->recElements);
+        $this->nRows = sizeof($this->data2D)-1;
 
         if ($this->options['obfuscateRows']??false) {
             $this->obfuscateRows($this->options['obfuscateRows']);
         }
 
-        if ($this->options['minRows']??false) {
-            $this->addRows($this->options['minRows']);
+        if ($this->order) {
+            $this->sortData();
+        }
+        if ($this->filter) {
+            $this->filterData();
         }
 
         return $this->data2D;
-    } // getNormalized2Ddata
-
-
-    /**
-     * @param array|bool $headerElems
-     * @return void
-     */
-    private function determineRecElements(array|bool $headerElems): void
-    {
-        if (!$this->data) {
-            return ;
-        }
-
-        if ($headerElems) {
-            if ($headerElems === true) {
-                // derive headerElems from first data record:
-                $rec0 = reset($this->data);
-                $dataRec0 = $rec0->recData;
-                $elementKeys = array_keys($dataRec0);
-                if ($this->includeSystemElements) {
-                    if (!in_array(DATAREC_TIMESTAMP, $elementKeys)) {
-                        $elementKeys[] = DATAREC_TIMESTAMP;
-                    }
-                    if (!in_array('_reckey', $elementKeys)) {
-                        $elementKeys[] = '_reckey';
-                    }
-                } else {
-                    $elementKeys = array_filter($elementKeys, function ($e) {
-                        return (($e[0]??'') !== '_');
-                    });
-                    $elementKeys = array_values($elementKeys);
-                }
-                $headerElems = array_combine($elementKeys, $elementKeys);
-
-            } else {
-                $elementKeys = array_keys($headerElems);
-                if ($this->includeSystemElements) {
-                    if (!in_array(DATAREC_TIMESTAMP, $elementKeys)) {
-                        $headerElems[DATAREC_TIMESTAMP] = DATAREC_TIMESTAMP;
-                    }
-                    if (!in_array('_reckey', $elementKeys)) {
-                        $headerElems['_reckey'] = '_reckey';
-                    }
-                } else {
-                    $headerElems = array_filter($headerElems, function ($e) {
-                        if (!$e) {
-                            return false;
-                        }
-                        return (((string)$e)[0] !== '_');
-                    });
-                }
-            }
-            if ($this->markLocked) {
-                $headerElems['_locked'] = '_locked';
-            }
-        } else {
-            $headerElems = [];
-        }
-
-        $this->recElements = $headerElems;
-        $this->recKeys = array_keys($headerElems);
-    } // determineRecElements
-
-
-    /**
-     * @return array
-     * @throws \Exception
-     */
-    private function _normalizeData(): array
-    {
-        if (!PageFactory::$dev) {
-            $placeholderForUndefined = '';
-        } else {
-            $placeholderForUndefined = $this->placeholderForUndefined;
-        }
-        $data2D = $this->normalizeData(false, $placeholderForUndefined, $this->recElements);
-        $this->data2D = $data2D;
-        return $data2D;
-    } // _normalizeData
+    } // normalizeData
 
 
     /**
      * @param array|false $data
-     * @param string $placeholderForUndefined
-     * @param array $recElements
+     * @param array $colHeaders
      * @return array
      * @throws \Exception
      */
-    public function normalizeData(array|false $data, string $placeholderForUndefined, array|bool $recElements): array
+    private function doNormalizeData(): array
     {
-        if ($data === false) {
-            $data = $this->data(true);
+        $data = $this->data;
+
+        // deterime colHeaders:
+        $colHeaders = $this->colHeaders;
+        if (!array_is_list($colHeaders)) {
+            $colHeaders = array_keys($colHeaders);
         }
-        if (!is_array($recElements) || !$recElements) {
-            $rec0 = reset($data);
-            if (is_array($rec0)) {
-                unset($rec0['_reckey']);
-                $recElements = array_keys($rec0);
-                $recElements = array_combine($recElements, $recElements);
-            } else {
-                $recElements = [];
-            }
-        }
+
+        // assemble 2D data:
         $data2D = [];
-        $data2D['_hrd'] = $recElements;
         foreach ($data as $recKey => $rec) {
             $newRec = [];
-            foreach ($recElements as $key => $value) {
-                if (isset($rec[$key])) {
-                    $newRec[$key] = $this->normalizeDataElement($key, $rec[$key]);
+            foreach ($colHeaders as $elemKey) {
+                if (isset($rec[$elemKey])) {
+                    $newRec[$elemKey] = $this->normalizeDataElement($elemKey, $rec[$elemKey]);
 
                 } else {
                     // no elem found, check for indexed element of type 'a.b':
-                    if (str_contains($key, '.')) {
-                        $indexes = explode('.', $key);
+                    if (str_contains($elemKey, '.')) {
+                        $indexes = explode('.', $elemKey);
                         $v = $rec;
                         foreach ($indexes as $index) {
                             if (isset($v[$index])) {
                                 $v = $v[$index];
                             } elseif (is_scalar($v)) {
-                                $v = ($v === $value);
+                                $v = ($v === $index);
                             } else {
-                                $newRec[$value] = $placeholderForUndefined;
+                                $newRec[$elemKey] = $this->placeholderForUndefined;
                                 continue 2;
                             }
                         }
-                        $newRec[$key] = $this->normalizeDataElement($key, $v);
+                        $newRec[$elemKey] = $this->normalizeDataElement($elemKey, $v);
 
-                        // check whether indirect data access via recLabels works:
-                    } elseif (isset($rec[$recElements[$key]])) {
-                        $newRec[$key] = $this->normalizeDataElement($key, $rec[$recElements[$key]]);
+                    // check whether indirect data access via recLabels works:
+                    } elseif (isset($rec[($colHeaders[$elemKey]??false)])) {
+                        $newRec[$elemKey] = $this->normalizeDataElement($elemKey, $rec[$colHeaders[$elemKey]]);
 
                     // no matching data found -> mark as unknown
                     } else {
-                        $newRec[$key] = ($key === '_locked')? false : $placeholderForUndefined;
+                        $newRec[$elemKey] = ($elemKey === '_locked')? false : $this->placeholderForUndefined;
                     }
                 }
             }
             $data2D[$recKey] = $newRec;
         }
         return $data2D;
-    } // normalizeData
+    } // doNormalizeData
 
 
     /**
@@ -229,11 +215,63 @@ class Data2DSet extends DataSet
             $newValue = json_encode($value);
         }
 
-        if (($this->options2d['obfuscateRows']??false) && in_array($key, $this->options2d['obfuscateRows'])) {
+        if (($this->options['obfuscateRows']??false) && in_array($key, $this->options['obfuscateRows'])) {
             $newValue = '*****';
         }
         return $newValue;
     } // normalizeDataElement
+
+
+    /**
+     * @return void
+     */
+    private function sortData(): void
+    {
+        $data = $this->data2D;
+        uasort($data, function ($a,$b) {
+            return strcmp($a[$this->order]??'', $b[$this->order]??'');
+        });
+
+        if ($this->options['reversed']??false) {
+            $data = array_reverse($data, true);
+        }
+        $this->data2D = $data;
+    } // sortTableData
+
+
+    /**
+     * @return void
+     */
+    private function filterData(): void
+    {
+        $data = $this->data2D;
+
+        $filterElem = $this->filter['name']??false;
+        $filterValue = $this->filter['value']??false;
+        if (!$filterElem || !$filterValue) {
+            return;
+        }
+        $filterOp = $this->filter['op']??'===';
+
+        if ($filterOp === '===') {
+            $data = array_filter($data, function ($rec) use ($filterElem, $filterValue) {
+                return $rec[$filterElem] === $filterValue;
+            });
+        } else {
+            $data = array_filter($data, function ($rec) use ($filterElem, $filterValue, $filterOp) {
+                $v = $rec[$filterElem];
+                $expr = "return \"$v\" $filterOp \"$filterValue\";";
+                try {
+                    $res = eval($expr);
+                } catch (\Exception $e) {
+                    $res = false;
+                }
+                return $res;
+            });
+        }
+
+        $this->data2D = $data;
+    } // filterTableData
 
 
     /**
@@ -267,9 +305,6 @@ class Data2DSet extends DataSet
     {
         $data2D = &$this->data2D;
         foreach ($data2D as $row => $rec) {
-            if ($row === '_hdr') {
-                continue;
-            }
             foreach ($rec as $key => $value) {
                 if (in_array($key, $rows)) {
                     $data2D[$row][$key] = '*****';
@@ -279,20 +314,6 @@ class Data2DSet extends DataSet
     } // obfuscateRows
 
 
-    /**
-     * @param int $minRows
-     * @return void
-     */
-    private function addRows(int $minRows): void
-    {
-        if (($minRows) && ($minRows > $this->nRows)) {
-            $data2D = &$this->data2D;
-            $emptyRec = self::arrayCombine($this->recKeys, array_fill(0, $this->nCols, ''));
-            $emptyRecs = array_fill(0, ($minRows - $this->nRows), $emptyRec);
-            $data2D = array_merge_recursive($data2D, $emptyRecs);
-            $this->nRows = sizeof($data2D)-1;
-        }
-    } // addRows
 
 
     //=== Table Export =============================
@@ -348,18 +369,7 @@ class Data2DSet extends DataSet
         preparePath($toFile, 0755);
 
         if (!$this->data2D) {
-            $recElements = $this->elementKeys;
-            if (is_string($includeMeta)) {
-                if (str_contains($includeMeta, 'reckey')) {
-                    $recElements['Key'] = 'reckey';
-                } elseif (str_contains($includeMeta, 'timestamp')) {
-                    $recElements['_timestamp'] = TransVars::getVariable('pfy-table-timestamp-header');
-                }
-            } elseif ($includeMeta) {
-                $recElements['_reckey'] = TransVars::getVariable('pfy-table-reckey-header');
-                $recElements['_timestamp'] = TransVars::getVariable('pfy-table-timestamp-header');
-            }
-            $this->data2D = $this->normalizeData(false, '', $recElements, $includeMeta);
+            return '';
         }
         try {
             if ($fileType === 'office') {
@@ -371,7 +381,7 @@ class Data2DSet extends DataSet
                 $toFile .= 'csv';
                 $this->exportToCsv($toFile);
             } else {
-                $data = $this->data($includeMeta);
+                $data = $this->data;
                 writeFileLocking($toFile, $data);
             }
         } catch (\Exception $e) {
@@ -428,7 +438,7 @@ class Data2DSet extends DataSet
     protected function getDownloadFilename(mixed $basename = false): string
     {
         // use name of master file
-        $basename = $basename ?: $this->file;
+        $basename = $basename ?: basename($this->file);
 
         // determine download filename:
         if ($this->downloadFilename) {
@@ -437,7 +447,7 @@ class Data2DSet extends DataSet
         } elseif ($basename) {
             $downloadFilename = base_name($basename, false);
         } else {
-            $downloadFilename = $this->options2d['tableName']??'download';
+            $downloadFilename = $this->options['tableName']??'download';
             $basename = base_name($downloadFilename, false);
         }
         // determine download path (i.e. random hash static per page):
@@ -456,5 +466,67 @@ class Data2DSet extends DataSet
         $file = PFY_TEMP_DOWNLOAD_PATH."$dlHash/$downloadFilename.";
         return $file;
     } // getDownloadFilename
+
+
+    /**
+     * @return void
+     */
+    private function determineColHeaders(): void
+    {
+        if ($this->options['headers']) {
+            if (is_string($this->options['headers'])) {
+                $this->colHeaders = explodeTrim(',', $this->options['headers']);
+            } else {
+                $this->colHeaders = $this->options['headers'];
+            }
+            return;
+        }
+
+        $data = $this->data;
+        $colHeaders = [];
+        foreach ($data as $rec) {
+            foreach ($rec as $colKey => $col) {
+                $colHeaders[$colKey] = '';
+            }
+        }
+        $colHeaders = array_keys($colHeaders);
+        if ($this->markLocked) {
+            $colHeaders['_locked'] = '_locked';
+        }
+        $this->colHeaders = $colHeaders;
+    } // determineColHeaders
+
+
+    /**
+     * @return bool
+     */
+    public static function checkOfficeFormatIsAvailable()
+    {
+        self::$officeFormatAvailable = (class_exists('PhpOffice\PhpSpreadsheet\Spreadsheet'));
+        return self::$officeFormatAvailable;
+    } // checkOfficeFormatIsAvailable
+
+
+    /**
+     * @param array $options
+     * @param array|string $file
+     * @return void
+     * @throws \Exception
+     */
+    private function parseOptions(array $options): void
+    {
+        $this->options = $options;
+        $this->markLocked = $options['markLocked'] ?? false;
+
+
+        $unknown = $options['unknownValue'] ?? ($options['placeholderForUndefined'] ?? false);
+        if ($unknown !== false) {
+            $this->placeholderForUndefined = $unknown;
+        }
+        $this->order = $this->options['order'] ?? false;
+        $this->filter = $this->options['filter'] ?? false;
+        $this->downloadFilename = $options['downloadFilename'] ?? false;
+
+    } // parseOptions
 
 } // Data2DSet

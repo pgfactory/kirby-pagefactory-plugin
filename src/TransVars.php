@@ -165,7 +165,7 @@ class TransVars
      * @param bool $varNameIfNotFound
      * @return string
      */
-    public static function getVariable(string $varName, bool $varNameIfNotFound = false, string $lang = ''): mixed
+    public static function getVariable(string $varName, bool|string $varNameIfNotFound = false, string $lang = ''): mixed
     {
         $varName1 = camelCase($varName);
         $page = page();
@@ -200,7 +200,7 @@ class TransVars
             }
         }
         if ($out === null) {
-            $out = $varNameIfNotFound ? $varName: null;
+            $out = $varNameIfNotFound ? (is_string($varNameIfNotFound) ? $varNameIfNotFound : $varName): null;
         } elseif (is_array($out)) {
             $out = reset($out);
         }

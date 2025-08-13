@@ -16,6 +16,9 @@ class CompileJs
      * 'compiling means: find variables like '{{ xy }}', replace them with a call to translateVar()
      *    at the same time assembles var definitions in the file head, such as
      *          var _pfyCancel = translateVar({"de":"Abbrechen","_":"Cancel"});
+     */
+
+    /**
      * @param string $srcPath
      * @param string $targPath
      * @return void

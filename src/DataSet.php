@@ -8,6 +8,7 @@ use Kirby\Data\Yaml as Yaml;
 
  // meta keys:
 const DATAREC_TIMESTAMP = '_timestamp';
+const DATAREC_RECKEY = '_reckey';
 const SUPPORTED_FILE_TYPES = 'yaml,json,csv,txt';
 
  // timings:
@@ -37,9 +38,6 @@ class DataSet
     protected $data;
     protected $masterFileRecKeyType;    // rec key type as to appear externally (e.g. in Yaml file)
     protected $recKeyType;              // rec key type used internally, default: hash
-    public static $officeFormatAvailable;
-    protected $officeDoc = false;
-    protected $downloadFilename;
     protected $nCols;
     protected $nRows;
     protected $lastModified = 0;
@@ -50,6 +48,7 @@ class DataSet
     protected int $keepDataThreshold = 0; // unix-time
     protected string|false $keepDataOnField; // field-name
     protected static $sessionId = false;
+    private string $lastCreatedRecKey = '';
 
 
     /**
@@ -70,72 +69,7 @@ class DataSet
      */
     public function __construct(string $file, array $options = [])
     {
-        $this->includeMeta =            $options['includeMeta'] ?? null;
-        $this->readWriteMode =          $options['readWriteMode'] ?? true;
-        $this->obfuscateRecKeys =       $options['obfuscateRecKeys'] ?? false;
-        $this->maxRecLockTime =         (isset($options['maxRecLockTime']) && $options['maxRecLockTime']) ?
-                                            $options['maxRecLockTime']: DEFAULT_MAX_REC_LOCK_TIME;
-        $this->maxRecBlockingTime =     (isset($options['maxRecBlockingTime']) && $options['maxRecBlockingTime'])
-                                            ?$options['maxRecBlockingTime'] : DEFAULT_MAX_REC_BLOCKING_TIME;
-        $this->downloadFilename =       $options['downloadFilename'] ?? false;
-        $this->avoidDuplicates =        $options['avoidDuplicates'] ?? true;
-        $this->recKeyType =             $options['recKeyType'] ?? 'hash';
-        $this->masterFileRecKeyType =   $options['masterFileRecKeyType'] ?? 'hash';
-
-        if ($keepDataDuration = ($options['keepDataDuration'] ?? DEFAULT_KEEP_DATA_DURATION)) {
-            $this->keepDataThreshold = strtotime("- $keepDataDuration months");
-        }
-        $this->keepDataOnField =   $options['keepDataOnField'] ?? false; // false means '_timestamp'
-
-        if (isset($options['blocking'])) {
-            if (is_int($options['blocking'])) {
-                $this->blocking = $options['blocking'];
-            } elseif ($options['blocking']) {
-                $this->blocking = DEFAULT_MAX_DB_BLOCKING_TIME;
-            }
-        }
-        $this->options = $options;
-        $this->dev = PageFactory::$dev ?? Utils::determineDevState();
-
-        if (!$file) {
-            $this->lockFile = '';
-            return;
-        } else {
-        // access data file:
-            if (!file_exists(PFY_CACHE_PATH . 'data')) {
-                preparePath(PFY_CACHE_PATH . 'data/');
-            }
-            $file = resolvePath($file);
-            $this->name = base_name($file, false);
-            $this->type = fileExt($file);
-            if (!str_contains(SUPPORTED_FILE_TYPES, $this->type)) {
-                throw new \Exception("Error: DataSet invoked with unsupported file-type: '$this->type'");
-            }
-            $this->file = $file;
-            $p = substr(dirname($file), strlen(PFY_KIRBY_BASE_PATH));
-            $dataFile = str_replace('/', '_', $p) . '_' . base_name($file, false);
-            $this->cacheFile = PFY_CACHE_PATH . "data/$dataFile.cache.dat";
-            // lockFile needs to be absolute because it may be used by __destruct():
-            $this->lockFile = PFY_CACHE_PATH . "data/$dataFile.lock";
-
-            // if data file doesn't exist, prepare it empty and make sure no old cache/lock-files exist.
-            if (!is_file($file)) {
-                preparePath($file);
-                touch($file);
-                if (file_exists($this->cacheFile)) {
-                    unlink($this->cacheFile);
-                }
-                if (file_exists($this->lockFile)) {
-                    unlink($this->lockFile);
-                }
-            }
-            if ($this->readWriteMode) {
-                $this->lockDatasource();
-            }
-            $this->initData();
-        }
-
-        self::checkOfficeFormatIsAvailable();
+        $this->parseOptions($file, $options);
     } // __construct
 
 
@@ -190,16 +124,16 @@ class DataSet
         }
         if (!$includeMetaFields) {
             foreach ($out as $key => $rec) {
-                unset($out[$key]['_timestamp']);
-                unset($out[$key]['_reckey']);
+                unset($out[$key][DATAREC_TIMESTAMP]);
+                unset($out[$key][DATAREC_RECKEY]);
             }
-        } elseif ($includeMetaFields === '_reckey') {
+        } elseif ($includeMetaFields === DATAREC_RECKEY) {
             foreach ($out as $key => $rec) {
-                unset($out[$key]['_timestamp']);
+                unset($out[$key][DATAREC_TIMESTAMP]);
             }
-        } elseif ($includeMetaFields === '_timestamp') {
+        } elseif ($includeMetaFields === DATAREC_TIMESTAMP) {
             foreach ($out as $key => $rec) {
-                unset($out[$key]['_reckey']);
+                unset($out[$key][DATAREC_RECKEY]);
             }
         }
         return $out;
@@ -312,16 +246,18 @@ class DataSet
             if ($this->obfuscateRecKeys) {
                 $recKeyToUse = $this->deObfuscateRecKey($recKeyToUse);
             }
-            $recKeyToUse = $this->deObfuscateRecKey($recKeyToUse);
-            $dr = new DataRec($recKeyToUse, $rec, $this);
-            $dr->set('_reckey', $recKeyToUse);
-            $this->data[$recKeyToUse] = $dr;
+            $uid = $this->deObfuscateRecKey($recKeyToUse);
+            $dr = new DataRec($uid, $rec, $this);
+            $dr->set(DATAREC_RECKEY, $recKeyToUse);
+            $this->data[$uid] = $dr;
+            $this->lastCreatedRecKey = $uid; // -> to be picked up by consecutive ->recId() call
 
         } else {
                 if (!$this->avoidDuplicates || !$this->recExists($rec)) {
                     $dr = new DataRec(false, $rec, $this);
-                    $uid = $dr->get('_reckey');
+                    $uid = $dr->get(DATAREC_RECKEY);
                     $this->data[$uid] = $dr;
+                    $this->lastCreatedRecKey = $uid; // -> to be picked up by consecutive ->recId() call
                 }
         }
         if ($flush) {
@@ -330,6 +266,12 @@ class DataSet
         $this->nRows = sizeof($this->data);
         return $this;
     } // addRec
+
+
+    public function recId(): string
+    {
+        return $this->lastCreatedRecKey;
+    } // recId
 
 
 
@@ -571,7 +513,7 @@ class DataSet
         $elementKeys = array_values($this->elementKeys);
         if ($includeMeta || $this->includeMeta) {
             $elementKeys['_origRecKey'] = '_origRecKey';
-            $elementKeys['_reckey'] = '_reckey';
+            $elementKeys[DATAREC_RECKEY] = DATAREC_RECKEY;
             $elementKeys[DATAREC_TIMESTAMP] = DATAREC_TIMESTAMP;
         }
         return $elementKeys;
@@ -582,7 +524,7 @@ class DataSet
      * Returns the index of one or multiple record(s) that match description.
      *    $inx = $ds->findRecKeyOf('Bob'); // case insensitive
      *    $inx = $ds->findRecKeyOf('M40ED116'); // uid instead of key
-     *    $inx = $ds->findRecKeyOf('M40ED116', '_reckey');
+     *    $inx = $ds->findRecKeyOf('M40ED116', DATAREC_RECKEY);
      *    $inx = $ds->findRecKeyOf('123456', 'password'); // value and element-label
      *    $inx = $ds->findRecKeyOf('x', 'x'); // no match returns null
      *    $inx = $ds->findRecKeyOf(2); // error
@@ -596,13 +538,13 @@ class DataSet
     {
         $found = [];
         if ($attribute) {
-            // allow for 'uid' instead of internally used '_reckey':
+            // allow for 'uid' instead of internally used DATAREC_RECKEY:
             if ($attribute === 'reckey') {
-                $attribute = '_reckey';
+                $attribute = DATAREC_RECKEY;
             }
             foreach ($this->data as $recUid => $elem) {
-                // check whether matches with '_reckey'-property:
-                if (($attribute === '_reckey') && strcasecmp($elem->_reckey, $key) === 0) {
+                // check whether matches with DATAREC_RECKEY-property:
+                if (($attribute === DATAREC_RECKEY) && strcasecmp($elem->_reckey, $key) === 0) {
                     $found[] = $recUid;
                     if (!$all) { break; }
 
@@ -640,7 +582,7 @@ class DataSet
      *   $dataRec = $ds->find('Bob'); // key
      *   $dataRec = $ds->find('Bob@site.com', 'email'); // value and element-label
      *   $dataRec = $ds->find('M40ED116', 'uid'); // uid
-     *   $dataRec = $ds->find('M40ED116', '_reckey'); // uid (internally used label)
+     *   $dataRec = $ds->find('M40ED116', DATAREC_RECKEY); // uid (internally used label)
      *   $dataRec = $ds->find('A', 'cat'); // finds first match
      *   $dataSet = $ds->find('A', 'cat', 'all'); // returns a DataSet of all matching records
      * @param ...$keys
@@ -651,6 +593,10 @@ class DataSet
     {
         if ($args) {
             $key = array_shift($args);
+            if ($this->data[$key]??false) {
+                return $this->data[$key];
+            }
+
             $attribute = $args[0] ?? null;
             if (is_int($key) && ($attribute === null)) { // case: index supplied
                 return $this->nth($key);
@@ -1077,11 +1023,11 @@ class DataSet
                 $recKeyToUse = $key;
             } else {
                 $rec['_origRecKey'] = $key;
-                if (!isset($rec['_reckey'])) {
-                    $rec['_reckey'] = createHash();
+                if (!isset($rec[DATAREC_RECKEY])) {
+                    $rec[DATAREC_RECKEY] = createHash();
                     $modified = true;
                 }
-                $recKeyToUse = $rec['_reckey'];
+                $recKeyToUse = $rec[DATAREC_RECKEY];
             }
             $this->addRec($rec, flush: false, recKeyToUse: $recKeyToUse);
         }
@@ -1113,7 +1059,7 @@ class DataSet
                 if (preg_match('/(index|_origRecKey|_reckey)/', $el, $m)) {
                     $masterFileRecKeyType = $m[1];
                 } else if ($el === 'uid') { // synonym for _reckey
-                    $masterFileRecKeyType = '_reckey';
+                    $masterFileRecKeyType = DATAREC_RECKEY;
                 } elseif (preg_match('/.*\.\s*(.+)/', $el, $m)) { // rec.xy
                     $masterFileRecKeyType = '.' . $m[1];
 
@@ -1131,7 +1077,7 @@ class DataSet
         // remove old data records, move them to archive file:
         $this->archiveOldData();
 
-        $includeMeta = ($this->includeMeta !== null) ? $this->includeMeta :'_reckey';
+        $includeMeta = ($this->includeMeta !== null) ? $this->includeMeta :DATAREC_RECKEY;
         try {
             // sort:
             if ($recKeySort) {
@@ -1274,7 +1220,6 @@ class DataSet
             } else {
                 $data = [];
             }
-            $ds->officeDoc = [];
             writeFileLocking($this->cacheFile, serialize($ds), blocking: true);
 
             // export debug copy if debug enabled:
@@ -1429,17 +1374,6 @@ class DataSet
 
 
     /**
-     * @return bool
-     */
-    public static function checkOfficeFormatIsAvailable()
-    {
-        self::$officeFormatAvailable = (class_exists('PhpOffice\PhpSpreadsheet\Spreadsheet'));
-        return self::$officeFormatAvailable;
-    } // checkOfficeFormatIsAvailable
-
-
-
-    /**
      * Returns internal structure of datasource in readable form.
      * If $cacheFile, writes result out to a .txt file instead.
      * @param bool $asHtml
@@ -1480,5 +1414,79 @@ class DataSet
             return $str;
         }
     } // debugDump
+
+
+    /**
+     * @param array $options
+     * @param string $file
+     * @return void
+     * @throws \Exception
+     */
+    private function parseOptions(string $file, array $options): void
+    {
+        $this->includeMeta = $options['includeMeta'] ?? null;
+        $this->readWriteMode = $options['readWriteMode'] ?? true;
+        $this->obfuscateRecKeys = $options['obfuscateRecKeys'] ?? false;
+        $this->maxRecLockTime = (isset($options['maxRecLockTime']) && $options['maxRecLockTime']) ?
+            $options['maxRecLockTime'] : DEFAULT_MAX_REC_LOCK_TIME;
+        $this->maxRecBlockingTime = (isset($options['maxRecBlockingTime']) && $options['maxRecBlockingTime'])
+            ? $options['maxRecBlockingTime'] : DEFAULT_MAX_REC_BLOCKING_TIME;
+        $this->avoidDuplicates = $options['avoidDuplicates'] ?? true;
+        $this->recKeyType = $options['recKeyType'] ?? 'hash';
+        $this->masterFileRecKeyType = $options['masterFileRecKeyType'] ?? 'hash';
+
+        if ($keepDataDuration = ($options['keepDataDuration'] ?? DEFAULT_KEEP_DATA_DURATION)) {
+            $this->keepDataThreshold = strtotime("- $keepDataDuration months");
+        }
+        $this->keepDataOnField = $options['keepDataOnField'] ?? false; // false means '_timestamp'
+
+        if (isset($options['blocking'])) {
+            if (is_int($options['blocking'])) {
+                $this->blocking = $options['blocking'];
+            } elseif ($options['blocking']) {
+                $this->blocking = DEFAULT_MAX_DB_BLOCKING_TIME;
+            }
+        }
+        $this->options = $options;
+        $this->dev = PageFactory::$dev ?? Utils::determineDevState();
+
+        if (!$file) {
+            $this->lockFile = '';
+
+        } else {
+            // access data file:
+            if (!file_exists(PFY_CACHE_PATH . 'data')) {
+                preparePath(PFY_CACHE_PATH . 'data/');
+            }
+            $file = resolvePath($file);
+            $this->name = base_name($file, false);
+            $this->type = fileExt($file);
+            if (!str_contains(SUPPORTED_FILE_TYPES, $this->type)) {
+                throw new \Exception("Error: DataSet invoked with unsupported file-type: '$this->type'");
+            }
+            $this->file = $file;
+            $p = substr(dirname($file), strlen(PFY_KIRBY_BASE_PATH));
+            $dataFile = str_replace('/', '_', $p) . '_' . base_name($file, false);
+            $this->cacheFile = PFY_CACHE_PATH . "data/$dataFile.cache.dat";
+            // lockFile needs to be absolute because it may be used by __destruct():
+            $this->lockFile = PFY_CACHE_PATH . "data/$dataFile.lock";
+
+            // if data file doesn't exist, prepare it empty and make sure no old cache/lock-files exist.
+            if (!is_file($file)) {
+                preparePath($file);
+                touch($file);
+                if (file_exists($this->cacheFile)) {
+                    unlink($this->cacheFile);
+                }
+                if (file_exists($this->lockFile)) {
+                    unlink($this->lockFile);
+                }
+            }
+            if ($this->readWriteMode) {
+                $this->lockDatasource();
+            }
+            $this->initData();
+        }
+    } // parseOptions
 
 } // DataSet

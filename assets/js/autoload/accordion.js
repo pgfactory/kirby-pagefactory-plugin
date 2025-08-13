@@ -136,11 +136,14 @@ class Accordion {
     closeSiblings() {
       const parent = this;
       if (this.autoCloseAllEl) {
-        domForEach(this.autoCloseAllEl, 'details', el => {
-          if (el.open && parent.el !== el) {
-            parent.closeSibling(el);
-          }
-        })
+        const elems = this.autoCloseAllEl.querySelectorAll('details');
+        if (elems) {
+            elems.forEach(el => {
+            if (el.open && parent.el !== el) {
+              parent.closeSibling(el);
+            }
+          });
+        }
       }
     } // closeSiblings
 
@@ -176,18 +179,41 @@ class Accordion {
 } // Accordion
 
 
-domReady(() => {
-  if (!CSS.supports("selector(::details-content)")) {
-    domForEach('details.mdp-accordion, .mdp-accordion details', el => {
-      new Accordion(el);
-    })
-  }
+document.addEventListener('DOMContentLoaded', ev => {
+    const cssSupport = CSS.supports("selector(::details-content)");
+    const elems = ev.target.querySelectorAll('details.mdp-accordion, .mdp-accordion details');
+    if (elems) {
+      elems.forEach((el) => {
+        if (!cssSupport) {
+          new Accordion(el);
+        }
+        const formFields = el.querySelectorAll('input,textarea');
+        if (formFields) {
+          const ignore = 'button,submit,cancel,hidden';
+          formFields.forEach(formEl => {
+            const type = formEl.getAttribute('type');
+            if (ignore.includes(type) || formEl.classList.contains('pfy-reveal-controller')) {
+              return;
+            }
+            if (formEl.innerText || formEl.value || formEl.dataset.value) {
+              // console.log(`type: ${type} innerText: ${formEl.innerText}, value: ${formEl.value}`);
+              el.open = true;
+            }
+          });
+        }
+      });
+    } // initialize
+
+
   // for printing, open all accordions:
   if (window.matchMedia('print').matches) {
-    mylog('opening accordions for printing...');
-    domForEach('details.mdp-accordion, .mdp-accordion details', el => {
-      el.removeAttribute('name');
-      el.open = true;
-    })
-  }
-})
+    console.log('opening accordions for printing...');
+    const elems = elem.querySelectorAll('details.mdp-accordion, .mdp-accordion details');
+    if (elems) {
+      elems.forEach((el) => {
+        el.removeAttribute('name');
+        el.open = true;
+      });
+    }
+  } // open for printing
+}); // DOMContentLoaded

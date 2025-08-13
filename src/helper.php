@@ -1043,7 +1043,7 @@ function writeFile(string $file, string $content, int $flags = 0, int $permissio
          $content = prettifyYaml($content);
 
      } elseif ($type === 'json') {
-         $content = Data::encode($content, $type);
+         $content = json_encode($content, JSON_PRETTY_PRINT);
 
      }
     file_put_contents($file, $content, FILE_APPEND);
@@ -1073,7 +1073,7 @@ function writeFileLocking(string $file, mixed $content, string $type = '', bool 
         $content = prettifyYaml($content);
 
     } elseif ($type === 'json') {
-        $content = Data::encode($content, $type);
+        $content = json_encode($content, JSON_PRETTY_PRINT);
 
     } elseif ($type === 'txt') {
         $tmp = '';
@@ -2345,6 +2345,7 @@ function translateToClassName(string $str, bool $handleLeadingNonChar = true): s
     if ($handleLeadingNonChar && !preg_match('/[a-z]/', ($str[0]??''))) { // prepend '_' if first char non-alpha
         $str = "_$str";
     }
+    $str = str_replace('_', '-', $str);
     return $str;
 } // translateToClassName
 
