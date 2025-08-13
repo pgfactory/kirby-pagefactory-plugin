@@ -26,7 +26,7 @@ class Image
     private string $attributes = '';
     private string $srcset = '';
     private string $caption = '';
-    private string $wrapperTag = '';
+    private mixed $wrapperTag = 'div';
     private string $wrapperClass = '';
     private string $format = '';
     private int $quality; // %
@@ -432,7 +432,7 @@ EOT;
         $this->determineRequestedSize(); // -> $this->requestedWidth and $this->requestedHeight
 
         $this->class          = ($options['class']??'') . " pfy-img-$inx";
-        $this->wrapperTag     = ($options['wrapperTag']??false) ?: 'div';
+        $this->wrapperTag     = (($options['wrapperTag']??false) !== null) ?($options['wrapperTag']??'div'): 'div';
         $this->wrapperClass   = $options['wrapperClass']??'';
         $this->caption        = $options['caption']??'';
         $this->lazyLoadingActive = $options['lazyLoading']??false;
