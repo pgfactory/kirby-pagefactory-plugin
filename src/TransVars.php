@@ -446,7 +446,7 @@ class TransVars
                     }
                 }
             }
-            if (str_contains($value, '\\ ')) {
+            if ($value !== null && str_contains($value, '\\ ')) {
                 $value = str_replace('\\ ', '&nbsp;', $value);
             }
             if ($doShield) {
