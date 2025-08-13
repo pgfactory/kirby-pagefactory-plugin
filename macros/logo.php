@@ -46,6 +46,7 @@ EOT,
     $text = ($options['text']??false) ? "<span>{$options['text']}</span>" : '';
     $options['quickzoom'] = false;
     $options['lazyLoading'] = false;
+    $options['wrapperTag'] = false;
     $options['id'] = "pfy-logo-$inx";
     if ($options['link']??false) {
         $options['url'] = $options['link'];
@@ -61,7 +62,7 @@ EOT,
 
     $wrapperClass = $options['wrapperClass'];
 
-    $str = <<<EOT
+    $str .= <<<EOT
 <div class="pfy-logo $wrapperClass">
 $html$text
 </div>
