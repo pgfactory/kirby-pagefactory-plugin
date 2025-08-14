@@ -365,20 +365,19 @@ EOT;
             $args = preg_replace('|\\\//.*|', '', $args);
 
             if ($reveal) {
-                Assets::addAssets('REVEAL');
                 $src = <<<EOT
-<div class="pfy-reveal-source">
-<div class="pfy-reveal-controller-wrapper-src pfy-reveal-controller-wrapper">
-<input id="pfy-reveal-controller-src" class="pfy-reveal-controller" type="checkbox" data-reveal-target="#pfy-reveal-container-src" data-icon-closed="▷" data-icon-open="▷" aria-expanded="false">
-<label for="pfy-reveal-controller-src">{{ pfy-show-source-code }}</label>
-</div>
 
-<div id='pfy-reveal-container-src' class="pfy-reveal-container" aria-hidden="true">
+<details class="mdp-accordion">
+      <summary><span>{{ pfy-show-source-code }}</span></summary>
+      <div class="mdp-accordion-body">
+
 $src
-</div>
-</div>
+
+      </div><!-- /.mdp-accordion-body -->
+    </details>
 
 EOT;
+                $src = markdown($src);
             }
         }
         return array($args, $src);
