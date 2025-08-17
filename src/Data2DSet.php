@@ -123,9 +123,7 @@ class Data2DSet
 
         $this->nRows = sizeof($this->data2D)-1;
 
-        if ($this->options['obfuscateRows']??false) {
-            $this->obfuscateRows($this->options['obfuscateRows']);
-        }
+        $this->obfuscateRequestedColumns();
 
         if ($this->order) {
             $this->sortData();
@@ -214,10 +212,6 @@ class Data2DSet
         } elseif (is_array($value)) {
             $newValue = json_encode($value);
         }
-
-        if (($this->options['obfuscateRows']??false) && in_array($key, $this->options['obfuscateRows'])) {
-            $newValue = '*****';
-        }
         return $newValue;
     } // normalizeDataElement
 
@@ -298,20 +292,33 @@ class Data2DSet
 
 
     /**
-     * @param array $rows
      * @return void
      */
-    private function obfuscateRows(array $rows): void
+    private function obfuscateRequestedColumns(): void
     {
+        if (!$this->options['obfuscateCols']) {
+            return;
+        }
+        $cols = $this->options['obfuscateCols'];
+        foreach ($cols as $i => $patt) {
+            if (preg_match('/^(.*?)\*.*/', $patt, $m)) {
+                $patt = strtolower($m[1]);
+                foreach (array_keys($this->colHeaders) as $key) {
+                    if (str_starts_with(strtolower($key), $patt)) {
+                        $cols[$i] = $key;
+                    }
+                }
+            }
+        }
         $data2D = &$this->data2D;
         foreach ($data2D as $row => $rec) {
             foreach ($rec as $key => $value) {
-                if (in_array($key, $rows)) {
+                if (in_array($key, $cols)) {
                     $data2D[$row][$key] = '*****';
                 }
             }
         }
-    } // obfuscateRows
+    } // obfuscateRequestedColumns
 
 
 
