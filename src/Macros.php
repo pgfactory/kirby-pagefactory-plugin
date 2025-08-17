@@ -259,7 +259,7 @@ EOT;
             }
         }
         return $options;
-    } // parseTwigFunctionArguments
+    } // parseMacroArguments
 
 
     /**
@@ -367,17 +367,16 @@ EOT;
             if ($reveal) {
                 $src = <<<EOT
 
-<details class="mdp-accordion">
+<details class="mdp-accordion mdp-accordion-initially-closed">
       <summary><span>{{ pfy-show-source-code }}</span></summary>
       <div class="mdp-accordion-body">
 
 $src
 
       </div><!-- /.mdp-accordion-body -->
-    </details>
+</details>
 
 EOT;
-                $src = markdown($src);
             }
         }
         return array($args, $src);
