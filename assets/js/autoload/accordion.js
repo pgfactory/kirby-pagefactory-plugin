@@ -187,6 +187,11 @@ document.addEventListener('DOMContentLoaded', ev => {
         if (!cssSupport) {
           new Accordion(el);
         }
+
+        // pre-open, if it contains non-empty form fields, unles .mdp-accordion-initially-closed is present:
+        if (el.classList.contains('mdp-accordion-initially-closed')) {
+          return;
+        }
         const formFields = el.querySelectorAll('input,textarea');
         if (formFields) {
           const ignore = 'button,submit,cancel,hidden';
