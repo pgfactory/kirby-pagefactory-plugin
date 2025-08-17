@@ -75,11 +75,12 @@ class Image
      */
     public function render(): string
     {
-        $image = $this->image = $this->getImage();
+        $this->parseOptions();
+        $image = $this->getImage();
         if (!$image) {
             return '';
         }
-        $this->parseOptions();
+        $this->image = $image;
 
         $this->initQuickzoom();
         $this->activateLazyLoading();
@@ -436,11 +437,6 @@ EOT;
         $this->wrapperClass   = $options['wrapperClass']??'';
         $this->caption        = $options['caption']??'';
         $this->lazyLoadingActive = $options['lazyLoading']??false;
-        try {
-            $this->alt = $this->image->alt()->value() ?: (($options['alt'] ?? false) ?: ' ');
-        } catch (Throwable $e) {
-            $this->alt = ($options['alt'] ?? false) ?: ' ';
-        }
 
         $attributes           = $this->attributes;
         if ($options['id']??false) {
@@ -461,10 +457,10 @@ EOT;
 
 
     /**
-     * @return object|\Kirby\Cms\File
+     * @return mixed
      * @throws \Kirby\Exception\InvalidArgumentException
      */
-    private function getImage(): object|null
+    private function getImage(): mixed
     {
         $file = $this->options['src'];
         $file = $this->extractSizeDirectiveFromFilename($file);
@@ -556,6 +552,12 @@ EOT;
         if ($this->isAbsoluteUnit) {
             $this->requestedWidth = round($effectiveWidth, 1);
             $this->requestedHeight = round($effectiveHeight, 1);
+        }
+
+        try {
+            $this->alt = $image->alt()->value() ?: (($this->options['alt'] ?? false) ?: ' ');
+        } catch (Throwable $e) {
+            $this->alt = ($this->options['alt'] ?? false) ?: ' ';
         }
 
         $this->image = $image;

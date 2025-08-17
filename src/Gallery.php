@@ -28,15 +28,15 @@ class Gallery
 
         // fix img dimensions -> support any type of absolute values:
         if ($options['thumbWidth'] && is_string($options['thumbWidth']) && preg_match('/[\d.]+\w+/', $options['thumbWidth'])) {
-            $options['thumbWidthPx'] = convertToPx($options['thumbWidth'], true).'px';
+            $options['thumbWidthPx'] = convertToPx($options['thumbWidth'], true);
         } else {
             $options['thumbWidthPx'] = $options['thumbWidth'].'px';
         }
 
         if ($options['thumbHeight'] && is_string($options['thumbHeight']) && preg_match('/[\d.]+\w+/', $options['thumbHeight'])) {
-            $options['thumbHeightPx'] = convertToPx($options['thumbHeight'], true).'px';
+            $options['thumbHeightPx'] = convertToPx($options['thumbHeight'], true);
         } else {
-            $options['thumbHeightPx'] = $options['thumbHeight'].'px';
+            $options['thumbHeightPx'] = $options['thumbHeight'];
         }
 
         $class = $options['class']??'';
@@ -45,8 +45,8 @@ class Gallery
         if ($options['background']) {
             $options['config']['overlayBackgroundColor'] = $options['background'];
         }
-        if ($options['fullscreen']) {
-            $options['config']['fullScreen'] = $options['fullscreen'];
+        if ($fullScreen = ($options['fullscreen']??false) ?: ($options['fullScreen']??false)) {
+            $options['config']['fullScreen'] = $fullScreen;
         }
 
         // assemble output:
@@ -140,7 +140,7 @@ EOT;
                 } elseif (!is_numeric($value)) {
                     $value = "'$value'";
                 }
-                $js .= "    '$key': $value,\n";
+                $js .= "    $key: $value,\n";
             }
         }
         $js .= "})\n";
