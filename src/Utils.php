@@ -291,13 +291,18 @@ class Utils
             $s = $size . 'x' . $size;
             $html .= "  <link href='$url' rel='icon' type='image/png' sizes='$s'>\n";
         }
-        $url = $png->thumb([
-            'width'   => 180,
-            'height'  => 180,
-            'quality' => 50,
-            'format'  => 'png',
-        ])->url();
-        $html .="  <link href='$url' rel='alternate icon' type='image/png'>\n";
+
+        // if image is large enough, render an apple-touch-icon:
+        $dim = $png->dimensions();
+        if ($dim->width() > 180 && $dim->height() > 180) {
+            $url = $png->thumb([
+                'width' => 180,
+                'height' => 180,
+                'quality' => 50,
+                'format' => 'png',
+            ])->url();
+            $html .= "  <link rel='apple-touch-icon' sizes='180x180' href='$url'>\n";
+        }
         return $html;
     } // renderFavicon
 
