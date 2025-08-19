@@ -47,9 +47,9 @@ class Utils
      * @param mixed $value
      * @return mixed
      */
-    public static function setSessionVar(string $key, mixed $value): void
+    public static function setSessionVar(string $key, mixed $value, string|false $overridePageId = false): void
     {
-        $pageId = str_replace('/', '-', page()->id());
+        $pageId = $overridePageId ?: str_replace('/', '-', page()->id());
         $sessKey = "pfy.$pageId:$key";
         kirby()->session()->set($sessKey, $value);
     } // setSessionVar
@@ -60,9 +60,9 @@ class Utils
      * @param mixed $default
      * @return mixed
      */
-    public static function getSessionVar(string $key, mixed $default = false): mixed
+    public static function getSessionVar(string $key, mixed $default = false, string|false $overridePageId = false): mixed
     {
-        $pageId = str_replace('/', '-', page()->id());
+        $pageId = $overridePageId ?: str_replace('/', '-', page()->id());
         $sessKey = "pfy.$pageId:$key";
         return kirby()->session()->get($sessKey, $default);
     } // getSessionVar
@@ -73,9 +73,9 @@ class Utils
      * @param mixed $default
      * @return mixed
      */
-    public static function pullSessionVar(string $key, mixed $default = false): mixed
+    public static function pullSessionVar(string $key, mixed $default = false, string|false $overridePageId = false): mixed
     {
-        $pageId = str_replace('/', '-', page()->id());
+        $pageId = $overridePageId ?: str_replace('/', '-', page()->id());
         $sessKey = "pfy.$pageId:$key";
         return kirby()->session()->pull($sessKey, $default);
     } // pullSessionVar
