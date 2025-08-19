@@ -330,10 +330,7 @@ class Data2DSet
      */
     public function getRec(string $key): array|false
     {
-        if ($rec = ($this->data[$key]??false)) {
-            return $rec->recData;
-        }
-        return false;
+        return ($this->data[$key]??false);
     } // getRec
 
 
