@@ -1313,7 +1313,7 @@ EOT;
         ];
 
         new PHPMailer($props);
-        mylog("$subject\n\n$body", 'mail-log.txt');
+        mylog("To: $to\nSubject: $subject\n----\n$body\n----", 'mail-log.txt');
         //        if (PageFactory::$isLocalhost) {
         //            $props['body'] = "\n\n" . $props['body'];
         //            $text = var_r($props);
