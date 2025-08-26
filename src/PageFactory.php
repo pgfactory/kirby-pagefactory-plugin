@@ -159,11 +159,11 @@ class PageFactory
                 'generator'                 => Utils::renderGenerator(),
                 'adminPanelLink'            => Utils::renderAdminPanelLink(),
                 'favicon'                   => Utils::renderFavicon(),
-                //'homeLink'                  => Utils::renderHomeLink(),
-                //'loggedIn'                  => Utils::$loggedIn,
-                //'loginLink'                 => Utils::$loginLink,
-                //'username'                  => self::$userName,
-                //'loginButton'               => Utils::$loginButton,
+                'homeLink'                  => Utils::renderHomeLink(),
+                'loggedInAs'                => Utils::$loggedIn,
+                'loginLink'                 => Utils::$loginLink,
+                'username'                  => self::$userName,
+                'loginButton'               => Utils::$loginButton,
 
                 'pageContent'               => $this->renderPageContent(),
 
@@ -171,7 +171,7 @@ class PageFactory
                 'headTitle'                 => Utils::renderHeadTitle(),
                 'smallScreenHeader'         => Utils::renderSmallScreenHeader(),
                 //'menuIcon'                  => Utils::$menuIcon,
-                //'langSelection'             => Utils::renderLanguageSelector(),
+                'langSelection'             => Utils::renderLanguageSelector(),
 
                 // the major page defining variables:
                 'headInjections'            => Page::renderHeadInjections(),
