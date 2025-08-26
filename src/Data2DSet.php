@@ -43,6 +43,8 @@ class Data2DSet
 
         if (is_array($file)) {
             $this->data = $file;
+        } elseif (is_bool($file) || $file === '1') {
+            $this->data = [];
         } else {
             $this->file = $file;
             $this->db = new DataSet($file, $options);
