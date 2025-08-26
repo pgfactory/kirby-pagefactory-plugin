@@ -242,7 +242,7 @@ class DataSet
         if (!$this->readWriteMode) {
             throw new \Exception("Datasource '$this->name' is in read-only mode, unable to add data");
         }
-        if ($recKeyToUse) {
+        if ($recKeyToUse !== false) {
             if ($this->obfuscateRecKeys) {
                 $recKeyToUse = $this->deObfuscateRecKey($recKeyToUse);
             }
@@ -864,9 +864,14 @@ class DataSet
      * @param string $key
      * @return mixed
      */
-    public function getRecData(string $recUid, string $key): mixed
+    public function getRecData(string $recUid, string|false $key = false): mixed
     {
-        return $this->data[$recUid]->$key??false;
+        if ($key !== false) {
+            return $this->data[$recUid]->$key ?? false;
+        } else {
+            $data = $this->data();
+            return $data[$recUid]??[];
+        }
     } // getRecData
 
 
@@ -998,10 +1003,17 @@ class DataSet
                 }
 
             } catch (\Exception $e) {
-                throw new \Exception($e->getMessage());
+                // catch case of existing but empty file
+                $str = file_get_contents($this->file);
+                if (trim($str) === '') {
+                    $this->importData([]);
+                } else {
+                    throw new \Exception($e->getMessage());
+                }
             }
         } else {
             touch($this->file);
+            $this->importData([]);
         }
     } // importFromMasterFile
 
