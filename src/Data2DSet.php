@@ -49,10 +49,32 @@ class Data2DSet
             $this->file = $file;
             $this->db = new DataSet($file, $options);
             $this->data = $this->db->data(includeMetaFields: true);
+            $this->checkDataIntegrity();
         }
 
         $this->normalizeData();
     } // __construct
+
+
+    /**
+     * @return void
+     * @throws \Exception
+     */
+    private function checkDataIntegrity()
+    {
+        $needsUpdate = false;
+        $data = $this->data;
+        foreach ($data as $key => $rec) {
+            if (!($rec[DATAREC_RECKEY]??false)) {
+                $needsUpdate = true;
+                $data[$key][DATAREC_RECKEY] = createHash();
+            }
+        }
+        if ($needsUpdate) {
+            $this->db->write($data);
+            reloadAgent();
+        }
+    } // checkDataIntegrity
 
 
     /**
@@ -82,30 +104,55 @@ class Data2DSet
     } // getColHeaders
 
 
+    /**
+     * @param array $rec
+     * @param bool $flush
+     * @param $recKeyToUse
+     * @return object|string
+     * @throws \Exception
+     */
     public function addRec(array $rec, bool $flush = true, $recKeyToUse = false): object|string
     {
         return $this->db->addRec($rec, $flush, $recKeyToUse);
     } // addRec
 
 
+    /**
+     * @param string $key
+     * @return mixed
+     * @throws \Exception
+     */
     public function find(string $key): mixed
     {
         return $this->db->find($key);
     } // find
 
 
+    /**
+     * @param string $key
+     * @return void
+     * @throws \Exception
+     */
     public function remove(string $key): void
     {
         $this->db->remove($key);
     } // remove
 
 
+    /**
+     * @return void
+     * @throws \Exception
+     */
     public function flush(): void
     {
         $this->db->flush();
     } // flush
 
 
+    /**
+     * @return void
+     * @throws \Exception
+     */
     public function purge(): void
     {
         $this->db->purge();
