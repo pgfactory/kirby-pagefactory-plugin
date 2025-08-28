@@ -18,11 +18,23 @@ function domForAll(elem = document, pattern = null, fun = null) {
 function domForEach(elem = document, pattern = null, fun = null) {
   [elem, pattern, fun] = handleParentPattern(elem, pattern, fun);
   if (pattern) {
-    const elems = elem.querySelectorAll(pattern);
-    if (elems) {
-      elems.forEach((el) => {
-        fun(el);
-      });
+    if (elem instanceof NodeList) {
+      elem.forEach(elem => {
+        const elems = elem.querySelectorAll(pattern);
+        if (elems) {
+          elems.forEach((el) => {
+            fun(el);
+          });
+        }
+      })
+
+    } else {
+      const elems = elem.querySelectorAll(pattern);
+      if (elems) {
+        elems.forEach((el) => {
+          fun(el);
+        });
+      }
     }
   }
 } // domForEach
@@ -31,10 +43,20 @@ function domForEach(elem = document, pattern = null, fun = null) {
 function domForOne(elem = document, pattern = null, fun = null) {
   [elem, pattern, fun] = handleParentPattern(elem, pattern, fun);
   if (pattern) {
-    elem = elem.querySelector(pattern);
+    if (elem instanceof NodeList) {
+        elem.forEach(el => {
+          el = el.querySelector(pattern);
+          if (el) {
+            fun(el);
+          }
+        })
+        return;
+    } else {
+      elem = elem.querySelector(pattern);
+    }
   }
   if (elem) {
-   fun(elem);
+    fun(elem);
   }
 } // domForOne
 
