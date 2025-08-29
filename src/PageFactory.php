@@ -28,6 +28,7 @@ define('PFY_CONTENT_ASSETS_PATH',       PFY_KIRBY_BASE_PATH . 'content/assets/')
 
 define('PFY_PAGE_PATH',                 page()->root() . '/');
 define('PFY_PAGE_URI',                  page()->uri() . '/');
+define('PFY_PAGE_ID',                   page()->id());
 
 define('PFY_SVG_ICONS_PATH',            PFY_KIRBY_BASE_PATH . 'site/plugins/markdownplus/assets/svg-icons/');
 define('PFY_CONFIG_PATH',               PFY_KIRBY_BASE_PATH . 'site/config/');
