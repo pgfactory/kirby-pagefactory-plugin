@@ -69,16 +69,21 @@ function logToScreen(text) {
 }
 
 
-function timeStamp() {
+function timeStamp(short = false) {
   const now = new Date();
-  const options = {
+  let options = {
     year: 'numeric',
     month: 'numeric',
     day: 'numeric',
-    hour: 'numeric',
-    minute: 'numeric',
-    second: 'numeric'
   };
+  if (!short) {
+    options = options + {
+      hour: 'numeric',
+      minute: 'numeric',
+      second: 'numeric'
+    };
+  }
+
   return now.toLocaleString(undefined, options);
 }
 
