@@ -302,8 +302,21 @@ function initBusySpinner() {
 } // initBusySpinner
 
 
+function initToDoLists() {
+  document.addEventListener('click', (ev) => {
+    if (!ev.target.closest('.pfy-todo-list li')) {
+      return;
+    }
+    const liEl = ev.target;
+    liEl.classList.toggle('checked');
+    liEl.toggleAttribute('aria-checked', "true");
+  });
+} // initToDoLists
+
+
 document.addEventListener('DOMContentLoaded', function() {
   initCopyButton();
+  initToDoLists();
   adaptToWidth();
   scrollAnchorIntoView();
   initBusySpinner();
