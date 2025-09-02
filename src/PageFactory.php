@@ -356,7 +356,7 @@ class PageFactory
 
         // sort out remaining files:
         foreach ($files as $i => $file) {
-            $mdStr = getFile($file, 'cstyle,emptylines,twig');
+            $mdStr = getFile($file, 'cstyle');
 
             // extract frontmatter:
             if ((!$res = Frontmatter::extract($mdStr)) || !trim($res[0], " \n\t")) {
