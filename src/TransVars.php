@@ -250,22 +250,22 @@ class TransVars
         if (!is_array($var)) {
             return $var;
         }
-
-        $lang0 = $lang;
         if (!$lang) {
             $lang = self::$lang;
+            $langCode = self::$langCode;
+        } else {
+            $langCode = $lang;
         }
-        $lang0 = $lang0 ?: $lang;
         $val = false;
         if (is_array($var)) {
-            if (isset($var[$lang])) {             // check language-variant (e.g. de2)
+            if (isset($var[$langCode])) {     // check language-variant (e.g. de2)
+                $val = $var[$langCode];
+            } elseif (isset($var[$lang])) {   // check base language (e.g. de)
                 $val = $var[$lang];
-            } elseif (!$lang0 && isset($var[self::$langCode])) {   // check base language (e.g. de)
-                $val = $var[self::$langCode];
-            } elseif (isset($var['_'])) {               // check default language
+            } elseif (isset($var['_'])) {     // check default language
                 $val = $var['_'];
             } else {
-                $val = false;                           // nothing found
+                $val = false;                 // nothing found
             }
         }
         return $val;
