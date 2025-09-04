@@ -391,12 +391,15 @@ class Assets
      */
     public static function reset(): void
     {
-        $dir = array_merge(
-            getDirDeep(PFY_PLUGIN_PFY_PATH.'assets/css/'),
-            getDirDeep(PFY_PLUGIN_PFY_PATH.'assets/js/'),
-            getDirDeep(PFY_KIRBY_BASE_PATH.'assets/-*.css'),
-            getDirDeep(PFY_KIRBY_BASE_PATH.'content/-*.css'),
-        );
+        $dir = [];
+        if (is_dir(PFY_KIRBY_BASE_PATH.'assets/')) {
+            $dir = array_merge(
+                getDirDeep(PFY_PLUGIN_PFY_PATH.'assets/css/'),
+                getDirDeep(PFY_PLUGIN_PFY_PATH.'assets/js/'),
+                getDirDeep(PFY_KIRBY_BASE_PATH.'assets/-*.css'),
+            );
+        }
+        $dir = array_merge($dir, getDirDeep(PFY_KIRBY_BASE_PATH.'content/-*.css'));
 
         foreach ($dir as $file) {
             if ((basename($file)[0]) === '-') {
