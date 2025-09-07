@@ -1006,12 +1006,15 @@ function getGitTag(): string
  /**
   * Writes a string to a file.
   * @param string $file
-  * @param string $content
+  * @param mixed $content
   * @param int $flags        e.g. FILE_APPEND
   * @throws Exception
   */
-function writeFile(string $file, string $content, int $flags = 0, int $permissions = 0): void
+function writeFile(string $file, mixed $content, int $flags = 0, int $permissions = 0): void
 {
+    $type = strtolower(fileExt($file));
+    $content = _encodeData($content, $type);
+
     $file = resolvePath($file);
     preparePath($file);
     if (file_put_contents($file, $content, $flags) === false) {
@@ -1066,25 +1069,6 @@ function writeFileLocking(string $file, mixed $content, string $type = '', bool 
     if (!$type) {
         $type = strtolower(fileExt($file));
     }
-    // encode data:
-    if (str_contains('yml,yaml', $type)) {
-        $content = shieldNewlines($content);
-        $content = Data::encode($content, $type);
-        $content = prettifyYaml($content);
-
-    } elseif ($type === 'json') {
-        $content = json_encode($content, JSON_PRETTY_PRINT);
-
-    } elseif ($type === 'txt') {
-        $tmp = '';
-        foreach ($content as $rec) {
-            $tmp .= ($rec[0]??'')."\n";
-        }
-        $content = $tmp;
-
-    } elseif (is_object($content)) {
-        $content = serialize($content);
-    }
 
     // write data to file:
     $fp = fopen($file,"w");
@@ -1097,6 +1081,7 @@ function writeFileLocking(string $file, mixed $content, string $type = '', bool 
             fputcsv($fp, $line);
         }
     } else {
+        $content = _encodeData($content, $type);
         if (fwrite($fp, $content) === false) {
             throw new \Exception("Error writing file '$file'");
         }
@@ -1108,6 +1093,49 @@ function writeFileLocking(string $file, mixed $content, string $type = '', bool 
         throw new \Exception("Error closing file '$file'");
     }
 } // writeFileLocking
+
+
+ /**
+  * @param mixed $content
+  * @param string|false $type
+  * @return string
+  */
+ function _encodeData(mixed $content, string|false $type): string
+{
+    // encode data:
+    if (str_contains('yml,yaml', $type)) {
+        $content = shieldNewlines($content);
+        $content = Data::encode($content, $type);
+        $content = prettifyYaml($content);
+
+    } elseif ($type === 'json') {
+        $content = json_encode($content, JSON_PRETTY_PRINT);
+
+    } elseif ($type === 'csv' && is_array($content)) {
+        $header = array_keys(reset($content));
+        array_unshift($content, $header);
+        $fp = fopen('php://temp', 'r+');
+        foreach ($content as $line) {
+            fputcsv($fp, $line);
+        }
+        rewind($fp);
+        $content = fread($fp, 1048576);
+        fclose($fp);
+
+    } elseif ($type === 'txt') {
+        if (is_array($content)) {
+            $tmp = '';
+            foreach ($content as $rec) {
+                $tmp .= ($rec[0] ?? '') . "\n";
+            }
+            $content = $tmp;
+        }
+
+    } elseif (is_object($content)) {
+        $content = serialize($content);
+    }
+    return $content;
+} // _encodeData
 
 
  /**

@@ -217,7 +217,7 @@ function initCopyButton() {
       mylog('Failed to copy: ' + err);
     }
   } // copyToClipboard
-  mylog('Copy button(s) initialized.');
+  // console.log('Copy button(s) initialized.');
 } // initCopyButton
 
 
