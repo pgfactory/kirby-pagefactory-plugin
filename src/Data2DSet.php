@@ -551,6 +551,16 @@ class Data2DSet
 
 
     /**
+     * @param string $recKey
+     * @return bool
+     */
+    public function isLocked(string $recKey): bool
+    {
+        return $this->db->isRecLocked($recKey);
+    } // isLocked
+
+
+    /**
      * @return bool
      */
     public static function checkOfficeFormatIsAvailable()

@@ -3,7 +3,6 @@
 namespace PgFactory\PageFactory;
 
 use Error;
-use Kirby\Filesystem\F;
 use Kirby\Data\Yaml as Yaml;
 
  // meta keys:
@@ -44,7 +43,7 @@ class DataSet
     protected $maxRecLockTime;
     protected $maxRecBlockingTime;
     protected $avoidDuplicates;
-    protected $dev;
+    protected static bool|null $dev = false;
     protected int $keepDataThreshold = 0; // unix-time
     protected string|false $keepDataOnField; // field-name
     protected static $sessionId = false;
@@ -268,6 +267,9 @@ class DataSet
     } // addRec
 
 
+    /**
+     * @return string
+     */
     public function recId(): string
     {
         return $this->lastCreatedRecKey;
@@ -428,20 +430,8 @@ class DataSet
      */
     public function unlock()
     {
+        $this->unlockAllRecs();
         $this->unlockDatasource();
-    } // unlock
-
-
-    /**
-     * @return void
-     * @throws \Exception
-     */
-    public function unlockRecs()
-    {
-       foreach ($this->data as $rec) {
-           $rec->unlock(flush: false);
-       }
-       $this->flush(cacheOnly: true);
     } // unlock
 
 
@@ -498,6 +488,23 @@ class DataSet
         $sessionIdInFile = fileGetContents($this->lockFile);
         return (($sessionIdInFile[0]??'') === '!');
     } // isLockedPermanently
+
+
+    /**
+     * @param string $recKey
+     * @return bool
+     */
+    public function isRecLocked(string $recKey): bool
+    {
+        if ($rec = $this->data[$recKey] ?? null) {
+            if ($rec->_lock) {
+                if ($rec->_lockedBy !== getSessionId()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    } // isRecLocked
 
 
     /**
@@ -1235,7 +1242,7 @@ class DataSet
             writeFileLocking($this->cacheFile, serialize($ds), blocking: true);
 
             // export debug copy if debug enabled:
-            if (PageFactory::$dev) {
+            if (self::$dev) {
                 $ds->debugDump(false, $this->cacheFile);
             }
         } catch (\Exception $e) {
@@ -1259,7 +1266,7 @@ class DataSet
         $obj->options = $this->options;
         if (is_object($obj)) {
             foreach ($obj as $key => $value) {
-                if (!str_contains('sess,officeFormatAvailable,includeMeta,keepDataOnField,keepDataThreshold,masterFileRecKeyType', $key)) {
+                if (!str_contains('dev,sess,officeFormatAvailable,includeMeta,keepDataOnField,keepDataThreshold,masterFileRecKeyType', $key)) {
                     $this->$key = $value;
                 }
             }
@@ -1342,7 +1349,7 @@ class DataSet
      */
     public function unlockDatasource(): void
     {
-        if (file_exists($this->lockFile)) {
+        if ($this->lockFile && file_exists($this->lockFile)) {
             $sessionId = self::$sessionId ?: getSessionId();
             $sid = file_get_contents($this->lockFile);
             if ($sid === $sessionId) {
@@ -1351,6 +1358,38 @@ class DataSet
             $this->readWriteMode = false;
         }
     } // unlockDatasource
+
+
+    /**
+     * @param bool $force
+     * @return void
+     * @throws \Exception
+     */
+    public function unlockAllRecs(bool $force = false): void
+    {
+        if ($force) {
+            foreach ($this->data as $reckey => $rec) {
+                $this->data[$reckey]->_lock = false;
+                $this->data[$reckey]->_lockedBy = false;
+            }
+
+        } else {
+            $locks = Utils::getSessionVar('', [], 'dataRecLocks');
+            if ($locks) {
+                foreach ($locks as $reckey) {
+                    if (isset($this->data[$reckey])) {
+                        $this->data[$reckey]->_lock = false;
+                        $this->data[$reckey]->_lockedBy = false;
+                    //} else {
+                        //throw new \Exception("Data rec '$reckey' missing");
+                    }
+                }
+            }
+        }
+        //mylog("DataSet: unlockAllRecs");
+        $this->flush();
+        Utils::setSessionVar('', [], 'dataRecLocks');
+    } // unlockAllRecs
 
 
     /**
@@ -1413,7 +1452,7 @@ class DataSet
         $str .= "readWriteMode: " . ($this->readWriteMode ? 'true' : 'false') . "\n";
         $str .= "options:\n  " . rtrim(str_replace("\n", "\n  ", Yaml::encode($this->options)));
         $str .= "\nDATA-RECORDS:\n";
-        foreach ($this->data as $k => $rec) {
+        foreach ($this->data as $rec) {
             $str .= $rec->debugDump(false);
         }
         if ($cacheFile) {
@@ -1460,7 +1499,12 @@ class DataSet
             }
         }
         $this->options = $options;
-        $this->dev = PageFactory::$dev ?? Utils::determineDevState();
+
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        self::$dev = $_SESSION['pfy.dev']?? false;
+        session_abort();
 
         if (!$file) {
             $this->lockFile = '';

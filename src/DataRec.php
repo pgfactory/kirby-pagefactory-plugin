@@ -211,8 +211,10 @@ class DataRec
     public function lock(bool $blocking = false): bool
     {
         if (!$this->isLocked()) {
-            $this->set('_lock', time(), flush: true, ignoreLock: true);
-            $this->set('_lockedBy', getSessionId(), flush: true, ignoreLock: true);
+            $this->setLock();
+
+            // register lock in session:
+            $this->registerLock();
             return true;
 
         } elseif ($blocking) {
@@ -220,8 +222,10 @@ class DataRec
             while (time() < $tMax) {
                 usleep(REC_LOCK_AWAIT_CYCLE_TIME);
                 if (!$this->get('_lock')) {
-                    $this->set('_lock', time(), flush: true, ignoreLock: true);
-                    $this->set('_lockedBy', getSessionId(), flush: true, ignoreLock: true);
+                    $this->setLock();
+
+                    // register lock in session:
+                    $this->registerLock();
                     return true;
                 }
             }
@@ -238,18 +242,55 @@ class DataRec
      */
     public function unlock(bool $force = false, $flush = true): bool
     {
-        $sessId = getSessionId();
-        // if force unlock or locked by self or lock timed out:
-        if ($force ||
-                ($this->_lockedBy === getSessionId()) ||
-                ($this->_lock < (time() - $this->maxRecLockTime))) {
-            $this->set('_lock', false, flush: $flush, ignoreLock: true);
-            $this->set('_lockedBy', false, flush: $flush, ignoreLock: true);
-            return true;
+        if (!$force) {
+            $locks = Utils::getSessionVar('', [], 'dataRecLocks');
+            if (isset($locks[$this->_reckey])) {
+                $this->setLock(false, $flush);
+                return true;
+            }
         } else {
-            return false;
+            $this->setLock(false, $flush);
+            return true;
         }
+        return false;
     } // unlock
+
+
+    private function setLock(bool $value = true, $flush = true): void
+    {
+        $lock = $value ? time() : false;
+        $sessId = $value ? getSessionId() : false;
+
+        $this->_lock = $lock;
+        $this->_lockedBy = $sessId;
+        if ($flush) {
+            $this->parent->flush();
+        }
+    } // setLock
+
+
+    /**
+     * @return void
+     */
+    private function registerLock(): void
+    {
+        $locks = Utils::getSessionVar('', [], 'dataRecLocks');
+        $locks[] = $this->_reckey;
+        Utils::setSessionVar('', $locks, 'dataRecLocks');
+    } // registerLock
+
+
+    /**
+     * @return void
+     */
+    private function unregisterLock(): void
+    {
+        $locks = Utils::getSessionVar('dataRecLocks', []);
+        if (isset($locks[$this->_reckey])) {
+            unset($locks[$this->_reckey]);
+            Utils::setSessionVar('dataRecLocks', $locks);
+        }
+    } // unregisterLock
 
 
     /**
