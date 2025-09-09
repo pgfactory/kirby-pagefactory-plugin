@@ -1045,7 +1045,12 @@ EOT;
         $devMode = $devMode || Permission::isAdmin();
 
         if (!isset($_GET['dev'])) {
-            session_abort();
+            if ($devMode) {
+                $_SESSION['pfy.dev'] = true;
+                session_write_close();
+            } else {
+                session_abort();
+            }
             return $devMode;
         }
 
