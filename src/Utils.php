@@ -78,6 +78,11 @@ class Utils
     } // pullSessionVar
 
 
+    /**
+     * @param string $key
+     * @param string|false $overrideKey
+     * @return string
+     */
     private static function determineSessionKey(string $key, string|false $overrideKey): string
     {
         if ($overrideKey) {
@@ -379,34 +384,38 @@ EOT;
         }
         return trim($bodyTagClasses);
     } // renderBodyTagClasses
-    
-    
 
 
     /**
-     * Appends the svg source to end of body, returns a svg reference (<use...>)
      * @param string $iconName
-     * @param string $iconFile
+     * @param string $class
      * @return string
      * @throws Exception
      */
-    public static function renderPfyIcon(string $iconName): string
+    public static function renderPfyIcon(string $iconName, string $class = ''): string
     {
-        if (self::iconExists($iconName)) {
+        if (self::preloadedIconExists($iconName)) {
             $iconId = "pfy-iconset-$iconName";
             $icon = "<svg viewBox='0 0 1000 1000' width='1em'><use href='#$iconId' /></svg>";
+            if ($class) {
+                $icon = "<span class='$class'>$icon</span>";
+            }
+
+        } elseif ($file = self::iconExists($iconName)) {
+            $icon = MdPlusHelper::renderIconFromFile($iconName, $file, class: $class);
+
         } else {
-            $icon = MdPlusHelper::renderIcon($iconName);
+            $icon = MdPlusHelper::renderIcon($iconName, class: $class);
         }
         return $icon;
-    } // renderSvgIcon
+    } // renderPfyIcon
 
 
     /**
      * @param string $iconName
      * @return bool
      */
-    public static function iconExists(string $iconName): bool
+    public static function preloadedIconExists(string $iconName): bool
     {
         if (!self::$pfyIcons) {
             $pfyIconsFile = PFY_KIRBY_BASE_PATH . 'site/plugins/pagefactory/assets/icons/_pfy-icons.svg';
@@ -414,6 +423,27 @@ EOT;
         }
         $exists = str_contains(self::$pfyIcons,  "pfy-iconset-$iconName");
         return $exists;
+    } // preloadedIconExists
+
+
+    /**
+     * @param string $iconName
+     * @return string|false
+     */
+    public static function iconExists(string $iconName): string|false
+    {
+        $path = PFY_KIRBY_BASE_PATH . 'site/plugins/pagefactory/assets/icons/';
+        $files = getDir($path, associative:true);
+        if ($files["$iconName.svg"]??false) { // most are svg, so try direct hit:
+            return $files["$iconName.svg"];
+        }
+        // fall back to thorough search:
+        foreach ($files as $filename => $file) {
+            if (str_starts_with($filename, $iconName)) {
+                return $file;
+            }
+        }
+        return false;
     } // iconExists
 
 

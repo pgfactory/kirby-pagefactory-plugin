@@ -2570,8 +2570,7 @@ function fatalError(string $str): void
   */
 function renderIcon(string $iconName, string $class = 'pfy-icon'): string
 {
-    $icon = MdPlusHelper::renderIcon($iconName);
-    return $icon;
+    return Utils::renderPfyIcon($iconName, $class);
 } // renderIcon
 
 

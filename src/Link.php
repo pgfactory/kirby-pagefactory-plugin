@@ -94,7 +94,6 @@ class Link
         $type = (self::$args['type']??false) ?: self::$ext;
         if ($type) {
             self::$type = $type;
-            self::$icon = (self::$icon === null) ? self::$icon : $type;
             switch ($type) {
                 case 'pdf':
                     self::$linkCat = 'pdf';
@@ -122,7 +121,6 @@ class Link
                         self::$linkCat = 'mail';
                         return;
                     } elseif (str_contains(DOWNLOAD_TYPES, $type)) {
-                        self::$icon = (self::$icon === null) ? self::$icon : 'download';
                         self::$type = 'download';
                         self::$linkCat = 'download';
                         self::compileUrl();
@@ -150,17 +148,11 @@ class Link
                 self::$url = $m[2];
                 self::$type = 'pdf';
                 self::$linkCat = 'pdf';
-                if ((self::$args['icon']??null) === null) {
-                    self::$icon = 'pdf';
-                }
             } else {
                 self::$proto = $m[1];
                 self::$url = $m[2];
                 self::$type = str_replace(':', '', self::$proto);
                 self::$linkCat = 'special';
-                if ((self::$args['icon']??null) === null) {
-                    self::$icon = self::$type;
-                }
             }
         } elseif (str_starts_with(self::$url, 'www.')) {
             self::$proto = 'https://';
@@ -174,9 +166,6 @@ class Link
                     self::$proto = '';
                     self::$type = 'pdf';
                     self::$linkCat = 'pdf';
-                    if ((self::$args['icon']??null) === null) {
-                        self::$icon = 'pdf';
-                    }
                     break;
             }
         }
@@ -198,21 +187,16 @@ class Link
                     self::$proto = 'https://';
                 }
             }
-            self::$icon = (self::$icon === null) ? self::$icon : 'external';
         } elseif (stripos(self::$type, 'inter') !== false) {
             if (!self::$proto) {
                 self::$type = 'link';
             }
-            self::$icon = (self::$icon === null) ? self::$icon : '';
         }
 
         switch (self::$linkCat) {
             case 'download':
                 self::$class .= ' pfy-link-download';
                 self::$download = true;
-                if (!self::$icon) {
-                    self::$icon = (self::$icon === null) ? self::$icon : 'download';
-                }
                 if (!self::$text) {
                     self::$text = base_name(self::$url);
                 }
@@ -221,26 +205,22 @@ class Link
 
             case 'pdf':
                 self::$class .= ' pfy-link-pdf';
-                self::$icon = (self::$icon === null) ? self::$icon : 'pdf';
                 self::$text = base_name(self::$url);
                 self::$target = (self::$target) ? self::$target : true;
                 break;
 
             case 'zip':
                 self::$class .= ' pfy-link-zip';
-                self::$icon = (self::$icon === null) ? self::$icon : 'zip';
                 self::$text = base_name(self::$url);
                 self::$download = true;
                 break;
 
             case 'image':
                 self::$download = true;
-                self::$icon = (self::$icon === null) ? self::$icon : 'download';
                 break;
 
             case 'special':
                 self::$class .= " pfy-link-" . self::$type;
-                self::$icon = (self::$icon === null) ? self::$icon : self::$type;
                 self::$title .= "{{ pfy-opens-" . self::$type . " }}";
                 break;
 
@@ -269,15 +249,9 @@ class Link
         if ((self::$target === true) || (self::$target === 'newwin')) {
             $attr .= " target='_blank' rel='noreferrer'";
             self::$title .= '{{ pfy-opens-in-new-win }}';
-            if (!self::$icon) {
-                self::$icon = (self::$icon === null) ? self::$icon : 'external';
-            }
         } elseif (self::$target) {
             $attr .= " target='" . self::$target . "' rel='noreferrer'";
             self::$title .= '{{ pfy-opens-in-new-win }}';
-            if (!self::$icon) {
-                self::$icon = (self::$icon === null) ? self::$icon : 'external';
-            }
         }
 
         if (self::$args['title'] ?? false) {
@@ -341,7 +315,6 @@ class Link
     private static function processMailLink()
     {
         self::$class .= ' pfy-link-mail';
-        self::$icon = (self::$icon === null) ? self::$icon : 'mail';
         self::$proto = 'mailto:';
         if (!self::$text) {
             self::$text = self::$url;
@@ -371,29 +344,11 @@ class Link
      */
     private static function addIcon()
     {
-        $icon = '';
-        if (isset(self::$args['icon']) && (self::$args['icon'] === false)) {
-            return;
-        }
-        if (self::$args['icon'] ?? false) {
-            $icon = self::$args['icon'];
-        } elseif (self::$icon) {
-            $icon = self::$icon;
-        } elseif (self::$isExternalLink && (PageFactory::$config['externalLinksToNewWindow'] ?? false)) {
-            $icon = 'external';
-        }
+        $icon = self::determineIcon();
 
         if ($icon) {
             $iconName = str_replace(array_keys(self::$iconReplacements), array_values(self::$iconReplacements), $icon);
-            if (str_contains(',mail,pdf,external,tel,sms,mobile,geo,zip,download,doc,', $iconName)) {
-                $icon = Utils::renderPfyIcon($iconName);
-            } else {
-                if (iconExists($iconName)) {
-                    $icon = renderIcon($iconName, 'pfy-link-icon');
-                } else {
-                    $icon = '';
-                }
-            }
+            $icon = Utils::renderPfyIcon($iconName, 'pfy-link-icon');
             if (self::$iconBefore) {
                 self::$text = "$icon<span class='pfy-link-text'>" . self::$text . "</span>";
             } else {
@@ -401,6 +356,42 @@ class Link
             }
         }
     } // addIcon
+
+
+    /**
+     * @return string
+     */
+    private static function determineIcon(): string
+    {
+        if (isset(self::$args['icon']) && (self::$args['icon'] === false)) { // explicit request no icon
+            return '';
+        }
+        if (self::$proto === 'https://' || (self::$target)) {
+            $icon = 'external';
+        }
+
+        if (stripos(self::$type, 'inter') !== false) {
+            $icon = '';
+
+        } elseif (self::$linkCat === 'download') {
+            $icon = 'download';
+
+        } else {
+            switch (self::$type) {
+                case 'mailto':
+                    $icon = 'mail';
+                    break;
+                case 'image':
+                    $icon = 'download';
+                    break;
+                default:
+                    $icon = self::$type;
+            }
+        }
+
+        return $icon;
+    } // determineIcon
+
 
     /**
      * @param $class
