@@ -527,7 +527,11 @@ class Data2DSet
     private function determineColHeaders(): void
     {
         if ($this->options['headers']) {
-            if (is_string($this->options['headers'])) {
+            if ($this->options['headers'] === true) {
+                $rec0 = reset($this->data);
+                $headers = array_keys($rec0);
+                $this->colHeaders =array_combine($headers, $headers);
+            } elseif (is_string($this->options['headers'])) {
                 $this->colHeaders = explodeTrim(',', $this->options['headers']);
             } else {
                 $this->colHeaders = $this->options['headers'];
