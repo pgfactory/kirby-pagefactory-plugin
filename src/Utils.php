@@ -1130,8 +1130,10 @@ EOT;
      */
     public static function prepareDataPaths(): void
     {
+        // productionHostPathPattern === false overrides production mode:
+        $patt = kirby()->option('pgfactory.pagefactory.productionHostPathPattern');
         // in productive mode, if config option is set, override $dataPath and $customConfigPath:
-        if (PageFactory::$productionMode) {
+        if (PageFactory::$productionMode && ($patt !== false)) {
             $dataPath = kirby()->option('pgfactory.pagefactory.productionModeDataPath');
             if ($dataPath) {
                 $dataPath = normalizePath(PFY_KIRBY_BASE_PATH . $dataPath);
