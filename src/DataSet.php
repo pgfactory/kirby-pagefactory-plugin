@@ -1515,6 +1515,7 @@ class DataSet
                 preparePath(PFY_CACHE_PATH . 'data/');
             }
             $file = resolvePath($file);
+            $this-> checkAndFixDataFile($file);
             $this->name = base_name($file, false);
             $this->type = fileExt($file);
             if (!str_contains(SUPPORTED_FILE_TYPES, $this->type)) {
@@ -1544,5 +1545,37 @@ class DataSet
             $this->initData();
         }
     } // parseOptions
+
+
+    /**
+     * @param string $file
+     * @return void
+     * @throws \Exception
+     */
+    private function checkAndFixDataFile(string $file): void
+    {
+        if (!is_file($file) && fileExt($file) === 'json') {
+            $yamlFile = fileExt($file, true).'.yaml';
+            if (file_exists($yamlFile)) {
+                $this->convertToJson($yamlFile);
+            }
+        }
+    } // checkAndFixDataFile
+
+
+    /**
+     * @param string $file
+     * @return void
+     * @throws \Exception
+     */
+    public function convertToJson(string $file): void
+    {
+        $jsonFile = fileExt($file, true).'.json';
+        if (file_exists($jsonFile)) {
+            throw new \Exception("Error in convertToJson(): target file '$jsonFile' already exists.");
+        }
+        $data = readFile($file);
+        writeFile($jsonFile, $data);
+    } // convertToJson
 
 } // DataSet
