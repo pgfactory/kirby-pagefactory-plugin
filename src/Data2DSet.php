@@ -26,7 +26,7 @@ class Data2DSet
     private bool  $markLocked;
     private mixed $order;
     private mixed $filter;
-    private object $db;
+    private object|null $db = null;
     private int $nRows = 0;
     private string $placeholderForUndefined = '';
     public static $officeFormatAvailable;
@@ -556,6 +556,9 @@ class Data2DSet
      */
     public function isLocked(string $recKey): bool
     {
+        if (!$this->db??false) {
+            return false;
+        }
         return $this->db->isRecLocked($recKey);
     } // isLocked
 
