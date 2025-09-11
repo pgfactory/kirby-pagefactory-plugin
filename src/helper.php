@@ -2191,7 +2191,7 @@ function compileMarkdown(string $mdStr, bool $omitPWrapperTag = false): string
   * @param bool $immutable
   * @return string
   */
-function unshieldStr(string $str, bool $unshieldLiteral = null, bool $immutable = false): string
+function unshieldStr(string $str, bool|null $unshieldLiteral = null, bool $immutable = false): string
 {
     if (!str_contains($str, '<')) {
         return $str;

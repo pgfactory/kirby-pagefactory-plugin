@@ -1242,7 +1242,7 @@ EOT;
      * @param bool $includeTime
      * @return string
      */
-    public static function timeToString(mixed $datetime = null, bool $includeTime = null, int $timeRef = 0): string
+    public static function timeToString(mixed $datetime = null, bool|null $includeTime = null, int $timeRef = 0): string
     {
         if (!$timeRef) {
             $timeRef = time();

@@ -87,7 +87,7 @@ class DataSet
      * @return array
      * @throws \Exception
      */
-    public function data(mixed $includeMetaFields = false, string $recKeyType = null): array
+    public function data(mixed $includeMetaFields = false, string|null $recKeyType = null): array
     {
         $out = [];
         if ($this->data) {
@@ -541,7 +541,7 @@ class DataSet
      * @param mixed $all
      * @return mixed
      */
-    public function findRecKeyOf(string $key, mixed $attribute = false, $all = false): mixed
+    public function findRecKeyOf(string $key, mixed $attribute = false, bool $all = false): mixed
     {
         $found = [];
         if ($attribute) {
@@ -614,11 +614,11 @@ class DataSet
                     $key = $this->deObfuscateRecKey($key);
                 }
                 $key = $this->deObfuscateRecKey($key);
-                $all = $args[1] ?? false;
+                $all = (bool)$args[1] ?? false;
                 $recUid = $this->findRecKeyOf($key, $attribute, $all);
 
             } elseif (($key === null) && isset($args[0])) { // special case: invoked from read()
-                $all = $args[1] ?? false;
+                $all = (bool)$args[1] ?? false;
                 $args = $args[0];
                 $key = $args[0] ?? false;
                 $attribute = $args[1] ?? false;
@@ -922,7 +922,7 @@ class DataSet
      * @return void
      * @throws \Exception
      */
-    public function flush($cacheOnly = false)
+    public function flush(bool $cacheOnly = false)
     {
         if ($this->file) {
             if (!$cacheOnly) {
