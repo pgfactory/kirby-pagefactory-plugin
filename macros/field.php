@@ -13,6 +13,7 @@ return function ($args = '')
         'options' => [
             'name' => ['Name of the page\'s data field.', 'ContentBlocks'],
             'class' => ['Class applied to the wrapper tag.', 'pfy-field'],
+            //'type' => ['Specifies the type of content. Depending on that the field value will be rendered.', 'blocks'],
             'wrapperClass' => ['Synonym for "class".', null],
             'wrapperTag' => ['Wrapper tag applied to the output.', 'div'],
             'markdown' => ['If true, field value will be markdown compiled.', false],
@@ -51,7 +52,11 @@ EOT,
     $tag = $options['wrapperTag'];
 
     // get field from kirby:
-    $out = page()->$name()->value();
+    $out = '';
+    $blocks = page()->$name()->toBlocks();
+    foreach ($blocks as $block) {
+        $out .= $block->toHTML();
+    }
 
     if ($options['literal']) {
         $str .= shieldStr($out);
@@ -63,7 +68,7 @@ EOT,
         }
 
         // resolve variables and macros:
-        if (str_contains($out, "{{")) {
+        if ($out && str_contains($out, "{{")) {
             $out = TransVars::translate($out);
         }
         $out = <<<EOT

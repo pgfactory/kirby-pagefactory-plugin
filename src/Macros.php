@@ -87,6 +87,9 @@ class Macros
             $macroName = "_$macroName";
         } elseif (!function_exists("PgFactory\\PageFactory\\$macroName")) {
             $macroFile = "site/plugins/pagefactory/macros/$macroName.php";
+            if (!file_exists($macroFile)) {
+                return $macroName;
+            }
             self::instantiateMacroLoader($macroName, $macroFile);
         }
 
