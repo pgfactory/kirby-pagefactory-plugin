@@ -52,7 +52,7 @@ return [
         // 'excludeFilesRegex'             => '\.old\.md$',// regex pattern to exclude certain .md files from rendering
         // 'pfyPageSwipeEnabled'           => true,  // enables page switching by right and left swipes on touch devices
         // 'default-nav'                   => false,  // omit automatic loading of NAV resources
-                // Note: normally, nav() is used in Twig template, but that's too late for loading assets.
+                // Note: normally, nav() is used in templates, but that's too late for loading assets.
                 // Thus, Pfy loads NAV assets, unless option 'default-nav' is false
         // 'externalLinksToNewWindow'      => false,  // -> used by Link() -> whether to open external links in new window
         // 'imageAutoQuickzoom'            => false,  // -> default for Img() macro

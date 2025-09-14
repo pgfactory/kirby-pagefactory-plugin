@@ -143,14 +143,40 @@ function loadFile(string $file, mixed $removeComments = true, bool $useCaching =
 
     // if it's data of a known format (i.e. yaml,json etc), decode it:
     $ext = fileExt($file);
-    if (str_contains(',yaml,yml,json,csv', $ext)) {
-        $data = Yaml::decode($data, $ext);
+    if (str_contains(',yaml,yml,json', $ext)) {
+        $data = Data::decode($data, $ext);
+        if ($useCaching) {
+            updateDataCache($file, $data);
+        }
+    } elseif ('csv' === $ext) {
+        $data = csvStringToArray($data);
         if ($useCaching) {
             updateDataCache($file, $data);
         }
     }
     return $data;
 } // loadFile
+
+
+ /**
+  * @param string $str
+  * @return array
+  */
+ function csvStringToArray(string $str): array
+ {
+     $tmp = [];
+     $keys = [];
+     foreach (explode("\n", $str) as $line) {
+         $rec = str_getcsv($line, ';', '"');
+         if (!$keys) {
+             $keys = $rec;
+             $n = sizeof($rec);
+         } elseif ($rec && (sizeof($rec) === $n)) {
+             $tmp[] = array_combine($keys, $rec);
+         }
+     }
+    return $tmp;
+ } // csvStringToArray
 
 
  /**

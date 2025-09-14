@@ -543,7 +543,7 @@ EOT;
                         reloadAgent(message: 'Reset executed.');
                     }
                     break;
-                case 'iframe':
+                case 'iframe': // ?iframe
                     if (!($a = page()->supportExportAsIframe()->value())) {
                         $a = kirby()->option('pgfactory.pagefactory.supportExportAsIframe');
                     }
