@@ -17,11 +17,11 @@ class Link
     private static $class;
     private static $alt;
     private static $proto;
-    private static $target;
+    private static $target = '';
     private static $type;
     private static $ext;
     private static $linkCat;
-    private static $icon;
+    private static $icon = '';
     private static $iconBefore;
     private static $attributes;
     private static $hiddenText;
@@ -363,11 +363,9 @@ class Link
      */
     private static function determineIcon(): string
     {
+        $icon = '';
         if (isset(self::$args['icon']) && (self::$args['icon'] === false)) { // explicit request no icon
             return '';
-        }
-        if (self::$proto === 'https://' || (self::$target)) {
-            $icon = 'external';
         }
 
         if (stripos(self::$type, 'inter') !== false) {
@@ -385,7 +383,11 @@ class Link
                     $icon = 'download';
                     break;
                 default:
-                    $icon = self::$type;
+                    if (self::$proto === 'https://' || (self::$target)) {
+                        $icon = 'external';
+                    } elseif (self::$type !== 'link') {
+                        $icon = self::$type;
+                    }
             }
         }
 
