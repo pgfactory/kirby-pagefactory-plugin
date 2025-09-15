@@ -1558,6 +1558,8 @@ class DataSet
             $yamlFile = fileExt($file, true).'.yaml';
             if (file_exists($yamlFile)) {
                 $this->convertToJson($yamlFile);
+                $renamedFile = dir_name($yamlFile).'#'.basename($yamlFile);
+                rename($yamlFile, $renamedFile);
             }
         }
     } // checkAndFixDataFile
