@@ -56,6 +56,7 @@ const PFY_KIRBY_ASSETS_BASE_URL =       PFY_APP_BASE_URL . PFY_BASE_OFFSET;
 const PAGED_POLYFILL_SCRIPT =           PFY_KIRBY_ASSETS_BASE_URL.'media/plugins/pgfactory/pagefactory/js/paged.polyfill.min.js';
 const PFY_DEFAULT_LOCALE =              'en_GB';
 const PFY_DEFAULT_FAVICON_FILE =        PFY_KIRBY_BASE_PATH . 'assets/favicon/favicon.png';
+const PFY_IMG_PLACEHOLDER =             PFY_KIRBY_ASSETS_BASE_URL.'media/plugins/pgfactory/pagefactory/icons/hourglass.png';
 
 
  // use this name for meta-files (aka text-files) in page folders:
