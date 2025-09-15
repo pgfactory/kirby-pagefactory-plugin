@@ -867,8 +867,8 @@ EOT;
         $appRoot = PFY_KIRBY_BASE_PATH;
         // ~pages/ is special case -> use Kirby to determine actual path:
         if (str_starts_with($path, '~pages/')) {
-            $filename = basename($path);
-            $path = dirname(substr($path, 7));
+            $filename = base_name($path);
+            $path = dir_name(substr($path, 7));
             $pg = page($path);
             if ($pg) {
                 $path = $pg->root().'/'.$filename;
