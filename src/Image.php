@@ -147,6 +147,8 @@ class Image
             $u = $this->unit;
             if ($u === 'px') {
                 $w = intval($w);
+            } elseif (is_numeric($w) && !$u) {
+                $u = 'px';
             }
             $this->style = "width:$w$u;height: auto;";
         }
@@ -527,15 +529,14 @@ EOT;
         // resize image if required:
         if ($this->origWidth > DEFAULT_MAX_IMAGE_WIDTH) {
             $this->origWidth = DEFAULT_MAX_IMAGE_WIDTH;
-            $image0 = $image->thumb([
-                'width' => $this->origWidth,
-                'format' => $this->format,
-                'quality' => $this->quality,
-            ]);
-            $this->src = $image0->url();
-        } else {
-            $this->src = $image->url();
         }
+        // convert and resize to target format (default webp):
+        $image0 = $image->thumb([
+            'width' => $this->origWidth,
+            'format' => $this->format,
+            'quality' => $this->quality,
+        ]);
+        $this->src = $image0->url();
 
         // check and fix erroneous asset Url:
         if (PFY_BASE_OFFSET && !str_starts_with($this->src, PFY_KIRBY_ASSETS_BASE_URL)) {
@@ -549,10 +550,11 @@ EOT;
                 'quality' => $this->quality,
             ]);
         }
-        if ($this->isAbsoluteUnit) {
-            $this->requestedWidth = round($effectiveWidth, 1);
-            $this->requestedHeight = round($effectiveHeight, 1);
-        }
+//??? where needed?
+//        if ($this->isAbsoluteUnit) {
+//            $this->requestedWidth = round($effectiveWidth, 1);
+//            $this->requestedHeight = round($effectiveHeight, 1);
+//        }
 
         try {
             $this->alt = $image->alt()->value() ?: (($this->options['alt'] ?? false) ?: ' ');
