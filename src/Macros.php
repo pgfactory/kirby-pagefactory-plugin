@@ -347,11 +347,11 @@ EOT;
                     $src = str_replace($m[0][$i], $s, $src);
                 }
             }
+            $src = preg_replace('/\n\s*\n/', "\n", $src);
             $src = markdownParagraph($src);
 
             $multiline = str_contains($src, "\n") ? "\n    " : '';
             $multiline2 = $multiline ? "\n" : ' ';
-            $src = preg_replace('/\n\s*\n/', "\n", $src);
             if ($multiline) {
                 $src = rtrim($src, "\n\t ");
             } else {
