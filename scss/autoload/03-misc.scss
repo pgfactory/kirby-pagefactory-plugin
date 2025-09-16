@@ -10,7 +10,7 @@
 
 @import '~/site/plugins/pagefactory/scss/_scss-variables.scss';
 
-// smoother page transitions in modern browsers:
+ // smoother page transitions in modern browsers:
 @view-transition {
   navigation: auto;
 }
@@ -334,6 +334,25 @@
       border-bottom: none;
     }
   }
+
+  // === debugging ===================================
+  &.pfy-dev::before {
+    content: 'Dev';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 2.5em;
+    background: rgb(250, 216, 152, 0.5);
+    border-right: 1px solid orange;
+    border-bottom: 1px solid orange;
+    border-bottom-right-radius: 0.5em;
+    color: black;
+    font-size: 10pt;
+    text-align: center;
+    padding: 0.2em;
+    z-index: 1000;
+  }
+
 
 } // pfy-default-styling
 

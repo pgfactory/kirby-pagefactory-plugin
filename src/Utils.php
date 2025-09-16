@@ -378,10 +378,10 @@ EOT;
             $bodyTagClasses = "localhost $bodyTagClasses";
         }
         if (PageFactory::$dev) {
-            $bodyTagClasses = "debug $bodyTagClasses";
+            $bodyTagClasses = "$bodyTagClasses pfy-debug";
         }
         if (PageFactory::$dev) {
-            $bodyTagClasses = "dev $bodyTagClasses";
+            $bodyTagClasses = "$bodyTagClasses pfy-dev";
         }
         return trim($bodyTagClasses);
     } // renderBodyTagClasses
@@ -1063,6 +1063,8 @@ EOT;
                 $devMode = !preg_match("#$patt#", $appRoot);
             } elseif (is_bool($patt)) {
                 $devMode = !$patt;
+            } else {
+                $devMode = Permission::isLocalhost();
             }
         } else {
             if ($patt === '/') {
