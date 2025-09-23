@@ -258,10 +258,10 @@ class TransVars
         }
         $val = false;
         if (is_array($var)) {
-            if (isset($var[$langCode])) {     // check language-variant (e.g. de2)
-                $val = $var[$langCode];
-            } elseif (isset($var[$lang])) {   // check base language (e.g. de)
+            if (isset($var[$lang])) {           // check base language (e.g. de2)
                 $val = $var[$lang];
+            } elseif (isset($var[$langCode])) { // check language-variant (e.g. de)
+                $val = $var[$langCode];
             } elseif (isset($var['_'])) {     // check default language
                 $val = $var['_'];
             } else {
