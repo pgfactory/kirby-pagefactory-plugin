@@ -314,7 +314,7 @@ function initToDoLists() {
     }
     const liEl = ev.target;
     liEl.classList.toggle('checked');
-    liEl.toggleAttribute('aria-checked', "true");
+    liEl.toggleAttribute('aria-checked');
   });
 } // initToDoLists
 
