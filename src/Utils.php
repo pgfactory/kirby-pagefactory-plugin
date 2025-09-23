@@ -13,6 +13,7 @@ class Utils
 {
     public static string $loginLink;
     public static string $loginButton;
+    public static string $langSelection = '';
     public static mixed $loggedIn;
     public static mixed $menuIcon;
 
@@ -138,6 +139,9 @@ class Utils
         TransVars::setVariable('now', date('Y-m-d H:i'));
         TransVars::setVariable('pageTitle', page()->title()->value());
         TransVars::setVariable('siteTitle', site()->title()->value());
+        TransVars::setVariable('lang', PageFactory::$lang);
+        TransVars::setVariable('langCode', PageFactory::$langCode);
+        TransVars::setVariable('langSelection', self::renderLanguageSelector());
 
         $headTitle = TransVars::getVariable('headTitle', false);
         if (!$headTitle) {
@@ -455,6 +459,9 @@ EOT;
      */
     public static function renderLanguageSelector(): string
     {
+        if (self::$langSelection) {
+            return self::$langSelection;
+        }
         $out = '';
         if (sizeof(PageFactory::$supportedLanguages) > 1) {
             foreach (PageFactory::$supportedLanguages as $lang) {
@@ -469,6 +476,7 @@ EOT;
             }
             $out = "<span class='pfy-lang-selection'>$out</span>\n";
         }
+        self::$langSelection = $out;
         return $out;
     } // renderLanguageSelector
 
@@ -940,17 +948,14 @@ EOT;
                 }
             }
         }
-        $pageId = page()->id() . '/';
 
         // ~page/ for <a> tags -> replace without redir-offset:
         if (preg_match_all('|(<a\s+href=[\'"])~page/|', $html, $m)) {
             $homeSlug = site()->homePage()->slug().'/';
             foreach ($m[1] as $i => $aTag) {
                 // if it's homepage -> fix path to '':
-                if ($pageId === $homeSlug) {
-                    $pageId = '';
-                }
-                $html = str_replace($m[0][$i], $aTag.PFY_APP_BASE_URL.$pageId, $html);
+                $pageUrl = page()->url();
+                $html = str_replace($m[0][$i], $aTag.$pageUrl, $html);
             }
 
         // ~page/ for instances of "src=...":
@@ -1019,13 +1024,13 @@ EOT;
             }
             $langCode = substr($lang, 0, 2);
             if (in_array($lang, $supportedLanguages) || in_array($langCode, $supportedLanguages)) {
-                PageFactory::$lang = $lang;
-                PageFactory::$langCode = $langCode;
                 $kirby->session()->set('pfy.lang', $lang);
                 $kirby->setCurrentLanguage($langCode);
                 $url = page()->url();
                 reloadAgent($url);
             }
+        } else {
+            $kirby->setCurrentLanguage($langCode);
         }
     } // determineLanguage
 
