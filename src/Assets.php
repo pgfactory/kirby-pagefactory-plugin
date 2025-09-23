@@ -267,6 +267,11 @@ class Assets
                     PFY_BASE_OFFSET.'media/plugins/pgfactory/pagefactory\1/', $asset);
                 $code = css($asset);
 
+            // assets in folder starting in app root:
+            } elseif (str_starts_with($asset, '~/')) {
+                $asset = PFY_BASE_OFFSET . substr($asset, 2);
+                $code = css($asset);
+
             // assets in ~/assets folder:
             } elseif (str_starts_with($asset, 'assets/')) {
                 $asset = PFY_BASE_OFFSET.$asset;
@@ -333,6 +338,11 @@ class Assets
             } elseif (str_starts_with($asset, 'site/plugins')) {
                 $asset = preg_replace('|site/plugins/pagefactory(-.*?)?/assets/|', 'media/plugins/pgfactory/pagefactory\1/', $asset);
                 $code = js(PFY_BASE_OFFSET.$asset);
+
+            // assets in folder starting in app root:
+            } elseif (str_starts_with($asset, '~/')) {
+                $asset = PFY_BASE_OFFSET . substr($asset, 2);
+                $code = js($asset);
 
             // assets in ~/assets folder:
             } elseif (str_starts_with($asset, 'assets/')) {
