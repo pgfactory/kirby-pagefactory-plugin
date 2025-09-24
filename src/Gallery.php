@@ -99,14 +99,29 @@ EOT;
         } elseif ($options['thumbCaptions']??false) {
             $thumbCaption = "\n<div class='pfy-gallery-thumb-caption'>$caption</div>";
         }
-        if (preg_match("/style='(.*?)'/", $html, $m )) {
-            $html = str_replace($m[0], "style='{$m[1]} object-fit:cover;'", $html);
-        } else {
-            $html = substr($html, 0,-1) . "style='object-fit:cover;'>";
+
+        $style = '';
+        if ($options['thumbWidth']) {
+            $w = $options['thumbWidth'];
+            if (!preg_match('/\D/', $w)) {
+                $w .= 'px';
+            }
+            $style = " width: $w;";
         }
-        $width = ($options['thumbWidth']??false) ? " style='width:{$options['thumbWidth']}'": '';
+        if ($options['thumbHeight']) {
+            $h = $options['thumbHeight'];
+            if (!preg_match('/\D/', $h)) {
+                $h .= 'px';
+            }
+            $style .= "height: $h;";
+        }
+        if ($style) {
+            $style = " style=\"$style\"";
+        }
+
+        $caption = $caption? " title='$caption'" : '';
         $html = <<<EOT
-<a href="$imgUrl"$width title="$caption">
+<a href="$imgUrl"$caption$style>
 $html$thumbCaption
 </a>
 
@@ -219,6 +234,26 @@ EOT;
         $imgUrl = $img->url();
         return [$imgUrl, $html];
     } // prepareImage
+
+
+    private static function renderStyling($options): void
+    {
+        $css = '';
+        $inx = self::$inx;
+        if ($options['thumbWidth']) {
+            $thumbWidth = $options['thumbWidth'];
+            $css .= "width: $thumbWidth;";
+        }
+        if ($options['thumbHeight']) {
+            $thumbHeight = $options['thumbHeight'];
+            $css .= "height: $thumbHeight;";
+        }
+        if ($css) {
+            $css .= ".pfy-gallery-$inx .pfy-img { $css }\n";
+            Page::addCss($css);
+
+        }
+    }
 
 
 } // Gallery

@@ -234,8 +234,20 @@
     }
 
 
+  // === gallery =======
+  .pfy-gallery {
+    a, a:hover {
+      border-bottom: none;
+    }
+    .pfy-img {
+      object-fit: cover;
+    }
+  }
 
-    // === Timeout / freezeWindowAfter
+
+
+
+  // === Timeout / freezeWindowAfter
     .pfy-timedout {
         cursor: pointer;
     }
@@ -327,13 +339,6 @@
     text-align: center;
   }
 
-
-  // === gallery =======
-  .pfy-gallery {
-    a, a:hover {
-      border-bottom: none;
-    }
-  }
 
   // === debugging ===================================
   &.pfy-dev::before {

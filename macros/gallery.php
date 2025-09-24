@@ -35,13 +35,13 @@ return function($args = ''): string
     $config =  [
         'options' => [
             'path'          => ['[path] Path of folder containing images.', false],
-            'thumbWidth'    => ['[int] Width of thumbnails/preview images. '.
-                'Supported units: in,cm,mm,pt,pc,px', null],
-            'thumbHeight'   => ['[int] Height of thumbnails/preview images.', null],
-            'width'         => ['[int] Synonyme for "thumbWidth".', null],
-            'height'        => ['[int] Synonyme for "thumbHeight".', null],
-            'maxWidth'      => ['[int] Maximum width of images (i.e. in overlay).', IMG_MAX_WIDTH],
-            'maxHeight'     => ['[int] Maximum height of images', IMG_MAX_HEIGHT],
+            'thumbWidth'    => ['[int|string] Width of thumbnails/preview images. '.
+                'Supported units: in,cm,mm,pt,pc,px', 200],
+            'thumbHeight'   => ['[int|string] Height of thumbnails/preview images.', 150],
+            'width'         => ['[int|string] Synonyme for "thumbWidth".', null],
+            'height'        => ['[int|string] Synonyme for "thumbHeight".', null],
+            'maxWidth'      => ['[int|string] Maximum width of images (i.e. in overlay).', IMG_MAX_WIDTH],
+            'maxHeight'     => ['[int|string] Maximum height of images', IMG_MAX_HEIGHT],
             'class'         => ['[string] Class to be applied to the wrapper tag.', false],
             'fullscreen'    => ['[bool] If true, gallery covers the entire screen when opened.', false],
             'background'    => ['[color] Color of the overlay background.', '#212121f2'],
