@@ -151,8 +151,11 @@ class Image
                 $u = 'px';
             }
             $this->style = "width:$w$u;height: auto;";
+            $style = $this->style ? "style='$this->style'" : '';
+        } else {
+            $style = "max-width: {$this->origWidth}px; max-height: {$this->origHeight}px;";
+            $style = "style='$style'";
         }
-        $style = $this->style ? " style='$this->style'" : '';
 
         $zoomedSrc = '';
         if ($this->lazyLoadingActive && $this->quickzoomActive) {
@@ -162,9 +165,10 @@ class Image
         if (!$this->wrapperTag) {
             $html = <<<EOT
     <img $this->attributes
-        class="pfy-img $this->class"$style
+        class="pfy-img $this->class"
         $src
         $srcset $sizes
+        $style
     >
 
 EOT;
@@ -175,6 +179,7 @@ EOT;
         class="pfy-img $this->class"$style
         $src
         $srcset $sizes
+        $style
     >
     <figcaption>$this->caption</figcaption>
 </figure>
@@ -184,9 +189,10 @@ EOT;
             $html = <<<EOT
 <$this->wrapperTag class="pfy-img-wrapper $this->wrapperClass">
     <img $this->attributes
-        class="pfy-img $this->class"$style
+        class="pfy-img $this->class"
         $src
         $srcset $sizes
+        $style
     >$zoomedSrc
 </$this->wrapperTag><!-- .pfy-img-wrapper -->
 
@@ -550,11 +556,13 @@ EOT;
                 'quality' => $this->quality,
             ]);
         }
-//??? where needed?
-//        if ($this->isAbsoluteUnit) {
-//            $this->requestedWidth = round($effectiveWidth, 1);
-//            $this->requestedHeight = round($effectiveHeight, 1);
-//        }
+
+        if ($effectiveWidth && $this->isAbsoluteUnit) {
+            $this->requestedWidth = round($effectiveWidth, 1);
+        }
+        if ($effectiveHeight && $this->isAbsoluteUnit) {
+            $this->requestedHeight = round($effectiveHeight, 1);
+        }
 
         try {
             $this->alt = $image->alt()->value() ?: (($this->options['alt'] ?? false) ?: ' ');
