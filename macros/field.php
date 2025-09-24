@@ -24,7 +24,7 @@ return function ($args = '')
 # $funcName()
 
 With Kirby you can define so called "fields", essentially configurable 
-paage content elements which you can set and modify in Kirby's panel
+page content elements which you can set and modify in Kirby's panel
 (or in page's meta-files).
 
 ``ContentBlock`` (the default field) lets you assemble page content from basic building blocks,
