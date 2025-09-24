@@ -142,6 +142,7 @@ class Image
             $src = "src='$u'\n\t\t$src";
         }
 
+        $style = '';
         if ($this->requestedWidth) {
             $w = $this->requestedWidth;
             $u = $this->unit;
@@ -150,12 +151,28 @@ class Image
             } elseif (is_numeric($w) && !$u) {
                 $u = 'px';
             }
-            $this->style = "width:$w$u;height: auto;";
-            $style = $this->style ? "style='$this->style'" : '';
-        } else {
-            $style = "max-width: {$this->origWidth}px; max-height: {$this->origHeight}px;";
-            $style = "style='$style'";
+            $style = "width:$w$u;";
+            if (!$this->requestedHeight) {
+                $style .= "height:auto;";
+            }
         }
+        if ($this->requestedHeight) {
+            $h = $this->requestedHeight;
+            $u = $this->unit;
+            if ($u === 'px') {
+                $h = intval($h);
+            } elseif (is_numeric($h) && !$u) {
+                $u = 'px';
+            }
+            $style .= "height:$h$u;";
+            if (!$this->requestedWidth) {
+                $style .= "width:auto;";
+            }
+        }
+        if (!$style) {
+            $style = "max-width: {$this->origWidth}px; max-height: {$this->origHeight}px;";
+        }
+        $style = "style='$style'";
 
         $zoomedSrc = '';
         if ($this->lazyLoadingActive && $this->quickzoomActive) {
@@ -274,7 +291,7 @@ EOT;
     private function extractUnit(string $str): array
     {
         $unit = 'px';
-        if (preg_match('/([\d.]+)([\w%]*)/', $str, $m)) {
+        if (preg_match('/([\d.]+)([a-z%]+)/', $str, $m)) {
             $str = $m[1];
             $unit = $m[2];
         }
@@ -460,6 +477,13 @@ EOT;
             $attributes .= ' tabindex="0"';
         }
 
+        if ($options['width']??false) {
+            $this->requestedWidth = $options['width'];
+        }
+        if ($options['height']??false) {
+            $this->requestedHeight = $options['height'];
+        }
+
         $this->attributes = $attributes;
     } // parseOptions
 
@@ -516,7 +540,7 @@ EOT;
         }
 
         // case height but no width defined:
-        if ($effectiveWidth && $effectiveHeight) {
+        if ($effectiveWidth && !$effectiveHeight) {
             if ($effectiveWidth > $effectiveHeight / $this->aspectRatio) {
                 $effectiveWidth = $effectiveHeight / $this->aspectRatio;
                 if ($this->requestedHeight && is_numeric($this->requestedHeight)) {
@@ -528,8 +552,6 @@ EOT;
             }
         } elseif (!$effectiveWidth && $effectiveHeight) {
             $effectiveWidth = $effectiveHeight / $this->aspectRatio;
-        } elseif ($effectiveWidth && !$effectiveHeight) {
-            $effectiveHeight = $effectiveWidth / $this->aspectRatio;
         }
 
         // resize image if required:
