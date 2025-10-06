@@ -82,6 +82,11 @@ class Macros
      */
     public static function execute(string $macroName, string $argStr): string|false
     {
+        $showHtml = false;
+        if (preg_match('/\s*showHtml:\s*true/', $argStr, $m)) {
+            $showHtml = true;
+            $argStr = str_replace($m[0], '', $argStr);
+        }
         $argStr = TransVars::resolveShortFormVariables($argStr, keepUnknows: true);
         if (function_exists("PgFactory\\PageFactory\\_$macroName")) {
             $macroName = "_$macroName";
@@ -95,6 +100,18 @@ class Macros
 
         // the actual macro call:
         $value = "PgFactory\\PageFactory\\$macroName"($argStr);
+
+        if ($showHtml) {
+            $html = str_replace('<', '&lt;', $value);
+            $html = <<<EOT
+<div class="pfy-html-source" style="font-size:8pt;">
+<pre>
+$html
+</pre>
+</div>
+EOT;
+            $value .= shieldStr($html);
+        }
 
         if (is_array($value)) {
             $value = $value[0]??'';
