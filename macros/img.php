@@ -73,6 +73,29 @@ Configuration options in 'site/config/config.php':
 
 **Note**: if an attribute file exists (i.e. image-filename + '.txt') that will be read to extract attributes. 
 
+### Ken Burns Effect
+Example:
+
+    kenburns: {
+        **direction**: 45 \// degrees
+        **origin**: {10%, 90%}
+        **duration**: 10
+        **distance**: 0.8
+        **scale**: {1, 1.7}
+    }
+
+All random values -> any none-specified values are randomly assigned:
+
+    kenburns: {}
+
+Debuggung -> show start and end position (click on image to toggle):
+
+    kenburns: { **debug: true** }
+
+Measuring -> find coordinates of desired ``transform-origin``:
+    kenburns: { **measure: true** }
+
+
 EOT,
     ];
 
@@ -86,6 +109,7 @@ EOT,
     if (($options['quickview']??null) !== null) {
         $options['quickzoom'] = $options['quickview'];
     }
+    unset($options['quickview']);
 
     if (!($options['src']??false)) {
         throw new \Exception("Option 'src' is required.");

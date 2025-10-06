@@ -56,7 +56,11 @@ define('ASSETS_PATH_DEFINITIONS', [
     ],
     'KEN_BURNS' => [
        PFY_ASSETS_PATH.'js/kenburns.js',
+       PFY_ASSETS_PATH.'js/dragImgCrosshair.js',
     ],
+    //'DRAG_ELEMENT' => [
+    //   PFY_ASSETS_PATH.'js/drag.js',
+    //],
 ]);
 
  // define system assets:
