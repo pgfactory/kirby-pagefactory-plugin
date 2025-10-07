@@ -222,6 +222,7 @@
       cursor: url(../icons/shrink.svg), zoom-out;
     }
 
+    .pfy-gallery .pfy-img,
     .pfy-img-wrapper:not(.pfy-kenburns) .pfy-img {
       object-fit: cover;
     }
