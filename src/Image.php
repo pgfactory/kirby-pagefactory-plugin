@@ -539,6 +539,10 @@ EOT;
         if (!$imgStyle) {
             $imgStyle = "width: min(100%, {$this->effectiveWidth}px); height: min(100%, {$this->effectiveHeight}px);";
         }
+        if (!$this->wrapperTag && !$this->caption) {
+            $imgStyle = $wrapperStyle;
+            $wrapperStyle = '';
+        }
         return [$imgStyle, $wrapperStyle];
     } // renderStyles
 
@@ -759,9 +763,6 @@ EOT;
 
         if ($options['width']) {
             list($this->requestedWidth, $this->unit) = $this->extractUnit($options['width']);
-        }
-        if ($options['height']) {
-            list($this->requestedHeight, $this->unit) = $this->extractUnit($options['height']);
         }
 
         $this->link = $options['link'];
