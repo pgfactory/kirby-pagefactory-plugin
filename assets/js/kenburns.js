@@ -4,11 +4,13 @@
 
 class KenBurns {
   imgEl = null;
+  inx = null;
   animationOptions = null;
   Ox = null;
   Oy = null;
   debug = false;
   measure = false;
+  crosshairEl = null;
 
   constructor(wrapperEl, options, animationOptions) {
     console.log('KenBurns');
@@ -17,6 +19,7 @@ class KenBurns {
     if (!options) {
       return;
     }
+    this.inx = animationOptions.inx;
     this.debug = animationOptions.debug;
     if (animationOptions.measure) {
       this.activateMeasure();
@@ -216,7 +219,6 @@ class KenBurns {
 
   activateDebug(transform){
     console.log(`debug: start position  [${transform[0]}]`);
-    this.showTransformOrigin();
     this.imgEl.style.transform = transform[0];
     this.imgEl.dataset.kbDebug = 0;
     this.imgEl.addEventListener('click', (ev) => {
@@ -228,44 +230,52 @@ class KenBurns {
       this.imgEl.dataset.kbDebug = debugInx;
       console.log(`debug: ${debugInx? 'end position':'start position'}  [${transform[debugInx]}]`);
       this.imgEl.style.transform = transform[debugInx];
-
     })
+    this.activateMeasure();
   } // activateDebug
+
+
+  activateMeasure() {
+    this.showTransformOrigin();
+    new DragImageCrosshair(this.crosshairEl);
+  } // activateMeasure
 
 
   showTransformOrigin() {
     const wrapper = this.imgEl.parentElement;
     const div = document.createElement("div");
-    div.setAttribute('id', 'pfy-crosshair');
+    div.setAttribute('class', 'pfy-crosshair');
     wrapper.appendChild(div);
+    this.crosshairEl = wrapper.querySelector('.pfy-crosshair');
 
     const newStyle = document.createElement("style");
     const w = 10;
     const h = this.imgEl.width / this.imgEl.height * 10;
     newStyle.innerHTML = `
-    #pfy-crosshair {
+    .pfy-crosshair {
       position: absolute;
       width: ${w}%;
       height: ${h}%;
       transform: translate(-50%, -50%);
+      cursor: grab;
     }
 
-    #pfy-crosshair::before,
-      #pfy-crosshair::after {
+    .pfy-crosshair::before,
+    .pfy-crosshair::after {
       content: '';
       position: absolute;
       background-color: red;
       outline: 1px solid yellow;
     }
 
-    #pfy-crosshair::before { /* Horizontal line */
+    .pfy-crosshair::before { /* Horizontal line */
       top: 50%;
       left: 0;
       width: 100%;
       height: 1.5px;
     }
 
-    #pfy-crosshair::after { /* Vertical line */
+    .pfy-crosshair::after { /* Vertical line */
       top: 0;
       left: 50%;
       width: 1.5px;
@@ -278,7 +288,7 @@ class KenBurns {
 
 
   setCrosshairPosition(xPercent, yPercent) {
-    const crosshair = document.getElementById('pfy-crosshair');
+    const crosshair = this.crosshairEl;
     const container = this.imgEl.parentElement;
 
     // Calculate the position based on percentages
@@ -287,19 +297,12 @@ class KenBurns {
     //console.log(`setCrosshairPosition: ${xPercent*100}% ${yPercent*100}%`);
 
     // Set the position of the crosshair
-    crosshair.style.left = `${xPosition}px`;
-    crosshair.style.top = `${yPosition}px`;
+    this.crosshairEl.style.left = `${xPosition}px`;
+    this.crosshairEl.style.top = `${yPosition}px`;
 
     // Optionally, you can make the crosshair visible if it's initially hidden
-    crosshair.style.display = 'block';
+    this.crosshairEl.style.display = 'block';
   } // setCrosshairPosition
-
-
-  activateMeasure() {
-    this.showTransformOrigin();
-    const crosshairEl = document.getElementById('pfy-crosshair');
-    new DragImageCrosshair(crosshairEl);
-  } // activateMeasure
 
 } // class KenBurns
 

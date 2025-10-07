@@ -572,6 +572,7 @@ $kenBurnsStr},
 {
   duration: $duration,
   easing: "$easing",$debug$measure
+  imgInx: $inx,
 });
 
 EOT;
@@ -714,9 +715,12 @@ EOT;
 
         $options['imgTagAttrs'] = ($options['imgTagAttrs']??false) ?: ($options['imgTagAttributes']??'');
 
-        if ($options['kenburns'] !== null) {
+        if (is_array($options['kenburns'])) {
             $this->kenburnsActive = true;
             $options['kenburns'] = $this->parseKenBurnsOptions($options['kenburns']);
+        } elseif ($options['kenburns'] === true) {
+            $this->kenburnsActive = true;
+            $options['kenburns'] = $this->parseKenBurnsOptions([]);
         } else {
             if ($options['quickzoom'] !== null) {
                 $this->quickzoomActive = !!$options['quickzoom'];
@@ -810,10 +814,11 @@ EOT;
                     $scale2 = floatval($a[1] ?? 1);
                 } else {
                     if ($scale1 < 1) {
-                        $scale1 = 1;
                         $scale2 = 1 / $scale1;
+                        $scale1 = 1;
                     } else {
-                        $scale2 = 1;
+                        $scale2 = $scale1;
+                        $scale1 = 1;
                     }
                 }
                 $value = [$scale1, $scale2];
