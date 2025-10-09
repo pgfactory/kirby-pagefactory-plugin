@@ -1015,7 +1015,7 @@ class DataSet
                 if (trim($str) === '') {
                     $this->importData([]);
                 } else {
-                    throw new \Exception($e->getMessage());
+                    throw new \Exception($e->getMessage() . " in file '$this->file'");
                 }
             }
         } else {
