@@ -415,7 +415,7 @@ class PageFactory
 
             $wrapperId = "pfy-part-$inx";
             $fileId = translateToClassName(base_name($file, false), false);
-            $fileId = 'pfy-src-'.preg_replace('/^\d+[_\s]?/', '', $fileId);
+            $fileId = 'pfy-src-'.preg_replace('/^\d+[_\s\-]?/', '', $fileId);
             $wrapperClass = "pfy-$wrapperTag-wrapper$wrapperClass $wrapperId $fileId";
             $html = TransVars::compile($mdStr, $inx, removeComments: false);
             $html = <<<EOT
