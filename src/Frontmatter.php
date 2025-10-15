@@ -72,11 +72,11 @@ class Frontmatter
 
             } elseif ($key === 'css') {
                 // hold back till ".this"/"#this" can be resolved:
-                self::$sectionsCss = $value;
+                self::$sectionsCss .= $value;
 
             } elseif ($key === 'scss') {
                 // hold back till ".this"/"#this" can be resolved:
-                self::$sectionsScss = $value;
+                self::$sectionsScss .= $value;
 
             } elseif ($key === 'js') {
                 Page::addJs($value);
