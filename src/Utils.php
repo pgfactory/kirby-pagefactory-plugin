@@ -590,7 +590,7 @@ setTimeout(function() {
 setTimeout(function() {
   console.log('now adding buttons');
   const printUrl = window.location.href.replace(/printview/, 'print');
-  const origUrl = window.location.href.replace(/(\&|\?)printview/, '');
+  const origUrl = removeUrlQueryParam(window.location.href, 'printview');
   console.log(`printUrl: \${printUrl}, origUrl: \${origUrl}`);
   const printBtns = document.createElement('div');
   printBtns.className = 'pfy-print-btns';
@@ -954,7 +954,7 @@ EOT;
             $homeSlug = site()->homePage()->slug().'/';
             foreach ($m[1] as $i => $aTag) {
                 // if it's homepage -> fix path to '':
-                $pageUrl = page()->url();
+                $pageUrl = page()->url().'/';
                 $html = str_replace($m[0][$i], $aTag.$pageUrl, $html);
             }
 
