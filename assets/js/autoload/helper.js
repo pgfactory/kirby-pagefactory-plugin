@@ -319,6 +319,13 @@ function initToDoLists() {
 } // initToDoLists
 
 
+function removeUrlQueryParam(url, paramToRemove) {
+  const urlObj = new URL(url);
+  urlObj.searchParams.delete(paramToRemove);
+  return urlObj.toString();
+} // removeUrlQueryParam
+
+
 document.addEventListener('DOMContentLoaded', function() {
   initCopyButton();
   initToDoLists();
