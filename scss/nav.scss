@@ -534,6 +534,9 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
         }
       }
 
+      .pfy-lvl-3 a {
+        padding-top: 0;
+      }
       .pfy-lvl-3 > a {
         padding-left: $indent3;
 

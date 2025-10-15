@@ -81,6 +81,7 @@ class Link
         return $str;
     } // render
 
+
     /**
      * @return void
      */
