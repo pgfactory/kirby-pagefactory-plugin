@@ -1054,11 +1054,12 @@ EOT;
         }
         $devMode = $_SESSION['pfy.dev'] ?? null;
 
-        if ($devMode !== null && !isset($_GET['dev'])) {
+        if ($devMode !== null && !isset($_GET['dev']) && !isset($_GET['localhost'])) {
             session_abort();
             return $devMode;
         }
 
+        $isLocalhost =  Permission::isLocalhost();;
         $appRoot = dirname($_SERVER['SCRIPT_FILENAME']);
         $docRoot = $_SERVER['DOCUMENT_ROOT']??'';
         $patt = kirby()->option('pgfactory.pagefactory.productionHostPathPattern');
@@ -1069,7 +1070,7 @@ EOT;
             } elseif (is_bool($patt)) {
                 $devMode = !$patt;
             } else {
-                $devMode = Permission::isLocalhost();
+                $devMode = $isLocalhost;
             }
         } else {
             if ($patt === '/') {
@@ -1077,7 +1078,7 @@ EOT;
             } elseif (is_bool($patt)) {
                 $devMode = !$patt;
             } else {
-                $devMode = Permission::isLocalhost();
+                $devMode = $isLocalhost;
             }
         }
         $devMode = $devMode || Permission::isAdmin();
@@ -1093,7 +1094,7 @@ EOT;
         }
 
         // if not on localhost, only admins may proceed with ?dev requests:
-        if (!(Permission::isAdmin() || Permission::isLocalhost())) {
+        if (!(Permission::isAdmin() || $isLocalhost)) {
             session_abort();
             return $devMode;
         }
