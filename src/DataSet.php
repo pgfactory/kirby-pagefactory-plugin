@@ -6,8 +6,12 @@ use Error;
 use Kirby\Data\Yaml as Yaml;
 
  // meta keys:
-const DATAREC_TIMESTAMP = '_timestamp';
-const DATAREC_RECKEY = '_reckey';
+if (!defined('DATAREC_TIMESTAMP')) {
+    define('DATAREC_TIMESTAMP', '_timestamp');
+}
+if (!defined('DATAREC_RECKEY')) {
+    define('DATAREC_RECKEY', '_reckey');
+}
 const SUPPORTED_FILE_TYPES = 'yaml,json,csv,txt';
 
  // timings:
@@ -1487,7 +1491,7 @@ class DataSet
         $this->masterFileRecKeyType = $options['masterFileRecKeyType'] ?? 'hash';
 
         if ($keepDataDuration = ($options['keepDataDuration'] ?? DEFAULT_KEEP_DATA_DURATION)) {
-            $this->keepDataThreshold = strtotime("- $keepDataDuration months");
+            $this->keepDataThreshold = strtotime("-$keepDataDuration months");
         }
         $this->keepDataOnField = $options['keepDataOnField'] ?? false; // false means '_timestamp'
 

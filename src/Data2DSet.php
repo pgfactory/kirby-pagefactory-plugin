@@ -12,7 +12,12 @@
 
 namespace PgFactory\PageFactory;
 
-use PgFactory\PageFactory\DataSet;
+if (!defined('DATAREC_TIMESTAMP')) {
+    define('DATAREC_TIMESTAMP', '_timestamp');
+}
+if (!defined('DATAREC_RECKEY')) {
+    define('DATAREC_RECKEY', '_reckey');
+}
 
 class Data2DSet
 {
