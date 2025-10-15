@@ -11,7 +11,7 @@ if (file_exists(PFY_KIRBY_BASE_PATH . 'site/plugins/pagefactory-pageelements/src
 class TransVars
 {
     public static array $variables = [];
-    private static array $tempVariables = [];
+    public static array $tempVariables = [];
     public static array $transVars = [];
     public static array $funcIndexes = [];
     public static bool $noTranslate = false;
@@ -38,24 +38,14 @@ class TransVars
 
 
     /**
-     * @param array $variables
-     * @return void
-     */
-    public static function setTempVariables(array $variables): void
-    {
-        self::$tempVariables = $variables;
-    } // setTempVariables
-
-
-    /**
-     * Resolves given string: variables and macros, finally md-compiles, optionally for input to Twig
+     * Resolves given string: variables and macros, finally md-compiles
      * @param string $mdStr
      * @param $inx
      * @param $removeComments
      * @return string
      * @throws \Exception
      */
-    public static function compile(string $mdStr, int $inx = 0, bool|string $removeComments = true, bool $forTwig = true): string
+    public static function compile(string $mdStr, int $inx = 0, bool|string $removeComments = true): string
     {
         if ($removeComments) {
             $mdStr = removeComments($mdStr, 'c,t');
@@ -84,6 +74,158 @@ class TransVars
 
         return $html;
     } // compile
+
+
+    /**
+     * @param $str
+     * @return string
+     */
+    public static function translate($str): string
+    {
+        $str = str_replace(['\\{{', '\\}}', '\\('], ['{!!{', '}!!}', '⟮'], $str);
+        $str = self::resolveVariables($str);
+        $str = Macros::executeMacros($str);
+        $str = str_replace(['\\{{', '\\}}', '\\('], ['{!!{', '}!!}', '⟮'], $str);
+        return $str;
+    } // translate
+
+
+    /**
+     * Replaces all occurences of {{ }} patterns with variable contents.
+     * -> does NOT execute macros.
+     * @param string $str
+     * @return string
+     */
+    public static function resolveVariables(string $str, string $lang = ''): string
+    {
+        // calls containing increment/decrement, e.g. {{ n++ }}
+        list($p1, $p2) = strPosMatching($str);
+        while ($p1 !== false && $p2 !== false) {
+            $key = trim(substr($str, $p1+2, $p2-$p1-2));
+
+            // skip macro() calls:
+            if (preg_match('/^\w+?\(/', $key)) {
+                list($p1, $p2) = strPosMatching($str, $p2);
+                continue;
+            }
+
+            // handle '|raw':
+            $doShield = false;
+            if (preg_match('/ \s* \| \s* raw \s* $/mx', $key, $m)) {
+                $doShield = true;
+                $key = substr($key, 0, - strlen($m[0]));
+            }
+
+            // handle '|filter', e.g. '|date("l, j. F Y")
+            if (preg_match('/^ (.*) \s* \| \s* (.*?) \s* $/mx', $key, $m)) {
+                $varname = $m[1];
+                if (self::isDefined($varname)) {
+                    $value = self::getVariable($varname, true);
+                    $fun = $m[2];
+                    if (preg_match('/(.*) \((.*) \)/mx', $fun, $mm)) {
+                        $fun = $mm[1];
+                        $args = trimQuotes($mm[2]);
+                        try {
+                            if ($fun === 'date' || $fun === 'intlDate') {
+                                if (function_exists('\PgFactory\PageFactoryElements\intlDate')) {
+                                    $value = \PgFactory\PageFactoryElements\intlDate($args, $value);
+                                } else {
+                                    $value = date($args, $value);
+                                }
+                            } else {
+                                $value = $fun($value, $args);
+                            }
+                        } catch (\Exception $e) {
+                            throw new \Exception("Error in macro '$varname': $e");
+                        }
+                    }
+                } else {
+                    list($p1, $p2) = strPosMatching($str, $p2);
+                    continue;
+                }
+
+            } else {
+                // catch in-text assignments, e.g. {{ n=3 }}:
+                if (preg_match('/^([\w-]*?)=(.*)/', $key, $m)) {
+                    $key1 = trim($m[1]);
+                    $value = trim($m[2]);
+                    self::setVariable($key1, $value);
+                    $value = "<span class='pfy-transvar-assigned'>$value</span>";
+
+                } else {
+                    $varNameIfNotFound = true;
+                    if (($key[0] ?? false) === '^') {
+                        $varNameIfNotFound = false;
+                        $key = ltrim($key, '^ ');
+                    }
+                    $key1 = str_replace(['++', '--'], '', $key);
+                    $value = self::getVariable($key1, $varNameIfNotFound, $lang);
+                    if ($key !== $key1) {
+                        $s1 = $s2 = '';
+                        if (preg_match('/^(.*?)([-\d.]+)(.*)$/', $value, $m)) {
+                            $s1 = $m[1];
+                            $s2 = $m[3];
+                            $n = $m[2];
+                        }
+                        if (str_starts_with($key, '++')) { // pre-increase
+                            $n++;
+                            $value = "$s1$n$s2";
+                            self::setVariable($key1, $value);
+                        } elseif (str_starts_with($key, '--')) { // pre-decrease
+                            $n--;
+                            $value = "$s1$n$s2";
+                            self::setVariable($key1, $value);
+                        } elseif (str_ends_with($key, '++')) { // post-increase
+                            $n++;
+                            self::setVariable($key1, "$s1$n$s2");
+                        } elseif (str_ends_with($key, '--')) { // post-decrease
+                            $n--;
+                            self::setVariable($key1, "$s1$n$s2");
+                        }
+                    }
+                }
+            }
+            if ($value !== null && str_contains($value, '\\ ')) {
+                $value = str_replace('\\ ', '&nbsp;', $value);
+            }
+            if ($doShield) {
+                $value = shieldStr($value, 'i');
+            }
+            $str = substr($str, 0, $p1).$value.substr($str, $p2+2);
+            list($p1, $p2) = strPosMatching($str, $p1);
+        }
+        return $str;
+    } // resolveVariables
+
+
+    /**
+     * Short-form: '%varname%'
+     * @param string $str
+     * @return string
+     */
+    public static function resolveShortFormVariables(string $str, bool $keepUnknows = false): string
+    {
+        if (str_contains($str, '%')) {
+            if (preg_match_all('/%(\w{1,30})%/', $str, $m)) {
+                foreach($m[1] as $varName => $v) {
+                    $value = self::getVariable($varName);
+                    if ($value !== null) {
+                        $str = str_replace($m[0], $value, $str);
+                    } elseif (!$keepUnknows) {
+                        $str = str_replace($m[0], '', $str);
+                    }
+                }
+            }
+
+            if (str_contains($str, '\\%')) {
+                $str = str_replace('\\%', '%', $str);
+            }
+        }
+        return $str;
+    } // resolveShortFormVariables
+
+
+
 
 
     /**
@@ -173,6 +315,8 @@ class TransVars
         // first check temporary variables (as used by TemplateCompiler):
         if (isset(self::$tempVariables[$varName1])) {
             return self::$tempVariables[$varName1];
+        } elseif (isset(self::$tempVariables["_{$varName1}_"])) {
+            return self::$tempVariables["_{$varName1}_"];
         }
 
         // check for lang-selector, e.g. 'varname.de':
@@ -210,6 +354,22 @@ class TransVars
 
     /**
      * @param string $varName
+     * @return bool
+     */
+    public static function isDefined(string $varName): bool
+    {
+        $varName1 = camelCase($varName);
+
+        // first check temporary variables (as used by TemplateCompiler):
+        if (isset(self::$tempVariables[$varName1])) {
+            return self::$tempVariables[$varName1];
+        }
+        return self::$variables[$varName1] ?? false;
+    } // isDefined
+
+
+    /**
+     * @param string $varName
      * @return void
      */
     public static function removeVariable(string $varName): void
@@ -218,26 +378,6 @@ class TransVars
             unset(self::$variables[$varName]);
         }
     } // removeVariable
-
-
-    /**
-     * From a variable definition, selects the value for the current (or requested) language
-     * @param string $varName
-     * @param string $lang
-     * @return string|bool
-     */
-    private static function translateVariable(string $varName, string $lang = ''): mixed
-    {
-        $out = '';
-        $varName = trim($varName);
-        // find variable definition:
-        if (isset(self::$transVars[$varName])) {
-            $var = self::$transVars[$varName];
-            // if value is array -> determine which to use depending on current language/variant:
-            $out = self::selectLangVariantOfTransVar($var, $lang);
-        }
-        return $out;
-    } // translateVariable
 
 
     /**
@@ -273,33 +413,6 @@ class TransVars
 
 
     /**
-     * Short-form: '%varname%'
-     * @param string $str
-     * @return string
-     */
-    public static function resolveShortFormVariables(string $str, bool $keepUnknows = false): string
-    {
-        if (str_contains($str, '%')) {
-            if (preg_match_all('/%(\w{1,30})%/', $str, $m)) {
-                foreach($m[1] as $varName => $v) {
-                    $value = self::getVariable($varName);
-                    if ($value !== null) {
-                        $str = str_replace($m[0], $value, $str);
-                    } elseif (!$keepUnknows) {
-                        $str = str_replace($m[0], '', $str);
-                    }
-                }
-            }
-
-            if (str_contains($str, '\\%')) {
-                $str = str_replace('\\%', '%', $str);
-            }
-        }
-        return $str;
-    } // resolveShortFormVariables
-
-
-    /**
      * Returns list of all variables as presentable HTML
      * @return string
      */
@@ -332,122 +445,25 @@ class TransVars
 
 
     /**
-     * Synonym for resolveVariables()
-     * @param $str
-     * @return string
+     * @param array $variables
+     * @return void
      */
-    public static function translate($str): string
+    public static function setTempVariables(array $variables): void
     {
-        $str = str_replace(['\\{{', '\\}}', '\\('], ['{!!{', '}!!}', '⟮'], $str);
-        $str = self::resolveVariables($str);
-        $str = Macros::executeMacros($str);
-        $str = str_replace(['\\{{', '\\}}', '\\('], ['{!!{', '}!!}', '⟮'], $str);
-        return $str;
-    } // translate
+        self::$tempVariables = $variables;
+    } // setTempVariables
 
 
     /**
-     * Replaces all occurences of {{ }} patterns with variable contents.
-     * -> does NOT execute macros.
-     * @param string $str
-     * @return string
+     * @param string $varName
+     * @param string $value
+     * @return void
      */
-    public static function resolveVariables(string $str, string $lang = ''): string
+    public static function setTempVariable(string $varName, string $value): void
     {
-        // calls containing increment/decrement, e.g. {{ n++ }}
-        list($p1, $p2) = strPosMatching($str);
-        while ($p1 !== false && $p2 !== false) {
-            $key = trim(substr($str, $p1+2, $p2-$p1-2));
-
-            // skip macro() calls:
-            if (preg_match('/^\w+?\(/', $key)) {
-                list($p1, $p2) = strPosMatching($str, $p2);
-                continue;
-            }
-
-            // handle '|raw':
-            $doShield = false;
-            if (preg_match('/ \s* \| \s* raw \s* $/mx', $key, $m)) {
-                $doShield = true;
-                $key = substr($key, 0, - strlen($m[0]));
-            }
-
-            // handle '|filter', e.g. '|date("l, j. F Y")
-            if (preg_match('/^ (.*) \s* \| \s* (.*?) \s* $/mx', $key, $m)) {
-                $varname = $m[1];
-                $value = self::getVariable($varname, true);
-                $fun = $m[2];
-                if (preg_match('/(.*) \((.*) \)/mx', $fun, $mm)) {
-                    $fun = $mm[1];
-                    $args = trimQuotes($mm[2]);
-                    try {
-                        if ($fun === 'date' || $fun === 'intlDate') {
-                            if (function_exists('\PgFactory\PageFactoryElements\intlDate')) {
-                                $value = \PgFactory\PageFactoryElements\intlDate($args, $value);
-                            } else {
-                                $value = date($args, $value);
-                            }
-                        } else {
-                            $value = $fun($value, $args);
-                        }
-                    } catch (\Exception $e) {
-                        throw new \Exception("Error in macro '$varname': $e");
-                    }
-                }
-
-            } else {
-                // catch in-text assignments, e.g. {{ n=3 }}:
-                if (preg_match('/^([\w-]*?)=(.*)/', $key, $m)) {
-                    $key1 = trim($m[1]);
-                    $value = trim($m[2]);
-                    self::setVariable($key1, $value);
-                    $value = "<span class='pfy-transvar-assigned'>$value</span>";
-
-                } else {
-                    $varNameIfNotFound = true;
-                    if (($key[0] ?? false) === '^') {
-                        $varNameIfNotFound = false;
-                        $key = ltrim($key, '^ ');
-                    }
-                    $key1 = str_replace(['++', '--'], '', $key);
-                    $value = self::getVariable($key1, $varNameIfNotFound, $lang);
-                    if ($key !== $key1) {
-                        $s1 = $s2 = '';
-                        if (preg_match('/^(.*?)([-\d.]+)(.*)$/', $value, $m)) {
-                            $s1 = $m[1];
-                            $s2 = $m[3];
-                            $n = $m[2];
-                        }
-                        if (str_starts_with($key, '++')) { // pre-increase
-                            $n++;
-                            $value = "$s1$n$s2";
-                            self::setVariable($key1, $value);
-                        } elseif (str_starts_with($key, '--')) { // pre-decrease
-                            $n--;
-                            $value = "$s1$n$s2";
-                            self::setVariable($key1, $value);
-                        } elseif (str_ends_with($key, '++')) { // post-increase
-                            $n++;
-                            self::setVariable($key1, "$s1$n$s2");
-                        } elseif (str_ends_with($key, '--')) { // post-decrease
-                            $n--;
-                            self::setVariable($key1, "$s1$n$s2");
-                        }
-                    }
-                }
-            }
-            if ($value !== null && str_contains($value, '\\ ')) {
-                $value = str_replace('\\ ', '&nbsp;', $value);
-            }
-            if ($doShield) {
-                $value = shieldStr($value, 'i');
-            }
-            $str = substr($str, 0, $p1).$value.substr($str, $p2+2);
-            list($p1, $p2) = strPosMatching($str, $p1);
-        }
-        return $str;
-    } // resolveVariables
-
+        $varName = camelCase($varName);
+        self::$tempVariables[$varName] = $value;
+    } // setTempVariable
 
 
     /**
@@ -499,5 +515,25 @@ class TransVars
             self::$variables[camelCase($key)] = self::translateVariable($key);
         }
     } // compileVars
+
+
+    /**
+     * From a variable definition, selects the value for the current (or requested) language
+     * @param string $varName
+     * @param string $lang
+     * @return string|bool
+     */
+    private static function translateVariable(string $varName, string $lang = ''): mixed
+    {
+        $out = '';
+        $varName = trim($varName);
+        // find variable definition:
+        if (isset(self::$transVars[$varName])) {
+            $var = self::$transVars[$varName];
+            // if value is array -> determine which to use depending on current language/variant:
+            $out = self::selectLangVariantOfTransVar($var, $lang);
+        }
+        return $out;
+    } // translateVariable
 
 } // TransVars
