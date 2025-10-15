@@ -231,8 +231,8 @@ EOT;
         } elseif (!$effectiveWidth && $effectiveHeight) {
             $effectiveWidth = $effectiveHeight / $this->aspectRatio;
         }
-        $this->effectiveHeight = $effectiveHeight;
         $this->effectiveWidth = $effectiveWidth;
+        $this->effectiveHeight = $effectiveHeight;
 
         // resize image if required:
         if ($this->origWidth > DEFAULT_MAX_IMAGE_WIDTH) {
@@ -380,12 +380,14 @@ EOT;
             throw new \Exception("Error: unable to determine dimensions of image '$file'.");
         }
         $this->aspectRatio = $height / $width;
-        if ($unit) {
-            $this->unit = $unit;
+        if (!$width && !$height) {
+            $this->origWidth = DEFAULT_MAX_IMAGE_WIDTH;
+            $this->origHeight = (int)(DEFAULT_MAX_IMAGE_WIDTH * $this->aspectRatio);
+        } else {
+            $this->origWidth = $width;
+            $this->origHeight = $height;
         }
-        $this->origWidth = DEFAULT_MAX_IMAGE_WIDTH;
-        $this->origHeight = (int) (DEFAULT_MAX_IMAGE_WIDTH * $this->aspectRatio);
-    } // getRasterImage
+    } // getVectorImage
 
 
     /**
