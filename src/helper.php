@@ -1678,15 +1678,22 @@ function mylog(string $str, mixed $filename = false): void
 
  /**
   * Returns a timestamp string of type '2021-12-07'
+  * @param int|bool $time
   * @param bool $short
   * @return string
   */
-function timestampStr(bool $short = false): string
+function timestampStr(int|bool $time = false, bool $short = false): string
 {
-    if (!$short) {
-        return date('Y-m-d H:i:s');
+    if (is_numeric($time)) {
+        $t = $time;
     } else {
-        return date('Y-m-d');
+        $short = $time;
+        $t = time();
+    }
+    if (!$short) {
+        return date('Y-m-d H:i:s', $t);
+    } else {
+        return date('Y-m-d', $t);
     }
 } // timestampStr
 
