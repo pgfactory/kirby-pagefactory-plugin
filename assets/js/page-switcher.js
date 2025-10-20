@@ -6,8 +6,8 @@
  let touchendX = 0
  let touchstartY = 0
  let touchendY = 0
- const swipeMinDistanceX = 10;
- const swipeMaxDistanceY = 5;
+ const swipeMinDistanceX = 20;
+ const swipeMaxDistanceY = 10;
 
 document.addEventListener("DOMContentLoaded", function () {
   const prevLinkElem = document.querySelector('.pfy-previous-page-link a');
@@ -49,6 +49,7 @@ document.addEventListener("DOMContentLoaded", function () {
     return document.defaultAction;
   });
 
+
   const touchSupport = ('ontouchstart' in window || window.navigator.msPointerEnabled);
   if (touchSupport && typeof pfyPageSwipeEnabled !== 'undefined' && pfyPageSwipeEnabled) {
     // Swipe handling:
@@ -60,13 +61,15 @@ document.addEventListener("DOMContentLoaded", function () {
     document.addEventListener('touchend', e => {
       touchendX = e.changedTouches[0].screenX;
       touchendY = e.changedTouches[0].screenY;
-      const dY = Math.abs(touchstartX - e.changedTouches[0].screenY);
-      const isHorizontalSwipe = true;
-      if (isHorizontalSwipe && (touchendX < touchstartX - swipeMinDistanceX)) { // swiped left
+      const isHorizontalSwipe = Math.abs(touchstartY - touchendY) > swipeMaxDistanceY;
+      if (isHorizontalSwipe) {
+        return;
+      }
+      if (touchendX < touchstartX - swipeMinDistanceX) { // swiped left
         showBusySpinner();
         window.location.href = nextLink;
 
-      } else if (isHorizontalSwipe && (touchendX > touchstartX + swipeMinDistanceX)) { // swiped right
+      } else if (touchendX > touchstartX + swipeMinDistanceX) { // swiped right
         showBusySpinner();
         window.location.href = prevLink;
       }
