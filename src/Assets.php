@@ -486,6 +486,7 @@ class Assets
     public static function activateBrowserCacheBusting(): void
     {
         self::$bustCache = '?bust='.rand(10,99);
+        Page::addBodyTagClass('pfy-cache-busting');
     } // activateBrowserCacheBusting
 
 } // Assets
