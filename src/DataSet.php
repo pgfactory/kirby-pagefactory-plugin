@@ -618,7 +618,7 @@ class DataSet
                     $key = $this->deObfuscateRecKey($key);
                 }
                 $key = $this->deObfuscateRecKey($key);
-                $all = (bool)$args[1] ?? false;
+                $all = (bool)($args[1] ?? false);
                 $recUid = $this->findRecKeyOf($key, $attribute, $all);
 
             } elseif (($key === null) && isset($args[0])) { // special case: invoked from read()
