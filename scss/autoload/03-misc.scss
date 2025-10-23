@@ -271,7 +271,7 @@
         display: inline-block;
         width: 1em;
         height: 0.8em; // not to overshoot rest of line
-        transform: translateY(0.12em);
+        // transform: translateY(0.12em);
         > * {
             position: absolute;
             bottom: 0;
