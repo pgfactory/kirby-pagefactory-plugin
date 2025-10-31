@@ -110,7 +110,7 @@ class Page
     public static function overrideContent(string $str, bool $compile = true): void
     {
         if ($compile) {
-            $str = TransVars::compile($str, forTwig: false);
+            $str = TransVars::compile($str);
         }
         self::$overrideContent = $str;
 
