@@ -47,6 +47,7 @@ class Frontmatter
                         $v = str_replace("'{=={'", '{{', $v);
                         if (str_contains($v, '{{')) {
                             $v = TransVars::translate($v);
+                            $v = str_replace(['{!!{', '}!!}', '⟮'], ['{{', '}}', '('], $v);
                         }
                     }
                     TransVars::setVariable($k, $v);

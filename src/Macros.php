@@ -158,7 +158,7 @@ EOT;
         foreach ($options as $key => $value) {
             if (is_string($value)) {
                 $tmp = TransVars::resolveVariables($value);
-                $options[$key] = str_replace(['{!!{', '}!!}'], ['{{', '}}'], $tmp);
+                $options[$key] = str_replace(['{!!{', '}!!}', '⟮'], ['{{', '}}', '('], $tmp);
             }
             // check whether arg has optional TYPE specified, check it:
             $type = ($config['options'][$key][2]??false);
