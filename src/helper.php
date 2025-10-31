@@ -770,32 +770,32 @@ function removeCStyleComments(string $str): string
 
  /**
   * Reads content of a directory. Automatically ignores any filenames starting with '#'.
-  * @param string $pat  Optional glob-style pattern
-  * @param bool|string $associative  Return as associative array
+  * @param string $pat Optional glob-style pattern
+  * @param bool|string $associative Return as associative array
+  * @param string $type
+  * @param int $flag
   * @return array
   */
-function getDir(string $pat, mixed $associative = false, string $type = ''): array
+function getDir(string $pat, mixed $associative = false, string $type = '', int $flag = 0): array
 {
     if ($type) {
         // 'type' specified (either files and/or folders):
-        $files = [];
+        $files = $folders = [];
         if (str_contains($type, 'folders')) {
             $path = preg_replace('/[*{].*/', '', $pat);
-            $folders = glob("$path*", GLOB_ONLYDIR);
-            array_walk($folders, function (&$item) {
-                $item = rtrim($item, '/') . '/';
-            });
+            $folders = glob("$path*", GLOB_ONLYDIR+GLOB_MARK+$flag);
         }
         if (str_contains($type, 'files')) {
             if (!str_contains($pat, '{')) {
                 if (str_contains($pat, '*')) {
-                    $files = glob($pat);
+                    $files = glob($pat, GLOB_MARK+$flag);
                 } else {
-                    $files = glob(fixPath($pat).'*', GLOB_BRACE);
+                    $files = glob(fixPath($pat).'*', GLOB_BRACE+GLOB_MARK+$flag);
                 }
             } else {
-                $files = glob($pat, GLOB_BRACE);
+                $files = glob($pat, GLOB_BRACE+GLOB_MARK+$flag);
             }
+            $files = array_filter($files, function($path){return $path[-1] != '/';});
         }
         $files = array_merge($folders, $files);
 
@@ -803,21 +803,13 @@ function getDir(string $pat, mixed $associative = false, string $type = ''): arr
         // no type specified -> return files and folders:
         if (!str_contains($pat, '{')) {
             if (str_contains($pat, '*')) {
-                $files = glob($pat);
+                $files = glob($pat, GLOB_MARK+$flag);
             } else {
-                $files = glob(fixPath($pat).'*', GLOB_BRACE);
+                $files = glob(fixPath($pat).'*', GLOB_BRACE+GLOB_MARK+$flag);
             }
         } else {
-            $files = glob($pat, GLOB_BRACE);
+            $files = glob($pat, GLOB_BRACE+GLOB_MARK+$flag);
         }
-
-        // fix folders -> add '/':
-        array_walk($files, function (&$item) {
-            if (is_dir($item)) {
-                $item .= '/';
-            }
-            return $item;
-        });
     }
     if (!$files) {
         return [];
@@ -1883,20 +1875,28 @@ function parseArgValue(string &$rest, string $delim): mixed
 
 
  /**
-  * DataImportPattern: $[file:xy.txt] or $[users] or $[users:role] or $[users:role {%username%...}]
+  * DataImportPattern:
+  *     $[file:xy.txt]  -> import file content
+  *     $[files:path]   -> list of files in path
+  *     $[folders:path] -> list of folders in path
+  *     $[dir:path]     -> files and folders in path
+  *     $[tree:path]    -> tree of folders in path
+  *     $[users]
+  *     $[users:role]
+  *     $[users:role {%username%...}]
   * @param string $str
   * @return string
   * @throws Exception
   */
- function handleDataImportPattern(string $str, string $template = '%firstname% %lastname%:%short%'): string
+function handleDataImportPattern(string $str): string
 {
+    $s = $str;
     if (preg_match('/(?<!\\\) \$\[ (.*?) ] /x', $str, $m)) {
         $arg = $m[1];
 
         if (preg_match('/^users:?(.*)/', $arg, $mm)) {
             $role = $mm[1];
             if (preg_match('/\{(.*?)}/', $role, $mm)) {
-                $template = $mm[1];
                 $role = str_replace($mm[0], '', $role);
             }
             $users = Utils::getUsers([
@@ -1910,14 +1910,37 @@ function parseArgValue(string &$rest, string $delim): mixed
         // get data from file:
         } elseif (str_starts_with($arg, 'file:')) {
             $arg = ltrim(substr($arg, 5));
-            $file = resolvePath($arg);
+            $file = (($arg[0]??false) !== '~') ? "~page/$arg": $arg;
+            $file = resolvePath($file);
             $s = getFile($file);
+            $s = str_replace("  \n", "<br>", $s); // 2 spaces at eol = <br>
+
+        // get files in given folder:
+        } elseif (str_starts_with($arg, 'files:')) {
+            $arg = ltrim(substr($arg, 8));
+            $path = resolvePath($arg);
+            $dir = getDir($path, type:'files');
+            $len = strlen($path);
+            array_walk($dir, function(&$file) use($len) {
+                $file = substr($file, $len);
+            });
+            $s = implode(',', $dir);
 
         // get dirnames in given folder:
+        } elseif (str_starts_with($arg, 'folders:')) {
+            $arg = ltrim(substr($arg, 8));
+            $path = resolvePath($arg);
+            $dir = getDir($path, type:'folders');
+            $len = strlen($path);
+            array_walk($dir, function(&$file) use($len) {
+                $file = substr($file, $len);
+            });
+            $s = implode(',', $dir);
+
         } elseif (str_starts_with($arg, 'dir:')) {
             $arg = ltrim(substr($arg, 4));
             $path = resolvePath($arg);
-            $dir = getDir($path, type:'folders');
+            $dir = getDir($path);
             $len = strlen($path);
             array_walk($dir, function(&$file) use($len) {
                 $file = substr($file, $len);
@@ -1934,8 +1957,9 @@ function parseArgValue(string &$rest, string $delim): mixed
                 $file = substr($file, $len);
             });
             $s = implode(',', $dir);
+            $s = trim($s, ',');
         }
-        $s = str_replace(['"', '{{', '}}'], ['\\"', '{!!{', '}!!}'], $s);
+        $s = str_replace(["\n", '"', '{{', '}}'], ['\\n', '\\"', '{!!{', '}!!}'], $s);
         $str = str_replace($m[0], $s, $str);
     }
     return $str;
