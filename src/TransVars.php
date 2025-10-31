@@ -206,13 +206,14 @@ class TransVars
     public static function resolveShortFormVariables(string $str, bool $keepUnknows = false): string
     {
         if (str_contains($str, '%')) {
-            if (preg_match_all('/%(\w{1,30})%/', $str, $m)) {
-                foreach($m[1] as $varName => $v) {
+            if (preg_match_all('/%([\w-]{1,30})%/', $str, $m)) {
+
+                foreach($m[1] as $i => $varName) {
                     $value = self::getVariable($varName);
                     if ($value !== null) {
-                        $str = str_replace($m[0], $value, $str);
+                        $str = str_replace($m[0][$i], $value, $str);
                     } elseif (!$keepUnknows) {
-                        $str = str_replace($m[0], '', $str);
+                        $str = str_replace($m[0][$i], '', $str);
                     }
                 }
             }
