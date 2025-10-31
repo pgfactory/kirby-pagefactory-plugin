@@ -29,7 +29,7 @@ const PFY_IMG_DEFAULT_OPTIONS = [
     'link' => '',
     'kenburns' => false,
     'caption' => '',
-//    '' => '',
+    'cid' => false,
 ];
 const PFY_KENBURNS_OPTIONS = [
     'duration' => 'rand',
@@ -51,6 +51,7 @@ class Image
     private int|float $effectiveHeight;
     private string $absFilePath = '';
     private string $src = '';
+    private string $forHtmlMail = '';
     private string $link = '';
     private string $class = '';
     private string $alt = '';
@@ -131,7 +132,7 @@ class Image
         $sizes          = $this->sizes;
         $srcset         = '';
 
-        if ($this->isRasterImage) {
+        if ($this->isRasterImage && !$this->forHtmlMail) {
             $srcset = $this->determineSrcset();
         } else {
             $this->lazyLoadingActive = false;
@@ -148,6 +149,12 @@ class Image
         $wrapperStyle = $wrapperStyle ? " style='$wrapperStyle'" : '';
         if ($this->requestedWidth || $this->requestedHeight) {
             $this->wrapperClass .= ' pfy-img-100';
+        }
+
+        if ($this->forHtmlMail) {
+            $src         = "src='cid:$this->forHtmlMail'";
+            $attributes .= " data-srcpath='$this->absFilePath'";
+            $attributes .= " data-url='$this->src'";
         }
 
         $html = <<<EOT
@@ -539,10 +546,14 @@ EOT;
         }
         // in case of no size requests, make sure that the image presentation is limited by a) natural size and b) container:
         if (!$imgStyle) {
-            $imgStyle = "width: min(100%, {$this->effectiveWidth}px); height: min(100%, {$this->effectiveHeight}px);";
+            if ($this->forHtmlMail) {
+                $imgStyle = "width: {$this->effectiveWidth}px; height: {$this->effectiveHeight}px;";
+            } else {
+                $imgStyle = "width: min(100%, {$this->effectiveWidth}px); height: min(100%, {$this->effectiveHeight}px);";
+            }
         }
         if (!$this->wrapperTag && !$this->caption) {
-            $imgStyle = $wrapperStyle;
+            $imgStyle .= " $wrapperStyle";
             $wrapperStyle = '';
         }
         return [$imgStyle, $wrapperStyle];
@@ -773,6 +784,12 @@ EOT;
         $this->format  = strtolower(fileExt($this->absFilePath));
         $this->isRasterImage = !str_contains(VECTOR_IMG_TYPES, $this->format);
         $this->isAbsoluteUnit = !$this->isRelativeUnit($this->unit);
+
+        if ($this->forHtmlMail = ($options['cid']??false)) {
+            $this->options['format'] = fileExt($file);
+            $this->quickzoomActive = false;
+            $this->wrapperTag = false;
+        }
     } // parseOptions
 
 

@@ -58,6 +58,7 @@ return function($argStr = '')
             'responsiveSteps' => ["Let's you use a customized set of SRCSET sizes.", implode(',', DEFAULT_SIZES)],
             'format' => ["Specifies the file format of images, e.g. 'jpg', 'png', 'webp' etc.", 'webp'],
             'quality' => ["Specifies the rendered images quality, e.g. '80%'.", 80],
+            'cid' => ["(string) If defined, the value is used in place of src. This is for embedded images in HTML-E-mails.", null],
             ],
         'summary' => <<<EOT
 # img()
