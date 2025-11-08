@@ -1121,7 +1121,7 @@ function writeFileLocking(string $file, mixed $content, string $type = '', bool 
  function _encodeData(mixed $content, string|false $type): string
 {
     // encode data:
-    if (str_contains('yml,yaml', $type)) {
+    if ($type && str_contains('yml,yaml', $type)) {
         $content = shieldNewlines($content);
         $content = Data::encode($content, $type);
         $content = prettifyYaml($content);
@@ -1184,8 +1184,13 @@ function writeFileLocking(string $file, mixed $content, string $type = '', bool 
   * @param array $data
   * @return array
   */
- function shieldNewlines(array $data): array
+ function shieldNewlines(array|string $data): array|string
  {
+     if (is_string($data)) {
+         $data = str_replace("\n", '#NL#', $data);
+         return $data;
+     }
+
      foreach ($data as $key => $rec) {
          if (is_array($rec)) {
              foreach ($rec as $k => $v) {
