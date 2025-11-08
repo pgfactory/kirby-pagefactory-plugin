@@ -204,6 +204,11 @@ class Utils
         if (!($webmasterEmail = kirby()->option('pgfactory.pagefactory.webmaster_email'))) {
             $webmasterEmail = TransVars::getVariable('webmaster_email');
         }
+
+        // special case: $webmasterEmail === true => assemble address automatically:
+        if ($webmasterEmail === true) {
+            $webmasterEmail = 'webmaster@' . $_SERVER['SERVER_NAME'];
+        }
         if ($webmasterEmail) {
             PageFactory::$webmasterEmail = $webmasterEmail;
         } elseif (!isLocalhost()) {
