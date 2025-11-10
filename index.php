@@ -21,6 +21,7 @@ Kirby::plugin('pgfactory/pagefactory', [
 
     'snippets' => [     // Macros that are available in templates
         'css' =>            __DIR__ . '/snippets/_css.php',
+        'img' =>            __DIR__ . '/snippets/img.php',
         'link' =>           __DIR__ . '/snippets/link.php',
         'logo' =>           __DIR__ . '/snippets/logo.php',
         'nav' =>            __DIR__ . '/snippets/nav.php',
