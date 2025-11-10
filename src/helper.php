@@ -290,6 +290,9 @@ function getFile(string $file, mixed $removeComments = true)
   */
  function fileTime(string $file): int
  {
+     if ($file[0] === '~') {
+         $file = resolvePath($file);
+     }
      if (file_exists($file)) {
          return (int)@filemtime($file);
      } else {
