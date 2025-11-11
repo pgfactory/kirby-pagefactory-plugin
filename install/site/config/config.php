@@ -17,7 +17,6 @@ if (!defined('PFY_KIRBY_BASE_PATH')) {
 // Defaults recommended by PageFactory plugin:
 return [
     'debug' => false,
-    'smartypants' => true,
     'languages' => true, // enables language option in Panel
 
     'thumbs' => [
@@ -33,10 +32,14 @@ return [
 
 
     'pgfactory.markdownplus' => [
-        // 'divblockChars'		=> '@%:',  // chars identifying DIV-Blocks, default is '@%'
-        // 'accessCodeKey'      => 'key' , // URL-key to submit AccessCode, default: 'a' (e.g. ?a=ABCDEF)
-        // 'autoConvertLinks'   => true,   // automatically convert URLs and email addresses to <link> tags
-        // 'enableIcons'        => true,   // makes icons available in markdown
+        // 'smartypants'        => false,  // activate smartypants (default: true)
+        // 'divblockChars'		=> '@%:',  // chars identifying DIV-Blocks, (default: '@%')
+        // 'autoConvertLinks'   => true,   // automatically convert URLs and email addresses to <link> tags  (default: false)
+        // 'enableIcons'        => false,  // makes icons available in markdown (default: true)
+        // 'compileCodeBlocks'  => false,  // If active, parses output, finds <code> elements and
+        //  applies md-compilation to the content -> permits to
+        // format code-blocks, e.g. highlight (default: true)
+        // 'accessCodeKey'      => 'key' , // URL-query-key to submit AccessCode, default: 'a' (e.g. ?a=ABCDEF)
     ],
 
     'pgfactory.pagefactory' => [
