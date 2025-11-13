@@ -455,6 +455,12 @@ class TransVars
     } // setTempVariables
 
 
+    public static function purgeTempVariables(): void
+    {
+        self::$tempVariables = [];
+    } // setTempVariables
+
+
     /**
      * @param string $varName
      * @param string $value
