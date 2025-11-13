@@ -448,8 +448,15 @@ EOT;
         if (!$out) {
             $out = site()->$name()->value();
         }
+
+        // check frontmatter for overriding setting:
         if (str_contains('description,keywords,author,robots', $name) && (self::$$name?? false)) {
             $out = self::$$name; // overridden by frontmatter
+        }
+
+        // in dev-mode, always include robots-tag:
+        if ($name === 'robots' && PageFactory::$dev) {
+            $out = true;
         }
 
         if (!$out) {
@@ -474,7 +481,7 @@ EOT;
      * @param string $value
      * @return string
      */
-    private static function getRobotsElem(string $value)
+    private static function getRobotsElem(string|bool $value)
     {
         if ($value) {
             $val = is_string(($value)) ? $value : true;
