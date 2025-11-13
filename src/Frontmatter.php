@@ -135,10 +135,12 @@ class Frontmatter
         if (self::$sectionsCss) {
             self::$sectionsCss = str_replace(['#this', '.this'], ["#$wrapperId", ".$wrapperId"], self::$sectionsCss);
             Page::addCss(self::$sectionsCss);
+            self::$sectionsCss = '';
         }
         if (self::$sectionsScss) {
             self::$sectionsScss = str_replace(['#this', '.this'], ["#$wrapperId", ".$wrapperId"], self::$sectionsScss);
             Page::addScss(self::$sectionsScss);
+            self::$sectionsScss = '';
         }
     } // propagaterStyles
 
