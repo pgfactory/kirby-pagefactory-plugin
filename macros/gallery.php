@@ -37,7 +37,7 @@ return function($args = ''): string
             'path'          => ['[path] Path of folder containing images.', false],
             'thumbWidth'    => ['[int|string] Width of thumbnails/preview images. '.
                 'Supported units: in,cm,mm,pt,pc,px', 200],
-            'thumbHeight'   => ['[int|string] Height of thumbnails/preview images.', 150],
+            'thumbHeight'   => ['[int|string] Height of thumbnails/preview images.', null],
             'width'         => ['[int|string] Synonyme for "thumbWidth".', null],
             'height'        => ['[int|string] Synonyme for "thumbHeight".', null],
             'maxWidth'      => ['[int|string] Maximum width of images (i.e. in overlay).', IMG_MAX_WIDTH],
