@@ -116,7 +116,7 @@ EOT;
         if (is_array($value)) {
             $value = $value[0]??'';
         } else {
-            $value = TransVars::resolveShortFormVariables($value);
+            $value = TransVars::resolveShortFormVariables($value, keepUnknows: true);
             $value = shieldStr($value, 'inline');
         }
         return $value;
