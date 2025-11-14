@@ -44,7 +44,7 @@ return [
 
     'pgfactory.pagefactory' => [
         // 'defaultLanguage'               => 'de',   // multilang -> configure in panel instead! (Opt. use 'Code: de2' and 'PHP locale string: de_DE')
-        // 'locale'                        => 'de_DE',// default: 'en_GB'
+        // 'locale'                        => 'de_CH',// default: 'en_GB'
         'webmaster_email'               => true, // guess webmaster address based on $_SERVER['SERVER_NAME']
         // 'webmaster_email'               => 'webmaster@MY-DOMAIN.NET', // define a webmaster address
         // 'emailDevModeOverride'          => 'test@MY-DOMAIN.NET',     // email used for forms in dev mode

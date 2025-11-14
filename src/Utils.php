@@ -379,6 +379,12 @@ EOT;
         } elseif (Permission::isLoggedIn()) {
             $bodyTagClasses .= ' pfy-loggedin';
         }
+
+        // inject locale-specific class:
+        if (kirby()->languages() && PageFactory::$locale) {
+            $bodyTagClasses .= ' pfy-lang-' . translateToClassName(PageFactory::$locale);
+        }
+
         // for debugging:
         //if (kirby()->session()->get()) {
         //    $bodyTagClasses = trim("session $bodyTagClasses");

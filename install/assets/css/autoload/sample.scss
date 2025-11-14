@@ -28,6 +28,17 @@ body {
 }
 
 
+// === Quotation marks ====================================
+// prerequisites: -> config.php
+//     ['languages' => true,
+//      'pgfactory.pagefactory' => ['locale' => 'de_CH'],
+//     ],
+// => this injects body tag classes like "pfy-lang-de-ch".
+.pfy-lang-de-ch q {
+  quotes: "«" "»" "‹" "›";
+}
+
+
 //=== Images =====================
 .pfy-img {
   max-width: 100%;
