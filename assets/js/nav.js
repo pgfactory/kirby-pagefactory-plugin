@@ -10,7 +10,7 @@
             li
               a
  */
-
+ //console.log('nav.js');
 var pfyNavTriggersInitialized = false;
 
 class PfyNav {
@@ -685,7 +685,9 @@ class PfyNav {
       divElem.style.display = null;
     }
     const aElem = liElem.querySelector('a');
-    aElem.setAttribute('aria-expanded', true);
+    if (liElem.classList.contains('pfy-has-children')) {
+      aElem.setAttribute('aria-expanded', true);
+    }
     if (typeof noDelay === 'undefined') {
       setTimeout(function () {
         liElem.classList.add('pfy-open');
@@ -724,7 +726,9 @@ class PfyNav {
   closeLi (liElem, noDelay) {
     liElem.classList.remove('pfy-open');
     const aElem = liElem.querySelector('a');
-    aElem.setAttribute('aria-expanded', false);
+    if (liElem.classList.contains('pfy-has-children')) {
+      aElem.setAttribute('aria-expanded', false);
+    }
     const divElem = liElem.querySelector('div');
     if (divElem) {
       if (typeof noDelay === 'undefined') {
