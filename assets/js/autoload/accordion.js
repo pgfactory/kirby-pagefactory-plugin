@@ -213,7 +213,7 @@ document.addEventListener('DOMContentLoaded', ev => {
   // for printing, open all accordions:
   if (window.matchMedia('print').matches) {
     console.log('opening accordions for printing...');
-    const elems = elem.querySelectorAll('details.mdp-accordion, .mdp-accordion details');
+    const elems = document.querySelectorAll('details.mdp-accordion, .mdp-accordion details');
     if (elems) {
       elems.forEach((el) => {
         el.removeAttribute('name');
