@@ -22,11 +22,12 @@
   }
 
   //#pfy.pfy-default-styling .pfy-encapsulated,
-  .pfy-default-styling {
+  #pfy.pfy-default-styling {
         // all elements that shall not be included on hardcopies:
-        header,
-        footer,
-        nav,
+        .pfy-header-wrapper,
+        .pfy-nav-wrapper,
+        .pry-footer,
+        .pfy-dont-print,
         .dont-print,
         .print_no,
         .print-no,
@@ -38,7 +39,8 @@
         .pfy-quickzoom-overlay,
         .pfy-skiplinks,
         .pfy-file-uploader-wrapper {
-            display: none!important;
+            display: none;
+            //display: none!important;
         }
 
         // add url to links on hardcopies:
