@@ -38,14 +38,19 @@ class TransVars
 
 
     /**
-     * Resolves given string: variables and macros, finally md-compiles
+     * Compile:
+     * - remove comments (if requested)
+     * - resolveVariables()
+     * - Macros::executeMacros()
+     * - compile markdown (if requested)
      * @param string $mdStr
-     * @param $inx
-     * @param $removeComments
+     * @param int $inx
+     * @param bool|string $removeComments
+     * @param $compileMarkdown
      * @return string
      * @throws \Exception
      */
-    public static function compile(string $mdStr, int $inx = 0, bool|string $removeComments = true): string
+    public static function compile(string $mdStr, int $inx = 0, bool|string $removeComments = true, $compileMarkdown = true): string
     {
         if ($removeComments) {
             $mdStr = removeComments($mdStr, 'c,t');
@@ -60,7 +65,11 @@ class TransVars
 
         $mdStr = Macros::executeMacros($mdStr);
 
-        $html = markdown($mdStr, sectionIdentifier: "pfy-section-$inx", removeComments: false);
+        if ($compileMarkdown) {
+            $html = markdown($mdStr, sectionIdentifier: "pfy-section-$inx", removeComments: false);
+        } else {
+            $html = $mdStr;
+        }
 
         // shield argument lists enclosed in '({' and '})'
         if (preg_match_all('/\(\{ (.*?) }\)/x', $html, $m)) {
@@ -77,13 +86,17 @@ class TransVars
 
 
     /**
+     * Translate:
+     * - resolveVariables()
+     * - Macros::executeMacros()
+     *
      * @param $str
      * @return string
      */
-    public static function translate($str): string
+    public static function translate($str, array $tempVars = []): string
     {
         $str = str_replace(['\\{{', '\\}}', '\\('], ['{!!{', '}!!}', '⟮'], $str);
-        $str = self::resolveVariables($str);
+        $str = self::resolveVariables($str, tempVars:$tempVars);
         $str = Macros::executeMacros($str);
         $str = str_replace(['\\{{', '\\}}', '\\('], ['{!!{', '}!!}', '⟮'], $str);
         return $str;
@@ -91,13 +104,24 @@ class TransVars
 
 
     /**
-     * Replaces all occurences of {{ }} patterns with variable contents.
-     * -> does NOT execute macros.
+     * resolveVariables:
+     * -> replace variables in text with their values
+     * -> skips macro() calls
+     * -> handle filters, eg. '|date("l, j. F Y")'
+     * -> in-text assignments, e.g. {{ n=3 }}, {{ n++ }} etc.
+     *
      * @param string $str
+     * @param string $lang
+     * @param array $tempVars
      * @return string
+     * @throws \Exception
      */
-    public static function resolveVariables(string $str, string $lang = ''): string
+    public static function resolveVariables(string $str, string $lang = '', array $tempVars = []): string
     {
+        if ($tempVars) {
+            self::setTempVariables($tempVars);
+        }
+
         // calls containing increment/decrement, e.g. {{ n++ }}
         list($p1, $p2) = strPosMatching($str);
         while ($p1 !== false && $p2 !== false) {
@@ -193,6 +217,9 @@ class TransVars
             }
             $str = substr($str, 0, $p1).$value.substr($str, $p2+2);
             list($p1, $p2) = strPosMatching($str, $p1);
+        }
+        if ($tempVars) {
+            self::purgeTempVariables();
         }
         return $str;
     } // resolveVariables
@@ -455,6 +482,9 @@ class TransVars
     } // setTempVariables
 
 
+    /**
+     * @return void
+     */
     public static function purgeTempVariables(): void
     {
         self::$tempVariables = [];
