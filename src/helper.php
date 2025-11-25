@@ -140,6 +140,9 @@ function loadFile(string $file, mixed $removeComments = true, bool $useCaching =
         }
     }
     $data = getFile($file, $removeComments);
+    if (!$data) {
+        return '';
+    }
 
     // if it's data of a known format (i.e. yaml,json etc), decode it:
     $ext = fileExt($file);
@@ -1747,10 +1750,6 @@ function parseArgumentStr(string $str, string $delim = ','): array
     // (meaning: first elements may come without key, then they are interpreted by position)
     $rest = ltrim($str, ", \n");
     $rest = rtrim($rest, ", \n"); // fixed from:   $rest = rtrim($rest, ", \n)");
-
-    if (preg_match('/^(.*?) \)\s*}}/msx', $rest, $mm)) {
-        $rest = rtrim($mm[1], " \t\n");
-    }
 
     $json = '';
     $counter = 100;
