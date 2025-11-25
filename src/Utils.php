@@ -552,7 +552,7 @@ EOT;
                         $user->logout();
                     }
                     mylog("User '$name' logged out.", PFY_LOGIN_LOG_FILE);
-                    reloadAgent(message: '{{ pfy-logged-out-now }}'); // get rid of url-command
+                    reloadAgent(PFY_PAGE_URL, message: '{{ pfy-logged-out-now }}'); // get rid of url-command
                     break;
                 case 'reset': // ?reset (as non-admin): harmless reset => just undo previous '?dev' commands
                     self::resetDevState();
@@ -1354,40 +1354,40 @@ EOT;
 
 
     /**
-     * @param string $to
-     * @param string $subject
-     * @param string $body
-     * @param string $debugInfo
-     * @param string $from
-     * @param string $fromName
+     * @param array $props
      * @return void
+     * @throws Kirby\Exception\InvalidArgumentException
+     * @throws \PHPMailer\PHPMailer\Exception
      */
-    public static function sendMail(string $to, string $subject, string $body, string $debugInfo = '', string $from = '', string $fromName = ''): void
+    public static function sendMail(array $props): void
     {
-        if (str_contains($subject, '{{')) {
-            $subject = TransVars::translate($subject);
+        if (str_contains($props['subject'], '{{')) {
+            $props['subject'] = TransVars::compile($props['subject'], compileMarkdown: false);
         }
-        if (str_contains($body, '{{')) {
-            $body = TransVars::translate($body);
+        if (str_contains($props['body'], '{{')) {
+            $props['body'] = TransVars::compile($props['body'], compileMarkdown: false);
         }
-        $props = [
-            'to' => $to,
-            'from' => $from ?: TransVars::getVariable('webmaster_email'),
-            'fromName' => $fromName ?: false,
-            'subject' => $subject,
-            'body' => $body,
-        ];
 
-        new PHPMailer($props);
-        mylog("To: $to\nSubject: $subject\n----\n$body\n----", 'mail-log.txt');
-        //        if (PageFactory::$isLocalhost) {
-        //            $props['body'] = "\n\n" . $props['body'];
-        //            $text = var_r($props);
-        //            $html = "<pre>$debugInfo:\n$text</pre>";
-        //            PageFactory::$pg->setOverlay($html);
-        //        } else {
-        //            new PHPMailer($props);
-        //        }
+        if (file_exists(PFY_APP_BASE_PATH.'site/plugins/pagefactory-pageelements')) {
+            \PgFactory\PageFactoryElements\HtmlMail::sendMail($props);
+
+        } else { // pagefactory-pageelements are not available:
+            $props += [
+                'to' => '',
+                'from' => TransVars::getVariable('webmaster_email'),
+                'fromName' => false,
+                'subject' => '',
+                'body' => '',
+            ];
+            $logComment = $props['logComment'] ?? 'To:';
+            if (is_array($props['body']) && isset($props['body']['text'])) {
+                $props['body'] = $props['body']['text'];
+            } else {
+                throw new Exception("Error: attempt to send mail without body.");
+            }
+            new PHPMailer($props);
+            mylog("$logComment {$props['to']}\nSubject: {$props['subject']}\n----\n{$props['body']}\n----", 'mail-log.txt');
+        }
     } // sendMail
 
 
