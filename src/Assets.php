@@ -248,6 +248,7 @@ class Assets
             // assets already provided as html:
             if (str_starts_with($asset, '<')) {
                 $html .= "  $asset\n";
+                continue;
 
             // assets in content folder:
             } elseif (str_starts_with($asset, 'content')) {
@@ -323,7 +324,7 @@ class Assets
             // assets already provided as html:
             if (str_starts_with($asset, '<')) {
                 $html .= "  $asset\n";
-                $code = '';
+                continue;
 
             // assets in content folder:
             } elseif (str_starts_with($asset, 'content')) {
