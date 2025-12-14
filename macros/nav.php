@@ -16,6 +16,8 @@ return function($args = null)
             'isPrimary' => ['By default, first Nav is primary. Set to false to override.', null],
             'listTag' => ['[ul,ol] The tag to be used in list of nav-elements.', 'ol'],
             'prefix' => ['String to be prepended to nav, e.g. to add "link to home" in branch menu.', null],
+            'showHome' => ['If true and type=branch, a pseudo nav-element is prependet pointing to '
+                .'the site\'s homepage. If string is given, it is used as the label.', null],
         ],
         'summary' => <<<EOT
 # $funcName()

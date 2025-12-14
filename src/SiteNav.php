@@ -17,6 +17,7 @@ class SiteNav
     public static $prev = false;
     public static $next = null;
     private static object $currPg;
+    private static array $options = [];
     private static array $siteStruct = [];
     private static string|null $defaultNav = null;
 
@@ -92,6 +93,8 @@ class SiteNav
         if (sizeof(self::$siteStruct) === 1) {
             return '';
         }
+
+        self::$options = $args ?? [];
 
         $site = site();
         $inx = self::$inx++; // index of nav-element
@@ -274,7 +277,7 @@ EOT;
         if ($page->hasListedChildren()) {
             // get children of top-level parent:
             $label = (string)$page->title();
-            $out = "<div class='pfy-nav-branch-title'>$label</div>\n";
+            $out ='';
             foreach (self::$siteStruct as $elem) {
                 $pg = $elem['pg'];
                 if ($pg === $page) {
@@ -289,6 +292,20 @@ EOT;
             $wrapperClass .= ' pfy-nav-empty';
         }
         $wrapperClass .= ' pfy-nav-branch';
+
+        // handle option 'showHome' to prepend special nav-element pointing to Homepage:
+        if ($homeTitle = (self::$options['showHome']??false)) {
+            $pg = site()->homePage();
+            $curr = $pg->isActive() ? ' aria-current="page"': '';
+            $url = $pg->url().'/';
+            $title = $homeTitle ?: $pg->title()->html();
+            $home = "\n <li$curr><a href='$url'>$title</a></li>\n";
+            if (preg_match('/(\s*<(ol|ul)>)(.*)/s', $out, $m)) {
+                $out = $m[1] . $home . $m[3];
+            }
+        }
+
+        $out = "<div class='pfy-nav-branch-title'>$label</div>\n$out";
         return $out;
     } // renderBranch
 
