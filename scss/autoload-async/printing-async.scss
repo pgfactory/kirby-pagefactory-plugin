@@ -11,6 +11,11 @@
 .pfy-print-only {
   display: none;
 }
+.pfy-print-btns {
+  position: absolute;
+  top: 1em;
+  left: 38px;
+}
 
 @media print {
   .pfy-screen_only,
@@ -84,10 +89,7 @@
             padding: 0;
         }
         .pfy-print-btns {
-            position: absolute;
-            top: 1em;
-            //top: -40px;
-            left: 38px;
+          display: none;
         }
         .pfy-print-btns > a {
             background: linear-gradient(#fff 0%,#fffbe0 60%,#fff7c2 100%);
