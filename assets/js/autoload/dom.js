@@ -139,6 +139,7 @@ function domReady(fun)
 
 function handleEvent(selector, func, trigger = 'click', containerEl = null) {
   document.addEventListener('DOMContentLoaded', () => {
+    //console.log(`registring event handler for "${selector}"`);
     document.addEventListener(trigger, (ev) => {
       if (containerEl && !containerEl.contains(ev.target)) {
         return;
