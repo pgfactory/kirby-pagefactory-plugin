@@ -238,7 +238,7 @@ function getFile(string $file, mixed $removeComments = true)
          return '';
      }
 
-     $file = resolvePath($file);
+     $file = Utils::resolvePath($file);
 
      $data = fileGetContents($file);
      if (!$data) {
@@ -294,7 +294,7 @@ function getFile(string $file, mixed $removeComments = true)
  function fileTime(string $file): int
  {
      if ($file[0] === '~') {
-         $file = resolvePath($file);
+         $file = Utils::resolvePath($file);
      }
      if (file_exists($file)) {
          return (int)@filemtime($file);
@@ -367,7 +367,7 @@ function updateDataCache(string $file, mixed $data, string $tag = '')
 function cacheFileName(string $file, string $tag = ''): string
 {
     if ($file[0] === '~') {
-        $file = resolvePath($file);
+        $file = Utils::resolvePath($file);
     }
     $cacheFile = localPath($file);
     $cacheFile = str_replace('/', '_', $cacheFile);
@@ -472,7 +472,7 @@ function extractKirbyFrontmatter(string $frontmatter): array
   */
  function fileExists(string $file): bool
  {
-     $file = resolvePath($file);
+     $file = Utils::resolvePath($file);
      return file_exists($file);
  } // fileExists
 
@@ -937,7 +937,7 @@ function getDirDeep(string $path, bool $onlyDir = false, bool $assoc = false, bo
 function lastModified(mixed $paths, bool $recursive = true): int
 {
     $newest = 0;
-    $paths = resolvePath($paths);
+    $paths = Utils::resolvePath($paths);
 
     if (is_string($paths)) {
         $paths = [$paths];
@@ -1039,7 +1039,7 @@ function writeFile(string $file, mixed $content, int $flags = 0, int $permission
     $type = strtolower(fileExt($file));
     $content = _encodeData($content, $type);
 
-    $file = resolvePath($file);
+    $file = Utils::resolvePath($file);
     preparePath($file);
     if (file_put_contents($file, $content, $flags) === false) {
         $file = basename($file);
@@ -1539,7 +1539,7 @@ function preparePath(string $path0, $accessRights = false): void
 {
     // resolve path if necessary:
     if ($path0 && ($path0[0] === '~')) {
-        $path0 = resolvePath($path0);
+        $path0 = Utils::resolvePath($path0);
     }
 
     if (file_exists(dirname($path0))) {
@@ -1918,14 +1918,14 @@ function handleDataImportPattern(string $str): string
         } elseif (str_starts_with($arg, 'file:')) {
             $arg = ltrim(substr($arg, 5));
             $file = (($arg[0]??false) !== '~') ? "~page/$arg": $arg;
-            $file = resolvePath($file);
+            $file = Utils::resolvePath($file);
             $s = getFile($file);
             $s = str_replace("  \n", "<br>", $s); // 2 spaces at eol = <br>
 
         // get files in given folder:
         } elseif (str_starts_with($arg, 'files:')) {
             $arg = ltrim(substr($arg, 8));
-            $path = resolvePath($arg);
+            $path = Utils::resolvePath($arg);
             $dir = getDir($path, type:'files');
             $len = strlen($path);
             array_walk($dir, function(&$file) use($len) {
@@ -1936,7 +1936,7 @@ function handleDataImportPattern(string $str): string
         // get dirnames in given folder:
         } elseif (str_starts_with($arg, 'folders:')) {
             $arg = ltrim(substr($arg, 8));
-            $path = resolvePath($arg);
+            $path = Utils::resolvePath($arg);
             $dir = getDir($path, type:'folders');
             $len = strlen($path);
             array_walk($dir, function(&$file) use($len) {
@@ -1946,7 +1946,7 @@ function handleDataImportPattern(string $str): string
 
         } elseif (str_starts_with($arg, 'dir:')) {
             $arg = ltrim(substr($arg, 4));
-            $path = resolvePath($arg);
+            $path = Utils::resolvePath($arg);
             $dir = getDir($path);
             $len = strlen($path);
             array_walk($dir, function(&$file) use($len) {
@@ -1957,7 +1957,7 @@ function handleDataImportPattern(string $str): string
         // get subtree of given folder:
         } elseif (str_starts_with($arg, 'tree:')) {
             $arg = ltrim(substr($arg, 5));
-            $path = resolvePath($arg);
+            $path = Utils::resolvePath($arg);
             $dir = getDirDeep($path, onlyDir:true);
             $len = strlen($path);
             array_walk($dir, function(&$file) use($len) {

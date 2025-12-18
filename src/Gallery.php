@@ -176,9 +176,9 @@ EOT;
         $images = [];
 
         if ($imageCaptionsFile0) {
-            $imageCaptionsFile = resolvePath($imageCaptionsFile0);
+            $imageCaptionsFile = Utils::resolvePath($imageCaptionsFile0);
             if (!file_exists($imageCaptionsFile)) {
-                $imageCaptionsFile = resolvePath($path.$imageCaptionsFile0);
+                $imageCaptionsFile = Utils::resolvePath($path.$imageCaptionsFile0);
             }
             if (file_exists($imageCaptionsFile)) {
                 $imageCaptions = explodeTrim("\n", getFile($imageCaptionsFile));
@@ -193,7 +193,7 @@ EOT;
         }
 
         if (!$images) {
-            $galleryPath = resolvePath($path);
+            $galleryPath = Utils::resolvePath($path);
             $pagePath = PFY_PAGE_PATH;
             $path1 = str_contains($galleryPath, '*') ? $galleryPath : "$galleryPath*";
             $files = getDir($path1);

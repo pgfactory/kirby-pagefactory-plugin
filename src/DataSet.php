@@ -1518,7 +1518,7 @@ class DataSet
             if (!file_exists(PFY_CACHE_PATH . 'data')) {
                 preparePath(PFY_CACHE_PATH . 'data/');
             }
-            $file = resolvePath($file);
+            $file = Utils::resolvePath($file);
             $this-> checkAndFixDataFile($file);
             $this->name = base_name($file, false);
             $this->type = fileExt($file);

@@ -461,7 +461,7 @@ class Data2DSet
      */
     public function exportToCsv(string $file): void
     {
-        $file = resolvePath($file);
+        $file = Utils::resolvePath($file);
         $fp = fopen($file, 'w');
         foreach ($this->data2D as $fields) {
             fputcsv($fp, $fields);
@@ -509,7 +509,7 @@ class Data2DSet
             $basename = base_name($downloadFilename, false);
         }
         // determine download path (i.e. random hash static per page):
-        $dlLinkFile = resolvePath('~cache/links/'.str_replace('/','_', $basename)).'.txt';
+        $dlLinkFile = Utils::resolvePath('~cache/links/'.str_replace('/','_', $basename)).'.txt';
         preparePath($dlLinkFile);
         if (file_exists($dlLinkFile)) {
             $dlHash = file_get_contents($dlLinkFile);

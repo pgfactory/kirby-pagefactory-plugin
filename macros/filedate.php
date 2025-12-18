@@ -35,7 +35,7 @@ EOT,
     }
 
     $path = $options['path'];
-    $path = resolvePath($path);
+    $path = Utils::resolvePath($path);
     $files = getDir($path);
     $ftime = 0;
     if ($files) {

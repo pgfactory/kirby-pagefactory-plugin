@@ -34,7 +34,7 @@ class Import
         if ($subfolder) {
             $compileMd = self::$mdCompile;
             self::$mdCompile = null;
-            $src = resolvePath($subfolder);
+            $src = Utils::resolvePath($subfolder);
             $folders = getDir($src, true);
             $keys = array_keys($folders);
             natsort($keys);
@@ -152,7 +152,7 @@ EOT;
             if (($file[0]??false) !== '~') {
                 $file = "~page/$file";
             }
-            $file = resolvePath($file);
+            $file = Utils::resolvePath($file);
             $files = getDir($file);
             foreach ($files as $key => $file) {
                 $files[$key] = "~/$file";
@@ -164,7 +164,7 @@ EOT;
             if (($file[0]??false) !== '~') {
                 $file = "~page/$file";
             }
-            $file = resolvePath($file);
+            $file = Utils::resolvePath($file);
             if ($literal) {
                 $s = @file_get_contents($file);
             } else {

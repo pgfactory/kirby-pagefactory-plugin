@@ -54,7 +54,7 @@ class OfficeFormat
      */
     public function exportToXlsx(string $file): void
     {
-        $file = resolvePath($file);
+        $file = Utils::resolvePath($file);
         $file = fileExt($file, true).'.xlsx';
         preparePath($file);
         $writer = new Xlsx($this->spreadsheet);
@@ -64,7 +64,7 @@ class OfficeFormat
 
     //    public function exportToOds(string $file): void
     //    {
-    //        $file = resolvePath($file);
+    //        $file = Utils::resolvePath($file);
     //        $file = fileExt($file, true).'.ods';
     //        preparePath($file);
     //        $writer = new Ods($this->spreadsheet);

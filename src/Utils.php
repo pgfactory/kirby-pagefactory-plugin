@@ -753,9 +753,9 @@ EOT;
             return;
         }
 
-        $prodDataPath = resolvePath('~/'.PageFactory::$config['productionModeDataPath']);
+        $prodDataPath = self::resolvePath('~/'.PageFactory::$config['productionModeDataPath']);
         $prodDataPath = normalizePath($prodDataPath);
-        $configPath = resolvePath('~/site/config/');
+        $configPath = self::resolvePath('~/site/config/');
 
         // copy files to site/config/:
         $files = getDir($prodDataPath.'config/*', true);
@@ -766,7 +766,7 @@ EOT;
         }
 
         // copy files to site/custom/data/:
-        $customPath = resolvePath('~/site/custom/');
+        $customPath = self::resolvePath('~/site/custom/');
         $dataPath = $customPath.'data/';
         // if folder already exists, move it to .history/:
         if (!is_dir($customPath)) {
@@ -1404,7 +1404,7 @@ EOT;
         $selectorValue = $options['selectorValue']??'';
         $reversed = $options['reversed']??false;
         $sort = $options['sort']??false;
-        $blueprintFile = $options['blueprintFile']??'site/blueprints/users/default.yml';
+        $blueprintFile = $options['blueprintFile'] ?? 'site/blueprints/users/default.yml';
         $labels = self::getUserRecLabels($blueprintFile);
 
         $users = kirby()->users();
@@ -1473,12 +1473,17 @@ EOT;
      */
     private static function getUserRecLabels(string $blueprintFile): array
     {
+        if (!str_starts_with($blueprintFile, PFY_KIRBY_BASE_PATH)) {
+            $blueprintFile = PFY_KIRBY_BASE_PATH . $blueprintFile;
+        }
         $array = loadFile($blueprintFile);
         $userLabels = [];
         $userLabels['username'] = 'Username';
         $userLabels['email'] = 'E-Mail';
         $userLabels['group'] = 'Group';
-        $userLabels += self::_getUserRecLabels($array);
+        if ($array && is_array($array)) {
+            $userLabels += self::_getUserRecLabels($array);
+        }
         return $userLabels;
     } // getUserRecLabels
 

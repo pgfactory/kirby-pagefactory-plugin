@@ -150,7 +150,7 @@ class Download
         $accessRights = 0755;
         // resolve path if necessary:
         if ($path0 && ($path0[0] === '~')) {
-            $path0 = resolvePath($path0);
+            $path0 = Utils::resolvePath($path0);
         }
 
         if (file_exists(dirname($path0))) {
