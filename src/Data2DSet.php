@@ -275,12 +275,14 @@ class Data2DSet
      */
     private function sortData(): void
     {
+        $sortElem = $this->order;
+        $reversed = $this->options['reversed']??false;
         $data = $this->data2D;
-        uasort($data, function ($a,$b) {
-            return strcmp($a[$this->order]??'', $b[$this->order]??'');
+        uasort($data, function ($a,$b) use ($sortElem) {
+            return strcmp($a[$sortElem]??'', $b[$sortElem]??'');
         });
 
-        if ($this->options['reversed']??false) {
+        if ($reversed) {
             $data = array_reverse($data, true);
         }
         $this->data2D = $data;
@@ -602,7 +604,7 @@ class Data2DSet
         if ($unknown !== false) {
             $this->placeholderForUndefined = $unknown;
         }
-        $this->order = $this->options['order'] ?? false;
+        $this->order = ($this->options['order'] ?? false) ?: ($this->options['sort'] ?? false);
         $this->filter = $this->options['filter'] ?? false;
         $this->downloadFilename = $options['downloadFilename'] ?? false;
 
