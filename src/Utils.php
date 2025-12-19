@@ -1380,11 +1380,12 @@ EOT;
                 'body' => '',
             ];
             $logComment = $props['logComment'] ?? 'To:';
-            if (is_array($props['body']) && isset($props['body']['text'])) {
-                $props['body'] = $props['body']['text'];
-            } else {
-                throw new Exception("Error: attempt to send mail without body.");
-            }
+// ToDo: check whether $props['body']['text'] needs special fix?
+//            if (is_array($props['body']) && isset($props['body']['text'])) {
+//                $props['body'] = $props['body']['text'];
+//            } else {
+//                throw new Exception("Error: attempt to send mail without body.");
+//            }
             new PHPMailer($props);
             mylog("$logComment {$props['to']}\nSubject: {$props['subject']}\n----\n{$props['body']}\n----", 'mail-log.txt');
         }
