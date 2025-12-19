@@ -373,6 +373,7 @@ EOT;
 
         $js = "var screenSizeBreakpoint = $screenSizeBreakpoint\n";
         $js .= "const hostUrl = '" .        PFY_APP_BASE_URL . "';\n";
+        $js .= "const hostAssetUrl = '" .   PFY_APP_BASE_URL . PFY_BASE_OFFSET. "';\n";
         $js .= "const pageUrl = '" .        PFY_PAGE_URL . "';\n";
         $js .= "const pageId = '" .        page()->id() . "';\n";
         $js .= "const loggedinUser = '" .   PageFactory::$userName . "';\n";
