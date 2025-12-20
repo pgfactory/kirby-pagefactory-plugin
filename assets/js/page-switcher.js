@@ -2,6 +2,8 @@
 
 "use strict";
 
+console.log('page-switcher.js');
+
  let touchstartX = 0
  let touchendX = 0
  let touchstartY = 0
@@ -61,8 +63,15 @@ document.addEventListener("DOMContentLoaded", function () {
     document.addEventListener('touchend', e => {
       touchendX = e.changedTouches[0].screenX;
       touchendY = e.changedTouches[0].screenY;
-      const isHorizontalSwipe = Math.abs(touchstartY - touchendY) > swipeMaxDistanceY;
-      if (isHorizontalSwipe) {
+
+      // inhibit page-switch if swipe had vertical movement:
+      const isVerticalSwipe = Math.abs(touchstartY - touchendY) > swipeMaxDistanceY;
+      if (isVerticalSwipe) {
+        return;
+      }
+
+      // inhibit page-switch if swipe was inside scrollable area:
+      if (isInsideScrollableArea(e.target, touchstartX - touchendX)) {
         return;
       }
       if (touchendX < touchstartX - swipeMinDistanceX) { // swiped left
@@ -93,3 +102,26 @@ function isProtectedTarget() {
     activeElement.closest('.pfy-panels-widget'));
 } // isProtectedTarget
 
+
+function isInsideScrollableArea(target, deltaX) {
+  let el = target;
+
+  while (el && el !== document.body) {
+    const style = window.getComputedStyle(el);
+    const overflowX = style.getPropertyValue('overflow-x');
+    const isScrollable = overflowX === 'auto' || overflowX === 'scroll';
+
+    if (isScrollable) {
+      const canScrollLeft = el.scrollLeft > 0;
+      const canScrollRight = el.scrollLeft < (el.scrollWidth - el.clientWidth);
+
+      // If swiping right (deltaX negative) and can scroll left
+      if (deltaX < 0 && canScrollLeft) return true;
+      // If swiping left (deltaX positive) and can scroll right
+      if (deltaX > 0 && canScrollRight) return true;
+    }
+
+    el = el.parentElement;
+  }
+  return false;
+} // isInsideScrollableArea
