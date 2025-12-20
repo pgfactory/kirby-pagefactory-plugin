@@ -71,7 +71,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       // inhibit page-switch if swipe was inside scrollable area:
-      if (isInsideScrollableArea(e.target, touchstartX - touchendX)) {
+      if (isInsideScrollableArea(e.target)) {
         return;
       }
       if (touchendX < touchstartX - swipeMinDistanceX) { // swiped left
@@ -103,7 +103,7 @@ function isProtectedTarget() {
 } // isProtectedTarget
 
 
-function isInsideScrollableArea(target, deltaX) {
+function isInsideScrollableArea(target) {
   let el = target;
 
   while (el && el !== document.body) {
@@ -112,13 +112,8 @@ function isInsideScrollableArea(target, deltaX) {
     const isScrollable = overflowX === 'auto' || overflowX === 'scroll';
 
     if (isScrollable) {
-      const canScrollLeft = el.scrollLeft > 0;
-      const canScrollRight = el.scrollLeft < (el.scrollWidth - el.clientWidth);
-
-      // If swiping right (deltaX negative) and can scroll left
-      if (deltaX < 0 && canScrollLeft) return true;
-      // If swiping left (deltaX positive) and can scroll right
-      if (deltaX > 0 && canScrollRight) return true;
+      mylog('swipe in scrollable area suppressed');
+      return true
     }
 
     el = el.parentElement;
