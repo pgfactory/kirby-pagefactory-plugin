@@ -3,9 +3,7 @@
 namespace PgFactory\PageFactory;
 
 use Kirby;
-use Kirby\Data\Yaml;
 use Kirby\Http\Url;
-use PgFactory\MarkdownPlus\MdPlusHelper;
 use ScssPhp\ScssPhp\Exception\SassException;
 use PgFactory\MarkdownPlus\Permission;
 
@@ -462,7 +460,7 @@ EOT;
             $accessGranted = Permission::evaluate($accessRestriction);
             if (!$accessGranted) {
                 if (Extensions::$loadedExtensions['PageElements']??false) {
-                    \PgFactory\PageFactoryElements\Login::init(['as-popup' => true]);
+                    \PgFactory\PageFactoryElements\Login::init();
                     $html = \PgFactory\PageFactoryElements\Login::render('{{ pfy-restricted-page }}');
                     if ($html) {
                         Page::overrideContent($html);
