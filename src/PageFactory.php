@@ -44,6 +44,7 @@ define('PFY_TEMP_PATH',                 '~/media/pgfactory/');
 define('PFY_TEMP_DOWNLOAD_PATH',        PFY_TEMP_PATH.'download/'); // for temp download of datasets (excel-format)
 
 const PFY_GITTAG_FILE =                 PFY_KIRBY_BASE_PATH.'site/custom/gittag.txt';
+const PFY_CRASH_RELOAD_FILE =           PFY_KIRBY_BASE_PATH.'site/logs/first-reload-after-crash.txt';
 
 define('PFY_WEBMASTER_EMAIL_CACHE',     PFY_CACHE_PATH.'webmaster-email.txt');
 define('PFY_INSTALLATION_PATH_CHECK',   PFY_CACHE_PATH.'installation-path.txt');
@@ -252,19 +253,29 @@ class PageFactory
                 return $this->_renderPageContent();
 
             } catch (\Exception $e) {
-                mylog($e->getMessage());
                 if (!self::$dev) {
                     // in productive mode: try flush-cache-and-reload once, then give up and return error msg:
                     //  -> in particular after first upload this can fix problems.
-                    $session = kirby()->session();
-                    if ($session->get('pfy.secondErrorRun')) {
-                        $session->remove('pfy.secondErrorRun');
-                        return 'An error occurred on the server - please try again later';
-                    } else {
-                        $session->set('pfy.secondErrorRun', true);
+                    if (!file_exists(PFY_CRASH_RELOAD_FILE)) {
+                        mylog($e->getMessage().".\n=> Now clearing cache and reloading page.");
+                        writeFile(PFY_CRASH_RELOAD_FILE, '');
+                        Utils::sendMail([
+                            'to'          => self::$webmasterEmail,
+                            'subject'     => 'PageFactory: Fatal error on page '.self::$page->url(),
+                            'body'        => $e->getMessage()."\n\nNow clearing cache and reloading page.",
+                        ]);
                         Cache::flushAll();
                         mylog("=== reloading after first attempt to flush cache. ===");
                         reloadAgent();
+                    } else {
+                        unlink(PFY_CRASH_RELOAD_FILE);
+                        mylog($e->getMessage().".\n=> Second attempt to flush cache failed.\nGiving up now.");
+                        Utils::sendMail([
+                            'to'          => self::$webmasterEmail,
+                            'subject'     => 'PageFactory: Fatal error second run on page '.self::$page->url(),
+                            'body'        => $e->getMessage()."\n\nSecond attempt to flush cache failed. Giving up now.",
+                        ]);
+                        return 'An error occurred on the server - please try again later';
                     }
                 } else {
                     return $e->getMessage();
