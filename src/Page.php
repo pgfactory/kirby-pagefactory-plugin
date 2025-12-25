@@ -115,10 +115,10 @@ class Page
         self::$overrideContent = $str;
 
         // save states of in-text assets:
-        self::$override['css'] = self::$css; self::$css = '';
-        self::$override['scss'] = self::$scss; self::$scss = '';
-        self::$override['js'] = self::$js; self::$js = '';
-        self::$override['jsWhenReady'] = self::$jsWhenReady; self::$jsWhenReady = '';
+        self::$override['css'] = self::$css;
+        self::$override['scss'] = self::$scss;
+        self::$override['js'] = self::$js;
+        self::$override['jsWhenReady'] = self::$jsWhenReady;
     } // overrideContent
 
 
@@ -313,6 +313,13 @@ EOT;
             self::addAssets('NAV');
         }
 
+        // case override: restore assets to time of override-invokation:
+        if (self::$overrideContent) {
+            self::$css = self::$override['css'];
+            self::$scss = self::$override['scss'];
+        }
+
+
         // add misc elements from content/site.txt and the current page's frontmatter:
         $html  = self::getHeaderElem('head');
         $html .= self::getHeaderElem('description');
@@ -359,8 +366,6 @@ EOT;
 
         // case override: restore assets to time of override-invokation:
         if (self::$overrideContent) {
-            self::$css = self::$override['css'];
-            self::$scss = self::$override['scss'];
             self::$js = self::$override['js'];
             self::$jsWhenReady = self::$override['jsWhenReady'];
         }
