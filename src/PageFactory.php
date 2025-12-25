@@ -39,7 +39,9 @@ if (!defined('PFY_LOGS_PATH')) {
 if (!defined('PFY_CACHE_PATH')) {
     define('PFY_CACHE_PATH',            PFY_KIRBY_BASE_PATH . 'site/cache/pagefactory/');
 }
-define('PFY_LOGIN_LOG_FILE',           'login-log.txt');
+if (!defined('PFY_LOGIN_LOG_FILE')) {
+    define('PFY_LOGIN_LOG_FILE', 'login-log.txt');
+}
 define('PFY_TEMP_PATH',                 '~/media/pgfactory/');
 define('PFY_TEMP_DOWNLOAD_PATH',        PFY_TEMP_PATH.'download/'); // for temp download of datasets (excel-format)
 
