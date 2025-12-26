@@ -252,6 +252,10 @@ EOT;
             'quality' => $this->quality,
         ]);
         $this->src = $image0->url();
+        // if app in root, we need to adjust the src url:
+        if (!str_starts_with($this->src, PFY_APP_BASE_URL.PFY_BASE_OFFSET)) {
+            $this->src = str_replace(PFY_APP_BASE_URL, PFY_APP_BASE_URL.PFY_BASE_OFFSET, $this->src);
+        }
 
         if ($effectiveWidth) {
             $image->thumb([
@@ -548,7 +552,7 @@ EOT;
         if (!$imgStyle) {
             if ($this->forHtmlMail) {
                 $imgStyle = "width: {$this->effectiveWidth}px; height: {$this->effectiveHeight}px;";
-            } else {
+            } elseif ($this->isRasterImage) {
                 $imgStyle = "width: min(100%, {$this->effectiveWidth}px); height: min(100%, {$this->effectiveHeight}px);";
             }
         }
