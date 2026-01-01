@@ -61,7 +61,9 @@ const PFY_IMG_PLACEHOLDER =             PFY_KIRBY_ASSETS_BASE_URL.'media/plugins
 
 
  // use this name for meta-files (aka text-files) in page folders:
-define('PFY_PAGE_META_FILE_BASENAME','z'); // 'define' required by site/plugins/pagefactory/index.php
+if (!defined('PFY_PAGE_META_FILE_BASENAME')) {
+    define('PFY_PAGE_META_FILE_BASENAME', 'z');
+}
 
 define('OPTIONS_DEFAULTS', [
     'defaultLanguage'               => 'en',  // default language used, if none is available from Kirby

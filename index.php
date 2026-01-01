@@ -35,6 +35,13 @@ Kirby::plugin('pgfactory/pagefactory', [
         }
     ],
 
+    'blueprints' => [
+        'pages/'.PFY_PAGE_META_FILE_BASENAME => function() {    // == PFY_PAGE_META_FILE_BASENAME
+            require_once __DIR__ . '/src/panelHelper.php';
+            return assembleBlueprint();
+        },
+    ],
+
     'hooks' => [
         // experimental: avoid requests for .map files
         'route:before' => function (\Kirby\Http\Route $route, string $path) {
@@ -43,6 +50,11 @@ Kirby::plugin('pgfactory/pagefactory', [
             }
             if (str_starts_with($path, 'download') && \PgFactory\PageFactory\Download::handler($path)) {
                 exit();
+            }
+            // when user opens panel -> update .txt files according to .md content:
+            if (strpos($path, 'panel/pages/') === 0) {
+                require_once __DIR__ . '/src/panelHelper.php';
+                onPanelLoad($path);
             }
         },
 
@@ -53,8 +65,14 @@ Kirby::plugin('pgfactory/pagefactory', [
 
         // create initial .md content file for newly created pages:
         'page.create:after' => function (\Kirby\Cms\Page $page) {
-            require_once PFY_KIRBY_BASE_PATH . 'site/plugins/pagefactory/src/panelHelper.php';
+            require_once __DIR__ . '/src/panelHelper.php';
             onPageCreateAfter($page);
+        },
+
+        // after user modified page content via panel -> update .md-files:
+        'page.update:after' => function (\Kirby\Cms\Page $newPage, \Kirby\Cms\Page $oldPage) {
+            require_once __DIR__ . '/src/panelHelper.php';
+            onPageUpdateAfter($newPage);
         },
 
     ], // hooks

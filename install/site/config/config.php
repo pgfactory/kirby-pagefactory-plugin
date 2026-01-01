@@ -12,6 +12,9 @@ if (!defined('PFY_APP_BASE_PATH')) {
 if (!defined('PFY_KIRBY_BASE_PATH')) {
     define('PFY_KIRBY_BASE_PATH', PFY_APP_BASE_PATH . PFY_BASE_OFFSET);
 }
+if (!defined('PFY_PAGE_META_FILE_BASENAME')) {
+    define('PFY_PAGE_META_FILE_BASENAME', 'z');
+}
 
 
 // Defaults recommended by PageFactory plugin:
