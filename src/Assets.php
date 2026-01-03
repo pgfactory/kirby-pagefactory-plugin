@@ -455,7 +455,7 @@ class Assets
                     }
                 }
                 writeFile($destFile, $str);
-                mylog("Assets: '$destFile' compiled");
+                //mylog("Assets: '$destFile' compiled");
             } else {
                 CompileJs::compileAll($srcPath, $destFile);
             }

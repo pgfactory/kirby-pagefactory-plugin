@@ -48,7 +48,7 @@ class CompileJs
             $out = "/* === Automatically created from $filename - do not modify! === */\n";
             $out .= self::compile($file);
             writeFile($target, $out);
-            mylog("JS: '$target' compiled");
+            //mylog("JS: '$target' compiled");
         } // foreach file
     } // compileAll
 
@@ -87,7 +87,7 @@ class CompileJs
             if (!$aggregatedTargetFile) {
                 writeFile($aggregatedTargetFile, $out);
             }
-            mylog("JS: '$aggregatedTargetFile' compiled");
+            //mylog("JS: '$aggregatedTargetFile' compiled");
         } // foreach file
 
         writeFile($aggregatedTargetFile, $out);
