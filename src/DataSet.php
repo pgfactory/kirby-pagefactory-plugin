@@ -1565,6 +1565,13 @@ class DataSet
                 $renamedFile = dir_name($yamlFile).'#'.basename($yamlFile);
                 rename($yamlFile, $renamedFile);
             }
+        } elseif (fileExt($file) === 'yaml') {
+            $jsonFile = fileExt($file, true).'.json';
+            if (file_exists($jsonFile)) {
+                $this->convertToYaml($jsonFile);
+                $renamedFile = dir_name($jsonFile).'#'.basename($jsonFile);
+                rename($jsonFile, $renamedFile);
+            }
         }
     } // checkAndFixDataFile
 
@@ -1583,5 +1590,21 @@ class DataSet
         $data = readFile($file);
         writeFile($jsonFile, $data);
     } // convertToJson
+
+
+    /**
+     * @param string $file
+     * @return void
+     * @throws \Exception
+     */
+    public function convertToYaml(string $file): void
+    {
+        $yamlFile = fileExt($file, true).'.yaml';
+        if (file_exists($yamlFile)) {
+            throw new \Exception("Error in convertToYaml(): target file '$yamlFile' already exists.");
+        }
+        $data = readFile($file);
+        writeFile($yamlFile, $data);
+    } // convertToYaml
 
 } // DataSet
