@@ -367,7 +367,11 @@
 
 } // pfy-default-styling
 
-
+@media print {
+  .pfy-default-styling.pfy-dev::before {
+    display: none!important;
+  }
+}
 
 
 
