@@ -1053,10 +1053,11 @@ EOT;
      * Enter dev state, if:
      * - on productive host:
      *      - false unless
-     *          - $kirbyDebugState explicitly true
+     *          - productionHostPathPattern = true
+     *          - productionHostPathPattern is not contained path
      *          - logged in as admin and $userDebugRequest true -> remember as long as logged in
      * - on localhost:
-     *      - $kirbyDebugState, unless overridden by ?dev URL-Cmd
+     *      - productionHostPathPattern, unless overridden by ?dev URL-Cmd
      */
     public static function determineDevState(): bool
     {
@@ -1077,16 +1078,19 @@ EOT;
         if ($appRoot !== $docRoot) {
             // app in subfolder -> check against productionHostPathPattern:
             if ($patt && is_string($patt)) {
-                $devMode = !preg_match("#$patt#", $appRoot);
+                $devMode = !preg_match("#$patt#", $appRoot); // path pattern is not contained in appRoot
             } elseif (is_bool($patt)) {
                 $devMode = !$patt;
             } else {
                 $devMode = $isLocalhost;
             }
         } else {
-            if ($patt === '/') {
+            // app in root folder:
+            if (!$isLocalhost && str_contains(PFY_BASE_OFFSET, $patt)) {
+                // on remote host and path pattern is contained in PFY_BASE_OFFSET => production mode:
                 $devMode = false;
             } elseif (is_bool($patt)) {
+                // path pattern is boolean -> use it: false
                 $devMode = !$patt;
             } else {
                 $devMode = $isLocalhost;

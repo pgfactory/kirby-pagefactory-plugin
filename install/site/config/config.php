@@ -52,7 +52,12 @@ return [
         // 'webmaster_email'               => 'webmaster@MY-DOMAIN.NET', // define a webmaster address
         // 'emailDevModeOverride'          => 'test@MY-DOMAIN.NET',     // email used for forms in dev mode
         // 'robots'                        => true,   // inject "robots" elem in HTML header
-        // 'productionHostPathPattern'     => 'onair', // if defined, mismatch of (regex) pattern in URL triggers dev mode (docroot always assumed productive)
+
+        // Control Dev-Mode:
+        // 'productionHostPathPattern'     => 'onair', // activates dev-mode, if false or pattern is not contained in path resp. PFY_BASE_OFFSET
+        // 'productionHostPathPattern'     => false, // dev-mode is always enabled
+        // 'productionHostPathPattern'     => true, // dev-mode is always disabled
+
         // 'productionModeDataPath'        => '../production_mode_db/', // if defined, ~data/ is redirected here in production mode
         // 'lazyLoading'                   => false,   // disable lazy loading of images
         // 'favicon'                       => PFY_BASE_OFFSET.'assets/favicon/favicon.png', // defines source favicon file
