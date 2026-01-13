@@ -1061,12 +1061,18 @@ EOT;
      */
     public static function determineDevState(): bool
     {
+        $urlArgsPresent = isset($_GET['dev']) || isset($_GET['localhost']);
+        $patt = kirby()->option('pgfactory.pagefactory.productionHostPathPattern');
+        if ($patt === null && !$urlArgsPresent) {
+            return false; // productionHostPathPattern is not defined -> default to production mode.
+        }
+
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
         $devMode = $_SESSION['pfy.dev'] ?? null;
 
-        if ($devMode !== null && !isset($_GET['dev']) && !isset($_GET['localhost'])) {
+        if ($devMode !== null && !$urlArgsPresent) {
             session_abort();
             return $devMode;
         }
@@ -1074,7 +1080,7 @@ EOT;
         $isLocalhost =  Permission::isLocalhost();;
         $appRoot = dirname($_SERVER['SCRIPT_FILENAME']);
         $docRoot = $_SERVER['DOCUMENT_ROOT']??'';
-        $patt = kirby()->option('pgfactory.pagefactory.productionHostPathPattern');
+
         if ($appRoot !== $docRoot) {
             // app in subfolder -> check against productionHostPathPattern:
             if ($patt && is_string($patt)) {

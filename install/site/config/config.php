@@ -54,7 +54,7 @@ return [
         // 'robots'                        => true,   // inject "robots" elem in HTML header
 
         // Control Dev-Mode:
-        // 'productionHostPathPattern'     => 'onair', // activates dev-mode, if false or pattern is not contained in path resp. PFY_BASE_OFFSET
+         'productionHostPathPattern'     => 'onair', // activates dev-mode, if false or pattern is not contained in path resp. PFY_BASE_OFFSET
         // 'productionHostPathPattern'     => false, // dev-mode is always enabled
         // 'productionHostPathPattern'     => true, // dev-mode is always disabled
 
