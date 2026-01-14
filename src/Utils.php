@@ -723,7 +723,9 @@ EOT;
         kirby()->session()->clear(); // Resets all Kirby sessions
 
         // deletes all PHP-session variables used by PageFactory:
-        session_start();
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
         foreach ($_SESSION as $key => $value) {
             if (str_starts_with($key, 'pfy.')) {
                 unset($_SESSION[$key]);
@@ -1064,7 +1066,7 @@ EOT;
         $urlArgsPresent = isset($_GET['dev']) || isset($_GET['localhost']);
         $patt = kirby()->option('pgfactory.pagefactory.productionHostPathPattern');
         if ($patt === null && !$urlArgsPresent) {
-            return false; // productionHostPathPattern is not defined -> default to production mode.
+            return kirby()->option('debug'); // productionHostPathPattern is not defined -> default to kirby's debug state.
         }
 
         if (session_status() === PHP_SESSION_NONE) {
