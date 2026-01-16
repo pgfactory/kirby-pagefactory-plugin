@@ -1,0 +1,114 @@
+
+$cardsTxtColor: var(--pfy-cards-txt-color);
+$hoverTxtColor: var(--pfy-cards-hover-txt-color);
+
+$cardsBgColor: var(--pfy-cards-bg-color, white);
+$hoverBgColor: var(--pfy-cards-hover-bg-color, white);
+
+/* Container - Responsive Grid with safety for small screens */
+.pfy-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr));
+    gap: 20px;
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Base Card Styling */
+.pfy-card {
+    aspect-ratio: 1 / 1;
+    background: $cardsBgColor;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+
+    /* Smooth transition for the pfy-card itself */
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+                box-shadow 0.4s ease;
+    cursor: pointer;
+}
+.pfy-card-content {
+  a {
+    color: $cardsTxtColor;
+  }
+}
+
+/* 1. HOVER EFFECT: Card Lift & Glow */
+.pfy-cards-lift .pfy-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Image Wrapper */
+.card_image {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.card_image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* Smooth transition for the zoom */
+    transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.pfy-card-content {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  backdrop-filter: blur(8px); /* Modern frosted glass effect */
+  padding: 15px;
+  text-align: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+
+  a {
+    text-decoration: none;
+    font-weight: 700;
+    font-family: system-ui, -apple-system, sans-serif;
+    font-size: 1.1rem;
+    transition: color 0.3s ease;
+  }
+}
+
+/* 2. HOVER EFFECT: Subtle Image Zoom */
+.pfy-cards-hover {
+  .pfy-card:hover .card_image img {
+    transform: scale(1.1);
+  }
+
+  /* 3. HOVER EFFECT: Text Slide Up & Color Change */
+  .pfy-card-content {
+    /* Animation for the content box */
+    transform: translateY(5px);
+    transition: transform 0.4s ease, background 0.4s ease;
+  }
+}
+
+.pfy-card:hover {
+  background: $hoverBgColor;
+  .pfy-card-content {
+    transform: translateY(0);
+    background: $hoverBgColor;
+    a {
+      color: $hoverTxtColor;
+    }
+  }
+}
+
+/* Optimization for tiny viewports (< 346px) */
+@media (max-width: 346px) {
+    .pfy-cards {
+        padding: 10px;
+        gap: 12px;
+    }
+    /* Disable lift on very small screens to prevent layout shifting */
+    .pfy-card:hover {
+        transform: translateY(-4px);
+    }
+}
