@@ -293,10 +293,10 @@ EOT;
             $filename = substr($file, 6);
             if (str_contains($filename, '/')) {
                 // image in subfolder of page:
-                $path = $page->id() . '/' . dirname($filename);
-                $subdir = page($path);
+                $pgId = $page->id() . '/' . preg_replace('/^(\d_)*/', '', dirname($filename));
+                $subdir = page($pgId);
                 if (!$subdir) {
-                    throw new \Exception("Error: subdirectory '$path' not found");
+                    throw new \Exception("Error: subdirectory '$pgId' not found");
                 }
                 $image = $subdir->image(basename($filename));
             } else {
@@ -433,6 +433,8 @@ EOT;
         if ($options['linkAttributes']) {
             $linkAttr .= " {$options['linkAttributes']}";
         }
+
+        $href = Link::fixUrl($href);
 
         $html = <<<EOT
 <a href='$href'$linkAttr>$html</a>
