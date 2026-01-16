@@ -62,7 +62,7 @@ class Link
         self::$isExternalLink = false;
         self::$download = $args['download'] ?? '';
 
-        self::fixUrl();
+        self::$url = self::fixUrl(self::$url);
         self::determineLinkType();
         $attributes = self::assembleAttributes();
         self::$text = self::getText();
@@ -411,23 +411,28 @@ class Link
     }
 
     /**
-     * @return void
+     * @param $url
+     * @return string
      */
-    private static function fixUrl()
+    public static function fixUrl($url): string
     {
-        if (strpbrk(self::$url, '<')) {
-            self::$url = str_replace('~/<span immutable', '<span immutable', self::$url); // remove '~/'
+        if (strpbrk($url, '<')) {
+            $url = str_replace('~/<span immutable', '<span immutable', $url); // remove '~/'
 
-            self::$url = str_replace(['<em>', '</em>'], '_', self::$url);
-            self::$url = str_replace(['<sub>', '</sub>'], '~', self::$url);
-            self::$url = str_replace(['<sup>', '</sup>'], '^', self::$url);
-            self::$url = str_replace(['<mark>', '</mark>'], '==', self::$url);
-            self::$url = str_replace(['<ins>', '</ins>'], '++', self::$url);
-            self::$url = str_replace(['<del>', '</del>'], '~~', self::$url);
-            self::$url = str_replace(['<code>', '</code>'], '`', self::$url);
-            self::$url = str_replace(['<samp>', '</samp>'], '``', self::$url);
-            self::$url = str_replace(['<span class="underline">', '</span>'], '__', self::$url);
+            $url = str_replace(['<em>', '</em>'], '_', $url);
+            $url = str_replace(['<sub>', '</sub>'], '~', $url);
+            $url = str_replace(['<sup>', '</sup>'], '^', $url);
+            $url = str_replace(['<mark>', '</mark>'], '==', $url);
+            $url = str_replace(['<ins>', '</ins>'], '++', $url);
+            $url = str_replace(['<del>', '</del>'], '~~', $url);
+            $url = str_replace(['<code>', '</code>'], '`', $url);
+            $url = str_replace(['<samp>', '</samp>'], '``', $url);
+            $url = str_replace(['<span class="underline">', '</span>'], '__', $url);
         }
+        if (page()->id() === 'home') {
+            $url = str_replace('~page/', '~page/home/', $url);
+        }
+        return $url;
     } // fixUrl
 
 
