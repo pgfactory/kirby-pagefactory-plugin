@@ -93,7 +93,6 @@ $mobile-nav-bg-color:     var(--pfy-mobile-nav-bg-color, #{$mobile-nav-bg-color}
       border: none;
       background: none;
       position: absolute;
-      inset: 0;
       top: calc(var(--pfy-mobile-header-height, 11vw) * 0.15);
       width: calc(var(--pfy-mobile-header-height, 11vw) * 0.6);
       height: calc(var(--pfy-mobile-header-height, 11vw) * 0.6);
