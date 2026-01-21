@@ -122,16 +122,16 @@
             border-radius: 50%;
         }
         &.de > * {
-            background-image: url("../../../pagefactory/icons/de.png");
+            background-image: url(~/media/plugins/pgfactory/pagefactory/icons/de.png);
         }
         &.en > * {
-            background-image: url("../../../pagefactory/icons/en.png");
+            background-image: url(~/media/plugins/pgfactory/pagefactory/icons/en.png);
         }
         &.fr > * {
-            background-image: url("../../../pagefactory/icons/fr.png");
+            background-image: url(~/media/plugins/pgfactory/pagefactory/icons/fr.png);
         }
         &.it > * {
-            background-image: url("../../../pagefactory/icons/it.png");
+            background-image: url(~/media/plugins/pgfactory/pagefactory/icons/it.png);
         }
         > * {
             position: absolute;
