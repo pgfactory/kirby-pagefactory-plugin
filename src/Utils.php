@@ -995,9 +995,22 @@ EOT;
         }
         $html = str_replace('~page/', page()->url().'/', $html);
 
-        // ~/ for <a> tags -> replace without redir-offset:
+        // ~/ for <a> tags -> replace without redir-offset, unless it's a resource:
         if (!$forResoucres) {
-            $html = preg_replace('|(<a\s+href=[\'"])~/|', "$1" . PFY_APP_BASE_URL, $html);
+            if (preg_match_all('|(<a\s+href=[\'"])~/(.*?)([\'"])|', $html, $m)) {
+                // need to analyze each <a> tag, whether it points to a resource:
+                foreach ($m[1] as $i => $aTag) {
+                    $target = $m[2][$i];
+                    $ext = fileExt($target);
+                    if ($ext &&  !str_contains('html,php,txt', $ext)) {
+                        // link to resource -> add redir-offset:
+                        $html = str_replace($m[0][$i], $aTag . PFY_APP_BASE_URL . PFY_BASE_OFFSET . $target . $m[3][$i], $html);
+                    } else {
+                        // link to page -> omit redir-offset:
+                        $html = str_replace($m[0][$i], $aTag . PFY_APP_BASE_URL . $target . $m[3][$i], $html);
+                    }
+                }
+            }
             $html = str_replace('~/', PFY_APP_BASE_URL, $html);
         } else {
             $html = preg_replace('|~/|', PFY_APP_BASE_URL.PFY_BASE_OFFSET, $html);
