@@ -733,6 +733,7 @@ EOT;
         }
         session_write_close();
 
+        self::forceUnlockAllFiles();
 
         Cache::flushAll(); // -> deletes media/ and site/cache/
         Extensions::reset();
@@ -740,6 +741,20 @@ EOT;
         PageFactory::$forceAssetsUpdate = true;
         Assets::compileAssets();
     } // resetAll
+
+
+    /**
+     * @return void
+     */
+    private static function forceUnlockAllFiles(): void
+    {
+        $files = getDir(PFY_KIRBY_BASE_PATH . 'site/cache/', true);
+        foreach ($files as $file) {
+            $fp = fopen($file, "r");
+            flock($fp, LOCK_UN);
+            fclose($fp);
+        }
+    } // forceUnlockAllFiles
 
 
     /**

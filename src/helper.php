@@ -18,7 +18,7 @@ use PgFactory\MarkdownPlus\MarkdownPlus;
  const BLOCK_SHIELD =               'div shielded';
  const INLINE_SHIELD =              'span shielded';
  const MD_SHIELD =                  'span mdshielded';
-const FILE_BLOCKING_MAX_TIME =      500; //ms
+const FILE_BLOCKING_MAX_TIME =      2000; // 500; //ms
 const FILE_BLOCKING_CYCLE_TIME =    50; //ms
 
 const UNAMBIGUOUS_CHARACTERS = 'ACDEFHJKLMNPQRTUVWXYabcdefghijkmnpqrstuvwxy3479'; // -> excludes '0O2Z1I5S6G8B'
@@ -1095,8 +1095,17 @@ function writeFileLocking(string $file, mixed $content, string $type = '', bool 
     }
 
     // write data to file:
-    $fp = fopen($file,"w");
+    // Use 'c' mode to prevent truncation before the lock is acquired
+    $fp = fopen($file, "c");
+    if (!$fp) {
+        throw new \Exception("Could not open file '$file'");
+    }
+
     awaitFileLock($fp, true, $file, $blocking);
+
+    // Truncate now that we own the lock
+    ftruncate($fp, 0);
+    rewind($fp);
 
     if ($type === 'csv') {
         $rec1 = reset($content);
