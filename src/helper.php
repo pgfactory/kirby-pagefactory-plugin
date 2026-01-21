@@ -1101,29 +1101,23 @@ function writeFileLocking(string $file, mixed $content, string $type = '', bool 
         throw new \Exception("Could not open file '$file'");
     }
 
-    awaitFileLock($fp, true, $file, $blocking);
+    try {
+        awaitFileLock($fp, true, $file, $blocking);
 
-    // Truncate now that we own the lock
-    ftruncate($fp, 0);
-    rewind($fp);
+        // Truncate now that we own the lock
+        ftruncate($fp, 0);
+        rewind($fp);
 
-    if ($type === 'csv') {
-        $rec1 = reset($content);
-        fputcsv($fp, array_keys($rec1));
-        foreach ($content as $line) {
-            fputcsv($fp, $line);
-        }
-    } else {
         $content = _encodeData($content, $type);
         if (fwrite($fp, $content) === false) {
             throw new \Exception("Error writing file '$file'");
         }
-    }
-    if (flock($fp, LOCK_UN) === false) {
-        throw new \Exception("Error unlocking file '$file'");
-    }
-    if (fclose($fp) === false) {
-        throw new \Exception("Error closing file '$file'");
+        fflush($fp);
+
+    } finally {
+        if (fclose($fp) === false) {
+            throw new \Exception("Error closing file '$file'");
+        }
     }
 } // writeFileLocking
 
@@ -1144,7 +1138,7 @@ function writeFileLocking(string $file, mixed $content, string $type = '', bool 
     } elseif ($type === 'json') {
         $content = json_encode($content, JSON_PRETTY_PRINT);
 
-    } elseif ($type === 'csv' && is_array($content)) {
+    } elseif ($type === 'csv' && $content && is_array($content)) {
         $header = array_keys(reset($content));
         array_unshift($content, $header);
         $fp = fopen('php://temp', 'r+');
@@ -1152,7 +1146,7 @@ function writeFileLocking(string $file, mixed $content, string $type = '', bool 
             fputcsv($fp, $line);
         }
         rewind($fp);
-        $content = fread($fp, 1048576);
+        $content = stream_get_contents($fp);
         fclose($fp);
 
     } elseif ($type === 'txt') {
@@ -1226,33 +1220,37 @@ function writeFileLocking(string $file, mixed $content, string $type = '', bool 
  /**
   * Performs a read-modify-write operation during which the file is locked.
   * @param string $file
-  * @param string $callback
+  * @param callable $callback
   * @param bool $blocking
   * @return string
   * @throws Exception
   */
- function readModifyWrite(string $file, string $callback, bool $blocking = true): string
+ function readModifyWrite(string $file, callable $callback, bool $blocking = true): string
  {
      $fp = fopen($file, 'c+b');
+     if (!$fp) {
+         throw new \Exception("Could not open file '$file'");
+     }
 
      try {
          awaitFileLock($fp, true, $file, $blocking);
 
-         try {
-             $content = $callback(stream_get_contents($fp));
-             ftruncate($fp, 0);
-             rewind($fp);
-             fwrite($fp, $content);
-             fflush($fp);
-         } finally {
-             flock($fp, LOCK_UN);
-         }
-     } finally {
-         fclose($fp);
-     }
+         $oldContent = stream_get_contents($fp);
+         $newContent = $callback($oldContent);
 
-     return $content;
-} // readModifyWrite
+         ftruncate($fp, 0);
+         rewind($fp);
+         if (fwrite($fp, $newContent) === false) {
+             throw new \Exception("Error writing to file '$file'");
+         }
+         fflush($fp);
+         return $newContent;
+     } finally {
+         if (fclose($fp) === false) {
+             throw new \Exception("Error closing file '$file'");
+         }
+     }
+ } // readModifyWrite
 
 
  /**
@@ -1388,7 +1386,8 @@ function writeFileLocking(string $file, mixed $content, string $type = '', bool 
   */
  function awaitFileLock($fp, bool $exclusive = false, string $filename = '', bool $blocking = true): void
 {
-    $lockType = $exclusive? LOCK_EX:LOCK_SH;
+    $lockType = $exclusive? LOCK_EX | LOCK_NB : LOCK_SH;
+//    $lockType = $exclusive? LOCK_EX:LOCK_SH;
     if ($blocking) {
         if ($blocking === true) {
             $blocking = FILE_BLOCKING_MAX_TIME / FILE_BLOCKING_CYCLE_TIME;
