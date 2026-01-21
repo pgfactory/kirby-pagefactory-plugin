@@ -987,7 +987,7 @@ EOT;
                 foreach ($m[1] as $i => $aTag) {
                     $target = $m[2][$i];
                     $ext = fileExt($target);
-                    if ($ext && str_contains('pdf,txt,doc,dot,xls,xlt,odt,ods,ott', $ext)) {
+                    if ($ext &&  !str_contains('html,php,txt', $ext)) {
                         // link to resource -> add redir-offset:
                         $html = str_replace($m[0][$i], $aTag . PFY_APP_BASE_URL . PFY_BASE_OFFSET . $target . $m[3][$i], $html);
                     } else {
