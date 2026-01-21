@@ -197,15 +197,16 @@ class Assets
         self::compileTemplateAssets();
 
         $assetLocations = self::$assetsLocation;
-        $tmp = getDirDeep(PFY_KIRBY_BASE_PATH.'content/*.scss');
+
+        // finde assets in page folder:
+        $currPgPath = page()->root();
         $l = strlen(PFY_KIRBY_BASE_PATH);
-        foreach ($tmp as $file) {
+        $files = getDir($currPgPath.'/*.scss');
+        foreach ($files as $file) {
             $path = substr(dirname($file).'/', $l);
-            if (str_starts_with($path, 'content/assets')) {
-                continue;
-            }
             $assetLocations[$path] = $path.'*';
         }
+
         foreach ($assetLocations as $destPath => $srcPath) {
             $destPath = PFY_KIRBY_BASE_PATH.$destPath;
             $srcPath = PFY_KIRBY_BASE_PATH.$srcPath;
@@ -215,6 +216,7 @@ class Assets
                 if (is_dir($file) || $basename[0] === '_' || fileExt($file) !== 'scss') {
                     continue;
                 }
+                $basename = str_replace(' ', '-', $basename); // css filenames must not contain spaces
                 $destFile = "$destPath-$basename.css";
                 if (PageFactory::$forceAssetsUpdate) {
                     Scss::compileFile($file, $destFile);
