@@ -88,7 +88,7 @@ function timeStamp(short = false) {
 }
 
 function isEmpty(obj) {
-  if (typeof obj !== 'object') {
+  if (typeof obj !== 'object' || obj === null) {
     return true;
   }
   return Object.keys(obj).length === 0;
