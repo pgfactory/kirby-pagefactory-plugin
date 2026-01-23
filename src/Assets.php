@@ -198,14 +198,7 @@ class Assets
 
         $assetLocations = self::$assetsLocation;
 
-        // finde assets in page folder:
-        $currPgPath = page()->root();
-        $l = strlen(PFY_KIRBY_BASE_PATH);
-        $files = getDir($currPgPath.'/*.scss');
-        foreach ($files as $file) {
-            $path = substr(dirname($file).'/', $l);
-            $assetLocations[$path] = $path.'*';
-        }
+        $assetLocations += self::getPageAssets();
 
         foreach ($assetLocations as $destPath => $srcPath) {
             $destPath = PFY_KIRBY_BASE_PATH.$destPath;
@@ -481,6 +474,24 @@ class Assets
             Scss::compileFile($file, $destFile);
         }
     } // compileTemplateAssets
+
+
+    /**
+     * @return array
+     * @throws \Exception
+     */
+    private static function getPageAssets(): array
+    {
+        // finde scss assets in all page folder:
+        $assetLocations = [];
+        $l = strlen(PFY_KIRBY_BASE_PATH);
+        $files = getDirDeep(PFY_KIRBY_BASE_PATH.'content/*.scss');
+        foreach ($files as $file) {
+            $path = substr(dirname($file).'/', $l);
+            $assetLocations[$path] = $path.'*';
+        }
+        return $assetLocations;
+    } // getPageAssets
 
 
     /**
