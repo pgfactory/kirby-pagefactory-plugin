@@ -1080,92 +1080,61 @@ EOT;
     /**
      * Determines the current dev state
      * Note: PageFactory maintains its own "dev" state, which diverges from Kirby's debug state.
-     * Enter dev state, if:
-     * - on productive host:
-     *      - false unless
-     *          - productionHostPathPattern = true
-     *          - productionHostPathPattern is not contained path
-     *          - logged in as admin and $userDebugRequest true -> remember as long as logged in
-     * - on localhost:
-     *      - productionHostPathPattern, unless overridden by ?dev URL-Cmd
      */
     public static function determineDevState(): bool
     {
-        $urlArgsPresent = isset($_GET['dev']) || isset($_GET['localhost']);
+        $urlArg = $_GET['dev'] ?? null;
         $patt = kirby()->option('pgfactory.pagefactory.productionHostPathPattern');
-        if ($patt === null && !$urlArgsPresent) {
-            return kirby()->option('debug'); // productionHostPathPattern is not defined -> default to kirby's debug state.
-        }
 
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
-        $devMode = $_SESSION['pfy.dev'] ?? null;
 
-        if ($devMode !== null && !$urlArgsPresent) {
+        // 1. Handle URL Argument (Immediate Exit/Reload)
+        if ($urlArg !== null) {
+            if (Permission::isAdmin() || Permission::isLocalhost() || ($_SESSION['pfy.dev']??false)) {
+                if ($urlArg === 'false' || $urlArg === 'f') {
+                    $_SESSION['pfy.dev'] = false;
+                    session_write_close();
+                    reloadAgent(message: 'Dev mode disabled.');
+                } elseif ($urlArg === 'reset' || $urlArg === 'r') {
+                    unset($_SESSION['pfy.dev']);
+                    session_write_close();
+                    reloadAgent(message: 'Dev mode reset.');
+                } else {
+                    $_SESSION['pfy.dev'] = true;
+                    session_write_close();
+                    reloadAgent(message: 'Dev mode enabled.');
+                }
+            }
             session_abort();
-            return $devMode;
+            reloadAgent(message: '"?dev" requires admin privileges.'); // remove url-arg
         }
 
-        $isLocalhost =  Permission::isLocalhost();;
+        // 2. Check Session Cache
+        if (isset($_SESSION['pfy.dev'])) {
+            return $_SESSION['pfy.dev'];
+        }
+
+        // 3. Environment Detection
+        $isLocalhost = Permission::isLocalhost();
         $appRoot = dirname($_SERVER['SCRIPT_FILENAME']);
-        $docRoot = $_SERVER['DOCUMENT_ROOT']??'';
+        $docRoot = $_SERVER['DOCUMENT_ROOT'] ?? '';
 
         if ($appRoot !== $docRoot) {
-            // app in subfolder -> check against productionHostPathPattern:
-            if ($patt && is_string($patt)) {
-                $devMode = !preg_match("#$patt#", $appRoot); // path pattern is not contained in appRoot
-            } elseif (is_bool($patt)) {
-                $devMode = !$patt;
-            } else {
-                $devMode = $isLocalhost;
-            }
+            $devMode = is_bool($patt) ? !$patt : (!preg_match("#$patt#", $appRoot));
         } else {
-            // app in root folder:
-            if (!$isLocalhost && str_contains(PFY_BASE_OFFSET, $patt)) {
-                // on remote host and path pattern is contained in PFY_BASE_OFFSET => production mode:
-                $devMode = false;
-            } elseif (is_bool($patt)) {
-                // path pattern is boolean -> use it: false
-                $devMode = !$patt;
-            } else {
-                $devMode = $isLocalhost;
-            }
+            $devMode = (!$isLocalhost && str_contains(PFY_BASE_OFFSET, (string)$patt)) ? false : $isLocalhost;
         }
+
+        // 4. Final Fallback: Admin or Kirby Debug
         $devMode = $devMode || Permission::isAdmin();
 
-        if (!isset($_GET['dev'])) {
-            if ($devMode) {
-                $_SESSION['pfy.dev'] = true;
-                session_write_close();
-            } else {
-                session_abort();
-            }
-            return $devMode;
+        if ($patt === null && !isset($_GET['localhost'])) {
+            return kirby()->option('debug');
         }
-
-        // if not on localhost, only admins may proceed with ?dev requests:
-        if (!(Permission::isAdmin() || $isLocalhost)) {
-            session_abort();
-            return $devMode;
-        }
-
-        // evaluate ?dev request:
-        $devModeRequest = $_GET['dev'];
-        if (($devModeRequest === '') || ($devModeRequest === 'true')) { // ?dev or ?dev=true
-            $_SESSION['pfy.dev'] = true;
-            session_write_close();
-            reloadAgent(message: 'Dev mode enabled.');
-
-        } elseif ($devModeRequest === 'false') { // ?dev=false -> simulate remote host without dev-mode
-            $_SESSION['pfy.dev'] = false;
-            session_write_close();
-            reloadAgent(message: 'Dev mode disabled.');
-
-        } elseif ($devModeRequest === 'reset') { // ?dev=reset
-            unset($_SESSION['pfy.dev']);
-            reloadAgent(message: 'Dev mode reset.');
-        }
+        $_SESSION['pfy.dev'] = $devMode;
+        session_write_close();
         return $devMode;
     } // determineDevState
 
