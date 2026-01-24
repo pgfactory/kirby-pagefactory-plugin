@@ -207,10 +207,16 @@ EOT;
             if ($this->options['ignoreMissing']??false) {
                 return null;
             }
-            throw new \Exception("Error: file '{$this->options['src']}' not found");
+            throw new \Exception("Image file '{$this->options['src']}' not found");
         }
 
         $image = $this->getImageObject();
+        if (!$image) {
+            if ($this->options['ignoreMissing']??false) {
+                return null;
+            }
+            throw new \Exception("File '{$this->options['src']}' not a valid image");
+        }
 
         $effectiveWidth = 0;
         if ($this->requestedWidth) {
@@ -285,7 +291,7 @@ EOT;
      * @return object|\Kirby\Cms\File|Asset|null
      * @throws \Exception
      */
-    private function getImageObject(): object
+    private function getImageObject(): object|null
     {
         $file = $this->src;
         $page = page();
@@ -328,10 +334,14 @@ EOT;
             $image = new Asset($fPath);
         }
 
-        if ($this->isRasterImage) {
-            $this->getRasterImage($image);
-        } else {
-            $this->getVectorImage();
+        try {
+            if ($this->isRasterImage) {
+                $this->getRasterImage($image);
+            } else {
+                $this->getVectorImage();
+            }
+        } catch (Throwable $e) {
+            return null;
         }
         return $image;
     } // getImageObject
