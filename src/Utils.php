@@ -930,7 +930,7 @@ EOT;
             }
         }
         if ($localToApproot) {
-            $path = substr($path, strlen(PFY_KIRBY_BASE_PATH));
+            $path = substr($path, strlen(PFY_APP_BASE_PATH));
         }
         return $path;
     } // resolvePath
