@@ -1504,11 +1504,7 @@ class DataSet
         }
         $this->options = $options;
 
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-        self::$dev = $_SESSION['pfy.dev']?? false;
-        session_abort();
+        self::$dev = kirby()->session()->get('pfy.dev');
 
         if (!$file) {
             $this->lockFile = '';
@@ -1549,6 +1545,17 @@ class DataSet
             $this->initData();
         }
     } // parseOptions
+
+
+    /**
+     * @param string $key
+     * @param mixed $value
+     * @return void
+     */
+    public function setOption(string $key, mixed $value): void
+    {
+        $this->options[$key] = $value;
+    } // setOption
 
 
     /**
