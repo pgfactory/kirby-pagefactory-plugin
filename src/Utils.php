@@ -722,17 +722,6 @@ EOT;
     {
         kirby()->session()->clear(); // Resets all Kirby sessions
 
-        // deletes all PHP-session variables used by PageFactory:
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-        foreach ($_SESSION as $key => $value) {
-            if (str_starts_with($key, 'pfy.')) {
-                unset($_SESSION[$key]);
-            }
-        }
-        session_write_close();
-
         self::forceUnlockAllFiles();
 
         Cache::flushAll(); // -> deletes media/ and site/cache/
@@ -1085,35 +1074,30 @@ EOT;
     {
         $urlArg = $_GET['dev'] ?? null;
         $patt = kirby()->option('pgfactory.pagefactory.productionHostPathPattern');
-
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
+        $session =  kirby()->session();
+        $devState =  $session->get('pfy.dev');
 
         // 1. Handle URL Argument (Immediate Exit/Reload)
         if ($urlArg !== null) {
-            if (Permission::isAdmin() || Permission::isLocalhost() || ($_SESSION['pfy.dev']??false)) {
+            if (Permission::isAdmin() || Permission::isLocalhost() || $devState) {
                 if ($urlArg === 'false' || $urlArg === 'f') {
-                    $_SESSION['pfy.dev'] = false;
-                    session_write_close();
+                    $session->set('pfy.dev', false);
                     reloadAgent(message: 'Dev mode disabled.');
+
                 } elseif ($urlArg === 'reset' || $urlArg === 'r') {
-                    unset($_SESSION['pfy.dev']);
-                    session_write_close();
+                    $session->remove('pfy.dev');
                     reloadAgent(message: 'Dev mode reset.');
                 } else {
-                    $_SESSION['pfy.dev'] = true;
-                    session_write_close();
+                    $session->set('pfy.dev', true);
                     reloadAgent(message: 'Dev mode enabled.');
                 }
             }
-            session_abort();
             reloadAgent(message: '"?dev" requires admin privileges.'); // remove url-arg
         }
 
         // 2. Check Session Cache
-        if (isset($_SESSION['pfy.dev'])) {
-            return $_SESSION['pfy.dev'];
+        if ($devState !== null) {
+            return $devState;
         }
 
         // 3. Environment Detection
@@ -1133,8 +1117,7 @@ EOT;
         if ($patt === null && !isset($_GET['localhost'])) {
             return kirby()->option('debug');
         }
-        $_SESSION['pfy.dev'] = $devMode;
-        session_write_close();
+        $session->set('pfy.dev', $devMode);
         return $devMode;
     } // determineDevState
 
@@ -1144,12 +1127,7 @@ EOT;
      */
     public static function resetDevState(): void
     {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-        if (isset($_SESSION['pfy.dev'])) {
-            unset($_SESSION['pfy.dev']);
-        }
+        kirby()->session()->remove('pfy.dev');
         self::determineDevState();
     } // resetDevState
 

@@ -19,7 +19,7 @@ use PgFactory\MarkdownPlus\MarkdownPlus;
  const INLINE_SHIELD =              'span shielded';
  const MD_SHIELD =                  'span mdshielded';
 const FILE_BLOCKING_MAX_TIME =      2000; // 500; //ms
-const FILE_BLOCKING_CYCLE_TIME =    50; //ms
+const FILE_BLOCKING_CYCLE_TIME =    1000; //us
 
 const UNAMBIGUOUS_CHARACTERS = 'ACDEFHJKLMNPQRTUVWXYabcdefghijkmnpqrstuvwxy3479'; // -> excludes '0O2Z1I5S6G8B'
 const HASH_CODE_CHARACTERS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-_';
@@ -1388,6 +1388,7 @@ function writeFileLocking(string $file, mixed $content, string $type = '', bool 
 {
     $lockType = $exclusive? LOCK_EX | LOCK_NB : LOCK_SH;
 //    $lockType = $exclusive? LOCK_EX:LOCK_SH;
+//$blocking = false;
     if ($blocking) {
         if ($blocking === true) {
             $blocking = FILE_BLOCKING_MAX_TIME / FILE_BLOCKING_CYCLE_TIME;
@@ -2716,13 +2717,10 @@ function iconExists(string $iconName): bool
   */
  function getSessionId(): string
 {
-    if (session_status() === PHP_SESSION_NONE) {
-        session_start();
-        $sessionId = session_id();
-        session_abort();
-    } else {
-        $sessionId = session_id();
-    }
+     if (!$sessionId = kirby()->session()->get('pfy.sessionId')) {
+         $sessionId = hash('md5', uniqid());
+         kirby()->session()->set('pfy.sessionId', $sessionId);
+     }
     return $sessionId;
 } // getSessionId
 
