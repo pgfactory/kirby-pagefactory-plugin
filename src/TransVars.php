@@ -478,6 +478,19 @@ class TransVars
      */
     public static function setTempVariables(array $variables): void
     {
+        // check for array values, transform to 'varname.optionname':
+        foreach ($variables as $varName => $value) {
+            if (is_array($value)) {
+                foreach ($value as $key => $val) {
+                    if ($key === '_') {
+                        continue;
+                    }
+                    $vName = "$varName.$key";
+                    $variables[$vName] = $val;
+                }
+                unset($variables[$varName]);
+            }
+        }
         self::$tempVariables = $variables;
     } // setTempVariables
 
