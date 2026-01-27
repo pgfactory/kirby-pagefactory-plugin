@@ -322,6 +322,13 @@ class PageFactory
                 $html = TransVars::resolveVariables($html);
             }
             $html = unshieldStr($html);
+
+            // handle protected variables '{! ... !}:
+            if (str_contains($html, '{! ')) {
+                $html = str_replace(['{! ', ' !}'], ['{{ ', ' }}'], $html);
+                $html = TransVars::resolveVariables($html);
+            }
+
             $html = str_replace(['{!!{', '}!!}', '⟮'], ['{{', '}}', '('], $html);
         }
 
