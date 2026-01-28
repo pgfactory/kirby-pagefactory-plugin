@@ -207,7 +207,13 @@ class Utils
 
         // special case: $webmasterEmail === true => assemble address automatically:
         if ($webmasterEmail === true) {
-            $webmasterEmail = 'webmaster@' . $_SERVER['SERVER_NAME'];
+            if (isLocalhost()) {
+                // on localhost, use a pseudo domain in a valid format:
+                $domain = 'localhost.net';
+            } else {
+                $domain = $_SERVER['SERVER_NAME'];
+            }
+            $webmasterEmail = 'webmaster@' . $domain;
         }
         if ($webmasterEmail) {
             PageFactory::$webmasterEmail = $webmasterEmail;
