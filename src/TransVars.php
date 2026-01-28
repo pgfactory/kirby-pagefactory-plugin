@@ -488,7 +488,11 @@ class TransVars
                     $vName = "$varName.$key";
                     $variables[$vName] = $val;
                 }
-                unset($variables[$varName]);
+                if (isset($value['_'])) {
+                    $variables[$varName] = $value['_'];
+                } else {
+                    unset($variables[$varName]);
+                }
             }
         }
         self::$tempVariables = $variables;
