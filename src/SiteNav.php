@@ -48,7 +48,7 @@ class SiteNav
             }
             if ($url = $pg->targeturl()->value()) {
                 // get field 'TargetUrl' from metafile if set:
-                if (preg_match_all('/%([\w.-]+)%/', $url, $m)) {
+                if (preg_match_all('/%(\w{3,20})%/', $url, $m)) {
                     foreach($m[1] as $j => $varName) {
                         if ($val = $pg->$varName()) {
                             $url = str_replace($m[0][$j], $val, $url);
