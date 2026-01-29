@@ -40,7 +40,6 @@ class SiteNav
         $out = [];
         $i = 0;
         foreach ($subtree->listed() as $pg) {
-            $rec = &$out[$i];
             if ($visibility = $pg->visible()->value()) {
                 $visible = Permission::evaluate($visibility);
                 if (!$visible) {
@@ -56,7 +55,7 @@ class SiteNav
                         }
                     }
                 }
-                $rec['url'] = $url;
+                $out[$i]['url'] = $url;
             }
             if ($showFrom = $pg->showfrom()->value()) {
                 if (strtotime($showFrom) > time()) {
@@ -85,9 +84,9 @@ class SiteNav
                 self::$pageNr++;
             }
             $hasChildren = !$pg->children()->listed()->isEmpty();
-            $rec['pg'] = $pg;
+            $out[$i]['pg'] = $pg;
             if (self::$deep && $hasChildren) {
-                $rec['sub'] = self::_parseSite($pg->children());
+                $out[$i]['sub'] = self::_parseSite($pg->children());
             }
             $i++;
         }
