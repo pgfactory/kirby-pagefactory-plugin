@@ -40,11 +40,23 @@ class SiteNav
         $out = [];
         $i = 0;
         foreach ($subtree->listed() as $pg) {
+            $rec = &$out[$i];
             if ($visibility = $pg->visible()->value()) {
                 $visible = Permission::evaluate($visibility);
                 if (!$visible) {
                     continue;
                 }
+            }
+            if ($url = $pg->targeturl()->value()) {
+                // get field 'TargetUrl' from metafile if set:
+                if (preg_match_all('/%([\w.-]+)%/', $url, $m)) {
+                    foreach($m[1] as $j => $varName) {
+                        if ($val = $pg->$varName()) {
+                            $url = str_replace($m[0][$j], $val, $url);
+                        }
+                    }
+                }
+                $rec['url'] = $url;
             }
             if ($showFrom = $pg->showfrom()->value()) {
                 if (strtotime($showFrom) > time()) {
@@ -73,9 +85,9 @@ class SiteNav
                 self::$pageNr++;
             }
             $hasChildren = !$pg->children()->listed()->isEmpty();
-            $out[$i]['pg'] = $pg;
+            $rec['pg'] = $pg;
             if (self::$deep && $hasChildren) {
-                $out[$i]['sub'] = self::_parseSite($pg->children());
+                $rec['sub'] = self::_parseSite($pg->children());
             }
             $i++;
         }
@@ -203,7 +215,11 @@ EOT;
                 self::$next = $pg;
             }
             $curr = $pg->isActive() ? ' aria-current="page"': '';
-            $url = $pg->url().'/';
+            if ($elem['url']??false) { // use field 'TargetUrl' from metafile if set
+                $url = $elem['url'];
+            } else {
+                $url = $pg->url() . '/';
+            }
             $title = $pg->title()->html();
             $hasChildren = !$pg->children()->listed()->isEmpty();
 
