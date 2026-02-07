@@ -380,6 +380,9 @@ class PageFactory
         foreach ($files as $i => $file) {
             $mdStr = getFile($file, 'cstyle');
 
+            // handle pseudo macro "{{ include() }} -> inject text from file:
+            $mdStr = $this->handleIncludeFile($mdStr);
+
             // extract frontmatter:
             if ((!$res = Frontmatter::extract($mdStr)) || !trim($res[0], " \n\t")) {
                 // frontmatter indicated that this file shall be supressed
@@ -576,5 +579,23 @@ EOT;
 EOT;
         return [$wrapperClass, $innerWrapper1, $innerWrapper2, $slidingPanelsHeader];
     } // handleSlidingPanels
+
+
+    /**
+     * @param array|bool|string $mdStr
+     * @return string
+     */
+    private function handleIncludeFile(array|bool|string $mdStr): string
+    {
+        if (preg_match("/{{ include\((.*?)\) }}/", $mdStr, $m)) {
+            $fileToInclude = trim($m[1], ' "\'');
+            $fileToInclude = Utils::resolvePath($fileToInclude);
+            if ($fileToInclude && file_exists($fileToInclude)) {
+                $toInclude = getFile($fileToInclude, 'cstyle');
+                $mdStr = str_replace($m[0], $toInclude, $mdStr);
+            }
+        }
+        return $mdStr;
+    } // handleIncludeFile
 
 } // PageFactory
