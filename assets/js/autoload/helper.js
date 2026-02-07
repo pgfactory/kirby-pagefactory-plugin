@@ -205,7 +205,7 @@ function initCopyButton() {
     try {
       // write to clipboard:
       await navigator.clipboard.writeText(str);
-      mylog(`Copied to clipboard: "${str}"`);
+      console.log(`Copied to clipboard: "${str}"`);
 
       // flash the element for user feedback:
       const container = textareaEl.closest('.pfy-has-copy-btn');
@@ -214,7 +214,7 @@ function initCopyButton() {
         container.classList.remove('pfy-flash-copied');
       }, 1000);
     } catch (err) {
-      mylog('Failed to copy: ' + err);
+      console.log('Failed to copy: ' + err);
     }
   } // copyToClipboard
   // console.log('Copy button(s) initialized.');
@@ -287,7 +287,7 @@ function showBusySpinner() {
   spinnerOverlay.style.display = 'block';
   document.body.dataset.overflow = document.body.style.overflow;
   document.body.style.overflow = 'hidden';
-  mylog('spinnerOverlay activated');
+  console.log('spinnerOverlay activated');
 } // showBusySpinner
 
 
@@ -296,7 +296,7 @@ function hideBusySpinner() {
   spinnerOverlay.style.display = 'none';
   document.body.style.overflow = document.body.dataset.overflow;
   document.body.removeAttribute('data-overflow');
-  mylog('spinnerOverlay deactivated');
+  console.log('spinnerOverlay deactivated');
 } // removeBusySpinner
 
 
@@ -308,7 +308,7 @@ function initBusySpinner() {
 
 
 function initToDoLists() {
-  document.addEventListener('click', (ev) => {
+  document.body.addEventListener('click', (ev) => {
     if (!ev.target.closest('.pfy-todo-list li')) {
       return;
     }
@@ -326,7 +326,21 @@ function removeUrlQueryParam(url, paramToRemove) {
 } // removeUrlQueryParam
 
 
-document.addEventListener('DOMContentLoaded', function() {
+function isElementDimmed(element) {
+  let currentElement = element;
+  while (currentElement) {
+    const opacity = parseFloat(window.getComputedStyle(currentElement).opacity);
+    if (opacity < 1) {
+      return true;
+    }
+    currentElement = currentElement.parentElement;
+  }
+
+  return false;
+} // isElementDimmed
+
+
+document.body.addEventListener('DOMContentLoaded', function() {
   initCopyButton();
   initToDoLists();
   adaptToWidth();

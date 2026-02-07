@@ -72,7 +72,7 @@ class Quickzoom {
     img.onload = function () {
       const naturalWidth = img.naturalWidth;
       const naturalHeight = img.naturalHeight;
-      //mylog(`naturalWidth: ${naturalWidth} naturalHeight: ${naturalHeight}`);
+      //console.log(`naturalWidth: ${naturalWidth} naturalHeight: ${naturalHeight}`);
       if (naturalWidth <= imgWidth || naturalHeight <= imgHeight) {
         // source image too small, skip quickzoom:
         parent.hide();

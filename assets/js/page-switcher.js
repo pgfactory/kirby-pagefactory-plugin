@@ -112,7 +112,7 @@ function isInsideScrollableArea(target) {
     const isScrollable = overflowX === 'auto' || overflowX === 'scroll';
 
     if (isScrollable) {
-      mylog('swipe in scrollable area suppressed');
+      console.log('swipe in scrollable area suppressed');
       return true
     }
 

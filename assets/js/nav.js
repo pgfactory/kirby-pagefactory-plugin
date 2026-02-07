@@ -28,7 +28,7 @@ class PfyNav {
 
 
   init() {
-    //mylog('init: ' + this.navWrapper.getAttribute('id'));
+    //console.log('init: ' + this.navWrapper.getAttribute('id'));
     const navWrapper  = this.navWrapper;
     this.isPrimary    = navWrapper.classList.contains('pfy-primary-nav');
     this.isTopNav     = navWrapper.classList.contains('pfy-nav-horizontal');
@@ -766,7 +766,7 @@ class PfyNav {
     if (!navWrapper) {
       navWrapper = document.querySelector('.pfy-primary-nav');
       if (!navWrapper) {
-        mylog('no primary nav present');
+        console.log('no primary nav present');
         return;
       }
     }
