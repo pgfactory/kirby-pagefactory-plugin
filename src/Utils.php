@@ -12,7 +12,7 @@ use PgFactory\MarkdownPlus\Permission;
 class Utils
 {
     public static string $loginLink;
-    public static string $loginButton;
+    public static string $loginButton = '';
     public static string $langSelection = '';
     public static mixed $loggedIn;
     public static mixed $menuIcon;
@@ -179,7 +179,8 @@ class Utils
 
             $logoutIcon = self::renderPfyIcon('logout');
             $pfyLoginButtonLabel = TransVars::getVariable('pfy-logout-button-title');
-            self::$loginButton = "<span class='pfy-login-button'><a href='$logoutLink' class='pfy-login-button' title='$pfyLoginButtonLabel'>$logoutIcon</a></span>";
+            // PageElements may have injected onboarding-aid button, hence append string:
+            self::$loginButton .= "<span class='pfy-login-button'><a href='$logoutLink' class='pfy-login-button' title='$pfyLoginButtonLabel'>$logoutIcon</a></span>";
 
         } else {
             $login = TransVars::getVariable('pfy-login');
