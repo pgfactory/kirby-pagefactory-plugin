@@ -69,23 +69,37 @@ function logToScreen(text) {
 }
 
 
-function timeStamp(short = false) {
-  const now = new Date();
-  let options = {
-    year: 'numeric',
-    month: 'numeric',
-    day: 'numeric',
-  };
-  if (!short) {
-    options = options + {
-      hour: 'numeric',
-      minute: 'numeric',
-      second: 'numeric'
+function timeStamp(short = false, toLocale = false) {
+  let out = '';
+  if (toLocale) {
+    // timestamp in local language:
+    const now = new Date();
+    let options = {
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
     };
-  }
+    if (!short) {
+      options = options + {
+        hour: 'numeric',
+        minute: 'numeric',
+        second: 'numeric'
+      };
+      out = now.toLocaleString(undefined, options);
+    }
 
-  return now.toLocaleString(undefined, options);
-}
+  } else {
+    // timestamp in ISO format:
+    const now = new Date().toISOString();
+    if (short) {
+      out = now.substring(0, 10);
+    } else {
+      out = now;
+    }
+  }
+  return out;
+} // timeStamp
+
 
 function isEmpty(obj) {
   if (typeof obj !== 'object' || obj === null) {
