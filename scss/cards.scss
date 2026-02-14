@@ -9,9 +9,9 @@ $hoverBgColor: var(--pfy-cards-hover-bg-color, white);
 .pfy-cards {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr));
-    gap: 20px;
-    padding: 20px;
-    max-width: 1200px;
+    gap: 1em;
+    padding: 1em;
+    max-width: var(--pfy-cards-max-width, 1200px);
     margin: 0 auto;
 }
 
