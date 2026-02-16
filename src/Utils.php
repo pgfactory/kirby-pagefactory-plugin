@@ -208,11 +208,9 @@ class Utils
 
         // special case: $webmasterEmail === true => assemble address automatically:
         if ($webmasterEmail === true) {
-            if (isLocalhost()) {
-                // on localhost, use a pseudo domain in a valid format:
-                $domain = 'localhost.net';
-            } else {
-                $domain = $_SERVER['SERVER_NAME'];
+            $domain = $_SERVER['SERVER_NAME'];
+            if ($domain === 'localhost') {
+                $domain = 'localhost.net'; // make it a valid domain name
             }
             $webmasterEmail = 'webmaster@' . $domain;
         }
