@@ -52,7 +52,7 @@ class Data2DSet
             $this->data = [];
         } else {
             $this->file = $file;
-            $this->db = new DataSet($file, $options);
+            $this->db = new DataStore($file, $options);
             $this->data = $this->db->data(includeMetaFields: true);
             $this->checkDataIntegrity();
         }
@@ -138,10 +138,10 @@ class Data2DSet
      * @return void
      * @throws \Exception
      */
-    public function remove(string $key): void
+    public function deleteRec(string $key): void
     {
-        $this->db->remove($key);
-    } // remove
+        $this->db->deleteRec($key);
+    } // deleteRec
 
 
     /**

@@ -2485,7 +2485,7 @@ function var_r($var, string $varName = '', bool $flat = false, bool $toHtml = fa
         $out = "$varName$var";
 
     } else {
-        if (is_object($var) && is_a($var, '\PgFactory\PageFactory\DataSet')) {
+        if (is_object($var) && is_a($var, '\PgFactory\PageFactory\DataStore')) {
             $var = removeSelfReferences($var);
         }
 
@@ -2513,7 +2513,7 @@ function var_r($var, string $varName = '', bool $flat = false, bool $toHtml = fa
 
  /**
   * (Experimental) Removes refernce to self in a data structure.
-  * Possibly used in DataSet
+  * Possibly used in DataStore
   * @param mixed $var
   * @param mixed $thisClass
   * @return mixed
