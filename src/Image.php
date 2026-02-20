@@ -299,7 +299,8 @@ EOT;
             $filename = substr($file, 6);
             if (str_contains($filename, '/')) {
                 // image in subfolder of page:
-                $pgId = $page->id() . '/' . preg_replace('/^(\d_)*/', '', dirname($filename));
+                $f = preg_replace('/^\d{1,3}_/', '', dirname($filename));
+                $pgId = $page->id() . '/' . $f;
                 $subdir = page($pgId);
                 if (!$subdir) {
                     throw new \Exception("Error: subdirectory '$pgId' not found");
