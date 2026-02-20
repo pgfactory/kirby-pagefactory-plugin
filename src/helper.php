@@ -782,7 +782,7 @@ function removeCStyleComments(string $str): string
   * @param int $flag
   * @return array
   */
-function getDir(string $pat, mixed $associative = false, string $type = '', int $flag = 0): array
+function getDir(string $pat, mixed $associative = false, string $type = '', int $flag = 0, string|false $sort = false): array
 {
     if ($type) {
         // 'type' specified (either files and/or folders):
@@ -825,6 +825,13 @@ function getDir(string $pat, mixed $associative = false, string $type = '', int 
     if (!str_contains($type, 'hash')) {
         $files = array_filter($files, function ($str) {
             return ($str && ($str[0] !== '#') && (!str_contains($str, '/#')));
+        });
+    }
+
+    // handle correct sorting of kirby directories, e.g. 'content/10_xxx':
+    if (str_starts_with($sort, 'kirby')) {
+        usort($files, function ($a, $b) {
+            return strnatcasecmp($a, $b);
         });
     }
 
@@ -1387,8 +1394,6 @@ function writeFileLocking(string $file, mixed $content, string $type = '', bool 
  function awaitFileLock($fp, bool $exclusive = false, string $filename = '', bool $blocking = true): void
 {
     $lockType = $exclusive? LOCK_EX | LOCK_NB : LOCK_SH;
-//    $lockType = $exclusive? LOCK_EX:LOCK_SH;
-//$blocking = false;
     if ($blocking) {
         if ($blocking === true) {
             $blocking = FILE_BLOCKING_MAX_TIME / FILE_BLOCKING_CYCLE_TIME;
@@ -2485,7 +2490,7 @@ function var_r($var, string $varName = '', bool $flat = false, bool $toHtml = fa
         $out = "$varName$var";
 
     } else {
-        if (is_object($var) && is_a($var, '\PgFactory\PageFactory\DataStore')) {
+        if (is_object($var) && is_a($var, '\PgFactory\PageFactory\DataSet')) {
             $var = removeSelfReferences($var);
         }
 
@@ -2513,7 +2518,7 @@ function var_r($var, string $varName = '', bool $flat = false, bool $toHtml = fa
 
  /**
   * (Experimental) Removes refernce to self in a data structure.
-  * Possibly used in DataStore
+  * Possibly used in DataSet
   * @param mixed $var
   * @param mixed $thisClass
   * @return mixed
