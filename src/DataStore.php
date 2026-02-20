@@ -578,8 +578,8 @@ class DataStore
             $count = 0;
             if (is_array($this->data)) {
                 foreach ($this->data as $rec) {
-                    if (isset($rec->recData[$onField])) {
-                        $count += $rec->recData[$onField];
+                    if (isset($rec[$onField])) {
+                        $count += $rec[$onField];
                     }
                 }
             }
