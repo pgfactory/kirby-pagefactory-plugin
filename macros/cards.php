@@ -13,18 +13,27 @@ return function ($args = '')
     // Definition of arguments and help-text:
     $config =  [
         'options' => [
-            'path' => ['(Default: &#126;page/)', null],
-            'aspectRatio' => ['', '1 /1'],
-            'background' => ['', null],
-            'hoverEffect' => ['', false],
-            'cardLiftEffect' => ['', false],
+            'path' => ['Path to folder, where to find the cards in subfolders.', '&#126;page/'],
+            'aspectRatio' => ['Aspect ratio of cards.', '1 /1'],
+            'background' => ['Background color of cards.', null],
+            'hoverEffect' => ['If true, a visuel effect is activated while the pointer '.
+                'hovers over a card.', false],
+            'cardLiftEffect' => ['If true, cards are visually lifted up during mouse over.', false],
 //            '' => ['', ''],
         ],
         'summary' => <<<EOT
 
 # $funcName()
 
-ToDo: describe purpose of function
+Renders a collection of cards. Cards are optained from subfolders under the given path.
+
+Cards consist of an image and the subpage's title (as defined in the meta-file).
+
+Card image selection: First an image with the same name as the subfolder is selected. 
+If no such image exists, the first image in the subfolder is chosen.
+
+Supported image extensions: `.jpg`, `.jpeg`, `.png`, `.gif`, `.webp`
+
 EOT,
     ];
 
@@ -57,22 +66,29 @@ EOT,
     $str .= '';
     $targetPath = $options['path'] ?? '~page/';
     $targetFolder = resolvePath($targetPath);
-    $dir = getDir("$targetFolder*", associative:true, type:'folders');
+    $dir = getDir("$targetFolder*", associative:true, type:'folders', sort:'kirby-content-folders');
 
     foreach ($dir as $folder => $absFolderPath) {
-        $basename = preg_replace('/^(\d_)*/', '', $folder);
+        $basename = preg_replace('/^(\d{1,3}_)*/', '', $folder);
         $images = getDir("$absFolderPath*.{jpg,jpeg,png,webp,gif}", associative:true);
         $coverImg = '';
-        foreach ($images as $img => $imgFile) {
-            if (!$coverImg && base_name($img, false) === $basename) {
-                $coverImg = $imgFile;
+        foreach(['jpg','jpeg','png','webp','gif'] as $ext) {
+            if (file_exists("$absFolderPath/$basename.$ext")) {
+                $coverImg = "$basename.$ext";
                 break;
             }
         }
         if (!$coverImg) {
-            $coverImg = reset($images);
+            foreach ($images as $img => $imgFile) {
+                if (!$coverImg && base_name($img, false) === $basename) {
+                    $coverImg = $imgFile;
+                    break;
+                }
+            }
+            if (!$coverImg) {
+                $coverImg = reset($images);
+            }
         }
-
         $p = "$targetPath$folder/" . basename($coverImg);
         $options = [
             'src' => $p,
@@ -80,14 +96,13 @@ EOT,
             'quickzoom' => false,
             'lazyLoading' => true,
             'width' => '100%',
-            'wrapperClass' => 'card_image',
+            'wrapperClass' => 'pfy-card-img',
             'link' => "~page/$basename/",
         ];
         $img = new Image($options);
         $imgHtml = $img->render();
 
-        $pgId = preg_replace('/^(\d_)*/', '', $folder);
-        $pg = page()->find($pgId);
+        $pg = page()->find($basename);
         $pageName = $pg->title()->value();
         $link = Link::render([
             'url' => "~page/$basename/",
