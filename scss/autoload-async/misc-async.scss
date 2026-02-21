@@ -117,17 +117,19 @@
       color: blue;
       font-style: normal;
     }
-    pre {
-      padding: 5px 10px;
-      background: #f3f5e3;
-      outline: 1px solid #aaa;
-    }
     code {
-      font-size: 8pt;
-      line-height: 1em;
-      font-family: "Input", "Menlo", monospace;
       color: black;
     }
+  }
+  pre.pfy-source-code {
+    padding: 5px 10px;
+    margin: 10px 0;
+    background: #f3f5e3;
+    outline: 1px solid #aaa;
+    font-size: 8pt;
+    line-height: 1.25;
+    font-family: "Input", "Menlo", monospace;
+    color: #000000;
   }
 
   // === Macro source code
