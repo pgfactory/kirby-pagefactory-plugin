@@ -38,8 +38,11 @@
     <!-- === page content =============== -->
     <main id='main' class='pfy-main'>
 
+        <?php snippet('field', ['place' => 'before']) ?>
 
-      <?= $pageContent ?>
+        <?= $pageContent ?>
+
+        <?php snippet('field', ['place' => 'after']) ?>
 
     </main>
     <!-- === /page content =============== -->

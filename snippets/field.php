@@ -12,14 +12,34 @@ if ($res !== false) {
 }
 Macros::instantiateMacroLoader($macroName, dirname(__DIR__) . "/macros/$macroName.php");
 
+// check whether to render the snippet:
+$enableCodeBlock = kirby()->option('pgfactory.pagefactory.enableCodeBlock');
+if (!$enableCodeBlock || ($enableCodeBlock[0] !== ($place??' ')[0])) {
+    return '';
+}
+// prepare $args for macro execution:
 if (!isset($args)) {
     $args = '';
 } elseif (is_array($args)) {
     $args = var_export($args, true);
 }
-$args .= ',lazyLoading: false, quickzoom: false';
+
+// execute macro:
 $res = Macros::execute($macroName, $args);
+
+// unshield output:
 $res = unshieldStrAll($res, immutable: true);
+
+// wrap output in <section> tag unless empty:
+if ($res) {
+    $res = <<<EOT
+
+<section class='pfy-section-wrapper pfy-codeblock'>
+$res
+</section>
+
+EOT;
+}
 
 Cache::updatePageCache($res, $cachePrefix);
 

@@ -23,6 +23,7 @@ Kirby::plugin('pgfactory/pagefactory', [
         'css' =>            __DIR__ . '/snippets/_css.php',
         'img' =>            __DIR__ . '/snippets/img.php',
         'link' =>           __DIR__ . '/snippets/link.php',
+        'field' =>          __DIR__ . '/snippets/field.php',
         'logo' =>           __DIR__ . '/snippets/logo.php',
         'nav' =>            __DIR__ . '/snippets/nav.php',
         'prevnextlinks' =>  __DIR__ . '/snippets/prevnextlinks.php',

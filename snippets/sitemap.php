@@ -17,6 +17,7 @@ if (!isset($args)) {
     $args = var_export($args, true);
 }
 $res = Macros::execute($macroName, $args);
+$res = unshieldStrAll($res, immutable: true);
 
 Cache::updatePageCache($res, $cachePrefix);
 

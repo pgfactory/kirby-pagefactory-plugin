@@ -68,15 +68,17 @@ EOT,
         }
 
         // resolve variables and macros:
-        if ($out && str_contains($out, "{{")) {
-            $out = TransVars::translate($out);
-        }
-        $out = <<<EOT
+        if ($out) {
+            if (str_contains($out, "{{")) {
+                $out = TransVars::translate($out);
+            }
+            $out = <<<EOT
 <$tag class="$class">
 $out
 </$tag>
 
 EOT;
+        }
     }
     return $str . $out;
 };

@@ -2307,6 +2307,34 @@ function unshieldStr(string $str, bool|null $unshieldLiteral = null, bool $immut
 } // unshieldStr
 
 
+ /**
+  * @param string $str
+  * @param bool|null $unshieldLiteral
+  * @param bool $immutable
+  * @return string
+  */
+ function unshieldStrAll(string $str, bool|null $unshieldLiteral = null, bool $immutable = false): string
+{
+    $patterns = [
+        INLINE_SHIELD,
+        BLOCK_SHIELD,
+        MD_SHIELD,
+        IMMUTABLE_SHIELD
+    ];
+    do {
+        $done = true;
+        foreach ($patterns as $pattern) {
+            if (str_contains($str, $pattern)) {
+                $str = unshieldStr($str, $unshieldLiteral, $immutable);
+                $done = false;
+                break;
+            }
+        }
+    } while (!$done);
+    return $str;
+} // unshieldStrAll
+
+
 
  /**
   * Un-shields shielded strings -> variant returning 'modified'

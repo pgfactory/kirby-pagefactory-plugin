@@ -46,6 +46,7 @@ return [
     ],
 
     'pgfactory.pagefactory' => [
+        'enableCodeBlock'               => 'before', // [b or a] whether and where to render code-blocks relative to output of .md files
         // 'defaultLanguage'               => 'de',   // multilang -> configure in panel instead! (Opt. use 'Code: de2' and 'PHP locale string: de_DE')
         // 'locale'                        => 'de_CH',// default: 'en_GB'
         'webmaster_email'               => true, // guess webmaster address based on $_SERVER['SERVER_NAME']

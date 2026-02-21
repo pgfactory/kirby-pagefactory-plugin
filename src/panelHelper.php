@@ -12,15 +12,15 @@ if (!defined('PFY_PAGE_META_FILE_BASENAME')) {
  * Invoked by hook 'route:before' in site/config.php
  * Copies content of .md files in given folder to page's meta file, i.e. z.txt
  * Note: this is a work-around till somebody develops a panel plugin that directly accesses .md files
- * @param $path
+ * @param $pageRef
  * @return void
  */
-function onPanelLoad($path)
+function onPanelLoad($pageRef)
 {
     $allowNonPfyPages = kirby()->option('debug_checkMetaFiles');
 
-    $path = str_replace(['+', 'panel/pages/'], ['/', ''], $path);
-    if (!($pg = page($path))) {
+    $id = str_replace(['+', 'panel/pages/'], ['/', ''], $pageRef);
+    if (!($pg = page($id))) {
         return;
     }
     checkMetaFiles();
@@ -173,14 +173,14 @@ function onPageUpdateAfter(Kirby\Cms\Page $newPage)
     $fields = $newPage->content()->data();
     $root = $newPage->root();
     $mdFiles = getMdFiles($root);
-    foreach ($fields as $k => $text) {
-        if (!str_ends_with($k, '_md')) {
+    foreach ($fields as $fieldName => $text) {
+        if (!str_ends_with($fieldName, '_md')) {
             continue; // skip any non-md fields
         }
         // find corresponding file:
         $file = false;
         foreach ($mdFiles as $mdFile) {
-            if (filenameToVarname($mdFile, false) === $k) {
+            if (filenameToVarname($mdFile) === $fieldName) {
                 $file = $mdFile;
                 break;
             }
@@ -194,7 +194,7 @@ function onPageUpdateAfter(Kirby\Cms\Page $newPage)
 
 /**
  * Invoked by hook 'blueprints' in site/plugins/pagefactory/index.php on 'panel/pages'
- * When user opens panel, dynamically creates a blueprint featuring editing fields form .md files
+ * When user opens panel, dynamically creates a blueprint featuring editing fields from .md files
  * @return array
  */
 function assembleBlueprint()
@@ -293,7 +293,7 @@ function getSidebar()
  */
 function getMdEditorTab(string $basename, string $file): array
 {
-    $name = filenameToVarname($file, false);
+    $name = filenameToVarname($file);
     $filename = basename($file);
     $bp = [
         'label' => $filename,
@@ -362,13 +362,9 @@ function getFirstTab()
  * @param $dashedResponse
  * @return array|string|string[]|null
  */
-function filenameToVarname($filename, $dashedResponse = true)
+function filenameToVarname($filename)
 {
-    if ($dashedResponse) {
-        $str = preg_replace('/[_\W]/', '-', basename($filename, '.md'));
-    } else {
-        $str = preg_replace('/[_\W]/', '_', basename($filename, '.md'));
-    }
+    $str = preg_replace('/[_\W]/', '_', basename($filename, '.md'));
     return $str . '_md';
 } // filenameToVarname
 
