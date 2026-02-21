@@ -387,7 +387,7 @@ EOT;
             if ($reveal) {
                 $src = <<<EOT
 
-<details class="mdp-accordion mdp-accordion-initially-closed">
+<details class="mdp-accordion mdp-border mdp-accordion-initially-closed">
       <summary><span>{{ pfy-show-source-code }}</span></summary>
       <div class="mdp-accordion-body">
 
