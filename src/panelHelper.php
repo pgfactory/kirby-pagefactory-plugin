@@ -52,12 +52,12 @@ function onPanelLoad($pageRef)
 
     // update .txt files with $mdContents:
     $txt = '';
-    foreach ($fields as $k => $v) {
-        $k = ucfirst($k);
-        if (str_contains($k, '_md') || str_contains($v, "\n")) {
-            $txt .= "\n$k:\n\n$v\n\n----\n";
+    foreach ($fields as $fieldName => $fieldValue) {
+        $fieldName = ucfirst($fieldName);
+        if (str_contains($fieldName, '_md') || str_contains($fieldValue, "\n")) {
+            $txt .= "\n$fieldName:\n\n$fieldValue\n\n----\n";
         } else {
-            $txt .= "\n$k: $v\n\n----\n";
+            $txt .= "\n$fieldName: $fieldValue\n\n----\n";
         }
     }
     foreach ($txtFiles as $txtFile) {
