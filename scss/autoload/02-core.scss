@@ -9,8 +9,7 @@ CSS-Variables:
 
 /* === Extended Resets =============================== */
 body {
-	min-width: 100dvw;
-	min-height: 100dvh;
+	min-height: calc(100dvh - 14px);
 }
 
 section {

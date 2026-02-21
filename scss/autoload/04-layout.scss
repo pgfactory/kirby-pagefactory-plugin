@@ -46,8 +46,16 @@ $dl-as-table-dt-width: 6em;
     }
 
     .pfy-full-width {
-      flex-basis: 100%;
-      width: 100%;
+      width: 100dvw;
+      max-width: 100%;
+      position: relative;
+      left: 50%;
+      transform: translateX(-50%);
+      //outline: 1px dashed magenta;
+      //outline-offset: -1px;
+    }
+    &#pfy .pfy-full-width {
+      margin: 0;
     }
 
     .pfy-presentation-only {
