@@ -323,7 +323,7 @@ function initBusySpinner() {
 
 function initToDoLists() {
   document.body.addEventListener('click', (ev) => {
-    if (!ev.target.closest('.pfy-todo-list li')) {
+    if (!ev.target.closest('.mdp-todo-list li')) {
       return;
     }
     const liEl = ev.target;

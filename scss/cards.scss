@@ -5,7 +5,7 @@ $hoverTxtColor: var(--pfy-cards-hover-txt-color);
 $cardsBgColor: var(--pfy-cards-bg-color, white);
 $hoverBgColor: var(--pfy-cards-hover-bg-color, white);
 
-/* Container - Responsive Grid with safety for small screens */
+// Container - Responsive Grid with safety for small screens
 .pfy-cards {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr));
@@ -15,29 +15,24 @@ $hoverBgColor: var(--pfy-cards-hover-bg-color, white);
     margin: 0 auto;
 }
 
-/* Base Card Styling */
+// Base Card Styling
 .pfy-card {
-    aspect-ratio: 1 / 1;
+    aspect-ratio: var(--pfy-card-aspect-ratio, 1 / 1);
     background: $cardsBgColor;
-    border-radius: 12px;
+    border-radius: var(--pfy-card-border-radius, 12px);
     overflow: hidden;
     position: relative;
     display: flex;
     flex-direction: column;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 
-    /* Smooth transition for the pfy-card itself */
+    // Smooth transition for the pfy-card itself
     transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
                 box-shadow 0.4s ease;
     cursor: pointer;
 }
-.pfy-card-content {
-  a {
-    color: $cardsTxtColor;
-  }
-}
 
-/* Image Wrapper */
+// Image Wrapper
 .pfy-card-img {
     width: 100%;
     height: 100%;
@@ -46,7 +41,7 @@ $hoverBgColor: var(--pfy-cards-hover-bg-color, white);
     width: 100%;
     height: 100%;
     object-fit: cover;
-    /* Smooth transition for the zoom */
+    // Smooth transition for the zoom
     transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
 }
@@ -55,12 +50,13 @@ $hoverBgColor: var(--pfy-cards-hover-bg-color, white);
   position: absolute;
   bottom: 0;
   width: 100%;
-  backdrop-filter: blur(8px); /* Modern frosted glass effect */
+  backdrop-filter: blur(8px); // Modern frosted glass effect
   padding: 15px;
   text-align: center;
   border-top: 1px solid rgba(255, 255, 255, 0.3);
 
   a {
+    color: $cardsTxtColor;
     text-decoration: none;
     font-weight: 700;
     font-family: system-ui, -apple-system, sans-serif;
@@ -70,45 +66,50 @@ $hoverBgColor: var(--pfy-cards-hover-bg-color, white);
 }
 
 
-// === HOVER EFFECT: Card Lift & Glow ============
-.pfy-cards-lift .pfy-card:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-}
-
-
-// ===  HOVER EFFECT: Subtle Image Zoom  =================
-.pfy-cards-hover {
-  .pfy-card:hover .pfy-card-img img {
-    transform: scale(1.1);
+@media (hover: hover) {
+  // === HOVER EFFECT: Card Lift & Glow ============
+  .pfy-cards-lift .pfy-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   }
 
-  /* 3. HOVER EFFECT: Text Slide Up & Color Change */
-  .pfy-card-content {
-    /* Animation for the content box */
-    transform: translateY(5px);
-    transition: transform 0.4s ease, background 0.4s ease;
-  }
-  .pfy-card:hover {
-    background: $hoverBgColor;
+
+  // ===  HOVER EFFECT: Subtle Image Zoom  =================
+  .pfy-cards-hover {
+    .pfy-card:hover .pfy-card-img img {
+      transform: scale(1.1);
+    }
+
+    // 3. HOVER EFFECT: Text Slide Up & Color Change
     .pfy-card-content {
-      transform: translateY(0);
+      // Animation for the content box
+      transform: translateY(5px);
+      transition: transform 0.4s ease, background 0.4s ease;
+    }
+
+    .pfy-card:hover {
       background: $hoverBgColor;
-      a {
-        color: $hoverTxtColor;
+
+      .pfy-card-content {
+        transform: translateY(0);
+        background: $hoverBgColor;
+
+        a {
+          color: $hoverTxtColor;
+        }
       }
     }
   }
 }
 
-/* Optimization for tiny viewports (< 346px) */
-@media (max-width: 346px) {
+// Optimization for tiny viewports (< 346px)
+@media (max-width: 375px) {
     .pfy-cards {
         padding: 10px;
         gap: 12px;
     }
-    /* Disable lift on very small screens to prevent layout shifting */
+    // Disable lift on very small screens to prevent layout shifting
     .pfy-card:hover {
-        transform: translateY(-4px);
+        transform: translateY(0);
     }
 }
