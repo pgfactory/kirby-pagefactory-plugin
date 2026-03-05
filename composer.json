@@ -1,6 +1,6 @@
 {
     "require": {
-      "scssphp/scssphp": "^1.8",
+      "scssphp/scssphp": "^2.1",
       "ext-curl": "*",
       "ext-gd": "*"
     },
