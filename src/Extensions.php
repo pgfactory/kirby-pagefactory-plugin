@@ -34,20 +34,20 @@ class Extensions
                 // look for 'src/index.php' within the extension:
                 $indexFile = "{$extPath}src/index.php";
                 if (!file_exists($indexFile)) {
-                    return;
+                    continue;
                 }
 
                 // === load index.php to get extension's class name:
                 $extensionClassName = require_once $indexFile;
                 if (!is_string($extensionClassName)) {
-                    return;
+                    continue;
                 }
                 self::$loadedExtensions[$extensionClassName] = $extPath;
 
                 // instantiate extension object:
                 $extensionClass = "PgFactory\\PageFactoryElements\\$extensionClassName";
                 if (!class_exists($extensionClass)) {
-                    return;
+                    continue;
                 }
 
                 $obj = new $extensionClass(); // -> initialize extension

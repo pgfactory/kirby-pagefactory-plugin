@@ -60,6 +60,7 @@ EOT,
 
     if ($options['literal']) {
         $str .= shieldStr($out);
+        $out = '';
 
     } else {
         // markdown compile:

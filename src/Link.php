@@ -321,6 +321,7 @@ class Link
             self::$text = self::$url;
         }
 
+        $subject = '';
         if (self::$args['subject']) {
             $subject = urlencode(self::$args['subject']);
             self::$url .= "?subject=$subject";

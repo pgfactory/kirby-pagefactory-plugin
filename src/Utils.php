@@ -2,9 +2,11 @@
 
 namespace PgFactory\PageFactory;
 
+use IntlDateFormatter;
 use Kirby;
 use Kirby\Email\PHPMailer;
 use Exception;
+use Kirby\Exception\InvalidArgumentException;
 use PgFactory\MarkdownPlus\MdPlusHelper;
 use PgFactory\MarkdownPlus\Permission;
 
@@ -397,7 +399,7 @@ EOT;
         if (PageFactory::$isLocalhost && PageFactory::$dev) {
             $bodyTagClasses = "localhost $bodyTagClasses";
         }
-        if (PageFactory::$dev) {
+        if (kirby()->option('debug')) {
             $bodyTagClasses = "$bodyTagClasses pfy-debug";
         }
         if (PageFactory::$dev) {
@@ -760,7 +762,8 @@ EOT;
         if (!isset($_GET['data'])) {
             return;
         }
-        if (!PageFactory::$config['productionModeDataPath']??false) {
+        if (!(PageFactory::$config['productionModeDataPath'] ?? false)) {
+//        if (!PageFactory::$config['productionModeDataPath']??false) {
             return;
         }
 
@@ -780,7 +783,8 @@ EOT;
         $customPath = self::resolvePath('~/site/custom/');
         $dataPath = $customPath.'data/';
         // if folder already exists, move it to .history/:
-        if (!is_dir($customPath)) {
+        if (is_dir($customPath)) {
+//        if (!is_dir($customPath)) {
             preparePath($customPath . '.history');
             rename($dataPath, "$customPath.history/" . date('Y-m-d_H-i-s') . '_data');
         }
@@ -1263,14 +1267,14 @@ EOT;
             $datetime = time();
         } elseif (is_string($datetime)) {
             if (preg_match('/(\d{4}-\d\d-\d\d) (\d\d:\d\d)/', $datetime, $m)) {
-                $datetime = str_replace($m[0], "{$m[1]}T{$m[1]}", $datetime);
+                $datetime = str_replace($m[0], "{$m[1]}T{$m[2]}", $datetime);
                 $includeTime = true;
             } elseif (str_contains($datetime, 'T') && ($includeTime === null)) {
                 $includeTime = true;
             }
             $datetime = strtotime($datetime, $timeRef);
         }
-        if (!is_object('IntlDateFormatter')) {
+        if (!class_exists('IntlDateFormatter')) {
             if ($includeTime) {
                 $out = date('d.n.Y, H:i', $datetime);
             } else {
@@ -1387,7 +1391,8 @@ EOT;
     /**
      * Obtains list of users from Kirby, filters, sorts and converts by template.
      * @param array $options
-     * @return string
+     * @return array
+     * @throws InvalidArgumentException
      */
     public static function getUsers(array $options = []): array
     {

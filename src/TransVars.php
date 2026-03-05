@@ -2,8 +2,6 @@
 
 namespace PgFactory\PageFactory;
 
-use Kirby\Exception\InvalidArgumentException;
-
 if (file_exists(PFY_KIRBY_BASE_PATH . 'site/plugins/pagefactory-pageelements/src/pe_helper.php')) {
     require_once PFY_KIRBY_BASE_PATH . 'site/plugins/pagefactory-pageelements/src/pe_helper.php';
 }
@@ -17,7 +15,6 @@ class TransVars
     public static bool $noTranslate = false;
     private static string $lang;
     private static string $langCode;
-    public $value;
 
     /**
      * Initializes TransVar
@@ -50,7 +47,7 @@ class TransVars
      * @return string
      * @throws \Exception
      */
-    public static function compile(string $mdStr, int $inx = 0, bool|string $removeComments = true, $compileMarkdown = true): string
+    public static function compile(string $mdStr, int $inx = 0, bool|string $removeComments = true, bool $compileMarkdown = true): string
     {
         if ($removeComments) {
             $mdStr = removeComments($mdStr, 'c,t');
@@ -93,7 +90,7 @@ class TransVars
      * @param $str
      * @return string
      */
-    public static function translate($str, array $tempVars = []): string
+    public static function translate(string $str, array $tempVars = []): string
     {
         $str = str_replace(['\\{{', '\\}}', '\\('], ['{!!{', '}!!}', '⟮'], $str);
         $str = self::resolveVariables($str, tempVars:$tempVars);
@@ -259,7 +256,7 @@ class TransVars
     /**
      * Loads custom variables from 'site/custom/variables/'
      * @return void
-     * @throws InvalidArgumentException
+     * @throws \Kirby\Exception\InvalidArgumentException
      */
     public static function loadVariablesFromFolder(string $varPath, bool $doTranslate = true): void
     {
@@ -280,7 +277,7 @@ class TransVars
      * Loads variables from given file
      * @param string $file
      * @return void
-     * @throws InvalidArgumentException
+     * @throws \Kirby\Exception\InvalidArgumentException
      */
     public static function loadVariablesFromFile(string $file, bool $doTranslate): void
     {
@@ -322,7 +319,11 @@ class TransVars
         }
         self::$variables[$varName] = $value;
         if ($propagateToField) {
-            page()->$varName()->value = $value;
+            try {
+                page()->$varName()->value = $value;
+            } catch (\Exception $e) {
+                // field not available on current page; ignore
+            }
         }
 
         return (string)$value;
@@ -389,10 +390,10 @@ class TransVars
         $varName1 = camelCase($varName);
 
         // first check temporary variables (as used by TemplateCompiler):
-        if (isset(self::$tempVariables[$varName1])) {
-            return self::$tempVariables[$varName1];
+        if (isset(self::$tempVariables[$varName1]) || isset(self::$tempVariables["_{$varName1}_"])) {
+            return true;
         }
-        return self::$variables[$varName1] ?? false;
+        return isset(self::$variables[$varName1]);
     } // isDefined
 
 
@@ -425,16 +426,12 @@ class TransVars
             $langCode = $lang;
         }
         $val = false;
-        if (is_array($var)) {
-            if (isset($var[$lang])) {           // check base language (e.g. de2)
-                $val = $var[$lang];
-            } elseif (isset($var[$langCode])) { // check language-variant (e.g. de)
-                $val = $var[$langCode];
-            } elseif (isset($var['_'])) {     // check default language
-                $val = $var['_'];
-            } else {
-                $val = false;                 // nothing found
-            }
+        if (isset($var[$lang])) {           // check base language (e.g. de2)
+            $val = $var[$lang];
+        } elseif (isset($var[$langCode])) { // check language-variant (e.g. de)
+            $val = $var[$langCode];
+        } elseif (isset($var['_'])) {     // check default language
+            $val = $var['_'];
         }
         return $val;
     } // selectLangVariantOfTransVar
@@ -466,7 +463,7 @@ class TransVars
             }
             $html .= "<dt>$key</dt><dd>$value</dd>\n";
         }
-        $html .= "<dl>\n";
+        $html .= "</dl>\n";
         return $html;
 
     } // renderVariables
@@ -540,7 +537,7 @@ class TransVars
      * @param array $config
      * @param string|array $args
      * @return string|array
-     * @throws InvalidArgumentException
+     * @throws \Kirby\Exception\InvalidArgumentException
      */
     public static function initMacro(string $file, array $config, string|array $args): string|array
     {

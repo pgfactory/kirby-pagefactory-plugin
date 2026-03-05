@@ -292,15 +292,17 @@ EOT;
         if ($page->hasListedChildren()) {
             // get children of top-level parent:
             $label = (string)$page->title();
-            $out ='';
+            $out = '';
+            $found = null;
             foreach (self::$siteStruct as $elem) {
                 $pg = $elem['pg'];
                 if ($pg === $page) {
+                    $found = $elem;
                     break;
                 }
             }
-            if ($elem['sub']??false) {
-                $out .= self::_render($elem['sub'], prefix: $prefix);
+            if ($found && ($found['sub']??false)) {
+                $out .= self::_render($found['sub'], prefix: $prefix);
             }
         } else {
             $out = '';

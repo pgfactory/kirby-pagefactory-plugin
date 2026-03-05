@@ -26,7 +26,7 @@ class Import
         $wrapperClass = $args['wrapperClass'];
         self::$mdCompile = $args['mdCompile'];
         $elemHeader = $args['elemHeader'] ? $args['elemHeader']."\n" : '';
-        $elemFooter = $args['elemFooter'] ? "\n".$args['elemHeader'] : '';
+        $elemFooter = $args['elemFooter'] ? "\n".$args['elemFooter'] : '';
 
         $str = '';
 

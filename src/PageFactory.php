@@ -16,7 +16,7 @@ use PgFactory\MarkdownPlus\Permission;
 
 
  // System ULRs:
-define('PFY_HOST_URL',                  $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST'] . '/'); // https://domain.net/
+define('PFY_HOST_URL',                  ($_SERVER['REQUEST_SCHEME']??'') . '://' . ($_SERVER['HTTP_HOST']??'') . '/'); // https://domain.net/
 define('PFY_APP_BASE_URL',              URL::index().'/');    // https://domain.net/webapp/
 define('PFY_PAGE_URL',                  page()->url() . '/'); // https://domain.net/webapp/pg1/
 
@@ -397,7 +397,7 @@ class PageFactory
                 $sectionTitles[] = $sectionTitle;
             } else {
                 $sectionTitle = base_name($file, false);
-                $sectionTitle = ucfirst(preg_replace('/^\S_/', '', $sectionTitle));
+                $sectionTitle = ucfirst(preg_replace('/^\d+_/', '', $sectionTitle));
                 $sectionTitles[] = $sectionTitle;
             }
         }
