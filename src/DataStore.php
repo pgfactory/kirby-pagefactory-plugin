@@ -1,5 +1,7 @@
 <?php
 
+// reviewed copy
+
 namespace PgFactory\PageFactory;
 
 use Error;
@@ -146,10 +148,10 @@ class DataStore
      * @param array $rec
      * @param bool $flush
      * @param $recKeyToUse
-     * @return object|string
+     * @return bool
      * @throws \Exception
      */
-    public function addRec(array $rec, bool $flush = true, $recKeyToUse = false): object|string
+    public function addRec(array $rec, bool $flush = true, $recKeyToUse = false): bool
     {
         if ($recKeyToUse) {
             if ($this->obfuscateRecKeys) {
@@ -165,10 +167,8 @@ class DataStore
             $this->data[$recKey] = $rec + $origRec;
         } else {
             if ($this->avoidDuplicates) {
-                $k = $this->recExists($rec);
-                if ($k) {
-                    $this->lastCreatedRecKey = $k; // -> to be picked up by consecutive ->recId() call
-                    return $this;
+                if ($this->recExists($rec)) {
+                    return false; // duplicate found; lastCreatedRecKey left unchanged
                 }
             }
             if (!isset($rec[PFY_DB_METAREC_KEY])) {
@@ -187,7 +187,7 @@ class DataStore
             $this->flush();
         }
         $this->nRows = sizeof($this->data);
-        return $this;
+        return true;
     } // addRec
 
 
@@ -234,10 +234,10 @@ class DataStore
      * Overwrites given elements of an existing record. Elements not contained in rec will be left untouched.
      * @param mixed $rec
      * @param bool $flush
-     * @return object
+     * @return void
      * @throws \Exception
      */
-    public function update(array $data, bool $flush = false): object
+    public function update(array $data, bool $flush = false): void
     {
         foreach ($data as $key => $rec) {
             $rec += PFY_DATASTORE_DEFAULT_REC;
@@ -348,12 +348,12 @@ class DataStore
             }
             foreach ($this->data as $recUid => $elem) {
                 // check whether matches with DATAREC_RECKEY-property:
-                if (($attribute === DATAREC_RECKEY) && strcasecmp($elem->_reckey, $key) === 0) {
+                if (($attribute === DATAREC_RECKEY) && strcasecmp($elem[PFY_DB_METAREC_KEY][DATAREC_RECKEY] ?? '', $key) === 0) {
                     $found[] = $recUid;
                     if (!$all) { break; }
 
                 // check whether matches with specified data element:
-                } elseif (isset($elem->recData[$attribute]) && strcasecmp($elem->recData[$attribute], $key) === 0) {
+                } elseif (isset($elem[$attribute]) && is_scalar($elem[$attribute]) && strcasecmp((string)$elem[$attribute], $key) === 0) {
                     $found[] = $recUid;
                     if (!$all) { break; }
                 }
@@ -362,7 +362,6 @@ class DataStore
             // no attribute specified, check index, key and _reckey:
             foreach ($this->data as $recUid => $elem) {
                 if ($key === $recUid) {
-//                if (($key === $recUid) || ($key === $elem->_origRecKey)) {
                     $found[] = $recUid;
                     if (!$all) { break; }
                 }
@@ -396,6 +395,7 @@ class DataStore
      */
     public function find(...$args): mixed
     {
+        $recUid = null;
         if ($args) {
             $key = array_shift($args);
             if ($this->data[$key]??false) {
@@ -412,12 +412,11 @@ class DataStore
                 if ($this->obfuscateRecKeys) {
                     $key = $this->deObfuscateRecKey($key);
                 }
-                $key = $this->deObfuscateRecKey($key);
                 $all = (bool)($args[1] ?? false);
                 $recUid = $this->findRecKeyOf($key, $attribute, $all);
 
             } elseif (($key === null) && isset($args[0])) { // special case: invoked from read()
-                $all = (bool)$args[1] ?? false;
+                $all = (bool)($args[1] ?? false);
                 $args = $args[0];
                 $key = $args[0] ?? false;
                 $attribute = $args[1] ?? false;
@@ -434,7 +433,7 @@ class DataStore
                     }
                 }
             } else {
-                $recUid = $this->findRecKeyOf($key, $args);
+                $recUid = $this->findRecKeyOf($key, $args[0] ?? false);
             }
         }
         return $recUid;
@@ -464,7 +463,9 @@ class DataStore
         if ($sortArg instanceof \Closure) {
             try {
                 foreach ($this->data as $key => $elem) {
-                    $sortIndex[$key] = $sortArg($elem->recData, $elem);
+                    $dataPart = $elem;
+                    unset($dataPart[PFY_DB_METAREC_KEY]);
+                    $sortIndex[$key] = $sortArg($dataPart, $elem);
                 }
             } catch (\Exception $e) {
                 throw new \Exception($e->getMessage());
@@ -473,11 +474,11 @@ class DataStore
         // case string defining element to sort on:
         // special notation to access data sub-elements: a.b.c = [a][b][c]
         } elseif (is_string($sortArg)) {
-            // sort on meta-data, e.g. '_origRecKey' or '_timestamp':
+            // sort on meta-data, e.g. '_timestamp':
             if (str_starts_with($sortArg, '_')) {
-                // element of first level -> access directly:
+                // element of meta record -> access via PFY_DB_METAREC_KEY:
                 foreach ($this->data as $key => $elem) {
-                    $sortIndex[$key] = $elem->$sortArg ?? PHP_INT_MAX;
+                    $sortIndex[$key] = $elem[PFY_DB_METAREC_KEY][$sortArg] ?? PHP_INT_MAX;
                 }
 
             // sort on rec data, e.g. 'name' -> specified as 'name' or 'a.b':
@@ -485,10 +486,11 @@ class DataStore
                 // nested element:
                 $keys = explode('.', $sortArg);
                 foreach ($this->data as $key => $elem) {
-                    $el = &$this->data[$key]->recData;
+                    $el = $elem;
+                    unset($el[PFY_DB_METAREC_KEY]);
                     foreach ($keys as $k) {
-                        if (isset($el[$k])) {
-                            $el = &$el[$k];
+                        if (is_array($el) && isset($el[$k])) {
+                            $el = $el[$k];
                         } else {
                             throw new \Exception("Data '$sortArg' element missing in record '$key'.");
                         }
@@ -519,18 +521,19 @@ class DataStore
      * @return object
      * @throws \Exception
      */
-    public function filter($function)
+    public function filter($function): object
     {
         if (!$function instanceof \Closure) {
             throw new \Exception("filter requires a Closure as argument");
         }
-//        $ds = $this->clone();
-//        foreach ($ds->data as $key => $elem) {
-//            if (!$function($key, $elem)) {
-//                unset($ds->data[$key]);
-//            }
-//        }
-//        return $ds;
+        $ds = clone $this;
+        foreach ($ds->data as $key => $elem) {
+            if (!$function($key, $elem)) {
+                unset($ds->data[$key]);
+            }
+        }
+        $ds->nRows = sizeof($ds->data);
+        return $ds;
     } // filter
 
 
@@ -594,6 +597,9 @@ class DataStore
      */
     public function lastModified(): int
     {
+        if (!$this->file || !file_exists($this->file)) {
+            return 0;
+        }
         return filemtime($this->file);
     } // lastModified
 
@@ -604,7 +610,7 @@ class DataStore
      * @return void
      * @throws \Exception
      */
-    public function flush(bool $cacheOnly = false)
+    public function flush(bool $cacheOnly = false): void
     {
         if ($this->file) {
             if (!$cacheOnly) {
@@ -727,9 +733,9 @@ class DataStore
     {
         $maxAge = strtotime("-$maxAgeInMonths months");
         if ($dir = getDir(dirname($file))) {
-            foreach ($dir as $file) {
-                if (filemtime($file) < $maxAge) {
-                    unlink($file);
+            foreach ($dir as $f) {
+                if (filemtime($f) < $maxAge) {
+                    unlink($f);
                 }
             }
         }
@@ -941,7 +947,7 @@ class DataStore
         try {
             $this->readModifyWrite($this->cacheFile, function ($data) use ($force) {
                 foreach ($data as $recKey => $rec) {
-                    if ($rec = ($data[$recKey] ?? false)) {
+                    if ($rec) {
                         $sessionId = getSessionId();
                         if ($rec[PFY_DB_METAREC_KEY]['_lock']) {
                             $lockedBy = $rec[PFY_DB_METAREC_KEY]['_lockedBy'];
@@ -973,13 +979,14 @@ class DataStore
     {
         $session = kirby()->session();
         $tableRecKeyTab = $session->get('pfy.obfuscatedKeys');
-        if (!$tableRecKeyTab || !($obfuscatedKey = array_search($key, $tableRecKeyTab))) {
+        $obfuscatedKey = $tableRecKeyTab ? array_search($key, $tableRecKeyTab) : false;
+        if ($obfuscatedKey === false) {
             $obfuscatedKey = \PgFactory\PageFactory\createHash();
         }
         $tableRecKeyTab[$obfuscatedKey] = $key;
         $session->set('pfy.obfuscatedKeys', $tableRecKeyTab);
         return $obfuscatedKey;
-    } // deObfuscateRecKey
+    } // obfuscateRecKey
 
 
     /**
@@ -998,8 +1005,8 @@ class DataStore
     
 
     /**
-     * @param array $options
      * @param string $file
+     * @param array $options
      * @return void
      * @throws \Exception
      */
@@ -1159,9 +1166,13 @@ class DataStore
     private function readFile(string $file): mixed
     {
         $fp = fopen($file, 'r');
-        if(flock($fp, LOCK_SH)){ // will block execution until the write lock is released
+        if (!$fp) {
+            return null;
+        }
+        $str = '';
+        if (flock($fp, LOCK_SH)) { // will block execution until the write lock is released
             $str = stream_get_contents($fp);
-            clearstatcache($file); // clear the file cache for the next function
+            clearstatcache(true, $file); // clear the file cache for the next function
         }
         fclose($fp);
         if (!$str) {
@@ -1245,13 +1256,18 @@ class DataStore
     } // writeFile
     
     
-    private  function awaitFileLock($fp, string $filename): void
+    private function awaitFileLock($fp, string $filename): void
     {
         $count = PFY_DB_FILE_BLOCKING_CYCLES;
-        while (!flock($fp, LOCK_EX | LOCK_NB) && ($count--)) {
+        $locked = false;
+        while ($count-- > 0) {
+            if (flock($fp, LOCK_EX | LOCK_NB)) {
+                $locked = true;
+                break;
+            }
             usleep(PFY_DB_FILE_BLOCKING_CYCLE_TIME);
         }
-        if (!$count) {
+        if (!$locked) {
             throw new \Exception("Failed to lock '$filename'");
         }
     } // awaitFileLock
@@ -1260,7 +1276,7 @@ class DataStore
     private function encodeData(mixed $content, string|false $type): string
     {
         // encode data:
-        if ($type && str_contains('yml,yaml', $type)) {
+        if ($type && str_contains(',yml,yaml,', strtolower(",$type,"))) {
             $content = shieldNewlines($content);
             $content = Data::encode($content, $type);
             $content = prettifyYaml($content);
