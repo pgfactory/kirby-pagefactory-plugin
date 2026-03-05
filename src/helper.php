@@ -1739,11 +1739,11 @@ function indentLines(string $str, int $width = 4): string
   *     Example: key: !! x:('") !!
   * @param string $str
   * @param string $delim
-  * @param mixed $superBrackets
+  * @param string $anonIndex // used in case of missing keys, use '' to get a simple array with indexes 0,1,2...
   * @return array
   * @throws InvalidArgumentException
   */
-function parseArgumentStr(string $str, string $delim = ','): array
+function parseArgumentStr(string $str, string $delim = ',', string $anonIndex = '_anonInx'): array
 {
     // terminate if string empty:
     if (!($str = trim($str))) {
@@ -1774,7 +1774,7 @@ function parseArgumentStr(string $str, string $delim = ','): array
         $ch = $ch[0]??'';
         if ($ch !== ':') {
             // argument without key -> identify by "_anonInxN":
-            $json .= "\"_anonInx$index\": $key,";
+            $json .= "\"$anonIndex$index\": $key,";
             $rest = ltrim($rest, " $delim\n");
         } else {
             $rest = ltrim(substr($rest, 1));
