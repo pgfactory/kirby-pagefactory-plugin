@@ -940,18 +940,48 @@ EOT;
      */
     public static function normalizePath(string $path): string
     {
-        $hdr = '';
-        if (preg_match('|^ ((\.\./)+) (.*)|x', $path, $m)) {
-            $hdr = $m[1];
-            $path = $m[3];
+        if ($path === '') return '';
+
+        $isAbsolute = str_starts_with($path, '/');
+        $hasTrailingSlash = str_ends_with($path, '/') && $path !== '/';
+
+        // 1. Handle leading "../" by isolating them from the resolution logic
+        $prefix = '';
+        while (str_starts_with($path, '../')) {
+            $prefix .= '../';
+            $path = substr($path, 3);
         }
-        while ($path && preg_match('|(.*?) ([^/.]+/\.\./) (.*)|x', $path, $m)) {
-            $path = $m[1] . $m[3];
+
+        // 2. Filter segments: remove empty strings and "."
+        $segments = array_filter(explode('/', $path), fn($s) => $s !== '' && $s !== '.');
+        $stack = [];
+
+        // 3. Resolve ".."
+        foreach ($segments as $segment) {
+            if ($segment === '..') {
+                if (!empty($stack) && end($stack) !== '..') {
+                    array_pop($stack);
+                } elseif (!$isAbsolute) {
+                    $stack[] = '..';
+                }
+            } else {
+                $stack[] = $segment;
+            }
         }
-        $path = str_replace('/./', '/', $path);
-        $path = preg_replace('|(?<!:)//|', '/', $path);
-        return $hdr.$path;
-    } // normalizePath
+
+        // 4. Reconstruct
+        $result = implode('/', $stack);
+
+        if ($isAbsolute) {
+            $result = '/' . ltrim($result, '/');
+        }
+
+        if ($result === '' || $result === '/') {
+            return $isAbsolute ? '/' : ($prefix ?: '.');
+        }
+
+        return $prefix . $result . ($hasTrailingSlash ? '/' : '');
+    }
 
 
     /**
