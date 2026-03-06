@@ -48,7 +48,7 @@ class PrevNextLinks
                 if (str_contains($center, '{{')) {
                     $center = TransVars::translate($center);
                 }
-                $center = "<div class='pfy-page-switcher-center'>$center</div>\n";
+                $center = "<div class='pfy-page-switcher-center'>$center</div><!-- /pfy-page-switcher-center -->\n";
             }
 
             $next = $this->renderNextLink();
