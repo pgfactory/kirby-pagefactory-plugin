@@ -1024,6 +1024,9 @@ EOT;
         $html = str_replace('~page/', page()->url().'/', $html);
 
         // ~/ for <a> tags -> replace without redir-offset, unless it's a resource:
+        // In multi-language sites, page links need the language prefix:
+        $langPrefix = PageFactory::$langCode ? PageFactory::$langCode . '/' : '';
+        $langBaseUrl = PFY_APP_BASE_URL . $langPrefix;
         if (!$forResoucres) {
             if (preg_match_all('|(<a\s+href=[\'"])~/(.*?)([\'"])|', $html, $m)) {
                 // need to analyze each <a> tag, whether it points to a resource:
@@ -1034,12 +1037,12 @@ EOT;
                         // link to resource -> add redir-offset:
                         $html = str_replace($m[0][$i], $aTag . PFY_APP_BASE_URL . PFY_BASE_OFFSET . $target . $m[3][$i], $html);
                     } else {
-                        // link to page -> omit redir-offset:
-                        $html = str_replace($m[0][$i], $aTag . PFY_APP_BASE_URL . $target . $m[3][$i], $html);
+                        // link to page -> use language-aware base URL:
+                        $html = str_replace($m[0][$i], $aTag . $langBaseUrl . $target . $m[3][$i], $html);
                     }
                 }
             }
-            $html = str_replace('~/', PFY_APP_BASE_URL, $html);
+            $html = str_replace('~/', $langBaseUrl, $html);
         } else {
             $html = preg_replace('|~/|', PFY_APP_BASE_URL.PFY_BASE_OFFSET, $html);
         }

@@ -6,14 +6,15 @@
       li.pfy-has-children
         a
         div.pfy-nav-sub-wrapper height:0
-          ol aria-hidden: true];
+          ol [aria-hidden="true"]
             li
               a
  */
- //console.log('nav.js');
-var pfyNavTriggersInitialized = false;
+console.log('nav.js');
 
 class PfyNav {
+
+  static triggersInitialized = false;
 
   constructor(navWrapper) {
     this.navWrapper = navWrapper;
@@ -23,16 +24,15 @@ class PfyNav {
       '<path d="M15 12L9 6V18L15 12Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>' +
       '</svg>';
 
-      this.init();
+    this.init();
   } // constructor
 
 
   init() {
-    //console.log('init: ' + this.navWrapper.getAttribute('id'));
     const navWrapper  = this.navWrapper;
     this.isPrimary    = navWrapper.classList.contains('pfy-primary-nav');
     this.isTopNav     = navWrapper.classList.contains('pfy-nav-horizontal');
-    this.collapsed    = navWrapper.classList.contains('pfy-nav-collapsed')? 1 : false;
+    this.collapsed    = navWrapper.classList.contains('pfy-nav-collapsed');
     this.collapsible  = navWrapper.classList.contains('pfy-nav-collapsible');
     this.preOpenCurr  = navWrapper.classList.contains('pfy-nav-open-current');
     this.navInx       = navWrapper.dataset.navInx;
@@ -43,7 +43,7 @@ class PfyNav {
 
     this.prepareMobileMode();
 
-    this.adaptToWidth(); // invokes this.setupMouseHandlers() if it's primary nav
+    this.adaptToWidth();
 
     this.initTriggers();
 
@@ -57,15 +57,14 @@ class PfyNav {
 
 
   initTriggers() {
-    if (pfyNavTriggersInitialized) {
+    if (PfyNav.triggersInitialized) {
       return;
     }
-    pfyNavTriggersInitialized = true;
-    const parent = this;
+    PfyNav.triggersInitialized = true;
+
     document.addEventListener('click', (ev) => {
       const el = ev.target;
-
-      parent.isTopNav    = !!el.closest('.pfy-nav-horizontal');
+      const isTopNav = !!el.closest('.pfy-nav-horizontal');
 
       // handle mobile menu button:
       const mobileMenuButton = el.closest('#pfy-nav-menu-icon');
@@ -74,31 +73,31 @@ class PfyNav {
         return;
       }
 
-      // check for non-nav-related events -> return immediately:
-      const navWrapper = el.closest('.pfy-nav-wrapper');
-      if (!navWrapper) {
+      // check for non-nav-related events:
+      if (!el.closest('.pfy-nav-wrapper')) {
+        domForAll('.pfy-nav-collapsible .pfy-open', el => {
+          console.log('close open branch');
+          this.closeAll();
+        })
         return;
       }
-      // check for non-collapsible nav -> return immediately:
-      const isCollapsible = !!el.closest('.pfy-nav-collapsible');
-      if (!isCollapsible) {
+      // check for non-collapsible nav:
+      if (!el.closest('.pfy-nav-collapsible')) {
         return;
       }
       const aEl = el.closest('a');
       if (!aEl) {
         return;
       }
-      if (parent.isTopNav) {
+      if (isTopNav) {
         // in top-nav, need to distinguish several cases:
         if (aEl.closest('.pfy-lvl-2') ||
           !(aEl.parentElement.classList.contains('pfy-has-surrogate-elem') || aEl.parentElement.classList.contains('pfy-has-children'))) {
           return;
         }
-
       } else {
-        // outside top-nav elements with aria-expanded attrib are menu operators, not links:
-        const isMenuOperator = aEl.hasAttribute('aria-expanded');
-        if (!isMenuOperator) {
+        // outside top-nav, elements with aria-expanded attrib are menu operators, not links:
+        if (!aEl.hasAttribute('aria-expanded')) {
           return;
         }
       }
@@ -106,22 +105,19 @@ class PfyNav {
       // handle collapsible nav branches:
       ev.preventDefault();
       ev.stopImmediatePropagation();
-      if (parent.isTopNav) {
-        parent.operateSubmenu(ev);
-
+      if (isTopNav) {
+        this.operateSubmenu(ev);
       } else {
-        parent.handleSingleAndDoubleClick(ev);
+        this.handleSingleAndDoubleClick(ev);
       }
     });
 
     // handle keys for nav manipulation:
     document.addEventListener('keydown', (ev) => {
-      const el = ev.target;
-      const navWrapper = el.closest('.pfy-nav-wrapper');
-      if (!navWrapper) {
+      if (!ev.target.closest('.pfy-nav-wrapper')) {
         return;
       }
-      parent.keyHandlers(ev);
+      this.keyHandlers(ev);
     });
 
     this.initResizeMonitor();
@@ -130,7 +126,6 @@ class PfyNav {
 
 
   keyHandlers(ev) {
-    const parent = this;
     ev.stopPropagation();
     ev.stopImmediatePropagation();
     const aElem = ev.target;
@@ -142,200 +137,174 @@ class PfyNav {
 
     // === ArrowDown:
     if (key === 'ArrowDown') {
-      parent.focusOnNext(liElem);
+      this.focusOnNext(liElem);
       ev.preventDefault();
 
     // === ArrowUp:
     } else if (key === 'ArrowUp') {
-      parent.focusOnPrevous(liElem);
+      this.focusOnPrevious(liElem);
       ev.preventDefault();
 
     // === ArrowRight:
     } else if (key === 'ArrowRight') {
       if (isTopNav) {
-        parent.focusOnNextSibling(liElem);
+        this.focusOnNextSibling(liElem);
       } else {
         if (liElem.classList.contains('pfy-has-children')) {
-          parent.openBranch(liElem);
+          this.openBranch(liElem);
         }
-        parent.setFocusOn(liElem);
+        this.setFocusOn(liElem);
       }
       ev.preventDefault();
 
     // === ArrowLeft:
     } else if (key === 'ArrowLeft') {
       if (isTopNav) {
-        parent.focusOnPrevSibling(liElem);
+        this.focusOnPrevSibling(liElem);
       } else {
-        if (parent.isOpen(liElem)) {
-          parent.closeBranch(liElem);
-          parent.setFocusOn(liElem);
+        if (this.isOpen(liElem)) {
+          this.closeBranch(liElem);
+          this.setFocusOn(liElem);
         } else {
-          parent.setFocusOnParent(liElem);
+          this.setFocusOnParent(liElem);
         }
       }
       ev.preventDefault();
 
     // === Shift-Tab:
     } else if (ev.shiftKey && key === 'Tab') {
-      const liElem = ev.target.parentElement;
-      const aElem = liElem.querySelector('a');
-      const activeAElems = parent.getCurrentlyActiveAElements(liElem);
-      if (aElem.innerText === activeAElems[0].innerText) {
-        // is last element, so continue with default action
-        return;
+      const targetLi = ev.target.parentElement;
+      const targetA = targetLi.querySelector('a');
+      const activeAElems = this.getCurrentlyActiveAElements(targetLi);
+      if (targetA.innerText === activeAElems[0].innerText) {
+        return; // first element, continue with default action
       }
       ev.preventDefault();
-      parent.focusOnPrevous(liElem);
+      this.focusOnPrevious(targetLi);
 
     // === Tab:
     } else if (key === 'Tab') {
-      const liElem = ev.target.parentElement;
-      const aElem = liElem.querySelector('a');
-      const activeAElems = parent.getCurrentlyActiveAElements(liElem);
-      const isCollapsible = !!liElem.closest('.pfy-nav-collapsible');
-      if (aElem.innerText === activeAElems[activeAElems.length - 1].innerText) {
-        // is first element, so continue with default action
-        return;
+      const targetLi = ev.target.parentElement;
+      const targetA = targetLi.querySelector('a');
+      const activeAElems = this.getCurrentlyActiveAElements(targetLi);
+      const targetCollapsible = !!targetLi.closest('.pfy-nav-collapsible');
+      if (targetA.innerText === activeAElems[activeAElems.length - 1].innerText) {
+        return; // last element, continue with default action
       }
 
-      if (!isCollapsible) {
-        parent.focusOnNext(liElem);
+      if (!targetCollapsible) {
+        this.focusOnNext(targetLi);
         ev.preventDefault();
         return;
       }
 
-      if (liElem.closest('.pfy-open')) {
-        parent.focusOnNext(liElem);
+      if (targetLi.closest('.pfy-open')) {
+        this.focusOnNext(targetLi);
       } else {
-        parent.focusOnNextSibling(liElem);
+        this.focusOnNextSibling(targetLi);
       }
       ev.preventDefault();
 
     } else if (isCollapsible && key === ' ') {
-      if (isTopNav) {
-        parent.toggleBranch(liElem, ev, true);
-      } else {
-        parent.toggleBranch(liElem, ev);
-      }
+      this.toggleBranch(liElem, ev, isTopNav);
     }
   } // keyHandlers
 
 
   operateSubmenu(ev, recursive = false) {
-    const parent = this;
     const parentLi = ev.target.closest('li');
     const aEl = parentLi.querySelector('a');
+    const isTopNav = !!parentLi.closest('.pfy-nav-horizontal');
 
-    if (this.isTopNav && !parentLi.classList.contains('pfy-lvl-1')) {
+    if (isTopNav && !parentLi.classList.contains('pfy-lvl-1')) {
       ev.stopImmediatePropagation();
       return;
     }
 
     // handle special case: horizontal top nav:
-    const closeOthers = parentLi.closest('.pfy-nav-horizontal.pfy-primary-nav');
+    const closeOthers = !!parentLi.closest('.pfy-nav-horizontal.pfy-primary-nav');
     const isArrow = !!ev.target.closest('.pfy-nav-arrow');
     const isRevealController = !!aEl.getAttribute('aria-controls');
     if (isArrow || isRevealController) {
-      parent.toggleBranch(parentLi, ev, closeOthers, recursive);
+      this.toggleBranch(parentLi, ev, closeOthers, recursive);
     }
   } // operateSubmenu
 
 
   operateMobileMenu(mobileMenuButton, ev) {
     ev.stopImmediatePropagation();
-    if (document.body.classList.contains('pfy-nav-mobile-open')) {
-      document.body.classList.remove('pfy-nav-mobile-open');
-      mobileMenuButton.setAttribute('aria-pressed', false);
-    } else {
-      document.body.classList.add('pfy-nav-mobile-open');
-      mobileMenuButton.setAttribute('aria-pressed', true);
-    }
+    const isOpen = document.body.classList.toggle('pfy-nav-mobile-open');
+    mobileMenuButton.setAttribute('aria-pressed', isOpen);
   } // operateMobileMenu
 
 
   initNavHtml() {
-    const navWrapper = this.navWrapper;
-    const lvl1LiEls = navWrapper.querySelectorAll('.pfy-nav > ol > li');
+    const lvl1LiEls = this.navWrapper.querySelectorAll('.pfy-nav > ol > li');
     this._initNavHtmlRecursively(lvl1LiEls, 1);
     this.fixNavLayout();
   } // initNavHtml
 
 
-  _initNavHtmlRecursively (liElems, depth) {
+  _initNavHtmlRecursively(liElems, depth) {
     if (!liElems.length) {
       return;
     }
 
-    const parent = this;
-    let inx = 0;
-    liElems.forEach(function (liElem) {
-      inx++;
-      parent.navElemInx++;
+    liElems.forEach((liElem) => {
+      this.navElemInx++;
 
-      const subId = `nav-elem-${parent.navInx}-${parent.navElemInx}`;
+      const subId = `nav-elem-${this.navInx}-${this.navElemInx}`;
       // apply level-class:
       liElem.classList.add('pfy-lvl-' + depth);
       const subOlElem = liElem.querySelector('ol,ul');
       let needsSurrogate = false;
-      if (parent.collapsible) {
+      if (this.collapsible) {
         needsSurrogate = subOlElem && !liElem.classList.contains('pfy-nav-no-direct-child');
       }
 
-      // mark current-page (and its parent pages):
+      // detect current page:
       const aElem = liElem.querySelector('a');
-      const currPage = aElem.getAttribute('aria-current')? ' aria-current="page"' : '';
-      if (currPage) {
-        liElem.classList.add('pfy-curr');
-        if (!needsSurrogate) {
-          let parentLiElem = liElem.parentElement.closest('li');
-          while (parentLiElem) {
-            parentLiElem.classList.add('pfy-active');
-            parentLiElem = parentLiElem.parentElement.closest('li');
-          }
-        }
-      }
+      const isCurrent = !!aElem.getAttribute('aria-current');
 
       // handle sub-branches:
       if (subOlElem) {
         liElem.classList.add('pfy-has-children');
-        let ariaExpanded = parent.isTopNav ? 'false' : 'true';
-        if (!parent.isTopNav) {
+        const ariaExpanded = this.isTopNav ? 'false' : 'true';
+        if (!this.isTopNav) {
           liElem.classList.add('pfy-open');
         }
 
-        // inject arrow into <a>:
-        const text = liElem.querySelector('a').textContent;
-
+        // capture values before outerHTML replacement invalidates aElem reference:
+        const text = aElem.textContent;
         const href = aElem.getAttribute('href');
+        const origInnerHTML = aElem.innerHTML;
 
-        aElem.outerHTML = `<a href="${href}" aria-expanded="${ariaExpanded}" aria-controls="${subId}"><span class='pfy-nav-label'>` +
-            `<span>${text}</span></span><span class='pfy-nav-arrow' aria-hidden='true'>${parent.arrowSvg}</span></a>`;
+        aElem.outerHTML = `<a href="${href}" aria-expanded="${ariaExpanded}" aria-controls="${subId}">` +
+            `<span class='pfy-nav-label'><span>${text}</span></span>` +
+            `<span class='pfy-nav-arrow' aria-hidden='true'>${this.arrowSvg}</span></a>`;
 
         let olInnerHtml = subOlElem.innerHTML;
 
         if (needsSurrogate) {
-          const aHref = aElem.getAttribute('href');
-          const aText = aElem.innerHTML;
-          olInnerHtml = '<li class="pfy-lvl-' + (depth + 1) + ` pfy-surrogate-elem"><a href="${aHref}">${aText}</a></li>` + olInnerHtml;
+          olInnerHtml = `<li class="pfy-lvl-${depth + 1} pfy-surrogate-elem"><a href="${href}">${origInnerHTML}</a></li>` + olInnerHtml;
           liElem.classList.add('pfy-has-surrogate-elem');
         }
-        subOlElem.outerHTML = `<div id="${subId}" class="pfy-nav-sub-wrapper"><ol>` + olInnerHtml + '</ol>';
+        subOlElem.outerHTML = `<div id="${subId}" class="pfy-nav-sub-wrapper"><ol>${olInnerHtml}</ol></div>`;
 
         // process all contained <li> recursively:
         const subLiElems = liElem.querySelectorAll(':scope > div > ol > li');
         if (subLiElems.length) {
-          parent._initNavHtmlRecursively(subLiElems, depth + 1);
+          this._initNavHtmlRecursively(subLiElems, depth + 1);
         }
       }
 
-      // handle current page:
-      if (currPage) {
+      // mark current page and ancestors:
+      if (isCurrent) {
         if (needsSurrogate) {
           domForOne(liElem, '.pfy-surrogate-elem', (surrogateLi) => {
             surrogateLi.classList.add('pfy-curr');
             surrogateLi.setAttribute('aria-current', 'page');
-          })
+          });
           liElem.classList.add('pfy-active');
         } else {
           liElem.classList.add('pfy-curr');
@@ -354,10 +323,9 @@ class PfyNav {
 
 
   fixNavLayout() {
-    const navWrapper = this.navWrapper;
-    const nav = navWrapper.querySelector('.pfy-nav');
-    nav.style.display = null;
-    const placeHolder = navWrapper.querySelector('.pfy-top-nav-placeholder');
+    const nav = this.navWrapper.querySelector('.pfy-nav');
+    nav.style.display = '';
+    const placeHolder = this.navWrapper.querySelector('.pfy-top-nav-placeholder');
     if (placeHolder) {
       placeHolder.style.display = 'none';
     }
@@ -382,7 +350,7 @@ class PfyNav {
         this.closeAll();
       }
     }
-  } //adaptToWidth
+  } // adaptToWidth
 
 
   prepareMobileMode() {
@@ -393,7 +361,7 @@ class PfyNav {
 
 
   // === desktop mode =====================================
-  activateDesktopMode () {
+  activateDesktopMode() {
     if (this.isPrimary) {
       this.navWrapper.classList.value = this.navWrapper.dataset.classList;
     }
@@ -403,68 +371,53 @@ class PfyNav {
   } // activateDesktopMode
 
 
-
   // === mobile mode =====================================
-  activateMobileMode () {
+  activateMobileMode() {
     if (this.collapsed) {
       this.openCurrentElem();
     }
 
-    const navWrapper = this.navWrapper;
-    const isPrimary= navWrapper.classList.contains('pfy-primary-nav');
-    if (!isPrimary) {
+    if (!this.isPrimary) {
       return;
     }
 
     // set mobile specific classes:
     let cls = 'pfy-nav-wrapper pfy-mobile-nav pfy-primary-nav pfy-nav-indented pfy-nav-collapsible pfy-nav-animated pfy-encapsulated';
-    if (navWrapper.classList.contains('pfy-mobile-nav-colored')) {
+    if (this.navWrapper.classList.contains('pfy-mobile-nav-colored')) {
       cls += ' pfy-mobile-nav-colored';
     }
-    navWrapper.classList.value = cls;
-    this.openCurrentElem(navWrapper);
-  } // setMobileMode
+    this.navWrapper.classList.value = cls;
+    this.openCurrentElem();
+  } // activateMobileMode
 
 
-  initAnimation () {
+  initAnimation() {
     const navWrapper = this.navWrapper;
-    // switch classes from pfy-nav-animated to pfy-nav-animate after short delay:
-    if (navWrapper && navWrapper.classList.contains('pfy-nav-animated')) {
-      navWrapper.classList.remove('pfy-nav-animated');
-      navWrapper.classList.add('pfy-nav-animate');
+    // switch class from pfy-nav-animated to pfy-nav-animate:
+    if (navWrapper.classList.contains('pfy-nav-animated')) {
+      navWrapper.classList.replace('pfy-nav-animated', 'pfy-nav-animate');
     }
   } // initAnimation
 
 
-  focusOnPrevSibling (liElem) {
+  focusOnPrevSibling(liElem) {
     if (liElem.classList.contains('pfy-lvl-1') && liElem.classList.contains('pfy-open')) {
       this.closeBranch(liElem);
     }
-    const prevLiElem = liElem.previousElementSibling;
-    if (prevLiElem) {
-      this.setFocusOn(prevLiElem);
-    } else {
-      this.setFocusOn(liElem);
-    }
+    this.setFocusOn(liElem.previousElementSibling || liElem);
   } // focusOnPrevSibling
 
 
-  focusOnNextSibling (liElem) {
+  focusOnNextSibling(liElem) {
     if (liElem.classList.contains('pfy-lvl-1') && liElem.classList.contains('pfy-open')) {
       this.closeBranch(liElem);
     }
-    const nextLiElem = liElem.nextElementSibling;
-    if (nextLiElem) {
-      this.setFocusOn(nextLiElem);
-    } else {
-      this.setFocusOn(liElem);
-    }
+    this.setFocusOn(liElem.nextElementSibling || liElem);
   } // focusOnNextSibling
 
 
-  focusOnNext (liElem) {
-  const isCollapsible = !!liElem.closest('.pfy-nav-collapsible');
-  const aEl = liElem.querySelector('a');
+  focusOnNext(liElem) {
+    const isCollapsible = !!liElem.closest('.pfy-nav-collapsible');
     const isTopNav = liElem.closest('.pfy-nav-wrapper').classList.contains('pfy-nav-horizontal');
     if (isTopNav && liElem.classList.contains('pfy-lvl-1') && liElem.classList.contains('pfy-has-children')) {
       if (!liElem.classList.contains('pfy-open')) {
@@ -474,8 +427,6 @@ class PfyNav {
       if (firstSubAElem) {
         this.setFocusOn(firstSubAElem);
       }
-
-      // not first elem in branch:
     } else {
       const nextLi = this.setFocusOn(liElem, 1);
       if (nextLi && isTopNav && isCollapsible && nextLi.classList.contains('pfy-lvl-1')) {
@@ -485,7 +436,7 @@ class PfyNav {
   } // focusOnNext
 
 
-  focusOnPrevous (liElem) {
+  focusOnPrevious(liElem) {
     const isTopNav = liElem.closest('.pfy-nav-wrapper').classList.contains('pfy-nav-horizontal');
     if (isTopNav && liElem.classList.contains('pfy-lvl-1')) {
       if (liElem.classList.contains('pfy-has-children') && liElem.classList.contains('pfy-open')) {
@@ -497,11 +448,10 @@ class PfyNav {
     } else {
       this.setFocusOn(liElem, -1);
     }
-  } // focusOnPrevous
+  } // focusOnPrevious
 
 
-  setFocusOn (liElem, offset) {
-    offset = (typeof offset !== 'undefined') ? offset : 0;
+  setFocusOn(liElem, offset = 0) {
     let nextA = liElem;
     if (liElem.tagName !== 'A') {
       nextA = this.getAElem(liElem, offset);
@@ -509,17 +459,14 @@ class PfyNav {
     if (!nextA) {
       return false;
     }
-    setTimeout(function () {
-      nextA.focus();
-    }, 50);
+    setTimeout(() => { nextA.focus(); }, 50);
     return nextA.closest('li');
   } // setFocusOn
 
 
-  setFocusOnParent (liElem){
+  setFocusOnParent(liElem) {
     if (!liElem.classList.contains('pfy-lvl-1')) {
-      const parentLi = liElem.parentElement.closest('li');
-      this.setFocusOn(parentLi);
+      this.setFocusOn(liElem.parentElement.closest('li'));
     } else {
       this.setFocusOn(liElem);
     }
@@ -530,44 +477,36 @@ class PfyNav {
     const aElem = liElem.querySelector('a');
     const activeAElems = this.getCurrentlyActiveAElements(liElem);
     const currI = Array.from(activeAElems).indexOf(aElem);
-    const nextI = currI + offset;
-    return activeAElems[nextI];
+    return activeAElems[currI + offset];
   } // getAElem
 
 
-  getCurrentlyActiveAElements (liElem) {
+  getCurrentlyActiveAElements(liElem) {
     const activeAElems = [];
-    const isNotCollapsible = !liElem.closest('.pfy-nav-collapsible');
-    function traverse(liElem) {
+    function traverse(li) {
       // skip invisible elements:
-      const styles = window.getComputedStyle(liElem);
-      if ((styles.getPropertyValue('display') === 'none')) {
+      if (window.getComputedStyle(li).getPropertyValue('display') === 'none') {
         return;
       }
-      const aElem = liElem.querySelector('a');
+      const aElem = li.querySelector('a');
       if (aElem) {
         activeAElems.push(aElem);
       }
-      // recursive decent:
-      if (liElem.classList.contains('pfy-has-children')) {
-        const childDivElem = liElem.querySelector('div');
+      // recursive descent:
+      if (li.classList.contains('pfy-has-children')) {
+        const childDivElem = li.querySelector('div');
         if (childDivElem && childDivElem.style.display !== 'none') {
-          const childLiElems = childDivElem.querySelectorAll(':scope > ol > li');
-          childLiElems.forEach(function (childLiElem) {
-            traverse(childLiElem);
-          });
+          childDivElem.querySelectorAll(':scope > ol > li').forEach(traverse);
         }
       }
     }
-    const navL1LiElements = liElem.closest('.pfy-nav').querySelectorAll(':scope > ol > li');
-    navL1LiElements.forEach(liElem => traverse(liElem));
+    liElem.closest('.pfy-nav').querySelectorAll(':scope > ol > li').forEach(traverse);
     return activeAElems;
   } // getCurrentlyActiveAElements
 
 
-  handleSingleAndDoubleClick (event) {
-    const parent = this;
-    const el = event.target??event.currentTarget?? false;
+  handleSingleAndDoubleClick(event) {
+    const el = event.target ?? event.currentTarget ?? false;
     if (!el) {
       return;
     }
@@ -575,19 +514,19 @@ class PfyNav {
     this.arrowClicks++;
     if (this.arrowClicks > 1) {
       this.arrowClicks = 0;
-      this.operateSubmenu(event, true); // double click handler
+      this.operateSubmenu(event, true); // double click
     } else {
-      setTimeout(function () {
-        if (parent.arrowClicks === 1) {
-          parent.arrowClicks = 0;
-          parent.operateSubmenu(event); // single click handler
+      setTimeout(() => {
+        if (this.arrowClicks === 1) {
+          this.arrowClicks = 0;
+          this.operateSubmenu(event); // single click
         }
       }, 250);
     }
   } // handleSingleAndDoubleClick
 
 
-  freezeBranchState (ev) {
+  freezeBranchState(ev) {
     ev.stopPropagation();
     ev.preventDefault();
     let liElem = ev.currentTarget;
@@ -597,71 +536,42 @@ class PfyNav {
     if (liElem.closest('.pfy-nav-horizontal')) {
       this.closeAllExcept(liElem);
     }
-    const isOpen = liElem.classList.contains('pfy-open');
     if (liElem.classList.contains('pfy-branch-frozen')) {
       liElem.classList.remove('pfy-branch-frozen');
-      if (isOpen) {
+      if (this.isOpen(liElem)) {
         this.closeBranch(liElem, true);
       }
-
     } else {
       liElem.classList.add('pfy-branch-frozen');
-      if (!isOpen) {
+      if (!this.isOpen(liElem)) {
         this.openBranch(liElem, true);
       }
     }
   } // freezeBranchState
 
 
-  toggleBranch (liEl, ev, closeOthers = false, recursive = false) {
-    const parent = this;
-    if (typeof ev !== 'undefined' && ev) {
+  toggleBranch(liElem, ev, closeOthers = false, recursive = false) {
+    if (ev) {
       ev.stopImmediatePropagation();
       ev.preventDefault();
     }
-    this._toggleBranch(liEl, closeOthers, recursive);
+    if (this.isOpen(liElem)) {
+      this.closeBranch(liElem, true, recursive);
+    } else {
+      if (closeOthers) {
+        this.closeAllExcept(liElem);
+      }
+      this.openBranch(liElem, true, recursive);
+    }
   } // toggleBranch
 
 
-  _toggleBranch (eventOrElem, closeOthers = false, recursive = false) {
-    let liElem = null;
-    let targ = null;
-    if (typeof eventOrElem.currentTarget === 'undefined') {
-      targ = eventOrElem;
-    } else if (eventOrElem.currentTarget) {
-      targ = eventOrElem.currentTarget
-    } else if (eventOrElem.target) {
-      targ = eventOrElem.target
-    }
-    if (targ) {
-      liElem = targ.closest('li');
-      const isOpen = liElem.classList.contains('pfy-open');
-      if (isOpen) {
-        this.closeBranch(liElem, true, recursive);
-      } else {
-        if (closeOthers) {
-          this.closeAllExcept(liElem);
-        }
-        this.openBranch(liElem,true, recursive);
-      }
-    }
-  } // _toggleBranch
-
-
-  isOpen (liElem) {
+  isOpen(liElem) {
     return liElem.classList.contains('pfy-open');
   } // isOpen
 
 
-  openBranch (eventOrElem, override = false, recursive = false) {
-    const parent = this;
-    let liElem = null;
-    if (typeof eventOrElem.currentTarget === 'undefined') {
-      liElem = eventOrElem;
-    } else {
-      liElem = eventOrElem.currentTarget;
-    }
-
+  openBranch(liElem, override = false, recursive = false) {
     const isTopNav = liElem.closest('.pfy-nav-wrapper').classList.contains('pfy-nav-horizontal');
     if (isTopNav && !override && liElem.classList.contains('pfy-branch-frozen')) {
       return;
@@ -669,97 +579,67 @@ class PfyNav {
 
     this.openLi(liElem);
     if (recursive) {
-      const liElems = liElem.querySelectorAll('li');
-      if (liElems) {
-        liElems.forEach(function (liElem) {
-          parent.openLi(liElem, true);
-        });
-      }
+      liElem.querySelectorAll('li').forEach((childLi) => {
+        this.openLi(childLi, true);
+      });
     }
   } // openBranch
 
 
-  openLi(liElem, noDelay) {
+  openLi(liElem, noDelay = false) {
     const divElem = liElem.querySelector('div');
     if (divElem && typeof divElem.style !== 'undefined') {
-      divElem.style.display = null;
+      divElem.style.display = '';
     }
-    const aElem = liElem.querySelector('a');
     if (liElem.classList.contains('pfy-has-children')) {
-      aElem.setAttribute('aria-expanded', true);
+      liElem.querySelector('a').setAttribute('aria-expanded', true);
     }
-    if (typeof noDelay === 'undefined') {
-      setTimeout(function () {
-        liElem.classList.add('pfy-open');
-      }, 50);
-    } else {
+    if (noDelay) {
       liElem.classList.add('pfy-open');
+    } else {
+      setTimeout(() => { liElem.classList.add('pfy-open'); }, 50);
     }
   } // openLi
 
 
-  closeBranch (eventOrElem, override = false, recursive = false) {
-    const parent = this;
-    let liElem = null;
-    if (typeof eventOrElem.currentTarget === 'undefined') {
-      liElem = eventOrElem;
-    } else {
-      liElem = eventOrElem.currentTarget;
-    }
-
+  closeBranch(liElem, override = false, recursive = false) {
     const isTopNav = liElem.closest('.pfy-nav-wrapper').classList.contains('pfy-nav-horizontal');
-    if (isTopNav && !override && (liElem.classList.contains('pfy-branch-frozen'))) {
+    if (isTopNav && !override && liElem.classList.contains('pfy-branch-frozen')) {
       return;
     }
     this.closeLi(liElem);
     if (recursive) {
-      const liElems = liElem.querySelectorAll('li');
-      if (liElems) {
-        liElems.forEach(function (liElem) {
-          parent.closeLi(liElem);
-        });
-      }
+      liElem.querySelectorAll('li').forEach((childLi) => {
+        this.closeLi(childLi);
+      });
     }
   } // closeBranch
 
 
-  closeLi (liElem, noDelay) {
+  closeLi(liElem, noDelay = false) {
     liElem.classList.remove('pfy-open');
-    const aElem = liElem.querySelector('a');
     if (liElem.classList.contains('pfy-has-children')) {
-      aElem.setAttribute('aria-expanded', false);
+      liElem.querySelector('a').setAttribute('aria-expanded', false);
     }
     const divElem = liElem.querySelector('div');
     if (divElem) {
-      if (typeof noDelay === 'undefined') {
-        setTimeout(function () {
-          divElem.style.display = 'none';
-        }, this.transitionTimeMs);
-      } else {
+      if (noDelay) {
         divElem.style.display = 'none';
+      } else {
+        setTimeout(() => { divElem.style.display = 'none'; }, this.transitionTimeMs);
       }
     }
   } // closeLi
 
 
-  closeAll (navWrapper) {
-    const parent = this;
-    if (typeof navWrapper === 'undefined') {
-      navWrapper = this.navWrapper;
-    }
-
-    const liElems = navWrapper.querySelectorAll('.pfy-has-children');
-    if (liElems) {
-      liElems.forEach(function (liElem) {
-        parent.closeLi(liElem, true);
-      });
-    }
+  closeAll(navWrapper = this.navWrapper) {
+    navWrapper.querySelectorAll('.pfy-has-children').forEach((liElem) => {
+      this.closeLi(liElem, true);
+    });
   } // closeAll
 
 
-  closeAllExcept (exceptSubBranch, navWrapper) {
-    const parent = this;
-    exceptSubBranch = (typeof exceptSubBranch !== 'undefined')? exceptSubBranch: false;
+  closeAllExcept(exceptSubBranch = false, navWrapper) {
     if (typeof exceptSubBranch === 'object') {
       navWrapper = exceptSubBranch.closest('.pfy-nav-wrapper');
     }
@@ -771,35 +651,28 @@ class PfyNav {
       }
     }
 
-    const liElems = navWrapper.querySelectorAll('.pfy-lvl-1.pfy-has-children');
-    if (liElems) {
-      liElems.forEach(function (liElem) {
-        if (liElem !== exceptSubBranch) {
-          parent.closeBranch(liElem, true);
-          const isTopNav = liElem.closest('.pfy-nav-wrapper').classList.contains('pfy-nav-horizontal');
-          if (isTopNav) {
-            liElem.classList.remove('pfy-branch-frozen');
-          }
+    navWrapper.querySelectorAll('.pfy-lvl-1.pfy-has-children').forEach((liElem) => {
+      if (liElem !== exceptSubBranch) {
+        this.closeBranch(liElem, true);
+        if (liElem.closest('.pfy-nav-wrapper').classList.contains('pfy-nav-horizontal')) {
+          liElem.classList.remove('pfy-branch-frozen');
         }
-      })
-    }
+      }
+    });
   } // closeAllExcept
 
 
-  openCurrentElem () {
-    const navWrapper = this.navWrapper;
-    const parent = this;
-
+  openCurrentElem() {
     // find current elem:
-    let aElem = navWrapper.querySelector('[aria-current="page"]');
+    const aElem = this.navWrapper.querySelector('[aria-current="page"]');
     if (!aElem) {
       return;
     }
     const currLi = aElem.parentElement;
-    let liElem =  currLi;
+    let liElem = currLi;
 
     // close all branches recursively:
-    this.closeAll(navWrapper);
+    this.closeAll();
 
     // open all from current elem up to top level:
     while (liElem) {
@@ -810,25 +683,23 @@ class PfyNav {
     // open level below current elem:
     if (currLi && currLi.classList.contains('pfy-has-children')) {
       domForEach(currLi, 'li', (el) => {
-        parent.openLi(el, true);
-      })
+        this.openLi(el, true);
+      });
     }
   } // openCurrentElem
 
 
   initResizeMonitor() {
-    const parent = this;
-    window.addEventListener('resize', function() {
-      parent.adaptToWidth();
+    window.addEventListener('resize', () => {
+      this.adaptToWidth();
     });
   } // initResizeMonitor
 
 } // PfyNav
 
 
-domReady(function() {
+domReady(() => {
   domForEach('.pfy-nav-wrapper', (navWrapper) => {
     new PfyNav(navWrapper);
-  })
+  });
 });
-

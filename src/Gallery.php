@@ -13,7 +13,7 @@ const PFY_GALLERY_IMAGE_TYPES = 'jpg,jpeg,png,gif,webp'; // 'avif'  not supporte
 
 class Gallery
 {
-    private static $inx = 0;
+    private static int $inx = 0;
 
 
     /**
@@ -26,43 +26,28 @@ class Gallery
         self::$inx++;
         $inx = self::$inx;
 
-        // fix img dimensions -> support any type of absolute values:
-        if ($options['thumbWidth'] && is_string($options['thumbWidth']) && preg_match('/[\d.]+\w+/', $options['thumbWidth'])) {
-            $options['thumbWidthPx'] = convertToPx($options['thumbWidth'], true);
-        } else {
-            $options['thumbWidthPx'] = $options['thumbWidth'].'px';
-        }
-
-        if ($options['thumbHeight'] && is_string($options['thumbHeight']) && preg_match('/[\d.]+\w+/', $options['thumbHeight'])) {
-            $options['thumbHeightPx'] = convertToPx($options['thumbHeight'], true);
-        } else {
-            $options['thumbHeightPx'] = $options['thumbHeight'];
-        }
-
-        $class = $options['class']??'';
+        $class = $options['class'] ?? '';
 
         // gallery config options:
-        if ($options['background']) {
+        if ($options['background'] ?? false) {
             $options['config']['overlayBackgroundColor'] = $options['background'];
         }
-        if ($fullScreen = ($options['fullscreen']??false) ?: ($options['fullScreen']??false)) {
+        if ($fullScreen = ($options['fullscreen'] ?? false) ?: ($options['fullScreen'] ?? false)) {
             $options['config']['fullScreen'] = $fullScreen;
         }
 
         // assemble output:
         $html = '';
-        $path = fixPath($options['path']);
+        $path = fixPath($options['path'] ?? '');
         if (!$path) { // no path means all images in page folder
             $path = "~page/";
         } elseif ($path[0] !== '~') {
             $path = "~page/$path";
         }
 
-        $images = self::getImages($path, $options['imageCaptions']);
-        if (is_array($images)) {
-            foreach ($images as $file => $caption) {
-                $html .= self::renderImage($file, $options, $caption);
-            }
+        $images = self::getImages($path, $options['imageCaptions'] ?? '');
+        foreach ($images as $file => $caption) {
+            $html .= self::renderImage($file, $options, $caption);
         }
 
         $html = <<<EOT
@@ -71,7 +56,7 @@ $html
 </div><!-- /pfy-gallery -->
 EOT;
 
-        self::loadAssets($options['config'], $inx);
+        self::loadAssets($options['config'] ?? []);
 
         return $html;
     } // render
@@ -88,40 +73,36 @@ EOT;
     private static function renderImage(string $file, array $options, string $caption = ''): string
     {
         // create thumbnail and size-variants if necessary:
-        list($imgUrl, $html) = self::prepareImage($file, $options);
+        [$imgUrl, $html] = self::prepareImage($file, $options);
         if (!$imgUrl) {
             return '';
         }
 
         $thumbCaption = '';
-        if (($options['thumbCaptions']??false) === '') {
+        if (($options['thumbCaptions'] ?? false) === '') {
             $thumbCaption = "\n<div class='pfy-gallery-thumb-caption'></div>";
-        } elseif ($options['thumbCaptions']??false) {
+        } elseif ($options['thumbCaptions'] ?? false) {
             $thumbCaption = "\n<div class='pfy-gallery-thumb-caption'>$caption</div>";
         }
 
         $style = '';
-        if ($options['thumbWidth']) {
-            $w = $options['thumbWidth'];
-            if (!preg_match('/\D/', $w)) {
-                $w .= 'px';
-            }
+        $thumbWidth = $options['thumbWidth'] ?? '';
+        if ($thumbWidth) {
+            $w = is_numeric($thumbWidth) ? $thumbWidth . 'px' : $thumbWidth;
             $style = " width: $w;";
         }
-        if ($options['thumbHeight']) {
-            $h = $options['thumbHeight'];
-            if (!preg_match('/\D/', $h)) {
-                $h .= 'px';
-            }
+        $thumbHeight = $options['thumbHeight'] ?? '';
+        if ($thumbHeight) {
+            $h = is_numeric($thumbHeight) ? $thumbHeight . 'px' : $thumbHeight;
             $style .= "height: $h;";
         }
         if ($style) {
             $style = " style=\"$style\"";
         }
 
-        $caption = $caption? " title='$caption'" : '';
+        $titleAttr = $caption ? ' title="' . htmlspecialchars($caption, ENT_QUOTES) . '"' : '';
         $html = <<<EOT
-<a href="$imgUrl"$caption$style>
+<a href="$imgUrl"$titleAttr$style>
 $html$thumbCaption
 </a>
 
@@ -132,7 +113,6 @@ EOT;
 
     /**
      * @param array $config
-     * @param int $inx
      * @return void
      * @throws \Exception
      */
@@ -148,7 +128,7 @@ EOT;
         }
         $js = "baguetteBox.run('.pfy-gallery-$inx', {\n";
 
-        if ($config && is_array($config)) {
+        if ($config) {
             foreach ($config as $key => $value) {
                 if (is_bool($value)) {
                     $value = $value ? 'true' : 'false';
@@ -165,27 +145,28 @@ EOT;
 
     /**
      * @param string $path
-     * @param string $imageCaptionsFile
+     * @param string $captionFilename
      * @return array
      */
-    private static function getImages(string $path, string $imageCaptionsFile0 = ''): array
+    private static function getImages(string $path, string $captionFilename = ''): array
     {
         if ($path[0] !== '~') {
             $path = "~page/$path";
         }
         $images = [];
+        $imageTypes = explode(',', PFY_GALLERY_IMAGE_TYPES);
 
-        if ($imageCaptionsFile0) {
-            $imageCaptionsFile = Utils::resolvePath($imageCaptionsFile0);
-            if (!file_exists($imageCaptionsFile)) {
-                $imageCaptionsFile = Utils::resolvePath($path.$imageCaptionsFile0);
+        if ($captionFilename) {
+            $captionFile = Utils::resolvePath($captionFilename);
+            if (!file_exists($captionFile)) {
+                $captionFile = Utils::resolvePath($path . $captionFilename);
             }
-            if (file_exists($imageCaptionsFile)) {
-                $imageCaptions = explodeTrim("\n", getFile($imageCaptionsFile));
+            if (file_exists($captionFile)) {
+                $imageCaptions = explodeTrim("\n", getFile($captionFile));
                 if (is_array($imageCaptions)) {
                     foreach ($imageCaptions as $line) {
                         if (preg_match('/^(.*?):\s*(.*)/', $line, $m)) {
-                            $images[$path.$m[1]] = $m[2];
+                            $images[$path . $m[1]] = $m[2];
                         }
                     }
                 }
@@ -198,7 +179,7 @@ EOT;
             $path1 = str_contains($galleryPath, '*') ? $galleryPath : "$galleryPath*";
             $files = getDir($path1);
             foreach ($files as $image) {
-                if (is_file($image) && str_contains(PFY_GALLERY_IMAGE_TYPES, fileExt($image))) {
+                if (is_file($image) && in_array(fileExt($image), $imageTypes)) {
                     $image = str_replace([PFY_KIRBY_BASE_PATH . 'content/assets/', $pagePath], ['~assets/', '~page/'], $image);
                     $images[$image] = '';
                 }
@@ -211,50 +192,29 @@ EOT;
     /**
      * @param string $file
      * @param array $options
-     * @return array|false
+     * @return array
      * @throws \Exception
      */
     private static function prepareImage(string $file, array $options): array
     {
         $imgOptions = [
             'src'           => $file,
-            'width'         => $options['thumbWidth'],
-            'height'        => $options['thumbHeight'],
-            'ignoreMissing' => $options['ignoreMissing']??true,
-            'maxWidth'      => convertToPx($options['maxWidth'], true),
-            'maxHeight'     => convertToPx($options['maxHeight'], true),
+            'width'         => $options['thumbWidth'] ?? '',
+            'height'        => $options['thumbHeight'] ?? '',
+            'ignoreMissing' => $options['ignoreMissing'] ?? true,
+            'maxWidth'      => convertToPx($options['maxWidth'] ?? '', true),
+            'maxHeight'     => convertToPx($options['maxHeight'] ?? '', true),
             'quickzoom'     => false,
             'wrapperTag'    => '',
         ];
         $img = new Image($imgOptions);
         $html = $img->render();
         if (!$html) {
-            return ['', '', ''];
+            return ['', ''];
         }
         $imgUrl = $img->url();
         return [$imgUrl, $html];
     } // prepareImage
 
 
-    private static function renderStyling($options): void
-    {
-        $css = '';
-        $inx = self::$inx;
-        if ($options['thumbWidth']) {
-            $thumbWidth = $options['thumbWidth'];
-            $css .= "width: $thumbWidth;";
-        }
-        if ($options['thumbHeight']) {
-            $thumbHeight = $options['thumbHeight'];
-            $css .= "height: $thumbHeight;";
-        }
-        if ($css) {
-            $css .= ".pfy-gallery-$inx .pfy-img { $css }\n";
-            Page::addCss($css);
-
-        }
-    }
-
-
 } // Gallery
-

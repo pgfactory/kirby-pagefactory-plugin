@@ -20,15 +20,13 @@ class Page
 
     public static array $override = [];
 
-    private static string  $description = '';
-    private static string  $keywords = '';
-    private static string  $author = '';
-    private static string|bool  $robots = false;
+    private static string $description = '';
+    private static string $keywords = '';
+    private static string $author = '';
+    private static string|bool $robots = false;
     public static array|null $asset = [];
     private static string|false $overrideContent = false;
     public static array|null $definitions;
-
-
 
 
     // === Helper methods: accept queuing requests from macros and other objects ============
@@ -87,7 +85,7 @@ class Page
      * Accepts a string to be injected into the <head> element
      * @param $str
      */
-    public static function addHead($str): void
+    public static function addHead(string $str): void
     {
         self::append('headInjections', $str);
     }
@@ -173,18 +171,19 @@ EOT;
             if ($mdCompile) {
                 $str = compileMarkdown($str);
             }
-            self::addjsReady("window.alert('$str')");
+            self::addJsReady("window.alert('$str')");
         }
     } // setMessage
 
 
     /**
-     * Proxy for extension PageElements -> Message -> displays message in upper right corner.
+     * Proxy for extension PageElements -> Popup -> displays popup dialog.
      * @param string $str
-     * @param $mdCompile
+     * @param string $header
+     * @param bool $mdCompile
      * @return void
      */
-    public static function setPopup(string $str, string $header, $mdCompile = true): void
+    public static function setPopup(string $str, string $header, bool $mdCompile = true): void
     {
         if (isset(Extensions::$availableExtensions['pageelements'])) {
             $pe = new \PgFactory\PageFactoryElements\Popup();
@@ -195,16 +194,16 @@ EOT;
             if ($mdCompile) {
                 $str = compileMarkdown($str);
             }
-            self::addjsReady("window.alert('$str')");
+            self::addJsReady("window.alert('$str')");
         }
-    } // setMessage
+    } // setPopup
 
 
     /**
      * Accepts classes to be injected into the body's class attribute
      * @param $str
      */
-    public static function addBodyTagClass($str): void
+    public static function addBodyTagClass(string $str): void
     {
         self::append('bodyTagClasses', "$str ");
     }
@@ -214,7 +213,7 @@ EOT;
      * Accepts attributes to be injected into the <body> tag
      * @param $str
      */
-    public static function addBodyTagAttributes($str): void
+    public static function addBodyTagAttributes(string $str): void
     {
         self::append('bodyTagAttributes', "$str ");
     }
@@ -224,7 +223,7 @@ EOT;
      * Accepts a string to be injected just before the </body> tag
      * @param $str
      */
-    public static function addBodyEndInjections($str): void
+    public static function addBodyEndInjections(string $str): void
     {
         self::append('bodyEndInjections', trim($str, "\t\n ")."\n");
     } // addBodyEndInjections
@@ -234,7 +233,7 @@ EOT;
      * Accepts styles to be injected into the <head> element
      * @param string $str
      */
-    public static function addCss(string $str):void
+    public static function addCss(string $str): void
     {
         self::append('css', trim($str, "\t\n ")."\n");
     }
@@ -244,7 +243,7 @@ EOT;
      * Same as addCss(), but compiles SCSS first
      * @param string $str
      */
-    public static function addScss(string $str):void
+    public static function addScss(string $str): void
     {
         self::append('scss', trim($str, "\t\n ")."\n");
     }
@@ -254,7 +253,7 @@ EOT;
      * Accepts JS code to be injected at the end of the <body> element, but before js-files are loaded
      * @param string $str
      */
-    public static function addJs(string $str):void
+    public static function addJs(string $str): void
     {
         self::append('js', trim($str, "\t\n ")."\n");
     }
@@ -264,7 +263,7 @@ EOT;
      * Accepts jsFramework code (without the ready-statement) and injects it after loading instructions of js/jsReady-files
      * @param string $str
      */
-    public static function addJsReady(string $str):void
+    public static function addJsReady(string $str): void
     {
         self::append('jsWhenReady', trim($str, "\t\n ")."\n");
     }
@@ -273,10 +272,9 @@ EOT;
     /**
      * Forwards call to Assets->addAssets()
      * @param mixed $assets  array or comma separated list
-     * @param bool $treatAsJsReady
      * @return void
      */
-    public static function addAssets(mixed $assets, bool $treatAsJsReady = false): void
+    public static function addAssets(mixed $assets): void
     {
         if (PageFactory::$renderingClosed) {
             throw new \Exception("Error: a Macro is trying to queue a resource after page rendering has finished.");
@@ -373,10 +371,10 @@ EOT;
         $jsInjection = '';
         $jsReadyInjection = '';
         $miscInjection = "\n".self::$bodyEndInjections;
-        $screenSizeBreakpoint = PageFactory::$config['screenSizeBreakpoint']??false;
+        $screenSizeBreakpoint = PageFactory::$config['screenSizeBreakpoint'] ?? false;
         $screenSizeBreakpoint = $screenSizeBreakpoint ?: 480;
 
-        $js = "var screenSizeBreakpoint = $screenSizeBreakpoint\n";
+        $js = "var screenSizeBreakpoint = $screenSizeBreakpoint;\n";
         $js .= "const hostUrl = '" .        PFY_APP_BASE_URL . "';\n";
         $js .= "const hostAssetUrl = '" .   PFY_APP_BASE_URL . PFY_BASE_OFFSET. "';\n";
         $js .= "const pageUrl = '" .        PFY_PAGE_URL . "';\n";
@@ -456,7 +454,7 @@ EOT;
         }
 
         // check frontmatter for overriding setting:
-        if (str_contains('description,keywords,author,robots', $name) && (self::$$name?? false)) {
+        if (in_array($name, ['description', 'keywords', 'author', 'robots']) && (self::$$name ?? false)) {
             $out = self::$$name; // overridden by frontmatter
         }
 
@@ -484,13 +482,13 @@ EOT;
 
 
     /**
-     * @param string $value
+     * @param string|bool $value
      * @return string
      */
-    private static function getRobotsElem(string|bool $value)
+    private static function getRobotsElem(string|bool $value): string
     {
         if ($value) {
-            $val = is_string(($value)) ? $value : true;
+            $val = is_string($value) ? $value : true;
             if (is_bool($val) || $val === 'true' || $val === 'false') {
                 $val = 'noindex,nofollow,noarchive';
             }

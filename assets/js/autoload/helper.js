@@ -4,27 +4,33 @@
  */
 
 
-execLateLoading();
-
-window.onresize = function() {
+document.addEventListener('DOMContentLoaded', function() {
+  execLateLoading();
+  initCopyButton();
+  initToDoLists();
   adaptToWidth();
-}
+  scrollAnchorIntoView();
+  initBusySpinner();
+});
+
+window.addEventListener('resize', function() {
+  adaptToWidth();
+});
 
 
 
 function execLateLoading() {
  // perform late loading:
-  var elem = document.getElementsByClassName('pfy-onload-css');
-  for (i = 0; i < elem.length; i++) {
-    let href = elem[i].getAttribute('href');
-    elem[i].setAttribute('media', 'all');
+  const cssElems = document.getElementsByClassName('pfy-onload-css');
+  for (let i = 0; i < cssElems.length; i++) {
+    cssElems[i].setAttribute('media', 'all');
   }
 
-  elem = document.getElementsByClassName('pfy-onload');
-  for (i = 0; i < elem.length; i++) {
-    let src = elem[i].getAttribute('data-src');
-    elem[i].setAttribute('src', src);
-    elem[i].removeAttribute('data-src');
+  const srcElems = document.getElementsByClassName('pfy-onload');
+  for (let i = 0; i < srcElems.length; i++) {
+    const src = srcElems[i].getAttribute('data-src');
+    srcElems[i].setAttribute('src', src);
+    srcElems[i].removeAttribute('data-src');
   }
 }
 
@@ -80,13 +86,13 @@ function timeStamp(short = false, toLocale = false) {
       day: 'numeric',
     };
     if (!short) {
-      options = options + {
+      Object.assign(options, {
         hour: 'numeric',
         minute: 'numeric',
         second: 'numeric'
-      };
-      out = now.toLocaleString(undefined, options);
+      });
     }
+    out = now.toLocaleString(undefined, options);
 
   } else {
     // timestamp in ISO format:
@@ -112,7 +118,6 @@ function isEmpty(obj) {
 function foreach(obj, fun) {
   Object.entries(obj).forEach(entry => {
     const [key, value] = entry;
-    console.log(key, value);
     fun(key, value);
   });
 } // foreach
@@ -124,27 +129,18 @@ function sleep(ms) {
 } // sleep
 
 
-function scrollIntoView( selector, container ) {
-    // if (typeof container !== 'undefined') {
-        let elem = document.querySelector( selector );
-        if (elem !== null) { // happens when on unlisted page
-          elem.scrollIntoView(false);
-        }
-    // } else {
-        // document.querySelector('html, body').animate({
-        //     scrollTop: document.querySelector( selector ).offset().top
-        // }, 500);
-    // }
+function scrollIntoView(selector) {
+  const elem = document.querySelector(selector);
+  if (elem !== null) {
+    elem.scrollIntoView(false);
+  }
 } // scrollIntoView
 
 
 
 function translateVar(transvarDef) {
   if (typeof transvarDef === 'undefined') {
-    transvarDef = '_' + transvarDef;
-    if (typeof transvarDef === 'undefined') {
-      return '';
-    }
+    return '';
   }
   if (typeof transvarDef[currLang] !== 'undefined') {
     return transvarDef[currLang];
@@ -231,22 +227,21 @@ function initCopyButton() {
       console.log('Failed to copy: ' + err);
     }
   } // copyToClipboard
-  // console.log('Copy button(s) initialized.');
 } // initCopyButton
 
 
 function createHash(size = 8) {
   const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-_';
   // first char: exclude digits and special chars
-  let n = Math.random()*52;
-  let hash = chars.substring(n, n+1);
-  for (let i=0; i<size-2; i++) {
-    n = Math.random()*65;
-    hash += chars.substring(n, n+1);
+  let n = Math.floor(Math.random() * 52);
+  let hash = chars.substring(n, n + 1);
+  for (let i = 0; i < size - 2; i++) {
+    n = Math.floor(Math.random() * 65);
+    hash += chars.substring(n, n + 1);
   }
   // last letter: exclude special chars
-  n = Math.random()*62;
-  hash += chars.substring(n, n+1);
+  n = Math.floor(Math.random() * 62);
+  hash += chars.substring(n, n + 1);
   return hash;
 } // createHash
 
@@ -297,7 +292,8 @@ function scrollAnchorIntoView() {
 } // scrollAnchorIntoView
 
 function showBusySpinner() {
-  const spinnerOverlay =  document.querySelector('.pfy-spinner-overlay');
+  const spinnerOverlay = document.querySelector('.pfy-spinner-overlay');
+  if (!spinnerOverlay) return;
   spinnerOverlay.style.display = 'block';
   document.body.dataset.overflow = document.body.style.overflow;
   document.body.style.overflow = 'hidden';
@@ -306,16 +302,18 @@ function showBusySpinner() {
 
 
 function hideBusySpinner() {
-  const spinnerOverlay =  document.querySelector('.pfy-spinner-overlay');
+  const spinnerOverlay = document.querySelector('.pfy-spinner-overlay');
+  if (!spinnerOverlay) return;
   spinnerOverlay.style.display = 'none';
   document.body.style.overflow = document.body.dataset.overflow;
   document.body.removeAttribute('data-overflow');
   console.log('spinnerOverlay deactivated');
-} // removeBusySpinner
+} // hideBusySpinner
 
 
 function initBusySpinner() {
-  const spinnerImg =  document.querySelector('.pfy-spinner-overlay img');
+  const spinnerImg = document.querySelector('.pfy-spinner-overlay img');
+  if (!spinnerImg) return;
   const url = spinnerImg.dataset.src;
   spinnerImg.setAttribute('src', url);
 } // initBusySpinner
@@ -352,12 +350,3 @@ function isElementDimmed(element) {
 
   return false;
 } // isElementDimmed
-
-
-document.body.addEventListener('DOMContentLoaded', function() {
-  initCopyButton();
-  initToDoLists();
-  adaptToWidth();
-  scrollAnchorIntoView();
-  initBusySpinner();
-});

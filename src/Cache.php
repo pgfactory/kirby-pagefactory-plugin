@@ -10,7 +10,7 @@ const PFY_PAGE_CACHE_PATH = PFY_CACHE_PATH . 'page-cache/';
 
 class Cache
 {
-    public static bool $pageCachingEnabled = true; // used by Cache
+    public static bool $pageCachingEnabled = true;
     public static bool $cacheUpdateNecessary = false;
 
 
@@ -62,10 +62,16 @@ class Cache
         if (!file_exists($cacheFile)) {
             return false;
         }
-        $rec = unserialize(file_get_contents($cacheFile));
-        $payload = $rec['payload']??false;
-        $validUntil = $rec['validUntil']??0;
+        $data = file_get_contents($cacheFile);
+        $rec = $data ? @unserialize($data) : false;
+        if (!is_array($rec)) {
+            unlink($cacheFile);
+            return false;
+        }
+        $payload = $rec['payload'] ?? false;
+        $validUntil = $rec['validUntil'] ?? 0;
         if ($validUntil < time()) {
+            unlink($cacheFile);
             return false;
         }
         if (!$prefix && isset($payload)) {
@@ -90,7 +96,7 @@ class Cache
         $cacheFile = self::getPageCacheFileName($prefix);
         $rec = [
             'payload' => $payload,
-            'validUntil' => strtotime('today') + 86400, // next midnight
+            'validUntil' => strtotime('tomorrow'),
         ];
         writeFile($cacheFile, serialize($rec));
     } // updatePageCache
@@ -104,8 +110,7 @@ class Cache
     {
         $pageId = str_replace('/', '_', page()->id());
         $prefix = $prefix ? '_' . $prefix : '';
-        $cacheFile = PFY_PAGE_CACHE_PATH . PageFactory::$lang . "/$pageId$prefix.dat";
-        return $cacheFile;
+        return PFY_PAGE_CACHE_PATH . PageFactory::$lang . "/$pageId$prefix.dat";
     } // getPageCacheFileName
 
 
@@ -119,7 +124,7 @@ class Cache
 
 
     /**
-     * Clears entire cache folder, alse clears media/ folder
+     * Clears entire cache folder, also clears media/ folder
      * @return void
      */
     public static function flushAll(): void
@@ -154,7 +159,7 @@ class Cache
     /**
      * @return void
      */
-    public static function preparePath()
+    public static function preparePath(): void
     {
         if (!is_dir(PFY_CACHE_PATH)) {
             mkdir(PFY_CACHE_PATH, recursive: true);
@@ -163,10 +168,10 @@ class Cache
 
 
     /**
-     * @param $t
+     * @param ?int $t
      * @return void
      */
-    public static function updateCacheFlag($t = null)
+    public static function updateCacheFlag(?int $t = null): void
     {
         self::preparePath();
         if ($t === null) {

@@ -1,12 +1,10 @@
 /*
- *  dom.js
- *  Syntax:
- *    sel1 ^closestSel sel2...
- *    sel1 ^{closestSel1 ...} sel2...
- *    sel1 ^{closestSel1 ...} sel2..., sel3...
+ *  dom.js — DOM query helpers
  *
- *    > sel1      -> :scope > sel1
- *      [+>|~]
+ *  Pattern syntax:
+ *    ^closestSel childSel  -> elem.closest(closestSel).querySelector(childSel)
+ *    ^closestSel           -> elem.closest(closestSel)
+ *    > sel                 -> :scope > sel  (also for +, ~)
  */
 
 
@@ -17,26 +15,13 @@ function domForAll(elem = document, pattern = null, fun = null) {
 
 function domForEach(elem = document, pattern = null, fun = null) {
   [elem, pattern, fun] = handleParentPattern(elem, pattern, fun);
-  if (pattern) {
-    if (elem instanceof NodeList) {
-      elem.forEach(elem => {
-        const elems = elem.querySelectorAll(pattern);
-        if (elems) {
-          elems.forEach((el) => {
-            fun(el);
-          });
-        }
-      })
-
-    } else {
-      const elems = elem.querySelectorAll(pattern);
-      if (elems) {
-        elems.forEach((el) => {
-          fun(el);
-        });
-      }
-    }
+  if (!pattern) {
+    return;
   }
+  const nodes = elem instanceof NodeList ? elem : [elem];
+  nodes.forEach(node => {
+    node.querySelectorAll(pattern).forEach(el => fun(el));
+  });
 } // domForEach
 
 
@@ -44,16 +29,15 @@ function domForOne(elem = document, pattern = null, fun = null) {
   [elem, pattern, fun] = handleParentPattern(elem, pattern, fun);
   if (pattern) {
     if (elem instanceof NodeList) {
-        elem.forEach(el => {
-          el = el.querySelector(pattern);
-          if (el) {
-            fun(el);
-          }
-        })
-        return;
-    } else {
-      elem = elem.querySelector(pattern);
+      elem.forEach(el => {
+        el = el.querySelector(pattern);
+        if (el) {
+          fun(el);
+        }
+      });
+      return;
     }
+    elem = elem.querySelector(pattern);
   }
   if (elem) {
     fun(elem);
@@ -62,24 +46,26 @@ function domForOne(elem = document, pattern = null, fun = null) {
 
 
 function handleParentPattern(elem, pattern, fun) {
+  let parentPattern;
   [elem, pattern, parentPattern, fun] = parseDomForArgs(elem, pattern, fun);
   if (!fun) {
     console.log('domForXY(): nothing to do');
-    return [false, false, false];
+    return [null, null, null];
   }
-  if (!elem || !elem instanceof Element) {
-    console.log(`DOM element is not a valid: ${elem}`);
-    return [false, false, false];
+  if (!(elem instanceof Node) && !(elem instanceof NodeList)) {
+    console.log(`DOM element is not valid: ${elem}`);
+    return [null, null, null];
   }
 
   if (parentPattern) {
-    if (elem === document) {
-      console.log('When using ^ in pattern, elem must be defined (other than document).');
+    if (!(elem instanceof Element)) {
+      console.error('When using ^ in pattern, elem must be an Element (not document).');
+      return [null, null, null];
     }
     elem = elem.closest(parentPattern);
   }
   if (!elem) {
-    return [false, false, false];
+    return [null, null, null];
   }
   return [elem, pattern, fun];
 } // handleParentPattern
@@ -87,67 +73,38 @@ function handleParentPattern(elem, pattern, fun) {
 
 function parseDomForArgs(elem, pattern, fun) {
   if (typeof elem !== 'object') {
-    const tmp = elem;
     fun = pattern;
-    pattern = tmp;
+    pattern = elem;
     elem = document;
   }
 
-  let m;
   let parentPattern = '';
   pattern = pattern.trim();
-  if (!pattern.includes('^')) {   // normal case, i.e. without parent selector syntax:
-    // check whether pattern contains multiple comma separated segments:
-    if (pattern.includes(',')) {
-      let subPatterns = pattern.split(',');
-      pattern = '';
-      subPatterns.forEach((pat) => {
-        if (pat.match(/[+>|~]/)) {
-          pat = ':scope ' + pat;
-        }
-        pattern += pat.trimEnd() + ',';
-      });
-      pattern = pattern.slice(0, -1);
 
-    } else {
-      if (pattern.match(/[+>|~]/)) {
-        pattern = ':scope ' + pattern;
-      }
-    }
+  if (!pattern.includes('^')) {
+    // Normal case: auto-prefix combinators with :scope
+    const parts = pattern.split(',');
+    pattern = parts.map(pat => {
+      pat = pat.trim();
+      return pat.match(/^[+>~]/) ? ':scope ' + pat : pat;
+    }).join(', ');
 
   } else {
     if (pattern.includes(',')) {
-      alert('Syntax error is argument: ' + pattern);
-      return;
+      console.error('Syntax error in argument: comma not supported with ^: ' + pattern);
+      return [elem, '', '', null];
     }
-
-    m = pattern.match(/\^(\S*)\s*(.*)/);
+    const m = pattern.match(/\^(\S*)\s*(.*)/);
     if (m) {
       parentPattern = m[1];
       pattern = m[2];
     }
   }
+
   return [elem, pattern, parentPattern, fun];
 } // parseDomForArgs
 
 
-function domReady(fun)
-{
+function domReady(fun) {
   document.addEventListener('DOMContentLoaded', fun);
 } // domReady
-
-
-function handleEvent(selector, func, trigger = 'click', containerEl = null) {
-  document.addEventListener('DOMContentLoaded', () => {
-    //console.log(`registring event handler for "${selector}"`);
-    document.addEventListener(trigger, (ev) => {
-      if (containerEl && !containerEl.contains(ev.target)) {
-        return;
-      }
-      if (!ev.target.closest(selector)) {
-        return;
-      }
-      func(ev, ev.target);
-    });
-  });
-} // handleEvent

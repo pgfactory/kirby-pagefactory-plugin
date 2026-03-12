@@ -23,6 +23,10 @@ class Macros
         list($p1, $p2) = strPosMatching($str);
         while ($p1 !== false) {
             $cand = trim(substr($str, ($p1+2), ($p2-$p1-2)));
+            if ($cand === '') {
+                list($p1, $p2) = strPosMatching($str, $p2);
+                continue;
+            }
             $hideIfUnknown = false;
             if ($cand[0] === '^') {
                 $hideIfUnknown = true;
@@ -53,7 +57,7 @@ class Macros
                 continue;
             } else {
                 if (self::$noTranslate) {
-                    $value = "<span class='pfy-untranslated'>&#123;&#123; $cand &#125;&#125;</span>";;
+                    $value = "<span class='pfy-untranslated'>&#123;&#123; $cand &#125;&#125;</span>";
                 } else {
                     $value = TransVars::getVariable($cand);
                 }
@@ -87,13 +91,13 @@ class Macros
             $showHtml = true;
             $argStr = str_replace($m[0], '', $argStr);
         }
-        $argStr = TransVars::resolveShortFormVariables($argStr, keepUnknows: true);
+        $argStr = TransVars::resolveShortFormVariables($argStr, keepUnknowns: true);
         if (function_exists("PgFactory\\PageFactory\\_$macroName")) {
             $macroName = "_$macroName";
         } elseif (!function_exists("PgFactory\\PageFactory\\$macroName")) {
             $macroFile = "site/plugins/pagefactory/macros/$macroName.php";
             if (!file_exists($macroFile)) {
-                return $macroName;
+                return false;
             }
             self::instantiateMacroLoader($macroName, $macroFile);
         }
@@ -101,22 +105,21 @@ class Macros
         // the actual macro call:
         $value = "PgFactory\\PageFactory\\$macroName"($argStr);
 
-        if ($showHtml) {
-            $html = str_replace('<', '&lt;', $value);
-            $html = <<<EOT
+        if (is_array($value)) {
+            $value = $value[0] ?? '';
+        } else {
+            if ($showHtml) {
+                $html = str_replace('<', '&lt;', $value);
+                $html = <<<EOT
 <div class="pfy-html-source" style="font-size:8pt;">
 <pre>
 $html
 </pre>
 </div>
 EOT;
-            $value .= shieldStr($html);
-        }
-
-        if (is_array($value)) {
-            $value = $value[0]??'';
-        } else {
-            $value = TransVars::resolveShortFormVariables($value, keepUnknows: true);
+                $value .= shieldStr($html);
+            }
+            $value = TransVars::resolveShortFormVariables($value, keepUnknowns: true);
             $value = shieldStr($value, 'inline');
         }
         return $value;
@@ -162,14 +165,8 @@ EOT;
             }
             // check whether arg has optional TYPE specified, check it:
             $type = ($config['options'][$key][2]??false);
-            $auxOptions += self::extractedAuxOptions($type, $value, $key, $supportedKeys, $options);
+            $auxOptions += self::extractAuxOptions($type, $value, $key, $supportedKeys, $options);
         }
-
-        //ToDo: obsolete?
-        //// apply robots attribte on request:
-        //if ($options['rejectRobots']??false) {
-        //    PageFactory::$pg->applyRobotsAttrib();
-        //}
 
         $options['inx'] = $inx;
         $options['macroName'] = ltrim($macroName, '_');
@@ -181,12 +178,12 @@ EOT;
      * @param string $macroName
      * @param array $config
      * @param mixed $args
-     * @return string
+     * @return string|false
      */
-    private static function handleSpecialOptions(string $macroName, array $config, mixed &$args): string
+    private static function handleSpecialOptions(string $macroName, array $config, mixed &$args): string|false
     {
         // render help text:
-        if (is_string($args) && (trim($args) === 'help') || ($args['help']??false)) {
+        if ((is_string($args) && trim($args) === 'help') || ($args['help']??false)) {
             return self::renderMacroHelp($config);
 
         // render as unprocessed (?notranslate):
@@ -308,8 +305,6 @@ EOT;
 
 
     /**
-     * @param bool $includePaths
-     * @param bool $buildInOnly
      * @return array
      */
     public static function getMacros(): array
@@ -333,29 +328,29 @@ EOT;
             $name = ltrim($name, '*');
             $html .= "<li>$name()</li>\n";
         }
-        $html .= "<ul>\n";
+        $html .= "</ul>\n";
         return $html;
-    } // renderTwigFunctions
+    } // renderMacros
 
 
     /**
      * Renders the macro call in presentable form. As a dropdown box, if requested
      * @param string $args
-     * @param array|string $src
+     * @param string $src
      * @param string $macroName
      * @return array
      * @throws \Exception
      */
-    private static function handleShowSource(string $args, array|string $src, string $macroName): array
+    private static function handleShowSource(string $args, string $src, string $macroName): array
     {
         if (preg_match('/,?\s*showSource:\s*(\w+)/', $args, $m)) {
             $args = str_replace($m[0], '', $args);
             $optArg = $m[1];
             if ($optArg === 'false') {
                 return array($args, '');
-            } 
+            }
             $reveal = ($optArg === 'reveal');
-            
+
             $src = str_replace(["''", ',,', '->', '<', '[', '('], ["\\''", "\\,,", "\\->", '&lt;', '&#91;', '&#40;'], $args);
             if (preg_match_all('/".*?"/ms', $src, $m)) {
                 foreach ($m[0] as $i => $rec) {
@@ -404,6 +399,7 @@ EOT;
 
 
     /**
+     * Checks value against expected type, separates unsupported/mismatched options into auxOptions.
      * @param mixed $type
      * @param mixed $value
      * @param int|string $key
@@ -411,59 +407,32 @@ EOT;
      * @param array $options
      * @return array
      */
-    private static function extractedAuxOptions(mixed $type, mixed $value , int|string $key, array $supportedKeys, array &$options): array
+    private static function extractAuxOptions(mixed $type, mixed $value, int|string $key, array $supportedKeys, array &$options): array
     {
-        $auxOptions = [];
+        $typeChecks = [
+            'bool'    => 'is_bool',
+            'int'     => 'is_int',
+            'integer' => 'is_int',
+            'number'  => 'is_numeric',
+            'numeric' => 'is_numeric',
+            'float'   => 'is_float',
+            'string'  => 'is_string',
+            'scalar'  => 'is_scalar',
+            'array'   => 'is_array',
+        ];
+
         $treatAsOption = true;
-        if ($type) {
-            if ($value !== null) {
-                switch ($type) {
-                    case 'bool':
-                        if (!is_bool($value)) {
-                            $treatAsOption = false;
-                        }
-                        break;
-                    case 'int':
-                    case 'integer':
-                        if (!is_int($value)) {
-                            $treatAsOption = false;
-                        }
-                        break;
-                    case 'number':
-                    case 'numeric':
-                        if (!is_numeric($value)) {
-                            $treatAsOption = false;
-                        }
-                        break;
-                    case 'float':
-                        if (!is_float($value)) {
-                            $treatAsOption = false;
-                        }
-                        break;
-                    case 'string':
-                        if (!is_string($value)) {
-                            $treatAsOption = false;
-                        }
-                        break;
-                    case 'scalar':
-                        if (!is_scalar($value)) {
-                            $treatAsOption = false;
-                        }
-                        break;
-                    case 'array':
-                        if (!is_array($value)) {
-                            $treatAsOption = false;
-                        }
-                        break;
-                }
-            }
+        if ($type && $value !== null && isset($typeChecks[$type])) {
+            $treatAsOption = $typeChecks[$type]($value);
         }
+
+        $auxOptions = [];
         if (!in_array($key, $supportedKeys) || !$treatAsOption) {
             $auxOptions[$key] = $value;
             unset($options[$key]);
         }
         return $auxOptions;
-    } // extractedAuxOptions
+    } // extractAuxOptions
 
 
     /**
@@ -481,11 +450,11 @@ EOT;
 
     /**
      * For each Macro instantiate a caller function which upon request loads and executes the actual macro.
-     * @param $funName
-     * @param $file
+     * @param string $funName
+     * @param string $file
      * @return void
      */
-    public static function instantiateMacroLoader($funName, $file)
+    public static function instantiateMacroLoader(string $funName, string $file): void
     {
         if (function_exists("PgFactory\\PageFactory\\$funName")) {
             return;
@@ -518,4 +487,3 @@ EOT;
 
 
 } // Macros
-

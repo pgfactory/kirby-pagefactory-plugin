@@ -12,12 +12,12 @@ if (!defined('PFY_PAGE_META_FILE_BASENAME')) {
  * Invoked by hook 'route:before' in site/config.php
  * Copies content of .md files in given folder to page's meta file, i.e. z.txt
  * Note: this is a work-around till somebody develops a panel plugin that directly accesses .md files
- * @param $pageRef
+ * @param string $pageRef
  * @return void
  */
-function onPanelLoad($pageRef)
+function onPanelLoad(string $pageRef): void
 {
-    $allowNonPfyPages = kirby()->option('debug_checkMetaFiles');
+    $allowNonPfyPages = kirby()->option('pgfactory.pagefactory.debug_checkMetaFiles');
 
     $id = str_replace(['+', 'panel/pages/'], ['/', ''], $pageRef);
     if (!($pg = page($id))) {
@@ -35,7 +35,7 @@ function onPanelLoad($pageRef)
         }
     }
 
-    // read all .md files, store in $mdContents:
+    // read all .md files, merge into fields:
     $mdFiles = getMdFiles($path);
     $fields = [];
     if ($mdFiles) {
@@ -44,17 +44,17 @@ function onPanelLoad($pageRef)
             $md = file_get_contents($file);
 
             // shield frontmatter from being interpreted as fields:
-            $md = preg_replace("/\n----/ms", "\n\\----", $md);
+            $md = preg_replace("/\n----/", "\n\\----", $md);
             $name = filenameToVarname($file);
             $fields[$name] = $md;
         }
     }
 
-    // update .txt files with $mdContents:
+    // update .txt files with field data:
     $txt = '';
     foreach ($fields as $fieldName => $fieldValue) {
         $fieldName = ucfirst($fieldName);
-        if (str_contains($fieldName, '_md') || str_contains($fieldValue, "\n")) {
+        if (str_ends_with($fieldName, '_md') || str_contains($fieldValue, "\n")) {
             $txt .= "\n$fieldName:\n\n$fieldValue\n\n----\n";
         } else {
             $txt .= "\n$fieldName: $fieldValue\n\n----\n";
@@ -68,34 +68,26 @@ function onPanelLoad($pageRef)
 
 /**
  * Checks all page folders, creates metafiles for all supported languages if missing.
- * If it's missing and debug_checkMetaFiles is true, an exception is thrown.
- * If multilang is active, missing lang variantes are created based on the primary lang.
+ * If multilang is active, missing lang variants are created based on the primary lang.
  * @return void
- * @throws Exception
  */
 function checkMetaFiles(): void
 {
-    if (!kirby()->option('pgfactory.pagefactory.options.debug_checkMetaFiles')) {
+    if (!kirby()->option('pgfactory.pagefactory.debug_checkMetaFiles')) {
         return;
     }
 
-    if (!$language = kirby()->language()) {
-        if (!$language = kirby()->defaultLanguage()) {
-            $language = 'en';
-        }
-    }
-    $langTag = '.'.$language;
-    if (!$languages = kirby()->languages()->toArray()) {
-        $languages = [];
-        $langTag = '';
-    }
+    $language = kirby()->language() ?: kirby()->defaultLanguage();
+    $langCode = $language ? $language->code() : 'en';
+    $languages = kirby()->languages()->toArray();
+    $langTag = $languages ? ".$langCode" : '';
 
     // loop over all pages:
     $pages = site()->pages()->index();
     foreach ($pages as $page) {
         $path = $page->root();
-        if ((strpos($path, 'content/assets') !== false) ||
-            (strpos($path, 'content/error') !== false)) {
+        if (str_contains($path, 'content/assets') ||
+            str_contains($path, 'content/error')) {
             continue;
         }
         $primaryMetaFilename = "$path/".PFY_PAGE_META_FILE_BASENAME."$langTag.txt";
@@ -110,8 +102,8 @@ function checkMetaFiles(): void
             }
         }
         foreach ($languages as $lang) {
-            $lang = $lang['code'];
-            $metaFilename = "$path/".PFY_PAGE_META_FILE_BASENAME.".$lang.txt";
+            $code = $lang['code'];
+            $metaFilename = "$path/".PFY_PAGE_META_FILE_BASENAME.".$code.txt";
             if (($primaryMetaFilename === $metaFilename) || file_exists($metaFilename)) {
                 continue;
             }
@@ -129,7 +121,7 @@ function checkMetaFiles(): void
  * @param \Kirby\Cms\Page $page
  * @return void
  */
-function onPageCreateAfter(Kirby\Cms\Page $page)
+function onPageCreateAfter(Kirby\Cms\Page $page): void
 {
     $basename = $page->slug();
 
@@ -139,15 +131,15 @@ function onPageCreateAfter(Kirby\Cms\Page $page)
     file_put_contents($page->root() . '/' . $filename, $md);
 
     $propertyData = $page->propertyData();
-    $template = $propertyData['template']??'';
+    $template = $propertyData['template'] ?? '';
 
     // rename .txt file to '~page.xy.txt' if necessary:
     // -> this activates the automatic blueprint
     $path = 'content/' . $page->diruri() . '/';
-    $languages = kirby()->language();
-    $lang = $languages ? '.'.$languages->code() : '';
+    $language = kirby()->language();
+    $lang = $language ? '.' . $language->code() : '';
     $origMetaFile = "$path$template$lang.txt";
-    $metaFilename = PFY_PAGE_META_FILE_BASENAME."$lang.txt";
+    $metaFilename = PFY_PAGE_META_FILE_BASENAME . "$lang.txt";
     $newMetaFile = "$path$metaFilename";
     if (!file_exists($origMetaFile)) {
         return;
@@ -158,16 +150,14 @@ function onPageCreateAfter(Kirby\Cms\Page $page)
 } // onPageCreateAfter
 
 
-
 /**
  * Invoked by hook 'page.update:after' in site/config.php
  * Reads page's metafile, finds fields containing content data, updates corresponding .md files
  * Note: this is a work-around till somebody develops a panel plugin that directly accesses .md files
  * @param \Kirby\Cms\Page $newPage
  * @return void
- * @throws \Kirby\Exception\InvalidArgumentException
  */
-function onPageUpdateAfter(Kirby\Cms\Page $newPage)
+function onPageUpdateAfter(Kirby\Cms\Page $newPage): void
 {
     // export data from auto.lang.txt to md-file:
     $fields = $newPage->content()->data();
@@ -197,7 +187,7 @@ function onPageUpdateAfter(Kirby\Cms\Page $newPage)
  * When user opens panel, dynamically creates a blueprint featuring editing fields from .md files
  * @return array
  */
-function assembleBlueprint()
+function assembleBlueprint(): array
 {
     $callPath = str_replace('+', '/', kirby()->path());
     $pgId = str_replace(['panel/pages/', 'api/pages/'], '', $callPath);
@@ -211,9 +201,6 @@ function assembleBlueprint()
     $path = getPagePath($pgId);
     if ($path && file_exists($path)) {
         $mdFiles = getMdFiles($path);
-        //        if (!$mdFiles) {
-        //            $mdFiles = ["$path/skipped-page.md"];
-        //        }
         $sidebar = getSidebar();
         foreach ($mdFiles as $i => $file) {
             $tab = getMdEditorTab($basename, $file);
@@ -227,25 +214,28 @@ function assembleBlueprint()
 
 
 /**
+ * Returns .md files in the given path, excluding files starting with '#'.
  * @param string $path
- * @return array|false
+ * @return array
  */
-function getMdFiles(string $path): array|false
+function getMdFiles(string $path): array
 {
     $mdFiles = glob("$path/*.md");
-    $mdFiles = array_filter($mdFiles, function ($file) {
-        return (basename($file))[0] !== '#';
-    });
-    return $mdFiles;
+    if (!$mdFiles) {
+        return [];
+    }
+    return array_values(array_filter($mdFiles, function ($file) {
+        return basename($file)[0] !== '#';
+    }));
 } // getMdFiles
 
 
 /**
  * Finds the filesystem path of a page, recursively and independent of page state.
- * @param $pattern
- * @return string
+ * @param string $pattern
+ * @return string|null
  */
-function getPagePath($pattern)
+function getPagePath(string $pattern): ?string
 {
     $elems = explode('/', $pattern);
     $obj = site();
@@ -263,9 +253,8 @@ function getPagePath($pattern)
  * Helper to assembleBlueprint()
  * Renders blueprint fragment for side bar -> pages and files
  * @return array
- * @throws \Kirby\Exception\InvalidArgumentException
  */
-function getSidebar()
+function getSidebar(): array
 {
     return [
         'width' => '1/3',
@@ -286,16 +275,15 @@ function getSidebar()
 /**
  * Helper to assembleBlueprint()
  * Renders blueprint fragment for tab containing md editor
- * @param $basename
- * @param $file
+ * @param string $basename
+ * @param string $file
  * @return array
- * @throws \Kirby\Exception\InvalidArgumentException
  */
 function getMdEditorTab(string $basename, string $file): array
 {
     $name = filenameToVarname($file);
     $filename = basename($file);
-    $bp = [
+    return [
         'label' => $filename,
         'icon'  => 'text',
         'columns' => [
@@ -316,18 +304,16 @@ function getMdEditorTab(string $basename, string $file): array
             ],
         ],
     ];
-    return $bp;
 } // getMdEditorTab
 
 
 /**
  * Helper to assemble the first tab in the default blueprint featuring ContentBlocks.
  * @return array
- * @throws \Kirby\Exception\InvalidArgumentException
  */
-function getFirstTab()
+function getFirstTab(): array
 {
-    $tab = [
+    return [
         'CodeBlocks' => [
             'label' => 'Editor',
             'icon' => 'page',
@@ -351,20 +337,17 @@ function getFirstTab()
             ]
         ],
     ];
-    return $tab;
 } // getFirstTab
 
 
 /**
- * Helper: converts a filename to a form compatible with meta-file resp. blueprint
+ * Converts a filename to a form compatible with meta-file resp. blueprint.
  * Note: conversion is not reversible, original file needs to be found by searching dir.
- * @param $filename
- * @param $dashedResponse
- * @return array|string|string[]|null
+ * @param string $filename
+ * @return string
  */
-function filenameToVarname($filename)
+function filenameToVarname(string $filename): string
 {
     $str = preg_replace('/[_\W]/', '_', basename($filename, '.md'));
     return $str . '_md';
 } // filenameToVarname
-

@@ -401,6 +401,9 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
       color: $curr-txt-color;
       background: $curr-bg-color;
     }
+    .pfy-active.pfy-active > a{
+      background: $active-bg-color;
+    }
     .pfy-nav-no-direct-child > a {
       cursor: text;
     }
@@ -417,6 +420,13 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
       color: $curr-txt-color;
       background: $curr-bg-color;
     }
+//    .pfy-active:not(.pfy-has-surrogate-elem.pfy-active) > a:hover {
+//      background: var(--pfy-nav-hover-bg-color, #{$curr-bg-color});
+//    }
+//    .pfy-active:not(.pfy-has-surrogate-elem.pfy-active) > a {
+//      color: $curr-txt-color;
+//      background: $curr-bg-color;
+//    }
   }
 
   &.pfy-nav-collapsed, .pfy-nav-collapsed,

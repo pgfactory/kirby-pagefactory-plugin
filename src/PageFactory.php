@@ -15,7 +15,7 @@ use PgFactory\MarkdownPlus\Permission;
  //  PFY_KIRBY_BASE_PATH    = /path/to/localhost/app/onair/     = PFY_APP_BASE_PATH . PFY_BASE_OFFSET
 
 
- // System ULRs:
+ // System URLs:
 define('PFY_HOST_URL',                  ($_SERVER['REQUEST_SCHEME']??'') . '://' . ($_SERVER['HTTP_HOST']??'') . '/'); // https://domain.net/
 define('PFY_APP_BASE_URL',              URL::index().'/');    // https://domain.net/webapp/
 define('PFY_PAGE_URL',                  page()->url() . '/'); // https://domain.net/webapp/pg1/
@@ -144,13 +144,13 @@ class PageFactory
 
 
     /**
-     * @return void
+     * @return array
      * @throws Kirby\Exception\InvalidArgumentException
      * @throws Kirby\Exception\LogicException
      */
     public function prepareTemplateFields(): array
     {
-        $pageFields = false;
+        $pageFields = null;
         if (Cache::$pageCachingEnabled && $this->checkAccessRestriction()) {
             $pageFields = Cache::checkPageCache();
         }
@@ -197,7 +197,6 @@ class PageFactory
 
     /**
      * @return void
-     * @throws Kirby\Exception\InvalidArgumentException
      */
     private function init(): void
     {
@@ -240,7 +239,7 @@ class PageFactory
 
 
     /**
-     * Wrapper for _renderPageContent(). Catches errors and redirects to error page while in productive mode.
+     * Wrapper for renderPageContentInner(). Catches errors and redirects to error page while in productive mode.
      * @return string
      * @throws Kirby\Exception\LogicException
      * @throws SassException
@@ -250,43 +249,39 @@ class PageFactory
         Extensions::extensionsFinalCode();
         Utils::handleAgentRequestsOnRenderedPage();
 
+        // in dev mode: let exceptions propagate for debugging:
         if (self::$dev) {
-            return $this->_renderPageContent();
-        } else {
-            try {
-                return $this->_renderPageContent();
-
-            } catch (\Exception $e) {
-                if (!self::$dev) {
-                    // in productive mode: try flush-cache-and-reload once, then give up and return error msg:
-                    //  -> in particular after first upload this can fix problems.
-                    if (!file_exists(PFY_CRASH_RELOAD_FILE)) {
-                        mylog($e->getMessage().".\n=> Now clearing cache and reloading page.");
-                        writeFile(PFY_CRASH_RELOAD_FILE, '');
-                        Utils::sendMail([
-                            'to'          => self::$webmasterEmail,
-                            'subject'     => 'PageFactory: Fatal error on page '.self::$page->url(),
-                            'body'        => $e->getMessage()."\n\nNow clearing cache and reloading page.",
-                        ]);
-                        Cache::flushAll();
-                        mylog("=== reloading after first attempt to flush cache. ===");
-                        reloadAgent();
-                    } else {
-                        unlink(PFY_CRASH_RELOAD_FILE);
-                        mylog($e->getMessage().".\n=> Second attempt to flush cache failed.\nGiving up now.");
-                        Utils::sendMail([
-                            'to'          => self::$webmasterEmail,
-                            'subject'     => 'PageFactory: Fatal error second run on page '.self::$page->url(),
-                            'body'        => $e->getMessage()."\n\nSecond attempt to flush cache failed. Giving up now.",
-                        ]);
-                        return 'An error occurred on the server - please try again later';
-                    }
-                } else {
-                    return $e->getMessage();
-                }
-            }
+            return $this->renderPageContentInner();
         }
-        return '';
+
+        // in productive mode: catch errors, try flush-cache-and-reload once, then give up:
+        try {
+            return $this->renderPageContentInner();
+
+        } catch (\Exception $e) {
+            // first attempt: flush cache and reload page:
+            if (!file_exists(PFY_CRASH_RELOAD_FILE)) {
+                mylog($e->getMessage().".\n=> Now clearing cache and reloading page.");
+                writeFile(PFY_CRASH_RELOAD_FILE, '');
+                Utils::sendMail([
+                    'to'          => self::$webmasterEmail,
+                    'subject'     => 'PageFactory: Fatal error on page '.self::$page->url(),
+                    'body'        => $e->getMessage()."\n\nNow clearing cache and reloading page.",
+                ]);
+                Cache::flushAll();
+                mylog("=== reloading after first attempt to flush cache. ===");
+                reloadAgent();
+            }
+            // second attempt failed: give up and return error msg:
+            unlink(PFY_CRASH_RELOAD_FILE);
+            mylog($e->getMessage().".\n=> Second attempt to flush cache failed.\nGiving up now.");
+            Utils::sendMail([
+                'to'          => self::$webmasterEmail,
+                'subject'     => 'PageFactory: Fatal error second run on page '.self::$page->url(),
+                'body'        => $e->getMessage()."\n\nSecond attempt to flush cache failed. Giving up now.",
+            ]);
+            return 'An error occurred on the server - please try again later';
+        }
     } // renderPageContent
 
 
@@ -297,7 +292,7 @@ class PageFactory
      * @throws Kirby\Exception\LogicException
      * @throws SassException
      */
-    public function _renderPageContent(): string
+    private function renderPageContentInner(): string
     {
         $html = '';
         $inx = 0;
@@ -333,7 +328,7 @@ class PageFactory
         }
 
         return Page::renderBody($html);
-    } // _renderPageContent
+    } // renderPageContentInner
 
 
     /**
@@ -361,7 +356,7 @@ class PageFactory
             if (str_ends_with($file, '.meta.md')) {
                 $mdStr = getFile($file, 'cstyle,emptylines,twig');
                 Frontmatter::extract($mdStr);
-                Frontmatter::propagaterStyles('pfy-main');
+                Frontmatter::propagateStyles('pfy-main');
                 unset($files[$i]);
 
             // optionally exclude certain files from the rendering process:
@@ -385,7 +380,7 @@ class PageFactory
 
             // extract frontmatter:
             if ((!$res = Frontmatter::extract($mdStr)) || !trim($res[0], " \n\t")) {
-                // frontmatter indicated that this file shall be supressed
+                // frontmatter indicated that this file shall be suppressed
                 unset($files[$i]);
                 continue;
             }
@@ -402,7 +397,7 @@ class PageFactory
             }
         }
 
-        $slidingPanelsMode |= self::$slidingPanels;
+        $slidingPanelsMode = $slidingPanelsMode || self::$slidingPanels;
         if ($slidingPanelsMode) {
             $outerWrapper1 = "<div>\n";
             $outerWrapper2 = "\n</div><!-- /.pfy-section-outer -->";
@@ -425,7 +420,7 @@ class PageFactory
 
             // check for end-of-page tag:
             if (str_contains($mdStr, '__EOP__')) {
-                $abort = true; // skip any forther md files
+                $abort = true; // skip any further md files
                 $mdStr = substr($mdStr, 0, strpos($mdStr, '__EOP__')); // cut off tag and all that follows
             }
 
@@ -454,7 +449,7 @@ $innerWrapper2
 EOT;
 
             // if some CSS/SCSS found in frontmatter, request rendering it now:
-            Frontmatter::propagaterStyles($wrapperId);
+            Frontmatter::propagateStyles($wrapperId);
 
             $finalHtml .= $html;
             if ($abort) {
@@ -543,25 +538,25 @@ EOT;
 
 
     /**
-     * @param mixed $inx
+     * @param int $inx
      * @param array $sectionTitles
      * @return string[]
      */
-    private function handleSlidingPanels(mixed $inx, array $sectionTitles): array
+    private function handleSlidingPanels(int $inx, array $sectionTitles): array
     {
         $wrapperClass = " pfy-panel pfy-panel-$inx";
         if ($inx === 1) {
             $wrapperClass .= ' pfy-panel-open';
         }
 
-        $panelCenter = "";
+        $panelButtons = [];
         foreach ($sectionTitles as $i => $label) {
             $pInx = ($i + 1);
             $class = ($inx === $i+1) ? 'pfy-curr-panel' : '';
             $title = ($sectionTitles[$i] ?? false) ? " title='{$sectionTitles[$i]}'" : '';
-            $panelCenter .= "<button data-panel='$pInx' class='$class'$title>$pInx</button><span></span>";
+            $panelButtons[] = "<button data-panel='$pInx' class='$class'$title>$pInx</button>";
         }
-        $panelCenter = substr($panelCenter, 0, strlen($panelCenter)-13);
+        $panelCenter = implode('<span></span>', $panelButtons);
 
         $innerWrapper1 = "  <div class='pfy-section-inner'>\n";
         $innerWrapper2 = "\n  </div><!-- /.pfy-section-inner -->";
@@ -582,10 +577,10 @@ EOT;
 
 
     /**
-     * @param array|bool|string $mdStr
+     * @param string $mdStr
      * @return string
      */
-    private function handleIncludeFile(array|bool|string $mdStr): string
+    private function handleIncludeFile(string $mdStr): string
     {
         if (preg_match("/{{ include\((.*?)\) }}/", $mdStr, $m)) {
             $fileToInclude = trim($m[1], ' "\'');

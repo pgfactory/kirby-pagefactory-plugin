@@ -4,11 +4,9 @@ namespace PgFactory\PageFactory;
 
 class PrevNextLinks
 {
-    public static $inx = 0;
-    public static $initialized = false;
-    public $class;
-    public $page;
-    public $pages;
+    public static int $inx = 0;
+    public static bool $initialized = false;
+    private string $class = '';
     private bool $empty = true;
 
 
@@ -21,58 +19,38 @@ class PrevNextLinks
     public function render(array $args): string
     {
         self::$inx++;
-        $this->class = $args['class']??'';
-        $this->page  = PageFactory::$page;
-        $this->pages = PageFactory::$pages;
+        $this->class = $args['class'] ?? '';
+        $this->empty = true;
 
-        $wrapperClass = $args['wrapperClass']??'';
+        if (($args['type'][0] ?? '') === 'h') {
+            return $this->renderHeadLinkElements();
+        }
 
-        if (($args['type'][0]??'') === 'h') {
-            $out = $this->renderHeadLinkElements();
+        $prev = $this->renderLink('prev');
+        $center = $this->resolveCenter($args['center'] ?? false);
+        $next = $this->renderLink('next');
 
-        } else {
-            $prev = $this->renderPrevLink();
-
-            $center = '';
-            if ($args['center']??false) {
-                $center = (string)$args['center'];
-                while (preg_match('/%(\w{2,32})%/', $center, $m)) {
-                    $k = $m[1];
-                    $value = TransVars::getVariable($k);
-                    if (!$value && (Utils::$$k ?? false)) { // if not a TransVar, check Utils special vars
-                        $value = Utils::$$k;
-                    }
-                    $center = str_replace($m[0], (string)$value, $center);
-                }
-                // handle transvars in {{}} notation:
-                if (str_contains($center, '{{')) {
-                    $center = TransVars::translate($center);
-                }
-                $center = "<div class='pfy-page-switcher-center'>$center</div><!-- /pfy-page-switcher-center -->\n";
+        $wrapperClass = $args['wrapperClass'] ?? '';
+        if ($this->empty) {
+            $wrapperClass .= ' pfy-page-switcher-empty';
+            if (!$center) {
+                $wrapperClass .= ' pfy-dispno';
             }
+        }
 
-            $next = $this->renderNextLink();
-
-            if ($this->empty) {
-                $wrapperClass .= ' pfy-page-switcher-empty';
-                if (!$center) {
-                    $wrapperClass .= ' pfy-dispno';
-                }
-            }
-            $out = '';
-            if (!self::$initialized) {
-                self::$initialized = true;
-                // inject script code for page-switching:
-                $url = PFY_APP_BASE_URL . PFY_BASE_OFFSET . "media/plugins/pgfactory/pagefactory/js/page-switcher.js";
-                // note: not using Assets::addAssets() because this may be called from corresponding snippet.
-                $out .= "\t<script src='$url'></script>\n";
-            }
-            $out .= <<<EOT
+        $out = '';
+        if (!self::$initialized) {
+            self::$initialized = true;
+            // inject script code for page-switching:
+            $url = PFY_APP_BASE_URL . PFY_BASE_OFFSET . "media/plugins/pgfactory/pagefactory/js/page-switcher.js";
+            // note: not using Assets::addAssets() because this may be called from corresponding snippet.
+            $out .= "\t<script src='$url'></script>\n";
+        }
+        $out .= <<<EOT
 <div class='pfy-page-switcher-wrapper $wrapperClass'>
 $prev$center$next
 </div><!-- /.pfy-page-switcher-wrapper -->
 EOT;
-        }
 
         return $out;
     } // render
@@ -84,16 +62,12 @@ EOT;
      */
     private function renderHeadLinkElements(): string
     {
-        $out = "";
-        $prev = SiteNav::$prev;
-        if ($prev) {
-            $url = $prev->url();
-            $out = "  <link rel='prev' href='$url'>\n";
+        $out = '';
+        if ($prev = SiteNav::$prev) {
+            $out .= "  <link rel='prev' href='{$prev->url()}'>\n";
         }
-        $next = SiteNav::$next;
-        if ($next) {
-            $url = $next->url();
-            $out .= "  <link rel='next' href='$url'>\n";
+        if ($next = SiteNav::$next) {
+            $out .= "  <link rel='next' href='{$next->url()}'>\n";
         }
 
         return ltrim($out);
@@ -101,57 +75,65 @@ EOT;
 
 
     /**
-     * Renders HTML element for previous page link.
+     * Renders HTML element for a prev or next page link.
+     * @param string $direction   'prev' or 'next'
      * @return string
      */
-    private function renderPrevLink(): string
+    private function renderLink(string $direction): string
     {
-        $prev = SiteNav::$prev;
-        if ($prev) {
-            TransVars::setVariable('pfy-prev-page-title', (string)$prev->title());
-            $url = $prev->url();
-            $title = TransVars::getVariable('pfy-link-to-prev-page');
-            $text = '<span class="pfy-page-switcher-link-text">'.$prev->title()->value().'</span>';
-            $text = TransVars::getVariable('pfy-previous-page-text').$text;
-            $prevLink = "<a href='$url' title='$title' rel='prev'>\n\t\t$text\n\t\t</a>";
+        $isPrev = ($direction === 'prev');
+        $page = $isPrev ? SiteNav::$prev : SiteNav::$next;
+        $link = '&nbsp;';
+
+        if ($page) {
+            TransVars::setVariable("pfy-$direction-page-title", (string)$page->title());
+            $url = $page->url();
+            $title = TransVars::getVariable($isPrev ? 'pfy-link-to-prev-page' : 'pfy-link-to-next-page');
+            $text = '<span class="pfy-page-switcher-link-text">'.$page->title()->value().'</span>';
+            $text = $isPrev
+                ? TransVars::getVariable('pfy-previous-page-text').$text
+                : $text.TransVars::getVariable('pfy-next-page-text');
+            $rel = $isPrev ? 'prev' : 'next';
+            $link = "<a href='$url' title='$title' rel='$rel'>\n\t\t$text\n\t\t</a>";
             $this->empty = false;
-        } else {
-            $prevLink = '&nbsp;';
         }
+
+        $dirClass = $isPrev ? 'pfy-previous-page-link' : 'pfy-next-page-link';
         $out = <<<EOT
-      <div class="pfy-page-switcher-links pfy-previous-page-link $this->class">
-        $prevLink
+      <div class="pfy-page-switcher-links $dirClass $this->class">
+        $link
       </div>
 
 EOT;
         return $out;
-    } // renderPrevLink
+    } // renderLink
 
 
     /**
-     * Renders HTML element for next page link.
+     * Resolves TransVars in center text and wraps it in a div.
+     * @param string|false $center
      * @return string
      */
-    private function renderNextLink(): string
+    private function resolveCenter(string|false $center): string
     {
-        $next = SiteNav::$next;
-        if ($next) {
-            $nextUrl = $next->url();
-            $title = TransVars::getVariable('pfy-link-to-next-page');
-            $text = '<span class="pfy-page-switcher-link-text">'.$next->title()->value().'</span>';
-            $text = $text.TransVars::getVariable('pfy-next-page-text');
-            $nextLink = "<a href='$nextUrl' title='$title' rel='next'>\n\t\t$text\n\t\t</a>";
-            $this->empty = false;
-        } else {
-            $nextLink = '&nbsp;';
+        if (!$center) {
+            return '';
         }
-        $out = <<<EOT
-      <div class="pfy-page-switcher-links pfy-next-page-link $this->class">
-        $nextLink
-      </div>
-
-EOT;
-        return $out;
-    } // renderNextLink
+        $center = (string)$center;
+        // resolve %varName% notation:
+        while (preg_match('/%(\w{2,32})%/', $center, $m)) {
+            $k = $m[1];
+            $value = TransVars::getVariable($k);
+            if (!$value && (Utils::$$k ?? false)) { // if not a TransVar, check Utils special vars
+                $value = Utils::$$k;
+            }
+            $center = str_replace($m[0], (string)$value, $center);
+        }
+        // resolve {{varName}} notation:
+        if (str_contains($center, '{{')) {
+            $center = TransVars::translate($center);
+        }
+        return "<div class='pfy-page-switcher-center'>$center</div><!-- /pfy-page-switcher-center -->\n";
+    } // resolveCenter
 
 } // PrevNextLinks

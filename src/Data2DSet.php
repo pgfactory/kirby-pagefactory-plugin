@@ -23,18 +23,18 @@ class Data2DSet
 {
     private string $file = '';
     private string $downloadFilename = '';
-    private $officeDoc = false;
+    private ?OfficeFormat $officeDoc = null;
     private array $options = [];
     private array $data = [];
     private array $data2D = [];
-    private array $colHeaders = [];  // recKey:Label
+    private array $colHeaders = [];  // recKey => Label
     private bool  $markLocked;
-    private mixed $order;
-    private mixed $filter;
-    private object|null $db = null;
+    private string|false $order;
+    private array|false $filter;
+    private ?DataStore $db = null;
     private int $nRows = 0;
     private string $placeholderForUndefined = '';
-    public static $officeFormatAvailable;
+    public static bool $officeFormatAvailable = false;
 
 
     /**
@@ -48,7 +48,7 @@ class Data2DSet
 
         if (is_array($file)) {
             $this->data = $file;
-        } elseif (is_bool($file) || $file === '1') {
+        } elseif ($file === '' || $file === '1') {
             $this->data = [];
         } else {
             $this->file = $file;
@@ -65,12 +65,12 @@ class Data2DSet
      * @return void
      * @throws \Exception
      */
-    private function checkDataIntegrity()
+    private function checkDataIntegrity(): void
     {
         $needsUpdate = false;
         $data = $this->data;
         foreach ($data as $key => $rec) {
-            if (!($rec[DATAREC_RECKEY]??false)) {
+            if (!($rec[DATAREC_RECKEY] ?? false)) {
                 $needsUpdate = true;
                 $data[$key][DATAREC_RECKEY] = createHash();
             }
@@ -112,11 +112,11 @@ class Data2DSet
     /**
      * @param array $rec
      * @param bool $flush
-     * @param $recKeyToUse
-     * @return object|string
+     * @param string|false $recKeyToUse
+     * @return bool
      * @throws \Exception
      */
-    public function addRec(array $rec, bool $flush = true, $recKeyToUse = false): object|string
+    public function addRec(array $rec, bool $flush = true, string|false $recKeyToUse = false): bool
     {
         return $this->db->addRec($rec, $flush, $recKeyToUse);
     } // addRec
@@ -165,7 +165,6 @@ class Data2DSet
 
 
     /**
-     * @param $headerElems
      * @return array
      * @throws \Exception
      */
@@ -175,7 +174,7 @@ class Data2DSet
 
         $this->data2D = $this->doNormalizeData();
 
-        $this->nRows = sizeof($this->data2D)-1;
+        $this->nRows = sizeof($this->data2D) - 1;
 
         $this->obfuscateRequestedColumns();
 
@@ -191,16 +190,13 @@ class Data2DSet
 
 
     /**
-     * @param array|false $data
-     * @param array $colHeaders
      * @return array
-     * @throws \Exception
      */
     private function doNormalizeData(): array
     {
         $data = $this->data;
 
-        // deterime colHeaders:
+        // determine colHeaders:
         $colHeaders = $this->colHeaders;
         if (!array_is_list($colHeaders)) {
             $colHeaders = array_keys($colHeaders);
@@ -232,12 +228,12 @@ class Data2DSet
                         $newRec[$elemKey] = $this->normalizeDataElement($elemKey, $v);
 
                     // check whether indirect data access via recLabels works:
-                    } elseif (isset($rec[($colHeaders[$elemKey]??false)])) {
+                    } elseif (isset($rec[($colHeaders[$elemKey] ?? false)])) {
                         $newRec[$elemKey] = $this->normalizeDataElement($elemKey, $rec[$colHeaders[$elemKey]]);
 
                     // no matching data found -> mark as unknown
                     } else {
-                        $newRec[$elemKey] = ($elemKey === '_locked')? false : $this->placeholderForUndefined;
+                        $newRec[$elemKey] = ($elemKey === '_locked') ? false : $this->placeholderForUndefined;
                     }
                 }
             }
@@ -252,19 +248,19 @@ class Data2DSet
      * @param mixed $value
      * @return string
      */
-    public function normalizeDataElement(string $key, mixed $value): string
+    private function normalizeDataElement(string $key, mixed $value): string
     {
         $newValue = '';
         if ($key === DATAREC_TIMESTAMP) {
             $newValue = date('Y-m-d H:i', $value);
         } elseif (is_bool($value)) {
-            $newValue = $value? '1':'0';
+            $newValue = $value ? '1' : '0';
         } elseif (is_scalar($value)) {
-            $newValue = $value;
+            $newValue = (string)$value;
         } elseif (is_array($value) && isset($value['_'])) {
-            $newValue = $value['_'];
+            $newValue = (string)$value['_'];
         } elseif (is_array($value)) {
-            $newValue = json_encode($value);
+            $newValue = json_encode($value) ?: '';
         }
         return $newValue;
     } // normalizeDataElement
@@ -276,17 +272,17 @@ class Data2DSet
     private function sortData(): void
     {
         $sortElem = $this->order;
-        $reversed = $this->options['reversed']??false;
+        $reversed = $this->options['reversed'] ?? false;
         $data = $this->data2D;
-        uasort($data, function ($a,$b) use ($sortElem) {
-            return strcmp($a[$sortElem]??'', $b[$sortElem]??'');
+        uasort($data, function ($a, $b) use ($sortElem) {
+            return strcmp($a[$sortElem] ?? '', $b[$sortElem] ?? '');
         });
 
         if ($reversed) {
             $data = array_reverse($data, true);
         }
         $this->data2D = $data;
-    } // sortTableData
+    } // sortData
 
 
     /**
@@ -296,55 +292,29 @@ class Data2DSet
     {
         $data = $this->data2D;
 
-        $filterElem = $this->filter['name']??false;
-        $filterValue = $this->filter['value']??false;
+        $filterElem = $this->filter['name'] ?? false;
+        $filterValue = $this->filter['value'] ?? false;
         if (!$filterElem || !$filterValue) {
             return;
         }
-        $filterOp = $this->filter['op']??'===';
+        $filterOp = $this->filter['op'] ?? '===';
 
-        if ($filterOp === '===') {
-            $data = array_filter($data, function ($rec) use ($filterElem, $filterValue) {
-                return $rec[$filterElem] === $filterValue;
-            });
-        } else {
-            $data = array_filter($data, function ($rec) use ($filterElem, $filterValue, $filterOp) {
-                $v = $rec[$filterElem];
-                $expr = "return \"$v\" $filterOp \"$filterValue\";";
-                try {
-                    $res = eval($expr);
-                } catch (\Exception $e) {
-                    $res = false;
-                }
-                return $res;
-            });
-        }
+        $data = array_filter($data, function ($rec) use ($filterElem, $filterValue, $filterOp) {
+            $v = $rec[$filterElem] ?? '';
+            return match ($filterOp) {
+                '==' => $v == $filterValue,
+                '!=' => $v != $filterValue,
+                '!==' => $v !== $filterValue,
+                '>' => $v > $filterValue,
+                '>=' => $v >= $filterValue,
+                '<' => $v < $filterValue,
+                '<=' => $v <= $filterValue,
+                default => $v === $filterValue,  // '===' and any unknown op
+            };
+        });
 
         $this->data2D = $data;
-    } // filterTableData
-
-
-    /**
-     * @param array $keys
-     * @param array $values
-     * @return array
-     */
-    private function arrayCombine(array $keys, array $values): array
-    {
-        $nKeys = sizeof($keys);
-        $nValues = sizeof($values);
-        if ($nKeys < $nValues) {
-            for ($i=$nKeys; $i<$nValues; $i++) {
-                $keys[$i] = translateToIdentifier($values[$i]??'');
-            }
-        } elseif ($nKeys > $nValues) {
-            for ($i=$nValues; $i<$nKeys; $i++) {
-                $values[$i] = '';
-                // originally: $values[$i] = str_replace('_', ' ', ($keys[$i]??''));
-            }
-        }
-        return array_combine($keys, $values);
-    } // arrayCombine
+    } // filterData
 
 
     /**
@@ -352,10 +322,10 @@ class Data2DSet
      */
     private function obfuscateRequestedColumns(): void
     {
-        if (!$this->options['obfuscateCols']) {
+        $cols = $this->options['obfuscateCols'] ?? [];
+        if (!$cols) {
             return;
         }
-        $cols = $this->options['obfuscateCols'];
         foreach ($cols as $i => $patt) {
             if (preg_match('/^(.*?)\*.*/', $patt, $m)) {
                 $patt = strtolower($m[1]);
@@ -386,7 +356,7 @@ class Data2DSet
      */
     public function getRec(string $key): array|false
     {
-        return ($this->data[$key]??false);
+        return ($this->data[$key] ?? false);
     } // getRec
 
 
@@ -394,26 +364,17 @@ class Data2DSet
      * General purpose export to file
      *    $ds->export('output/export.yaml');  -> to yaml file
      *    $ds->export('output/export.json');  -> to json file
-     *    $ds->export('output/export1.csv');   -> to csv file *)
-     *    $ds->export('output/export2.csv', includeMeta: true); -> includes meta-data
-     *    $ds->export('output/export3.csv', includeHeader: false); -> includes meta-data and omits header-row
+     *    $ds->export('output/export1.csv');  -> to csv file *)
      *      *) before exporting to csv, data is 2D-normalized to fit in a rectangular table
-     * @param mixed $targetFile
-     * @param mixed $includeMeta
-     * @param mixed|null $fileType
+     * @param string|false $targetFile
+     * @param string|bool $fileType
      * @return string
      * @throws \Exception
      */
-    public function export(mixed $targetFile = false,
-                           mixed  $includeMeta = false,
-                           mixed $fileType = false): string
+    public function export(string|false $targetFile = false, string|bool $fileType = false): string
     {
         if ($fileType === true || $fileType === 'office') {
-            if (self::$officeFormatAvailable) {
-                $fileType = 'office';
-            } else {
-                $fileType = 'csv';
-            }
+            $fileType = self::$officeFormatAvailable ? 'office' : 'csv';
         }
 
         if (!$targetFile) {
@@ -431,32 +392,28 @@ class Data2DSet
         if (!$this->data2D) {
             return '';
         }
-        try {
-            if ($fileType === 'office') {
-                $targetFile .= 'xlsx';
-                $toFile .= 'xlsx';
-                $this->exportToOfficeDoc($toFile);
-            } elseif ($fileType === 'csv') {
-                $targetFile .= 'csv';
-                $toFile .= 'csv';
-                $this->exportToCsv($toFile);
-            } else {
-                $data = $this->data;
-                writeFileLocking($toFile, $data);
-            }
-        } catch (\Exception $e) {
-            throw new \Exception($e->getMessage());
+
+        if ($fileType === 'office') {
+            $targetFile .= 'xlsx';
+            $toFile .= 'xlsx';
+            $this->exportToOfficeDoc($toFile);
+        } elseif ($fileType === 'csv') {
+            $targetFile .= 'csv';
+            $toFile .= 'csv';
+            $this->exportToCsv($toFile);
+        } else {
+            $data = $this->data;
+            writeFileLocking($toFile, $data);
         }
+
         return Utils::resolveUrls($targetFile, forResoucres:true);
     } // export
 
 
     /**
-     * General purpose export to a csv file
-     *    $ds->exportToCsv('output/export.csv');   -> to csv file
-     *    $ds->exportToCsv('output/export2.csv', includeMeta: true); -> includes meta-data
-     *    $ds->exportToCsv('output/export3.csv', includeHeader: false); -> includes meta-data and omits header-row
-     * before exporting, data is normalized to fit in a rectangular table
+     * Export to a csv file
+     *    $ds->exportToCsv('output/export.csv');  -> to csv file
+     * Before exporting, data is normalized to fit in a rectangular table
      * @param string $file
      * @return void
      * @throws \Exception
@@ -491,11 +448,11 @@ class Data2DSet
 
 
     /**
-     * @param mixed $basename
+     * @param string|false $basename
      * @return string
      * @throws \Exception
      */
-    protected function getDownloadFilename(mixed $basename = false): string
+    protected function getDownloadFilename(string|false $basename = false): string
     {
         // use name of master file
         $basename = $basename ?: basename($this->file);
@@ -507,18 +464,14 @@ class Data2DSet
         } elseif ($basename) {
             $downloadFilename = base_name($basename, false);
         } else {
-            $downloadFilename = $this->options['tableName']??'download';
+            $downloadFilename = $this->options['tableName'] ?? 'download';
             $basename = base_name($downloadFilename, false);
         }
         // determine download path (i.e. random hash static per page):
         $dlLinkFile = Utils::resolvePath('~cache/links/'.str_replace('/','_', $basename)).'.txt';
         preparePath($dlLinkFile);
-        if (file_exists($dlLinkFile)) {
+        if (file_exists($dlLinkFile) && filemtime($dlLinkFile) >= (time() - 600)) {
             $dlHash = file_get_contents($dlLinkFile);
-            if (filemtime($dlLinkFile) < (time() - 600)) { // max file age: 10 min
-                $dlHash = createHash(8, type:'l');
-                file_put_contents($dlLinkFile, $dlHash);
-            }
         } else {
             $dlHash = createHash(8, type:'l');
             file_put_contents($dlLinkFile, $dlHash);
@@ -533,19 +486,21 @@ class Data2DSet
      */
     private function determineColHeaders(): void
     {
-        if ($this->options['headers']) {
-            if ($this->options['headers'] === true) {
+        $headers = $this->options['headers'] ?? false;
+        if ($headers) {
+            if ($headers === true) {
                 if ($this->data) {
                     $rec0 = reset($this->data);
-                    $headers = array_keys($rec0);
-                    $this->colHeaders = array_combine($headers, $headers);
+                    $keys = array_keys($rec0);
+                    $this->colHeaders = array_combine($keys, $keys);
                 } else {
                     $this->colHeaders = [];
                 }
-            } elseif (is_string($this->options['headers'])) {
-                $this->colHeaders = explodeTrim(',', $this->options['headers']);
+            } elseif (is_string($headers)) {
+                $keys = explodeTrim(',', $headers);
+                $this->colHeaders = array_combine($keys, $keys);
             } else {
-                $this->colHeaders = $this->options['headers'];
+                $this->colHeaders = $headers;
             }
             return;
         }
@@ -554,10 +509,9 @@ class Data2DSet
         $colHeaders = [];
         foreach ($data as $rec) {
             foreach ($rec as $colKey => $col) {
-                $colHeaders[$colKey] = '';
+                $colHeaders[$colKey] = $colKey;
             }
         }
-        $colHeaders = array_keys($colHeaders);
         if ($this->markLocked) {
             $colHeaders['_locked'] = '_locked';
         }
@@ -571,7 +525,7 @@ class Data2DSet
      */
     public function isLocked(string $recKey): bool
     {
-        if (!$this->db??false) {
+        if (!$this->db) {
             return false;
         }
         return $this->db->isRecLocked($recKey);
@@ -581,32 +535,29 @@ class Data2DSet
     /**
      * @return bool
      */
-    public static function checkOfficeFormatIsAvailable()
+    public static function checkOfficeFormatIsAvailable(): bool
     {
-        self::$officeFormatAvailable = (class_exists('PhpOffice\PhpSpreadsheet\Spreadsheet'));
+        self::$officeFormatAvailable = class_exists('PhpOffice\PhpSpreadsheet\Spreadsheet');
         return self::$officeFormatAvailable;
     } // checkOfficeFormatIsAvailable
 
 
     /**
      * @param array $options
-     * @param array|string $file
      * @return void
-     * @throws \Exception
      */
     private function parseOptions(array $options): void
     {
         $this->options = $options;
         $this->markLocked = $options['markLocked'] ?? false;
 
-
         $unknown = $options['unknownValue'] ?? ($options['placeholderForUndefined'] ?? false);
         if ($unknown !== false) {
             $this->placeholderForUndefined = $unknown;
         }
-        $this->order = ($this->options['order'] ?? false) ?: ($this->options['sort'] ?? false);
-        $this->filter = $this->options['filter'] ?? false;
-        $this->downloadFilename = $options['downloadFilename'] ?? false;
+        $this->order = ($options['order'] ?? false) ?: ($options['sort'] ?? false);
+        $this->filter = $options['filter'] ?? false;
+        $this->downloadFilename = $options['downloadFilename'] ?? '';
 
     } // parseOptions
 

@@ -93,23 +93,23 @@ class Assets
 
 
     /**
-     * @param mixed $asset
+     * @param string $asset
      * @return void
      */
-    public static function addCssFiles(mixed $asset): void
+    public static function addCssFiles(string $asset): void
     {
-        self::$cssAssets[] = $asset;
+        self::$cssAssets[$asset] = '';
     } // addCssFiles
 
 
     /**
-     * @param mixed $asset
+     * @param string $asset
      * @return void
      */
-    public static function addJsFiles(mixed $asset): void
+    public static function addJsFiles(string $asset): void
     {
-        self::$jsAssets[] = $asset;
-    } // addJqFiles
+        self::$jsAssets[$asset] = '';
+    } // addJsFiles
 
 
     /**
@@ -119,28 +119,33 @@ class Assets
      */
     public static function addAssets(mixed $asset): void
     {
+        // resolve asset group names (e.g. 'JQUERY') to their definitions:
         if (is_string($asset) && preg_match('/^[A-Z_]+$/', $asset)) {
-            if (in_array($asset, array_keys(self::$assetUrlDefinitions))) {
+            if (isset(self::$assetUrlDefinitions[$asset])) {
                 $asset = self::$assetUrlDefinitions[$asset];
             } else {
                 throw new Exception("Unknown asset group: '$asset'.");
             }
         }
         if (is_array($asset)) {
-            foreach ($asset as $ass) {
-                if ($asset['priority']?? false) {
-                    if (fileExt($ass) === 'css') {
-                        self::$cssPriorityAssets[$ass] = '';
-                    } elseif (fileExt($ass) === 'js') {
-                        self::$jsPriorityAssets[$ass] = '';
-                    };
-
+            $priority = $asset['priority'] ?? false;
+            foreach ($asset as $key => $item) {
+                // skip non-path entries (e.g. 'priority' flag):
+                if (!is_string($item) || $key === 'priority') {
+                    continue;
+                }
+                if ($priority) {
+                    if (fileExt($item) === 'css') {
+                        self::$cssPriorityAssets[$item] = '';
+                    } elseif (fileExt($item) === 'js') {
+                        self::$jsPriorityAssets[$item] = '';
+                    }
                 } else {
-                    if (fileExt($ass) === 'css') {
-                        self::$cssAssets[$ass] = '';
+                    if (fileExt($item) === 'css') {
+                        self::$cssAssets[$item] = '';
                     } else {
-                        self::$jsAssets[$ass] = '';
-                    };
+                        self::$jsAssets[$item] = '';
+                    }
                 }
             }
         } elseif (is_string($asset)) {
@@ -148,7 +153,7 @@ class Assets
                 self::$cssAssets[$asset] = '';
             } else {
                 self::$jsAssets[$asset] = '';
-            };
+            }
         }
     } // addAssets
 
@@ -227,80 +232,10 @@ class Assets
      */
     public static function renderCssLoadingCode(): string
     {
-        $cssAssets = array_merge(array_keys(self::$cssPriorityAssets), SYSTEM_ASSETS['css']);
-        $cssAssets = array_merge($cssAssets, array_keys(self::$cssAssets));
-        $cssAssets = array_merge($cssAssets, self::addPageAssets('css'));
-
-        $bustCache = self::$bustCache;
-        $html = "\n";
-        $page = page('assets/css');
-        $files = $page ? $page->files() : [];
-        foreach ($cssAssets as $asset) {
-            $code = '';
-            // skip empty files:
-            $f = PFY_BASE_OFFSET.$asset;
-            if (!str_contains($asset, 'media/') && (!file_exists($f) || !filesize($f))) {
-                continue;
-            }
-
-            // assets already provided as html:
-            if (str_starts_with($asset, '<')) {
-                $html .= "  $asset\n";
-                continue;
-
-            // assets in content folder:
-            } elseif (str_starts_with($asset, 'content')) {
-                if (!$files) {
-                    continue;
-                }
-                $file = $files->find(basename($asset));
-                if (!$file) {
-                    continue;
-                }
-                $code = css($file);
-
-            // assets in plugin folders:
-            } elseif (str_starts_with($asset, 'site/plugins')) {
-                $asset = str_replace('site/plugins/markdownplus/assets/',
-                    PFY_BASE_OFFSET.'media/plugins/pgfactory/markdownplus/', $asset);
-                $asset = preg_replace('|site/plugins/pagefactory(-.*?)?/assets/|',
-                    PFY_BASE_OFFSET.'media/plugins/pgfactory/pagefactory\1/', $asset);
-                $code = css($asset);
-
-            // assets in folder starting in app root:
-            } elseif (str_starts_with($asset, '~/')) {
-                $asset = PFY_BASE_OFFSET . substr($asset, 2);
-                $code = css($asset);
-
-            // assets in ~/assets folder:
-            } elseif (str_starts_with($asset, 'assets/')) {
-                $asset = PFY_BASE_OFFSET.$asset;
-                $code = css($asset);
-
-            // explicitly provided urls:
-            } elseif (str_starts_with($asset, 'http')) {
-                $code = "<link href='$asset' rel='stylesheet'>";
-
-            // any other assets:
-            } else {
-                $code = css($asset);
-                // double check that code points to the right location in case we have a PFY_BASE_OFFSET:
-                if ($code && PFY_BASE_OFFSET && !str_contains($code, PFY_HOST_URL . PFY_BASE_OFFSET)) {
-                    $code = str_replace(PFY_HOST_URL, PFY_HOST_URL . PFY_BASE_OFFSET, $code);
-                }
-            }
-
-            if ($code) {
-                // handle cache busting request:
-                if ($bustCache) {
-                    $code = str_replace('.css', ".css$bustCache", $code);
-                }
-                $html .= "  $code\n";
-            } else {
-                $html .= "  <!-- file not found: '$asset' -->\n";
-            }
-        }
-        return $html;
+        $assets = array_merge(array_keys(self::$cssPriorityAssets), SYSTEM_ASSETS['css']);
+        $assets = array_merge($assets, array_keys(self::$cssAssets));
+        $assets = array_merge($assets, self::getPageAssetTags('css'));
+        return self::renderAssetLoadingCode($assets, 'css');
     } // renderCssLoadingCode
 
 
@@ -309,55 +244,84 @@ class Assets
      */
     public static function renderJsLoadingCode(): string
     {
-        $jsAssets = array_merge(array_keys(self::$jsPriorityAssets), SYSTEM_ASSETS['js']);
-        $jsAssets = array_merge($jsAssets, array_keys(self::$jsAssets));
-        $jsAssets = array_merge($jsAssets, self::addPageAssets('js'));
+        $assets = array_merge(array_keys(self::$jsPriorityAssets), SYSTEM_ASSETS['js']);
+        $assets = array_merge($assets, array_keys(self::$jsAssets));
+        $assets = array_merge($assets, self::getPageAssetTags('js'));
+        return self::renderAssetLoadingCode($assets, 'js');
+    } // renderJsLoadingCode
 
+
+    /**
+     * Renders HTML loading code for CSS or JS assets.
+     * @param array $assets
+     * @param string $type  'css' or 'js'
+     * @return string
+     */
+    private static function renderAssetLoadingCode(array $assets, string $type): string
+    {
         $bustCache = self::$bustCache;
         $html = "\n";
-        $page = page('assets/js');
-        $files = $page ? $page->files() : [];
-        foreach ($jsAssets as $asset) {
+        $contentPage = page("assets/$type");
+        $contentFiles = $contentPage ? $contentPage->files() : [];
+
+        foreach ($assets as $asset) {
             $code = '';
+
             // assets already provided as html:
             if (str_starts_with($asset, '<')) {
                 $html .= "  $asset\n";
                 continue;
+            }
 
-            // assets in content folder:
-            } elseif (str_starts_with($asset, 'content')) {
-                if (!$files) {
+            // skip empty CSS files:
+            if ($type === 'css') {
+                $f = PFY_BASE_OFFSET.$asset;
+                if (!str_contains($asset, 'media/') && (!file_exists($f) || !filesize($f))) {
                     continue;
                 }
-                $file = $files->find(basename($asset));
-                if ($file) {
-                    $code = js($file);
+            }
+
+            // assets in content folder:
+            if (str_starts_with($asset, 'content')) {
+                if (!$contentFiles) {
+                    continue;
                 }
+                $file = $contentFiles->find(basename($asset));
+                if (!$file) {
+                    continue;
+                }
+                $code = ($type === 'css') ? css($file) : js($file);
 
             // assets in plugin folders:
             } elseif (str_starts_with($asset, 'site/plugins')) {
-                $asset = preg_replace('|site/plugins/pagefactory(-.*?)?/assets/|', 'media/plugins/pgfactory/pagefactory\1/', $asset);
-                $code = js(PFY_BASE_OFFSET.$asset);
+                $asset = str_replace('site/plugins/markdownplus/assets/',
+                    PFY_BASE_OFFSET.'media/plugins/pgfactory/markdownplus/', $asset);
+                $asset = preg_replace('|site/plugins/pagefactory(-.*?)?/assets/|',
+                    PFY_BASE_OFFSET.'media/plugins/pgfactory/pagefactory\1/', $asset);
+                $code = ($type === 'css') ? css($asset) : js($asset);
 
             // assets in folder starting in app root:
             } elseif (str_starts_with($asset, '~/')) {
                 $asset = PFY_BASE_OFFSET . substr($asset, 2);
-                $code = js($asset);
+                $code = ($type === 'css') ? css($asset) : js($asset);
 
             // assets in ~/assets folder:
             } elseif (str_starts_with($asset, 'assets/')) {
-                if (file_exists($asset)) {
-                    $code = js(PFY_BASE_OFFSET . $asset);
+                if ($type === 'js' && !file_exists($asset)) {
+                    continue;
                 }
+                $asset = PFY_BASE_OFFSET.$asset;
+                $code = ($type === 'css') ? css($asset) : js($asset);
 
             // explicitly provided urls:
             } elseif (str_starts_with($asset, 'http')) {
-                $code = "<script src='$asset'></script>";
+                $code = ($type === 'css')
+                    ? "<link href='$asset' rel='stylesheet'>"
+                    : "<script src='$asset'></script>";
 
             // any other assets:
             } else {
-                $code = js($asset);
-
+                $code = ($type === 'css') ? css($asset) : js($asset);
                 // double check that code points to the right location in case we have a PFY_BASE_OFFSET:
                 if ($code && PFY_BASE_OFFSET && !str_contains($code, PFY_HOST_URL . PFY_BASE_OFFSET)) {
                     $code = str_replace(PFY_HOST_URL, PFY_HOST_URL . PFY_BASE_OFFSET, $code);
@@ -367,7 +331,7 @@ class Assets
             if ($code) {
                 // handle cache busting request:
                 if ($bustCache) {
-                    $code = str_replace('.js', ".js$bustCache", $code);
+                    $code = str_replace(".$type", ".$type$bustCache", $code);
                 }
                 $html .= "  $code\n";
             } else {
@@ -375,24 +339,25 @@ class Assets
             }
         }
         return $html;
-    } // renderJsLoadingCode
+    } // renderAssetLoadingCode
 
 
     /**
-     * @param string $cssOrJs
+     * Returns HTML tags for page-level CSS or JS assets.
+     * @param string $type  'css' or 'js'
      * @return array
      */
-    private static function addPageAssets(string $cssOrJs): array
+    private static function getPageAssetTags(string $type): array
     {
-        $pageAssets = [];
-        $files = page()->files()->filterBy('extension', $cssOrJs);
+        $tags = [];
+        $files = page()->files()->filterBy('extension', $type);
         foreach ($files as $file) {
-            if (($file->filename())[0] !== '#') {
-                $pageAssets[] = $cssOrJs($file);
+            if ($file->filename()[0] !== '#') {
+                $tags[] = ($type === 'css') ? css($file) : js($file);
             }
         }
-        return $pageAssets;
-    } // addPageAssets
+        return $tags;
+    } // getPageAssetTags
 
 
     /**
@@ -445,15 +410,15 @@ class Assets
                     if (!ctype_alnum($basename[0])) {
                         continue;
                     }
-                    if (($ext = fileExt($srcFile)) === 'scss') {
+                    $srcExt = fileExt($srcFile);
+                    if ($srcExt === 'scss') {
                         $str .= Scss::compileFileToString($srcFile);
-                    } elseif ($ext === 'css') {
+                    } elseif ($srcExt === 'css') {
                         $str .= "/* === Copied from " . basename($srcFile) . " - do not modify! === */\n\n";
                         $str .= getFile($srcFile);
                     }
                 }
                 writeFile($destFile, $str);
-                //mylog("Assets: '$destFile' compiled");
             } else {
                 CompileJs::compileAll($srcPath, $destFile);
             }
@@ -482,7 +447,7 @@ class Assets
      */
     private static function getPageAssets(): array
     {
-        // finde scss assets in all page folder:
+        // find scss assets in all page folders:
         $assetLocations = [];
         $l = strlen(PFY_KIRBY_BASE_PATH);
         $files = getDirDeep(PFY_KIRBY_BASE_PATH.'content/*.scss');

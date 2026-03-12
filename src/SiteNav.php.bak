@@ -227,13 +227,11 @@ EOT;
             $class = $class ? " class='$class'" : '';
 
             if (self::$deep && ($elem['sub'] ?? false)) {
-                $out .= "$indent <li$class><a href='$url'$curr>$title</a>";
-//                $out .= "$indent <li$class$curr><a href='$url'>$title</a>";
+                $out .= "$indent <li$class$curr><a href='$url'>$title</a>";
                 $out .=  self::_render($elem['sub'], "$indent    ");
                 $out .= "$indent </li>\n";
             } else {
-                $out .= "$indent <li><a href='$url'$curr>$title</a></li>\n";
-//                $out .= "$indent <li$curr><a href='$url'>$title</a></li>\n";
+                $out .= "$indent <li$curr><a href='$url'>$title</a></li>\n";
             }
         }
         if (!$out) {

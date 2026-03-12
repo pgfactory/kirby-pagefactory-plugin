@@ -71,12 +71,14 @@ class Image
     private float $aspectRatio;
     private mixed $requestedWidth = false;
     private mixed $requestedHeight = false;
-    private string $sizes = '';
     private array $responsiveSteps = DEFAULT_SIZES;
     private bool $isAbsoluteUnit = false;
     private bool $kenburnsActive = false;
     private bool $quickzoomActive = false;
     private bool $lazyLoadingActive;
+
+
+    // === Public API ============================================================
 
     /**
      * @param array $options
@@ -119,93 +121,25 @@ class Image
 
 
     /**
-     * @return mixed
+     * @return string
      */
-    public function url()
+    public function url(): string
     {
         return $this->image->url();
     } // url
 
 
-    /**
-     * @return string
-     */
-    private function renderImage(): string
-    {
-        $src            = "src='$this->src'";
-        $sizes          = $this->sizes;
-        $srcset         = '';
-
-        if ($this->isRasterImage && !$this->forHtmlMail) {
-            $srcset = $this->determineSrcset();
-        } else {
-            $this->lazyLoadingActive = false;
-        }
-
-        if ($this->lazyLoadingActive) {
-            list($srcset, $src) = $this->applyLazyLoading($srcset, $src);
-        }
-
-        list($imgStyle, $wrapperStyle) = $this->renderStyles();
-
-        $attributes    = "$this->attributes alt='$this->alt'";
-        $imgStyle = $imgStyle ? " style='$imgStyle'" : '';
-        $wrapperStyle = $wrapperStyle ? " style='$wrapperStyle'" : '';
-        if ($this->requestedWidth || $this->requestedHeight) {
-            $this->wrapperClass .= ' pfy-img-100';
-        }
-
-        if ($this->forHtmlMail) {
-            $src         = "src='cid:$this->forHtmlMail'";
-            $attributes .= " data-srcpath='$this->absFilePath'";
-            $attributes .= " data-url='$this->src'";
-        }
-
-        $html = <<<EOT
-    <img $attributes
-        class="pfy-img $this->class"
-        $src
-        $srcset $sizes$imgStyle
-    >
-
-EOT;
-        if ($this->link) {
-            $html = $this->applyLinkWrapper($html);
-        }
-
-
-        if ($this->wrapperTag) {
-            $html = <<<EOT
-<$this->wrapperTag class="pfy-img-wrapper $this->wrapperClass"$wrapperStyle>
-$html
-</$this->wrapperTag><!-- .pfy-img-wrapper -->
-
-EOT;
-        }
-
-        if ($this->caption) {
-            $html = <<<EOT
-<figure class="pfy-figure">
-$html
-    <figcaption>$this->caption</figcaption>
-</figure>
-EOT;
-
-        }
-
-        return $html;
-    } // renderImage
-
+    // === Image Loading =========================================================
 
     /**
-     * @return mixed
-     * @throws \Kirby\Exception\InvalidArgumentException
+     * @return bool
+     * @throws \Exception
      */
-    private function getImage(): mixed
+    private function getImage(): bool
     {
         if (!file_exists($this->absFilePath)) {
             if ($this->options['ignoreMissing']??false) {
-                return null;
+                return false;
             }
             throw new \Exception("Image file '{$this->options['src']}' not found");
         }
@@ -213,73 +147,14 @@ EOT;
         $image = $this->getImageObject();
         if (!$image) {
             if ($this->options['ignoreMissing']??false) {
-                return null;
+                return false;
             }
             throw new \Exception("File '{$this->options['src']}' not a valid image");
         }
 
-        $effectiveWidth = 0;
-        if ($this->requestedWidth) {
-            if ($this->isAbsoluteUnit) {
-                $effectiveWidth = min($this->requestedWidth, $this->origWidth);
-            } else {
-                $effectiveWidth = DEFAULT_MAX_IMAGE_WIDTH;
-            }
-        } elseif (!$this->requestedHeight && $this->isRasterImage) {
-            $effectiveWidth = min($this->origWidth, DEFAULT_MAX_IMAGE_WIDTH);
-        }
-
-        $effectiveHeight = 0;
-        if ($this->requestedHeight) {
-            if ($this->isAbsoluteUnit) {
-                $effectiveHeight = min($this->requestedHeight, $this->origHeight);
-            } else {
-                $effectiveHeight = DEFAULT_MAX_IMAGE_HEIGHT;
-            }
-        } elseif (!$this->requestedHeight && $this->isRasterImage) {
-            $effectiveHeight = min($this->origHeight, DEFAULT_MAX_IMAGE_HEIGHT);
-        }
-
-        // case height but no width defined:
-        if ($effectiveWidth && !$effectiveHeight) {
-            if ($effectiveWidth > $effectiveHeight / $this->aspectRatio) {
-                $effectiveWidth = $effectiveHeight / $this->aspectRatio;
-            }
-        } elseif (!$effectiveWidth && $effectiveHeight) {
-            $effectiveWidth = $effectiveHeight / $this->aspectRatio;
-        }
-        $this->effectiveWidth = $effectiveWidth;
-        $this->effectiveHeight = $effectiveHeight;
-
-        // resize image if required:
-        if ($this->origWidth > DEFAULT_MAX_IMAGE_WIDTH) {
-            $this->origWidth = DEFAULT_MAX_IMAGE_WIDTH;
-        }
-        // convert and resize to target format (default webp):
-        $image0 = $image->thumb([
-            'width' => $this->origWidth,
-            'format' => $this->format,
-            'quality' => $this->quality,
-        ]);
-        $this->src = $image0->url();
-        // if app in root, we need to adjust the src url:
-        if (!str_starts_with($this->src, PFY_APP_BASE_URL.PFY_BASE_OFFSET)) {
-            $this->src = str_replace(PFY_APP_BASE_URL, PFY_APP_BASE_URL.PFY_BASE_OFFSET, $this->src);
-        }
-
-        if ($effectiveWidth) {
-            $image->thumb([
-                'width' => intval($effectiveWidth),
-                'format' => $this->format,
-                'quality' => $this->quality,
-            ]);
-        }
-
-        try {
-            $this->alt = $image->alt()->value() ?: (($this->options['alt'] ?? false) ?: ' ');
-        } catch (Throwable $e) {
-            $this->alt = ($this->options['alt'] ?? false) ?: ' ';
-        }
+        $this->calculateEffectiveDimensions();
+        $this->convertAndResizeImage($image);
+        $this->resolveAltText($image);
 
         $this->image = $image;
         return true;
@@ -287,7 +162,6 @@ EOT;
 
 
     /**
-     * @param string $file
      * @return object|\Kirby\Cms\File|Asset|null
      * @throws \Exception
      */
@@ -313,7 +187,7 @@ EOT;
 
         } elseif (str_starts_with($file, '~assets/')) {
             // image in folder below content/assets/:
-            $path = page(dirname(substr($file, 1)));
+            $path = dirname(substr($file, 1));
             $subdir = page($path);
             if (!$subdir) {
                 throw new \Exception("Error: subdirectory '$path' not found");
@@ -321,8 +195,8 @@ EOT;
             $image = $subdir->image(basename($file));
 
         } elseif (str_starts_with($file, '~pages/')) {
-            // image in folder below content/assets/:
-            $path = page(dirname(substr($file, 7)));
+            // image in folder below content/pages/:
+            $path = dirname(substr($file, 7));
             $subdir = page($path);
             if (!$subdir) {
                 throw new \Exception("Error: subdirectory '$path' not found");
@@ -377,6 +251,7 @@ EOT;
 
     /**
      * @return void
+     * @throws \Exception
      */
     private function getVectorImage(): void
     {
@@ -384,19 +259,17 @@ EOT;
         $xmlattributes = $xmlget->attributes();
         $width = (string) $xmlattributes->width;
         $height = (string) $xmlattributes->height;
-        $unit = false;
         if (!$width && !$height) {
             $viewBox = (string) $xmlattributes->viewBox;
             $elems = explode(' ', $viewBox);
             $width = (int)$elems[2] - (int)$elems[0];
             $height = (int)$elems[3] - (int)$elems[1];
-            $unit = 'px';
         } else {
             if ($height) {
-                list($height, $unit) = $this->extractCssUnit($height);
+                list($height, ) = $this->extractUnit($height, $this->unit ?: 'px');
             }
             if ($width) {
-                list($width, $unit) = $this->extractCssUnit($width);
+                list($width, ) = $this->extractUnit($width, $this->unit ?: 'px');
             }
         }
 
@@ -406,115 +279,200 @@ EOT;
             throw new \Exception("Error: unable to determine dimensions of image '$file'.");
         }
         $this->aspectRatio = $height / $width;
-        if (!$width && !$height) {
-            $this->origWidth = DEFAULT_MAX_IMAGE_WIDTH;
-            $this->origHeight = (int)(DEFAULT_MAX_IMAGE_WIDTH * $this->aspectRatio);
-        } else {
-            $this->origWidth = $width;
-            $this->origHeight = $height;
-        }
+        $this->origWidth = $width;
+        $this->origHeight = $height;
     } // getVectorImage
 
 
     /**
-     * @param $html
-     * @return string
+     * Compute effectiveWidth/Height from requested and original dimensions.
+     * @return void
      */
-    private function applyLinkWrapper(string $html): string
+    private function calculateEffectiveDimensions(): void
     {
-        $options = $this->options;
-        $href = $options['link'];
-
-        $linkClass = trim($options['linkClass']." $this->wrapperClass");
-
-        if ($linkClass) {
-            $linkAttr = " class='$linkClass'";
-        } else {
-            $linkAttr = " class='pfy-img-link'";
-        }
-        if ($options['linkTarget'] === true) {
-            $linkAttr .= " target='_blank'";
-        } elseif ($options['linkTarget']) {
-            $linkAttr .= " target='{$options['linkTarget']}'";
-        }
-        if ($options['linkTitle']) {
-            $linkTitle = str_replace("'", '&#39;', $options['linkTitle']);
-            $linkAttr .= " title='$linkTitle'";
-        }
-        if ($options['linkAttributes']) {
-            $linkAttr .= " {$options['linkAttributes']}";
+        $effectiveWidth = 0;
+        if ($this->requestedWidth) {
+            if ($this->isAbsoluteUnit) {
+                $effectiveWidth = min($this->requestedWidth, $this->origWidth);
+            } else {
+                $effectiveWidth = DEFAULT_MAX_IMAGE_WIDTH;
+            }
+        } elseif (!$this->requestedHeight && $this->isRasterImage) {
+            $effectiveWidth = min($this->origWidth, DEFAULT_MAX_IMAGE_WIDTH);
         }
 
-        $href = Link::fixUrl($href);
+        $effectiveHeight = 0;
+        if ($this->requestedHeight) {
+            if ($this->isAbsoluteUnit) {
+                $effectiveHeight = min($this->requestedHeight, $this->origHeight);
+            } else {
+                $effectiveHeight = DEFAULT_MAX_IMAGE_HEIGHT;
+            }
+        } elseif (!$this->requestedHeight && $this->isRasterImage) {
+            $effectiveHeight = min($this->origHeight, DEFAULT_MAX_IMAGE_HEIGHT);
+        }
 
-        $html = <<<EOT
-<a href='$href'$linkAttr>$html</a>
-EOT;
-        return $html;
-    } // applyLinkWrapper
+        // derive missing dimension from the other:
+        if ($effectiveWidth && !$effectiveHeight) {
+            $effectiveHeight = $effectiveWidth * $this->aspectRatio;
+        } elseif (!$effectiveWidth && $effectiveHeight) {
+            $effectiveWidth = $effectiveHeight / $this->aspectRatio;
+        }
+        $this->effectiveWidth = $effectiveWidth;
+        $this->effectiveHeight = $effectiveHeight;
+    } // calculateEffectiveDimensions
 
 
     /**
+     * Cap origWidth, create thumbnails, set src URL, adjust base URL.
      * @param object $image
+     * @return void
+     */
+    private function convertAndResizeImage(object $image): void
+    {
+        // resize image if required:
+        if ($this->origWidth > DEFAULT_MAX_IMAGE_WIDTH) {
+            $this->origWidth = DEFAULT_MAX_IMAGE_WIDTH;
+        }
+        // convert and resize to target format (default webp):
+        $image0 = $image->thumb([
+            'width' => $this->origWidth,
+            'format' => $this->format,
+            'quality' => $this->quality,
+        ]);
+        $this->src = $image0->url();
+        // if app in root, we need to adjust the src url:
+        if (!str_starts_with($this->src, PFY_APP_BASE_URL.PFY_BASE_OFFSET)) {
+            $this->src = str_replace(PFY_APP_BASE_URL, PFY_APP_BASE_URL.PFY_BASE_OFFSET, $this->src);
+        }
+
+        if ($this->effectiveWidth) {
+            $image->thumb([
+                'width' => intval($this->effectiveWidth),
+                'format' => $this->format,
+                'quality' => $this->quality,
+            ]);
+        }
+    } // convertAndResizeImage
+
+
+    /**
+     * Resolve alt text from image metadata or options.
+     * @param object $image
+     * @return void
+     */
+    private function resolveAltText(object $image): void
+    {
+        try {
+            $this->alt = $image->alt()->value() ?: (($this->options['alt'] ?? false) ?: ' ');
+        } catch (Throwable $e) {
+            $this->alt = ($this->options['alt'] ?? false) ?: ' ';
+        }
+    } // resolveAltText
+
+
+    // === HTML Rendering ========================================================
+
+    /**
      * @return string
      */
-    private function determineSrcset(): string
+    private function renderImage(): string
     {
+        $src    = "src='$this->src'";
+        $sizes  = '';
+        $srcset = '';
+
+        if ($this->isRasterImage && !$this->forHtmlMail) {
+            list($srcset, $sizes) = $this->determineSrcset();
+        }
+
+        if ($this->lazyLoadingActive) {
+            list($srcset, $src) = $this->applyLazyLoading($srcset, $src);
+        }
+
+        list($imgStyle, $wrapperStyle) = $this->renderStyles();
+
+        if ($this->forHtmlMail) {
+            $src = "src='cid:$this->forHtmlMail'";
+        }
+
+        $html = $this->buildImgTag($src, $srcset, $sizes, $imgStyle);
+
+        if ($this->link) {
+            $html = $this->applyLinkWrapper($html);
+        }
+
+        return $this->wrapWithContainer($html, $wrapperStyle);
+    } // renderImage
+
+
+    /**
+     * Assemble the <img> tag with all attributes.
+     * @param string $src
+     * @param string $srcset
+     * @param string $sizes
+     * @param string $imgStyle
+     * @return string
+     */
+    private function buildImgTag(string $src, string $srcset, string $sizes, string $imgStyle): string
+    {
+        $attributes = "$this->attributes alt='$this->alt'";
+        $imgStyle = $imgStyle ? " style='$imgStyle'" : '';
+        if ($this->requestedWidth || $this->requestedHeight) {
+            $this->wrapperClass .= ' pfy-img-100';
+        }
+
+        if ($this->forHtmlMail) {
+            $attributes .= " data-srcpath='$this->absFilePath'";
+            $attributes .= " data-url='$this->src'";
+        }
+
+        return <<<EOT
+    <img $attributes
+        class="pfy-img $this->class"
+        $src
+        $srcset $sizes$imgStyle
+    >
+
+EOT;
+    } // buildImgTag
+
+
+    /**
+     * Generate responsive srcset attribute and sizes string.
+     * @return array{0: string, 1: string}  [$srcset, $sizes]
+     */
+    private function determineSrcset(): array
+    {
+        $sizes = '';
         if ($this->isAbsoluteUnit && !$this->quickzoomActive) {
             $width = intval(convertToPx($this->requestedWidth.$this->unit));
-            $sizes = [];
+            $sizeList = [];
             foreach ([1,2,3] as $size) {
-                $sizes[$width * $size] = "{$size}x";
+                $sizeList[$width * $size] = "{$size}x";
             }
         } else {
             $maxUsedSize = min(3 * DEFAULT_MAX_IMAGE_WIDTH, $this->origWidth);
-            $sizes = array_filter($this->responsiveSteps, function ($size) use ($maxUsedSize) {
+            $sizeList = array_filter($this->responsiveSteps, function ($size) use ($maxUsedSize) {
                 return $size <= $maxUsedSize;
             });
-            $this->sizes = " sizes='$this->requestedWidth$this->unit'";
+            $sizes = " sizes='$this->requestedWidth$this->unit'";
         }
-        $srcset = $this->image->srcset($sizes);
+        $srcset = $this->image->srcset($sizeList);
         if ($srcset) {
             $srcset = str_replace(',', ",\n\t\t\t", $srcset);
             $srcset = "srcset='$srcset'";
         }
 
-        return (string)$srcset;
+        return [(string)$srcset, $sizes];
     } // determineSrcset
 
 
     /**
-     * @return void
-     * @throws \Kirby\Exception\Exception
+     * @param string $srcset
+     * @param string $src
+     * @return array{0: string, 1: string}  [$srcset, $src]
      */
-    private function initQuickzoom(): void
-    {
-        if (!$this->quickzoomActive || $this->options['link']??false) {
-            $this->quickzoomActive = false;
-            return;
-        }
-
-        Assets::addAssets('QUICKZOOM');
-        $this->attributes .= ' tabindex="0"';
-        $this->wrapperClass .= ' pfy-quickzoom';
-    } // renderQuickzoom
-
-
-    /**
-     * @return void
-     * @throws \Exception
-     */
-    private function activateLazyLoading(): void
-    {
-        if (!$this->lazyLoadingActive) {
-            return;
-        }
-
-        Page::addAssets('LAZY_SIZES');
-        $this->options['class'] = ($this->options['class']??'') . ' lazyload';
-    } // activateLazyLoading
-
-
     private function applyLazyLoading(string $srcset, string $src): array
     {
         $this->class .= ' lazyload';
@@ -532,6 +490,9 @@ EOT;
     } // applyLazyLoading
 
 
+    /**
+     * @return array{0: string, 1: string}  [$imgStyle, $wrapperStyle]
+     */
     private function renderStyles(): array
     {
         $imgStyle = $wrapperStyle = '';
@@ -581,6 +542,109 @@ EOT;
     } // renderStyles
 
 
+    /**
+     * @param string $html
+     * @return string
+     */
+    private function applyLinkWrapper(string $html): string
+    {
+        $options = $this->options;
+        $href = $options['link'];
+
+        $linkClass = trim($options['linkClass']." $this->wrapperClass");
+
+        if ($linkClass) {
+            $linkAttr = " class='$linkClass'";
+        } else {
+            $linkAttr = " class='pfy-img-link'";
+        }
+        if ($options['linkTarget'] === true) {
+            $linkAttr .= " target='_blank'";
+        } elseif ($options['linkTarget']) {
+            $linkAttr .= " target='{$options['linkTarget']}'";
+        }
+        if ($options['linkTitle']) {
+            $linkTitle = str_replace("'", '&#39;', $options['linkTitle']);
+            $linkAttr .= " title='$linkTitle'";
+        }
+        if ($options['linkAttributes']) {
+            $linkAttr .= " {$options['linkAttributes']}";
+        }
+
+        $href = Link::fixUrl($href);
+
+        $html = <<<EOT
+<a href='$href'$linkAttr>$html</a>
+EOT;
+        return $html;
+    } // applyLinkWrapper
+
+
+    /**
+     * Apply wrapper tag and figure/caption wrapping.
+     * @param string $html
+     * @param string $wrapperStyle
+     * @return string
+     */
+    private function wrapWithContainer(string $html, string $wrapperStyle): string
+    {
+        $wrapperStyle = $wrapperStyle ? " style='$wrapperStyle'" : '';
+
+        if ($this->wrapperTag) {
+            $html = <<<EOT
+<$this->wrapperTag class="pfy-img-wrapper $this->wrapperClass"$wrapperStyle>
+$html
+</$this->wrapperTag><!-- .pfy-img-wrapper -->
+
+EOT;
+        }
+
+        if ($this->caption) {
+            $html = <<<EOT
+<figure class="pfy-figure">
+$html
+    <figcaption>$this->caption</figcaption>
+</figure>
+EOT;
+
+        }
+
+        return $html;
+    } // wrapWithContainer
+
+
+    // === Feature Activation ====================================================
+
+    /**
+     * @return void
+     * @throws \Kirby\Exception\Exception
+     */
+    private function initQuickzoom(): void
+    {
+        if (!$this->quickzoomActive || ($this->options['link']??false)) {
+            $this->quickzoomActive = false;
+            return;
+        }
+
+        Assets::addAssets('QUICKZOOM');
+        $this->attributes .= ' tabindex="0"';
+        $this->wrapperClass .= ' pfy-quickzoom';
+    } // initQuickzoom
+
+
+    /**
+     * @return void
+     * @throws \Exception
+     */
+    private function activateLazyLoading(): void
+    {
+        if (!$this->lazyLoadingActive) {
+            return;
+        }
+
+        Page::addAssets('LAZY_SIZES');
+    } // activateLazyLoading
+
 
     /**
      * @return void
@@ -620,49 +684,126 @@ EOT;
     } // activateKenBurns
 
 
+    // === Option Parsing ========================================================
 
-    // === helpers =========================================================================
     /**
-     * @param string $str
-     * @return array
+     * @param array $options
+     * @return void
      */
-    private function extractCssUnit(string $str): array
+    private function parseOptions(array $options): void
     {
-        $unit = $this->unit ?: 'px';
-        if (preg_match('/([\d.]+)([a-z%]+)/', $str, $m)) {
-            $str = $m[1];
-            $unit = $m[2];
-        }
-        $value = floatval($str);
+        $options += PFY_IMG_DEFAULT_OPTIONS;
+        $this->options = $options;
 
-        return [$value, $unit];
-    } // extractCssUnit
-
-
-    private function extractUnit(string $value, bool $intval = false): array
-    {
-        $unit = '';
-        if (preg_match('/([\d.]+)([a-z%]+)/', $value, $m)) {
-            $value = $m[1];
-            $unit = $m[2];
-        }
-
-        if ($intval) {
-            $value = intval($value);
-        }
-
-        return [$value, $unit];
-    } // extractUnit
+        $this->resolveSourceFile();
+        $this->parseFeatureFlags();
+        $this->parseRenderingConfig();
+        $this->detectFormat();
+    } // parseOptions
 
 
     /**
-     * @param string $unit
-     * @return bool
+     * Increment instance counter, extract filename size hints, resolve paths.
+     * @return void
      */
-    private function isRelativeUnit(string $unit): bool
+    private function resolveSourceFile(): void
     {
-        return $unit && !str_contains(',px,cm,mm,in,pt,pc,', ",$unit,");
-    } // isRelativeUnit
+        self::$inx++;
+        $options = &$this->options;
+
+        $file = $options['src'];
+        $file = $this->extractSizeDirectiveFromFilename($file);
+        $this->src = $file;
+        $this->absFilePath = Utils::resolvePath($file);
+
+        $options['imgTagAttrs'] = ($options['imgTagAttrs']??false) ?: ($options['imgTagAttributes']??'');
+    } // resolveSourceFile
+
+
+    /**
+     * Parse kenburns, quickzoom, lazyLoading activation, responsiveSteps.
+     * @return void
+     */
+    private function parseFeatureFlags(): void
+    {
+        $options = &$this->options;
+
+        if (is_array($options['kenburns'])) {
+            $this->kenburnsActive = true;
+            $options['kenburns'] = $this->parseKenBurnsOptions($options['kenburns']);
+        } elseif ($options['kenburns'] === true) {
+            $this->kenburnsActive = true;
+            $options['kenburns'] = $this->parseKenBurnsOptions([]);
+        } else {
+            if ($options['quickzoom'] !== null) {
+                $this->quickzoomActive = !!$options['quickzoom'];
+            } else {
+                $this->quickzoomActive = kirby()->option('pgfactory.pagefactory.imageAutoQuickzoom', true);
+            }
+        }
+
+        if (($l = ($options['lazyLoading']??null)) !== null) {
+            $this->lazyLoadingActive = $l;
+        } else {
+            $this->lazyLoadingActive = PageFactory::$lazyLoading;
+        }
+
+        $this->responsiveSteps = $options['responsiveSteps'];
+    } // parseFeatureFlags
+
+
+    /**
+     * Set class, wrapperTag, wrapperClass, caption, build attributes, set link.
+     * @return void
+     */
+    private function parseRenderingConfig(): void
+    {
+        $options = &$this->options;
+        $inx = self::$inx;
+
+        $this->determineRequestedSize();
+
+        $this->class                = ($options['class']) . " pfy-img-$inx";
+        $this->wrapperTag           = $options['wrapperTag'] ?? 'div';
+        $this->wrapperClass         = $options['wrapperClass'];
+        $this->caption              = $options['caption'];
+
+        $attributes = $this->attributes;
+        if ($options['id']) {
+            $attributes .= " id='{$options['id']}'";
+        } else {
+            $attributes .= " id='pfy-img-$inx'";
+        }
+
+        if ($options['imgTagAttrs']) {
+            $attributes .= " {$options['imgTagAttrs']}";
+        }
+
+        $this->link = $options['link'];
+        $this->attributes = $attributes;
+    } // parseRenderingConfig
+
+
+    /**
+     * Detect file format, isRasterImage, isAbsoluteUnit, handle HTML mail.
+     * @return void
+     */
+    private function detectFormat(): void
+    {
+        $this->format  = strtolower(fileExt($this->absFilePath));
+        $this->isRasterImage = !str_contains(VECTOR_IMG_TYPES, $this->format);
+        $this->isAbsoluteUnit = !$this->isRelativeUnit($this->unit);
+
+        if ($this->forHtmlMail = ($this->options['cid']??false)) {
+            $this->options['format'] = fileExt($this->src);
+            $this->quickzoomActive = false;
+            $this->wrapperTag = false;
+            $this->lazyLoadingActive = false;
+        }
+        if (!$this->isRasterImage) {
+            $this->lazyLoadingActive = false;
+        }
+    } // detectFormat
 
 
     /**
@@ -680,7 +821,7 @@ EOT;
         $this->requestedWidth = $this->options['width'] ?: $this->requestedWidth;
         if ($this->requestedWidth) {
             list($this->requestedWidth, $unit) = $this->extractUnit($this->requestedWidth);
-            if (!$this->unit && $unit) {
+            if ($unit) {
                 $this->unit = $unit;
             }
         }
@@ -697,12 +838,12 @@ EOT;
         if (!preg_match('/(.*)\[(.*?)](\.\w+)/', $file, $m)) {
             return $file;
         }
-        
+
         $file = $m[1] . $m[3];
         $sizeHint = $m[2];
         if ($sizeHint) {
             $unit = false;
-            // analyze first part of expression, up to 'x' or end of string, e.g. ""200x150" or "100px":
+            // analyze first part of expression, up to 'x' or end of string, e.g. "200x150" or "100px":
             if (preg_match('/^([\d.]+)(\D*)/', $sizeHint, $m)) {
                 $this->requestedWidth = $m[1];
                 $unit = $m[2] ?: 'px';
@@ -733,92 +874,34 @@ EOT;
     } // extractSizeDirectiveFromFilename
 
 
+    // === Ken Burns Parsing =====================================================
 
     /**
-     * @return void
+     * @param array $kbOptions
+     * @return array
      */
-    private function parseOptions(array $options): void
-    {
-        self::$inx++;
-        $inx = self::$inx;
-
-        $options += PFY_IMG_DEFAULT_OPTIONS;
-        $this->options = $options;
-        $options = &$this->options;
-
-        $file = $options['src'];
-        $file = $this->extractSizeDirectiveFromFilename($file);
-        $this->src = $file;
-        $this->absFilePath = Utils::resolvePath($file);
-
-        $options['imgTagAttrs'] = ($options['imgTagAttrs']??false) ?: ($options['imgTagAttributes']??'');
-
-        if (is_array($options['kenburns'])) {
-            $this->kenburnsActive = true;
-            $options['kenburns'] = $this->parseKenBurnsOptions($options['kenburns']);
-        } elseif ($options['kenburns'] === true) {
-            $this->kenburnsActive = true;
-            $options['kenburns'] = $this->parseKenBurnsOptions([]);
-        } else {
-            if ($options['quickzoom'] !== null) {
-                $this->quickzoomActive = !!$options['quickzoom'];
-            } else {
-                $this->quickzoomActive = kirby()->option('pgfactory.pagefactory.imageAutoQuickzoom', true);
-            }
-        }
-
-        if (($l = ($options['lazyLoading']??null)) !== null) {
-            $this->lazyLoadingActive = $l;
-        } else {
-            $this->lazyLoadingActive = PageFactory::$lazyLoading;
-        }
-
-        $this->responsiveSteps = $options['responsiveSteps'];
-
-
-        $this->determineRequestedSize(); // -> $this->requestedWidth and $this->requestedHeight
-
-        $this->class                = ($options['class']) . " pfy-img-$inx";
-        $this->wrapperTag           = (($options['wrapperTag']) !== null) ?($options['wrapperTag']??'div'): 'div'; //???
-        $this->wrapperClass         = $options['wrapperClass'];
-        $this->caption              = $options['caption'];
-        $this->lazyLoadingActive    = $options['lazyLoading'];
-
-        $attributes           = $this->attributes;
-        if ($options['id']) {
-            $attributes .= " id='{$options['id']}'";
-        } else {
-            $attributes .= " id='pfy-img-$inx'";
-        }
-
-        if ($options['imgTagAttrs']) {
-            $attributes .= " {$options['imgTagAttrs']}";
-        }
-
-        if ($options['width']) {
-            list($this->requestedWidth, $this->unit) = $this->extractUnit($options['width']);
-        }
-
-        $this->link = $options['link'];
-        $this->attributes = $attributes;
-
-        $this->format  = strtolower(fileExt($this->absFilePath));
-        $this->isRasterImage = !str_contains(VECTOR_IMG_TYPES, $this->format);
-        $this->isAbsoluteUnit = !$this->isRelativeUnit($this->unit);
-
-        if ($this->forHtmlMail = ($options['cid']??false)) {
-            $this->options['format'] = fileExt($file);
-            $this->quickzoomActive = false;
-            $this->wrapperTag = false;
-        }
-    } // parseOptions
-
-
     private function parseKenBurnsOptions(array $kbOptions): array
     {
-        $out = '';
         $kbOptions += PFY_KENBURNS_OPTIONS;
 
+        $this->parseKbDuration($kbOptions);
+
+        $js  = $this->parseKbDirection($kbOptions);
+        $js .= $this->parseKbDistance($kbOptions);
+        $js .= $this->parseKbScale($kbOptions);
+        $js .= $this->parseKbOrigin($kbOptions);
+
+        $kbOptions['js'] = $js;
+        return $kbOptions;
+    } // parseKenBurnsOptions
+
+
+    /**
+     * @param array &$kbOptions
+     * @return void
+     */
+    private function parseKbDuration(array &$kbOptions): void
+    {
         list($value, $unit) = $this->extractUnit((string)$kbOptions['duration']);
         if (str_starts_with((string)$value, 'rand')) {
             $value = rand(1000, 10000);
@@ -830,19 +913,43 @@ EOT;
             }
         }
         $kbOptions['duration'] = $value;
+    } // parseKbDuration
 
+
+    /**
+     * @param array $kbOptions
+     * @return string  JS fragment
+     */
+    private function parseKbDirection(array $kbOptions): string
+    {
         list($value, $unit) = $this->extractUnit((string)$kbOptions['direction']);
         if (str_starts_with((string)$value, 'rand')) {
             $value = rand(0, 360);
         }
-        $out .= "  'direction': $value,\n";
+        return "  'direction': $value,\n";
+    } // parseKbDirection
 
+
+    /**
+     * @param array $kbOptions
+     * @return string  JS fragment
+     */
+    private function parseKbDistance(array $kbOptions): string
+    {
         list($value, $unit) = $this->extractUnit((string)$kbOptions['distance']);
         if (str_starts_with((string)$value, 'rand')) {
             $value = rand(1, 10) / 10;
         }
-        $out .= "  'distance': $value,\n";
+        return "  'distance': $value,\n";
+    } // parseKbDistance
 
+
+    /**
+     * @param array $kbOptions
+     * @return string  JS fragment
+     */
+    private function parseKbScale(array $kbOptions): string
+    {
         // supported formats for scale: 1.5 | 0.6 | 1,2 | [1, 2]:
         $value = $kbOptions['scale'];
         if (!is_array($value) && str_starts_with((string)$value, 'rand')) {
@@ -868,9 +975,16 @@ EOT;
                 $value = '[' . implode(', ', $value) . ']';
             }
         }
-        $out .= "  'scale': $value,\n";
+        return "  'scale': $value,\n";
+    } // parseKbScale
 
 
+    /**
+     * @param array $kbOptions
+     * @return string  JS fragment
+     */
+    private function parseKbOrigin(array $kbOptions): string
+    {
         $value = $kbOptions['origin'];
         if (is_string($value) && str_starts_with($value, 'rand')) {
             $origin1 = rand(0, 100);
@@ -906,11 +1020,36 @@ EOT;
         $origin1 /= 100;
         $origin2 /= 100;
         $value = "[$origin1, $origin2]";
-        $out .= "  'origin': $value,\n";
+        return "  'origin': $value,\n";
+    } // parseKbOrigin
 
-       $kbOptions['js'] = $out;
 
-        return $kbOptions;
-    } // parseKenBurnsOptions
+    // === Helpers ================================================================
+
+    /**
+     * Parse a CSS value+unit string like "100px" into [value, unit].
+     * @param string $str          The value string, e.g. "100px", "50%", "3.5em"
+     * @param string $defaultUnit  Unit to use if none found (default: '')
+     * @return array{0: float, 1: string}  [numericValue, unitString]
+     */
+    private function extractUnit(string $str, string $defaultUnit = ''): array
+    {
+        $unit = $defaultUnit;
+        if (preg_match('/([\d.]+)([a-z%]+)/', $str, $m)) {
+            $str = $m[1];
+            $unit = $m[2];
+        }
+        return [floatval($str), $unit];
+    } // extractUnit
+
+
+    /**
+     * @param string $unit
+     * @return bool
+     */
+    private function isRelativeUnit(string $unit): bool
+    {
+        return $unit && !str_contains(',px,cm,mm,in,pt,pc,', ",$unit,");
+    } // isRelativeUnit
 
 } // Image

@@ -55,39 +55,34 @@ class CompileJs
 
     /**
      * @param string $srcPath
-     * @param $aggregatedTargetFile
+     * @param string $aggregatedTargetFile
      * @return void
      * @throws \Exception
      */
-    public static function compileAggregatedFile(string $srcPath, $aggregatedTargetFile): void
+    public static function compileAggregatedFile(string $srcPath, string $aggregatedTargetFile): void
     {
         $srcPath = rtrim($srcPath, '*');
         $files = getDir($srcPath.'*.js');
-        $out = '';
         $tTarg = fileTime($aggregatedTargetFile);
-        if ($tTarg) {
+        if ($tTarg && !PageFactory::$forceAssetsUpdate) {
             $update = false;
             foreach ($files as $file) {
-                $tSrc = fileTime($file);
-                if (($tTarg >= $tSrc) && !PageFactory::$forceAssetsUpdate) {
-                    continue;
+                if (fileTime($file) > $tTarg) {
+                    $update = true;
+                    break;
                 }
-                $update = true;
             }
             if (!$update) {
                 return;
             }
         }
 
+        $out = '';
         foreach ($files as $file) {
             self::$translated = [];
             $filename = basename($file);
             $out .= "/* === Automatically created from $filename - do not modify! === */\n";
             $out .= self::compile($file);
-            if (!$aggregatedTargetFile) {
-                writeFile($aggregatedTargetFile, $out);
-            }
-            //mylog("JS: '$aggregatedTargetFile' compiled");
         } // foreach file
 
         writeFile($aggregatedTargetFile, $out);
@@ -95,26 +90,26 @@ class CompileJs
 
 
     /**
-     * @param $file
+     * @param string $file
      * @return string
      * @throws \Exception
      */
-    public static function compile($file): string
+    public static function compile(string $file): string
     {
         $out = '';
         $jsStr = getFile($file, true);
 
         // handle "use strict" -> keep it at top of file:
-        if (str_contains($jsStr,'use strict')) {
+        if (str_contains($jsStr, 'use strict')) {
             $jsStr = preg_replace("/[\"']use strict[\"'];\n/", '', $jsStr);
-            $out .= "\"use Strict\";\n\n";
+            $out .= "\"use strict\";\n\n";
         }
 
-        // find all {{ xy }} and replace them with ${xy}, also add 'var xy = translateVar();' at top of file:
+        // find all {{ xy }} and replace them with ${xy}, also add 'const xy = translateVar();' at top of file:
         $transVars = TransVars::$transVars;
         if (preg_match_all('/(\'?) \{\{ \s* (.*?) \s* }} (\'?)/xms', $jsStr, $m)) {
             foreach ($m[2] as $i => $key) {
-                if (in_array($key, array_keys(self::$translated))) {
+                if (isset(self::$translated[$key])) {
                     continue;
                 }
                 self::$translated[$key] = true;
@@ -128,9 +123,8 @@ class CompileJs
                     mylog("compileJs: missing key '$key'");
                 }
             }
-            $jsStr = $out.$jsStr;
         }
-        return $jsStr;
-    } // all
+        return $out . $jsStr;
+    } // compile
 
 } // CompileJs

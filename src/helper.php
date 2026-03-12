@@ -130,7 +130,7 @@ function isLoggedinOrLocalhost(): bool
   */
 function loadFile(string $file, mixed $removeComments = true, bool $useCaching = false): mixed
 {
-    if (!$file || !is_string($file)) {
+    if (!$file) {
         return '';
     }
     if ($useCaching) {
@@ -146,7 +146,7 @@ function loadFile(string $file, mixed $removeComments = true, bool $useCaching =
 
     // if it's data of a known format (i.e. yaml,json etc), decode it:
     $ext = fileExt($file);
-    if (str_contains(',yaml,yml,json', $ext)) {
+    if (in_array($ext, ['yaml', 'yml', 'json'])) {
         $data = Data::decode($data, $ext);
         if ($useCaching) {
             updateDataCache($file, $data);
@@ -205,7 +205,7 @@ function loadFiles(mixed $files, mixed $removeComments = true, bool $useCaching 
 
     $file1 = $files[0]??'';
     $ext = fileExt($file1);
-    if (strpos(',yaml,yml,json,csv', $ext) !== false) {
+    if (in_array($ext, ['yaml', 'yml', 'json', 'csv'])) {
         $data = [];
         foreach ($files as $f) {
             if ($newData = loadFile($f, $removeComments, false)) {
@@ -234,7 +234,7 @@ function loadFiles(mixed $files, mixed $removeComments = true, bool $useCaching 
   */
 function getFile(string $file, mixed $removeComments = true)
  {
-     if (!$file || !is_string($file)) {
+     if (!$file) {
          return '';
      }
 
@@ -386,7 +386,7 @@ function cacheFileName(string $file, string $tag = ''): string
          $var = explodeTrim(',', $var);
          $isAssoc = false;
          foreach ($var as $value) {
-             if (strpos($value, ':') !== false) {
+             if (str_contains($value, ':')) {
                  $isAssoc = true;
                  break;
              }
@@ -484,7 +484,7 @@ function extractKirbyFrontmatter(string $frontmatter): array
   * @param bool $couldBeUrl    Handles case where URL may include args and/or #target
   * @return string
   */
-function fileExt(string $file0, bool $reverse = false, $couldBeUrl = false): string
+function fileExt(string $file0, bool $reverse = false, bool $couldBeUrl = false): string
 {
     if ($couldBeUrl) {
         $file = preg_replace(['|^\w{1,6}://|', '/[#?&:].*/'], '', $file0); // If ever needed for URLs as well
@@ -638,7 +638,9 @@ function fixPath(string $path): string
   */
 function zapFileEND(string $str, bool $reverse = false): string
 {
-    if (($p = str_starts_with($str, '__END__')? 0 : false) === false) {
+    if (str_starts_with($str, '__END__')) {
+        $p = 0;
+    } else {
         $p = strpos($str, "\n__END__");
     }
     // __END__ not found:
@@ -801,7 +803,7 @@ function getDir(string $pat, mixed $associative = false, string $type = '', int 
             } else {
                 $files = glob($pat, GLOB_BRACE+GLOB_MARK+$flag);
             }
-            $files = array_filter($files, function($path){return $path[-1] != '/';});
+            $files = array_filter($files, function($path){return $path[-1] !== '/';});
         }
         $files = array_merge($folders, $files);
 
@@ -1071,7 +1073,7 @@ function writeFile(string $file, mixed $content, int $flags = 0, int $permission
          $type = strtolower(fileExt($file));
      }
      // encode data:
-     if (str_contains('yml,yaml', $type)) {
+     if (in_array($type, ['yml', 'yaml'])) {
          $content = shieldNewlines($content);
          $content = Data::encode($content, $type);
          $content = prettifyYaml($content);
@@ -1137,7 +1139,7 @@ function writeFileLocking(string $file, mixed $content, string $type = '', bool 
  function _encodeData(mixed $content, string|false $type): string
 {
     // encode data:
-    if ($type && str_contains('yml,yaml', $type)) {
+    if ($type && in_array($type, ['yml', 'yaml'])) {
         $content = shieldNewlines($content);
         $content = Data::encode($content, $type);
         $content = prettifyYaml($content);
@@ -1373,8 +1375,8 @@ function writeFileLocking(string $file, mixed $content, string $type = '', bool 
 
          foreach ($list as $item) {
              $sample = iconv($item, $item, $string);
-             if (md5($sample) == md5($string)) {
-                 if ($enc == $item) { return true; }    else { return $item; }
+             if (md5($sample) === md5($string)) {
+                 if ($enc === $item) { return true; }    else { return $item; }
              }
          }
          return null;
@@ -1393,7 +1395,7 @@ function writeFileLocking(string $file, mixed $content, string $type = '', bool 
   */
  function awaitFileLock($fp, bool $exclusive = false, string $filename = '', bool $blocking = true): void
 {
-    $lockType = $exclusive? LOCK_EX | LOCK_NB : LOCK_SH;
+    $lockType = ($exclusive ? LOCK_EX : LOCK_SH) | LOCK_NB;
     if ($blocking) {
         if ($blocking === true) {
             $blocking = FILE_BLOCKING_MAX_TIME / FILE_BLOCKING_CYCLE_TIME;
@@ -1624,7 +1626,7 @@ function mylog(string $str, mixed $filename = false): void
     $logMaxWidth = 80;
     logFileManager($logFile);
 
-    if ((strlen($str) > $logMaxWidth) || (strpos($str, "\n") !== false)) {
+    if ((strlen($str) > $logMaxWidth) || str_contains($str, "\n")) {
         $str = log_wordwrap($str, $logMaxWidth);
     }
     $str = timestampStr()."  $str\n\n";
@@ -1674,7 +1676,7 @@ function mylog(string $str, mixed $filename = false): void
          $selector = fileExt($logFile, true) . '[*';
          foreach (glob($selector) as $file) {
              if (filemtime($file) < $oldest) {
-                 unset($file);
+                 @unlink($file);
              }
          }
      }
@@ -1938,7 +1940,7 @@ function handleDataImportPattern(string $str): string
 
         // get files in given folder:
         } elseif (str_starts_with($arg, 'files:')) {
-            $arg = ltrim(substr($arg, 8));
+            $arg = ltrim(substr($arg, 6));
             $path = Utils::resolvePath($arg);
             $dir = getDir($path, type:'files');
             $len = strlen($path);
@@ -2127,9 +2129,6 @@ function findNextPattern(string $str, string $pat, mixed $p1 = 0): mixed
   */
 function explodeTrim(string $sep, string $str, bool $excludeEmptyElems = false): array
 {
-    if (!is_string($str)) {
-        return [];
-    }
     $str = trim($str);
     if ($str === '') {
         return [];
@@ -2146,7 +2145,7 @@ function explodeTrim(string $sep, string $str, bool $excludeEmptyElems = false):
         $out = array_map('trim', preg_split("/[$sep]/", $str));
 
     } else {
-        if (strpos($str, $sep) === false) {
+        if (!str_contains($str, $sep)) {
             return [ $str ];
         }
         $out = array_map('trim', explode($sep, $str));
@@ -2214,7 +2213,7 @@ function compileMarkdown(string $mdStr, bool $omitPWrapperTag = false): string
     } else {
         return '';
     }
-} // compileMarkdown
+} // markdown
 
 
  /**
@@ -2235,7 +2234,7 @@ function compileMarkdown(string $mdStr, bool $omitPWrapperTag = false): string
     } else {
         return '';
     }
-} // compileMarkdown
+} // markdownParagraph
 
 
 /**
@@ -2372,7 +2371,7 @@ function charToHtmlUnicode(string $char): string
  function unshieldCharacters(string $str): string
  {
     $output = preg_replace_callback("/(&#[0-9]+;)/", function($m) {
-        return mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES");
+        return html_entity_decode($m[1], ENT_QUOTES, 'UTF-8');
         }, $str);
     return $output;
 } // unshieldCharacters
@@ -2738,7 +2737,7 @@ function iconExists(string $iconName): bool
   */
  function isHash(string $str): bool
 {
-     $isHash = preg_match('/[A-Z][A-Z0-9]{4,20}]/', $str);
+     $isHash = preg_match('/[A-Z][A-Z0-9]{4,20}/', $str);
      return $isHash;
 } // isHash
 
@@ -2857,11 +2856,11 @@ function iconExists(string $iconName): bool
         }
     }
 
-    if ($value == 'true') {
+    if ($value === 'true') {
         return true;
     }
 
-    if ($value == 'false') {
+    if ($value === 'false') {
         return false;
     }
 

@@ -16,7 +16,7 @@ class Download
      */
     public static function handler(string $path): bool
     {
-        $path1 = urldecode(substr($path, 9));
+        $path1 = urldecode(substr($path, strlen('download/')));
         $realLocations = kirby()->session()->get('pfy.realLocations');
         $downloadPermission = kirby()->session()->get('pfy.downloadPermission');
         if (!$downloadPermission) {
@@ -28,19 +28,14 @@ class Download
         $path = $realLocations[$path1];
 
         if (is_dir($path)) {
-            $basename = pathinfo($path, PATHINFO_BASENAME);
-            $basename = self::translateToFilename($basename, false);
+            $basename = self::translateToFilename(basename($path));
             $filename = "media/download/$basename.zip";
-            $destFile = PFY_KIRBY_BASE_PATH. $filename;
+            $destFile = PFY_KIRBY_BASE_PATH . $filename;
             self::zipFolder($path, $destFile);
             $path = $destFile;
         }
 
-        if (self::downloadFile($path)) {
-            exit();
-        }
-
-        return false;
+        return self::downloadFile($path);
     } // handler
 
 
@@ -56,197 +51,114 @@ class Download
         }
         self::preparePath($destFile);
         $zip = new ZipArchive;
-        if ($zip->open($destFile, ZipArchive::CREATE) === true) {
-            $files = self::getDirDeep($path.'/*');
-            foreach ($files as $file) {
-                $zip->addFile($file, basename($file));
-            }
-            $zip->close();
-            return true;
-        } else {
+        if ($zip->open($destFile, ZipArchive::CREATE) !== true) {
             return false;
         }
+        $basePath = rtrim($path, '/') . '/';
+        $files = self::getFilesRecursive($basePath);
+        foreach ($files as $file) {
+            $relativePath = substr($file, strlen($basePath));
+            $zip->addFile($file, $relativePath);
+        }
+        $zip->close();
+        return true;
     } // zipFolder
 
 
     /**
-     * @param $path
+     * @param string $path
      * @return bool
      */
-    private static function downloadFile($path): bool
+    private static function downloadFile(string $path): bool
     {
         if (!file_exists($path)) {
             return false;
         }
-        $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
-        if ($ext === 'pdf') {
-            header('Content-type: application/pdf');
-            header('Content-Disposition: attachment; filename="' . basename($path) . '"');
-            header("Content-Length: " . filesize($path));
-            header('Content-Transfer-Encoding: binary');
-            header('Accept-Ranges: bytes');
-
-        } elseif ($ext === 'txt') {
-            header('Content-type: text/plain'); // works for txt only
-        } else {
-            header("Content-Disposition: attachment; filename=\"" . basename($path) . "\"");
-            header('Content-type: application/'.$ext);
-            header("Content-Length: " . filesize($path));
-            header("Connection: close");
-        }
+        $mimeType = mime_content_type($path) ?: 'application/octet-stream';
+        $filename = basename($path);
+        header('Content-Type: ' . $mimeType);
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Content-Length: ' . filesize($path));
+        header('Content-Transfer-Encoding: binary');
+        header('Cache-Control: no-cache, must-revalidate');
         readfile($path);
         return true;
-    } // downloadPDF
+    } // downloadFile
 
 
     /**
+     * Translates a string into a filesystem-safe filename.
      * @param string $str
-     * @param mixed $appendExt
      * @return string
      */
-    private static function translateToFilename(string $str, mixed $appendExt = true): string
+    private static function translateToFilename(string $str): string
     {
-        // translates special characters (such as , , ) into "filename-safe" non-special equivalents (a, o, U)
-        $str = self::strToASCII(trim(mb_strtolower($str)));	// replace special chars
-        $str = strip_tags($str);						// strip any html tags
-        $str = str_replace([' ', '-'], '_', $str);				// replace blanks with _
-        $str = str_replace('/', '_', $str);				// replace '/' with _
-        $str = preg_replace("/[^[:alnum:]._-`]/m", '', $str);	// remove any non-printables
-        $str = preg_replace("/\.+/", '.', $str);		// reduce multiple ... to one .
-        if ($appendExt && !preg_match('/\.html?$/', $str)) {	// append file extension '.html'
-            if ($appendExt === true) {
-                $str .= '.html';
-            } else {
-                $str .= '.'.$appendExt;
-            }
-        }
+        $str = self::strToASCII(trim(mb_strtolower($str)));
+        $str = strip_tags($str);
+        $str = str_replace([' ', '-', '/'], '_', $str);
+        $str = preg_replace('/[^a-z0-9._\-]/', '', $str);
+        $str = preg_replace('/\.+/', '.', $str);
         return $str;
     } // translateToFilename
 
 
     /**
+     * Transliterate special characters to ASCII equivalents.
      * @param string $str
      * @return string
      */
     private static function strToASCII(string $str): string
     {
-        // transliterate special characters (such as ä, ö, ü) into pure ASCII
-        $specChars = array('ä','ö','ü','Ä','Ö','Ü','é','â','á','à',
-            'ç','ñ','Ñ','Ç','É','Â','Á','À','ẞ','ß','ø','å');
-        $specCodes2 = array('ae','oe','ue','Ae',
+        $specChars = ['ä','ö','ü','Ä','Ö','Ü','é','â','á','à',
+            'ç','ñ','Ñ','Ç','É','Â','Á','À','ẞ','ß','ø','å'];
+        $replacements = ['ae','oe','ue','Ae',
             'Oe','Ue','e','a','a','a','c',
             'n','N','C','E','A','A','A',
-            'SS','ss','o','a');
-        return str_replace($specChars, $specCodes2, $str);
+            'SS','ss','o','a'];
+        return str_replace($specChars, $replacements, $str);
     } // strToASCII
 
 
     /**
-     * @param string $path0
+     * Creates the directory structure for the given file path.
+     * @param string $filePath
      * @return void
      */
-    private static function preparePath(string $path0): void
+    private static function preparePath(string $filePath): void
     {
-        $accessRights = 0755;
-        // resolve path if necessary:
-        if ($path0 && ($path0[0] === '~')) {
-            $path0 = Utils::resolvePath($path0);
+        if ($filePath && $filePath[0] === '~') {
+            $filePath = Utils::resolvePath($filePath);
         }
-
-        if (file_exists(dirname($path0))) {
-            return; // nothing to do
+        $dir = dirname($filePath);
+        if (file_exists($dir)) {
+            return;
         }
-
-        // make folder(s) if necessary:
-        $path = dirname($path0.'x');
-        if (!file_exists($path)) {
-            $accessRights1 = $accessRights ? $accessRights : PFY_MKDIR_MASK;
-            try {
-                mkdir($path, $accessRights1, true);
-            } catch (Exception $e) {
-                throw new Exception("Error: failed to create folder '$path'");
-            }
-        }
-
-        // apply access rights if requested:
-        $path = substr($path, strlen(PFY_KIRBY_BASE_PATH));
-        $path1 = PFY_KIRBY_BASE_PATH;
-        foreach (explode('/', $path) as $p) {
-            $path1 .= "$p/";
-            try {
-                chmod($path1, $accessRights);
-            } catch (Exception $e) {
-                throw new Exception("Error: failed to create folder '$path'");
-            }
+        try {
+            mkdir($dir, 0755, true);
+        } catch (\Exception $e) {
+            throw new \Exception("Error: failed to create folder '$dir'");
         }
     } // preparePath
 
 
     /**
-     * @param string $path
-     * @param bool $onlyDir
-     * @param bool $assoc
-     * @param bool $returnAll
+     * Recursively collects all files in a directory, excluding hidden files.
+     * @param string $basePath
      * @return array
      */
-    private static function getDirDeep(string $path, bool $onlyDir = false, bool $assoc = false, bool $returnAll = false): array
+    private static function getFilesRecursive(string $basePath): array
     {
         $files = [];
-        $inclPat = pathinfo($path, PATHINFO_BASENAME);
-        if (!$returnAll && $inclPat && ($inclPat !== '*')) {
-            $inclPat = str_replace(['{',',','}','.','*','[!','-','/'],['(','|',')','\\.','.*','[^','\\-','\\/'], $inclPat);
-            $inclPat = "/^$inclPat$/";
-            $path = dirname($path);
-        } else {
-            $path = rtrim($path, ' *');
-            $inclPat = false;
-        }
-
-        if (!is_dir($path)) {
-            throw new Exception("Folder doesn't exist: '$path'");
-        }
-
-        $it = new \RecursiveDirectoryIterator($path);
-        foreach (new \RecursiveIteratorIterator($it) as $fileRec) {
-            $f = $fileRec->getFilename();
-            $p = $fileRec->getPathname();
-            if ($onlyDir) {
-                if (($f === '.') && !preg_match('|/#|', $p)) {
-                    if ($assoc) {
-                        $f = basename(rtrim($p, '/.'));
-                        $files[$f] = rtrim($p, '.');
-                    } else {
-                        $files[] = rtrim($p, '.');
-                    }
-                }
+        $it = new \RecursiveDirectoryIterator($basePath, \RecursiveDirectoryIterator::SKIP_DOTS);
+        foreach (new \RecursiveIteratorIterator($it) as $fileInfo) {
+            $pathname = $fileInfo->getPathname();
+            if (preg_match('|/\.|', $pathname)) {
                 continue;
             }
-
-            // exclude hidden/commented files, unless returnAll:
-            if (!$returnAll) {
-                if (preg_match('|/[.#]|', $p)) {
-                    continue;
-                }
-                // if inclPat is set, exclude everything that doesn't match:
-                if ($inclPat && !preg_match($inclPat, $f)) {
-                    continue;
-                }
-            } elseif (($f === '.') || ($f === '..')) {
-                continue;
-            }
-
-            if ($assoc) {
-                $files[$f] = $p;
-            } else {
-                $files[] = $p;
-            }
+            $files[] = $pathname;
         }
-        if ($assoc) {
-            ksort($files);
-        } else {
-            sort($files);
-        }
+        sort($files);
         return $files;
-    } // getDirDeep
+    } // getFilesRecursive
 
-} // Downloader
+} // Download

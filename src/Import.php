@@ -5,14 +5,14 @@ namespace PgFactory\PageFactory;
 
 class Import
 {
-    public static $inx = 1;
-    private static $mdCompile;
+    public static int $inx = 1;
+    private static bool|null $mdCompile = null;
 
 
     /**
      * Macro rendering method
-     * @param $args                     // array of arguments
-     * @return string                   // HTML or Markdown
+     * @param array $args
+     * @return string
      */
     public static function render(array $args): string
     {
@@ -40,40 +40,25 @@ class Import
             natsort($keys);
             $j = 0;
             foreach ($keys as $key) {
-                $folder = $folders[$key];
-                if (is_dir($folder)) {
-                    $s = $elemHeader.self::importFile("~/$folder$file", $literal)."$elemFooter\n\n";
-
-                    if ($wrapperTag) {
-                        $j++;
-                        $str .= <<<EOT
-
-<$wrapperTag class='pfy-imported-elem pfy-imported-elem-$j $wrapperClass'>
-$s
-</$wrapperTag><!-- /pfy-imported-elem-$j -->
-
-EOT;
-
-                    } else {
-                        $str .= $s;
-                    }
-                } elseif (is_file($folder)) {
-                    $s = $elemHeader.self::importFile("~/$folder", $literal)."$elemFooter\n\n";
-
-                    if ($wrapperTag) {
-                        $j++;
-                        $str .= <<<EOT
+                $path = $folders[$key];
+                if (is_dir($path)) {
+                    $s = $elemHeader.self::importFile("~/$path$file", $literal)."$elemFooter\n\n";
+                } elseif (is_file($path)) {
+                    $s = $elemHeader.self::importFile("~/$path", $literal)."$elemFooter\n\n";
+                } else {
+                    continue;
+                }
+                if ($wrapperTag) {
+                    $j++;
+                    $str .= <<<EOT
 
 <$wrapperTag class='pfy-imported-elem pfy-imported-elem-$j $wrapperClass'>
 $s
 </$wrapperTag><!-- /pfy-imported-elem-$j -->
 
 EOT;
-
-                    } else {
-                        $str .= $s;
-                    }
-
+                } else {
+                    $str .= $s;
                 }
             }
             if ($compileMd) {
@@ -118,23 +103,23 @@ EOT;
 
 
     /**
-     * @param $str
-     * @param $pattern
-     * @param $position
-     * @param $postfix
-     * @return mixed|string
+     * @param string $str
+     * @param string $pattern
+     * @param int $position
+     * @param string $postfix
+     * @return string
      * @throws \Exception
      */
-    private static function doHighlight($str, $pattern, $position = 0, $postfix = '')
+    private static function doHighlight(string $str, string $pattern, int $position = 0, string $postfix = ''): string
     {
-        list($p1, $p2) = strPosMatching($str, $position, $pattern, $pattern);
+        [$p1, $p2] = strPosMatching($str, $position, $pattern, $pattern);
         $l = strlen($pattern);
         while ($p1 !== false) {
             $s1 = substr($str, 0, $p1);
             $s2 = substr($str, $p1+$l, $p2-$p1-$l);
             $s3 = substr($str, $p2+$l);
             $str = $s1."<span class='hl$postfix'>$s2</span>".$s3;
-            list($p1, $p2) = strPosMatching($str, $p2+$l, $pattern);
+            [$p1, $p2] = strPosMatching($str, $p2+$l, $pattern, $pattern);
         }
         return $str;
     } // doHighlight
@@ -143,39 +128,39 @@ EOT;
     /**
      * Imports file(s), markdown-compiles it if necessary
      * @param string $file
+     * @param bool $literal
      * @return string
      */
     private static function importFile(string $file, bool $literal = false): string
     {
         $str = '';
-        if ($file && (((strpbrk($file, '*{') !== false)) || ($file[strlen($file)-1] === '/'))) {
+        if ($file && (strpbrk($file, '*{') !== false || $file[strlen($file)-1] === '/')) {
             if (($file[0]??false) !== '~') {
                 $file = "~page/$file";
             }
-            $file = Utils::resolvePath($file);
-            $files = getDir($file);
-            foreach ($files as $key => $file) {
-                $files[$key] = "~/$file";
+            $resolved = Utils::resolvePath($file);
+            $files = getDir($resolved);
+            foreach ($files as $key => $f) {
+                $files[$key] = "~/$f";
             }
         } else {
             $files = [$file];
         }
-        foreach ($files as $file) {
-            if (($file[0]??false) !== '~') {
-                $file = "~page/$file";
+        foreach ($files as $f) {
+            if (($f[0]??false) !== '~') {
+                $f = "~page/$f";
             }
-            $file = Utils::resolvePath($file);
+            $f = Utils::resolvePath($f);
             if ($literal) {
-                $s = @file_get_contents($file);
+                $s = @file_get_contents($f) ?: '';
             } else {
-                $s = getFile($file);
+                $s = getFile($f);
             }
-            if (self::$mdCompile || (fileExt($file) === 'md' && self::$mdCompile !== null)) {
+            if (self::$mdCompile || (fileExt($f) === 'md' && self::$mdCompile !== null)) {
                 $s = compileMarkdown($s);
             }
             $str .= $s;
         }
         return $str;
-    } // importFIle
+    } // importFile
 } // Import
-

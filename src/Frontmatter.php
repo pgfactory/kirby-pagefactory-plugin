@@ -10,6 +10,8 @@ class Frontmatter
 
     private static string $sectionsCss = '';
     private static string $sectionsScss = '';
+    private static array $metaKeys = ['description', 'keywords', 'author'];
+
     /**
      * @param $mdStr
      * @return array|false
@@ -21,19 +23,17 @@ class Frontmatter
         $wrapperTag = 'section';
         $wrapperClass = '';
         $fields = preg_split('!\n-{4}\n!', $mdStr);
-        $n = sizeof($fields)-1;
+        $n = count($fields) - 1;
         $mdStr = $fields[$n];
         $continue = true;
 
         // loop through all fields and add them to the content
-        for ($i=0; $i<$n; $i++) {
+        for ($i = 0; $i < $n; $i++) {
             $field = trim($fields[$i]);
             $pos = strpos($field, ':');
-            $key = camelCase(trim(substr($field, 0, $pos)));
-            $key = strtolower($key);
+            $key = strtolower(camelCase(trim(substr($field, 0, $pos))));
 
-            // Don't add fields with empty keys
-            if (empty($key) === true) {
+            if ($key === '') {
                 continue;
             }
 
@@ -53,7 +53,7 @@ class Frontmatter
                     TransVars::setVariable($k, $v);
                 }
 
-            } elseif (str_contains('description,keywords,author,robots', $key)) {
+            } elseif (in_array($key, self::$metaKeys, true)) {
                 Page::append($key, $value);
 
             } elseif ($key === 'title') {
@@ -101,7 +101,8 @@ class Frontmatter
                 if (strlen($value) <= 10) { // if no time, assume beginning of this day
                     $value .= ' 00:00:00';
                 }
-                if (time() < strtotime($value)) {
+                $timestamp = strtotime($value);
+                if ($timestamp !== false && time() < $timestamp) {
                     $continue = false;
                 }
 
@@ -110,7 +111,8 @@ class Frontmatter
                 if (strlen($value) <= 10) { // if no time, assume end of this day
                     $value .= ' 23:59:59';
                 }
-                if (time() > strtotime($value)) {
+                $timestamp = strtotime($value);
+                if ($timestamp !== false && time() > $timestamp) {
                     $continue = false;
                 }
 
@@ -118,7 +120,6 @@ class Frontmatter
                 PageFactory::$slidingPanels = $value;
 
             } else {
-                // unescape escaped dividers within a field
                 TransVars::setVariable($key, $value);
             }
         }
@@ -130,7 +131,7 @@ class Frontmatter
      * @param string $wrapperId
      * @return void
      */
-    public static function propagaterStyles(string $wrapperId): void
+    public static function propagateStyles(string $wrapperId): void
     {
         if (self::$sectionsCss) {
             self::$sectionsCss = str_replace(['#this', '.this'], ["#$wrapperId", ".$wrapperId"], self::$sectionsCss);
@@ -142,7 +143,7 @@ class Frontmatter
             Page::addScss(self::$sectionsScss);
             self::$sectionsScss = '';
         }
-    } // propagaterStyles
+    } // propagateStyles
 
 
 } // Frontmatter

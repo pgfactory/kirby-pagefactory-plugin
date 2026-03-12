@@ -181,13 +181,10 @@ class TransVars
                     }
                     $key1 = str_replace(['++', '--'], '', $key);
                     $value = self::getVariable($key1, $varNameIfNotFound, $lang);
-                    if ($key !== $key1) {
-                        $s1 = $s2 = '';
-                        if (preg_match('/^(.*?)([-\d.]+)(.*)$/', $value, $m)) {
-                            $s1 = $m[1];
-                            $s2 = $m[3];
-                            $n = $m[2];
-                        }
+                    if ($key !== $key1 && preg_match('/^(.*?)([-\d.]+)(.*)$/', (string)$value, $m)) {
+                        $s1 = $m[1];
+                        $s2 = $m[3];
+                        $n = $m[2];
                         if (str_starts_with($key, '++')) { // pre-increase
                             $n++;
                             $value = "$s1$n$s2";
@@ -206,7 +203,7 @@ class TransVars
                     }
                 }
             }
-            if ($value !== null && str_contains($value, '\\ ')) {
+            if (is_string($value) && str_contains($value, '\\ ')) {
                 $value = str_replace('\\ ', '&nbsp;', $value);
             }
             if ($doShield) {
@@ -227,7 +224,7 @@ class TransVars
      * @param string $str
      * @return string
      */
-    public static function resolveShortFormVariables(string $str, bool $keepUnknows = false): string
+    public static function resolveShortFormVariables(string $str, bool $keepUnknowns = false): string
     {
         if (str_contains($str, '%')) {
             if (preg_match_all('/%([\w-]{1,30})%/', $str, $m)) {
@@ -236,7 +233,7 @@ class TransVars
                     $value = self::getVariable($varName);
                     if ($value !== null) {
                         $str = str_replace($m[0][$i], $value, $str);
-                    } elseif (!$keepUnknows) {
+                    } elseif (!$keepUnknowns) {
                         $str = str_replace($m[0][$i], '', $str);
                     }
                 }
@@ -281,18 +278,12 @@ class TransVars
      */
     public static function loadVariablesFromFile(string $file, bool $doTranslate): void
     {
-        $transVars = loadFile($file);
-        if ($transVars) {
-            if (self::$transVars) {
-                foreach ($transVars as $key => $value) {
-                    self::$transVars[$key] = $value;
-                }
-            } else {
-                self::$transVars = $transVars;
-            }
+        $data = loadFile($file);
+        if ($data) {
+            self::$transVars = array_merge(self::$transVars, $data);
 
             if ($doTranslate) {
-                foreach ($transVars as $key => $rec) {
+                foreach ($data as $key => $rec) {
                     self::$variables[camelCase($key)] = self::translateVariable($key);
                 }
             }
@@ -307,7 +298,7 @@ class TransVars
      * @param mixed $value
      * @return string
      */
-    public static function setVariable(string $varName, mixed $value, bool $propagateToField = true):string
+    public static function setVariable(string $varName, mixed $value, bool $propagateToField = true): string
     {
         $varName = camelCase($varName);
         self::$transVars[$varName] = $value;
@@ -403,6 +394,7 @@ class TransVars
      */
     public static function removeVariable(string $varName): void
     {
+        $varName = camelCase($varName);
         if (isset(self::$variables[$varName])) {
             unset(self::$variables[$varName]);
         }
@@ -461,6 +453,7 @@ class TransVars
             } else {
                 $value = htmlentities($value);
             }
+            $key = htmlentities($key);
             $html .= "<dt>$key</dt><dd>$value</dd>\n";
         }
         $html .= "</dl>\n";
@@ -502,7 +495,7 @@ class TransVars
     public static function purgeTempVariables(): void
     {
         self::$tempVariables = [];
-    } // setTempVariables
+    } // purgeTempVariables
 
 
     /**

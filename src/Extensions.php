@@ -14,11 +14,12 @@ class Extensions
     /**
      * @return void
      */
-    public static function findExtensions()
+    public static function findExtensions(): void
     {
-        $extensions = getDir(rtrim(PFY_PLUGIN_PFY_PATH, '/').'-*');
+        $prefix = rtrim(PFY_PLUGIN_PFY_PATH, '/') . '-';
+        $extensions = getDir($prefix . '*');
         foreach ($extensions as $extension) {
-            $extensionName = rtrim(substr($extension, strlen(PFY_KIRBY_BASE_PATH)+25), '/');
+            $extensionName = rtrim(substr($extension, strlen($prefix)), '/');
             self::$availableExtensions[$extensionName] = $extension;
         }
     } // findExtensions
@@ -27,32 +28,30 @@ class Extensions
     /**
      * Loads extensions, i.e. plugins with names "pagefactory-*":
      */
-    public static function loadExtensions(): void {
-        // check for and load extensions:
-        if (self::$availableExtensions) {
-            foreach (self::$availableExtensions as $extPath) {
-                // look for 'src/index.php' within the extension:
-                $indexFile = "{$extPath}src/index.php";
-                if (!file_exists($indexFile)) {
-                    continue;
-                }
-
-                // === load index.php to get extension's class name:
-                $extensionClassName = require_once $indexFile;
-                if (!is_string($extensionClassName)) {
-                    continue;
-                }
-                self::$loadedExtensions[$extensionClassName] = $extPath;
-
-                // instantiate extension object:
-                $extensionClass = "PgFactory\\PageFactoryElements\\$extensionClassName";
-                if (!class_exists($extensionClass)) {
-                    continue;
-                }
-
-                $obj = new $extensionClass(); // -> initialize extension
-                self::$loadedExtensionObjects[] = $obj;
+    public static function loadExtensions(): void
+    {
+        foreach (self::$availableExtensions as $extPath) {
+            // look for 'src/index.php' within the extension:
+            $indexFile = "{$extPath}src/index.php";
+            if (!file_exists($indexFile)) {
+                continue;
             }
+
+            // load index.php to get extension's class name:
+            $extensionClassName = require_once $indexFile;
+            if (!is_string($extensionClassName)) {
+                continue;
+            }
+            self::$loadedExtensions[$extensionClassName] = $extPath;
+
+            // instantiate extension object:
+            $extensionClass = "PgFactory\\PageFactoryElements\\$extensionClassName";
+            if (!class_exists($extensionClass)) {
+                continue;
+            }
+
+            $obj = new $extensionClass(); // -> initialize extension
+            self::$loadedExtensionObjects[] = $obj;
         }
     } // loadExtensions
 
@@ -82,19 +81,19 @@ class Extensions
             $str .= $obj->showHelp();
         }
         return $str;
-    } // extensionsFinalCode
+    } // showHelp
 
 
     /**
      * @return void
-     * @throws \Exception
      */
     public static function reset(): void
     {
+        // delete compiled CSS files (prefixed with '-') from extensions:
         foreach (self::$loadedExtensions as $path) {
-            $files = getDirDeep($path . '-*.css');
+            $files = getDirDeep($path . '*.css');
             foreach ($files as $file) {
-                if ((basename($file)[0]) === '-') {
+                if (basename($file)[0] === '-') {
                     unlink($file);
                 }
             }

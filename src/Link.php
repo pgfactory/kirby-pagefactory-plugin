@@ -2,13 +2,13 @@
 
 namespace PgFactory\PageFactory;
 
-define('SUPPORTED_TYPES',   ',pdf,png,gif,jpg,jpeg,txt,doc,docx,xls,xlsx,ppt,pptx,odt,ods,odp,mail,mailto,file,'.
-    'sms,tel,gsm,geo,slack,twitter,facebook,instagram,tiktok,zip,');
-define('PROTO_TYPES',        ',https://,http://,mailto:,sms:,tel:,gsm:,geo:,slack:,twitter:,facebook:,instagram:,tiktok:,');
-define('DOWNLOAD_TYPES',        ',txt,doc,docx,dotx,xls,xlsx,xltx,ppt,pptx,potx,odt,ods,ots,ott,odp,otp,png,gif,jpg,jpeg,zip,');
-
 class Link
 {
+    const SUPPORTED_TYPES = ',pdf,png,gif,jpg,jpeg,txt,doc,docx,xls,xlsx,ppt,pptx,odt,ods,odp,mail,mailto,file,' .
+        'sms,tel,gsm,geo,slack,twitter,facebook,instagram,tiktok,zip,';
+    const PROTO_TYPES = ',https://,http://,mailto:,sms:,tel:,gsm:,geo:,slack:,twitter:,facebook:,instagram:,tiktok:,';
+    const DOWNLOAD_TYPES = ',txt,doc,docx,dotx,xls,xlsx,xltx,ppt,pptx,potx,odt,ods,ots,ott,odp,otp,png,gif,jpg,jpeg,zip,';
+
     private static $url;
     private static $args;
     private static $text;
@@ -43,20 +43,20 @@ class Link
         if (!isset($args['url'])) {
             return '';
         }
-        self::$url = ($args['url'] ?? '');
+        self::$url = $args['url'];
         self::$args = $args;
-        self::$text = false;
-        self::$title = false;
+        self::$text = '';
+        self::$title = '';
         self::$id = $args['id'] ?? '';
         self::$class = $args['class'] ?? '';
         self::$alt = $args['alt'] ?? '';
         self::$proto = '';
-        self::$target = isset($args['target']) ? $args['target'] : null;
-        self::$type = false;
+        self::$target = $args['target'] ?? null;
+        self::$type = '';
         self::$ext = strtolower(fileExt(self::$url, couldBeUrl: true));
-        self::$linkCat = false;
-        self::$icon = isset($args['icon']) ? $args['icon'] : null;
-        self::$iconBefore = !(($args['iconPosition'] ?? false) && ($args['iconPosition'] === 'after'));
+        self::$linkCat = '';
+        self::$icon = $args['icon'] ?? null;
+        self::$iconBefore = ($args['iconPosition'] ?? '') !== 'after';
         self::$attributes = $args['attr'] ?? '';
         self::$hiddenText = '';
         self::$isExternalLink = false;
@@ -68,7 +68,7 @@ class Link
         self::$text = self::getText();
         self::addIcon();
 
-        if (self::$type && str_contains('tel,gsm,sms,mobile', self::$type)) {
+        if (self::$type && in_array(self::$type, ['tel', 'gsm', 'sms', 'mobile'])) {
             $url = str_replace(' ', '', self::$url);
         } elseif (self::$type === 'pdf' && !str_starts_with(self::$url, '<span immutable')) {
             $url = dir_name(self::$url) . rawurlencode(base_name(self::$url));
@@ -88,7 +88,7 @@ class Link
     private static function determineLinkType()
     {
         $proto = self::getProto();
-        if ($proto && (stripos(PROTO_TYPES, $proto))) {
+        if ($proto && stripos(self::PROTO_TYPES, $proto) !== false) {
             return;
         }
 
@@ -121,7 +121,7 @@ class Link
                         self::$type = 'mail';
                         self::$linkCat = 'mail';
                         return;
-                    } elseif (str_contains(DOWNLOAD_TYPES, $type)) {
+                    } elseif (str_contains(self::DOWNLOAD_TYPES, ",$type,")) {
                         self::$type = 'download';
                         self::$linkCat = 'download';
                         self::compileUrl();
@@ -161,14 +161,10 @@ class Link
             self::$linkCat = 'link';
             self::$isExternalLink = true;
 
-        } else {
-            switch (self::$ext) {
-                case 'pdf':
-                    self::$proto = '';
-                    self::$type = 'pdf';
-                    self::$linkCat = 'pdf';
-                    break;
-            }
+        } elseif (self::$ext === 'pdf') {
+            self::$proto = '';
+            self::$type = 'pdf';
+            self::$linkCat = 'pdf';
         }
         return self::$proto;
     } // getProto
@@ -181,14 +177,12 @@ class Link
     {
         $attr = '';
 
-        if (stripos(self::$type, 'exter') !== false) {
+        if (str_starts_with(self::$type, 'extern')) {
             if (!self::$proto) {
                 self::$type = 'link';
-                if (!self::$proto) {
-                    self::$proto = 'https://';
-                }
+                self::$proto = 'https://';
             }
-        } elseif (stripos(self::$type, 'inter') !== false) {
+        } elseif (str_starts_with(self::$type, 'intern')) {
             if (!self::$proto) {
                 self::$type = 'link';
             }
@@ -207,7 +201,7 @@ class Link
             case 'pdf':
                 self::$class .= ' pfy-link-pdf';
                 self::$text = base_name(self::$url);
-                self::$target = (self::$target) ? self::$target : true;
+                self::$target = self::$target ?: true;
                 break;
 
             case 'zip':
@@ -322,11 +316,11 @@ class Link
         }
 
         $subject = '';
-        if (self::$args['subject']) {
+        if (self::$args['subject'] ?? false) {
             $subject = urlencode(self::$args['subject']);
             self::$url .= "?subject=$subject";
         }
-        if (self::$args['body']) {
+        if (self::$args['body'] ?? false) {
             $body = self::$args['body'];
             $body = unshieldStr($body, true);
             $body = str_replace(["\\n", '&#92;n', ' BR '], "\n", $body);
@@ -370,9 +364,8 @@ class Link
             return '';
         }
 
-        if (stripos(self::$type, 'inter') !== false) {
+        if (str_starts_with(self::$type, 'intern')) {
             $icon = '';
-
         } elseif (self::$linkCat === 'download') {
             $icon = 'download';
 
@@ -405,7 +398,7 @@ class Link
     {
         $classes = explodeTrim(', ', $class);
         foreach ($classes as $class) {
-            if (strpos(self::$class, $class) === false) {
+            if (!str_contains(self::$class, $class)) {
                 self::$class .= " $class";
             }
         }
@@ -428,7 +421,7 @@ class Link
             $url = str_replace(['<del>', '</del>'], '~~', $url);
             $url = str_replace(['<code>', '</code>'], '`', $url);
             $url = str_replace(['<samp>', '</samp>'], '``', $url);
-            $url = str_replace(['<span class="underline">', '</span>'], '__', $url);
+            $url = preg_replace('#<span class="underline">(.*?)</span>#s', '__$1__', $url);
         }
         if (page()->id() === 'home') {
             $url = str_replace('~page/', '~page/home/', $url);
