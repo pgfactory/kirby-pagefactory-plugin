@@ -1374,7 +1374,6 @@ EOT;
         curl_setopt($ch, CURLOPT_URL, "https://ipapi.co/timezone");
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         $output = curl_exec($ch);
-        curl_close($ch);
         return $output;
     } // getServerTimezone
 
