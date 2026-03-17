@@ -2850,7 +2850,7 @@ function iconExists(string $iconName): bool
     // check for digits-only, except if first char is '0':
     if (($value[0] !== '0') && !preg_match('/[^0-9.]+/', $value)) {
         if(preg_match('/[.]+/', $value)) {
-            return (double)$value;
+            return (float)$value;
         }else{
             return (int)$value;
         }
