@@ -76,7 +76,7 @@
 <?php endif ?>
     </footer>
 
-
+    <?php snippet('countvisits', ['args' => "show:loggedin|localhost, prefix:Visits:, suffix:(since %since%)"]) ?>
 
     <?= $smallScreenHeader ?>
 
