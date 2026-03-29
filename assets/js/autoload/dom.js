@@ -79,6 +79,9 @@ function parseDomForArgs(elem, pattern, fun) {
   }
 
   let parentPattern = '';
+  if (typeof pattern !== 'string') {
+    return [null, null, null];
+  }
   pattern = pattern.trim();
 
   if (!pattern.includes('^')) {
