@@ -8,7 +8,7 @@ class DragImageCrosshair {
     if (!(element instanceof HTMLElement)) {
       throw new Error('The provided argument must be an instance of HTMLElement.');
     }
-    console.log('DragImageCrosshair', element);
+    console.debug('DragImageCrosshair', element);
     this.element = element;
     this.isDragging = false;
     this.offsetX = 0;
@@ -64,7 +64,7 @@ class DragImageCrosshair {
     const height = wrapper.clientHeight;
     const x = parseInt(el.style.left);
     const y = parseInt(el.style.top);
-    console.log(`Pos: ${(x/width*100).toFixed(0)}%, ${(y/height*100).toFixed(0)}%`);
+    console.debug(`Pos: ${(x/width*100).toFixed(0)}%, ${(y/height*100).toFixed(0)}%`);
   } // handleMouseUp
 } // DragImageCrosshair
 

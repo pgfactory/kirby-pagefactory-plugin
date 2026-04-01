@@ -215,7 +215,7 @@ function initCopyButton() {
     try {
       // write to clipboard:
       await navigator.clipboard.writeText(str);
-      console.log(`Copied to clipboard: "${str}"`);
+      console.debug(`Copied to clipboard: "${str}"`);
 
       // flash the element for user feedback:
       const container = textareaEl.closest('.pfy-has-copy-btn');
@@ -224,7 +224,7 @@ function initCopyButton() {
         container.classList.remove('pfy-flash-copied');
       }, 1000);
     } catch (err) {
-      console.log('Failed to copy: ' + err);
+      console.debug('Failed to copy: ' + err);
     }
   } // copyToClipboard
 } // initCopyButton
@@ -297,7 +297,7 @@ function showBusySpinner() {
   spinnerOverlay.style.display = 'block';
   document.body.dataset.overflow = document.body.style.overflow;
   document.body.style.overflow = 'hidden';
-  console.log('spinnerOverlay activated');
+  console.debug('spinnerOverlay activated');
 } // showBusySpinner
 
 
@@ -307,7 +307,7 @@ function hideBusySpinner() {
   spinnerOverlay.style.display = 'none';
   document.body.style.overflow = document.body.dataset.overflow;
   document.body.removeAttribute('data-overflow');
-  console.log('spinnerOverlay deactivated');
+  console.debug('spinnerOverlay deactivated');
 } // hideBusySpinner
 
 

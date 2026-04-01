@@ -209,7 +209,7 @@ class KenBurns {
 
 
   activateDebug(transform) {
-    console.log(`debug: start position  [${transform[0]}]`);
+    console.debug(`debug: start position  [${transform[0]}]`);
     this.imgEl.style.transform = transform[0];
     this.imgEl.dataset.kbDebug = 0;
     this.imgEl.addEventListener('click', (ev) => {
@@ -219,7 +219,7 @@ class KenBurns {
       }
       const debugInx = this.imgEl.dataset.kbDebug === '1' ? 0 : 1;
       this.imgEl.dataset.kbDebug = debugInx;
-      console.log(`debug: ${debugInx ? 'end position' : 'start position'}  [${transform[debugInx]}]`);
+      console.debug(`debug: ${debugInx ? 'end position' : 'start position'}  [${transform[debugInx]}]`);
       this.imgEl.style.transform = transform[debugInx];
     });
     this.activateMeasure();

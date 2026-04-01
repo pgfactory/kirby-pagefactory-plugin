@@ -10,7 +10,7 @@
             li
               a
  */
-console.log('nav.js');
+console.debug('nav.js');
 
 class PfyNav {
 
@@ -76,7 +76,7 @@ class PfyNav {
       // check for non-nav-related events:
       if (!el.closest('.pfy-nav-wrapper')) {
         domForAll('.pfy-nav-collapsible .pfy-open', el => {
-          console.log('close open branch');
+          console.debug('close open branch');
           this.closeAll();
         })
         return;

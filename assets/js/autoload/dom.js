@@ -49,7 +49,7 @@ function handleParentPattern(elem, pattern, fun) {
   let parentPattern;
   [elem, pattern, parentPattern, fun] = parseDomForArgs(elem, pattern, fun);
   if (!fun) {
-    console.log('domForXY(): nothing to do');
+    console.debug('domForXY(): nothing to do');
     return [null, null, null];
   }
   if (!(elem instanceof Node) && !(elem instanceof NodeList)) {

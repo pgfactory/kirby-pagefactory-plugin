@@ -601,12 +601,12 @@ EOT;
         $printClose = TransVars::getVariable('pfy-close');
         $jq = <<<EOT
 setTimeout(function() {
-  console.log('now running paged.polyfill.js');
+  console.debug('now running paged.polyfill.js');
   pullScript( '$pagedPolyfillScript' );
 }, 1000);
 
 setTimeout(function() {
-  console.log('now adding buttons');
+  console.debug('now adding buttons');
   const printUrl = window.location.href.replace(/printview/, 'print');
   const origUrl = removeUrlQueryParam(window.location.href, 'printview');
   console.log(`printUrl: \${printUrl}, origUrl: \${origUrl}`);
