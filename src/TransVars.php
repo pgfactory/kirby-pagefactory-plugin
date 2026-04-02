@@ -280,7 +280,7 @@ class TransVars
     {
         $data = loadFile($file);
         if ($data) {
-            self::$transVars = array_merge(self::$transVars, $data);
+            self::$transVars = array_merge($data, self::$transVars);
 
             if ($doTranslate) {
                 foreach ($data as $key => $rec) {

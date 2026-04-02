@@ -217,15 +217,15 @@ class PageFactory
         self::$user = Permission::checkPageAccessCode();
         self::$userName = is_object(self::$user) ? (string)self::$user->nameOrEmail() : (self::$user ?: '');
 
+        // load custom variables:
+        TransVars::loadVariablesFromFolder('site/custom/variables/');
+
         Extensions::loadExtensions();
         Utils::checkInstallationPath();
 
         if (self::$dev) {
             Assets::compileAssets();
         }
-
-        // load custom variables:
-        TransVars::loadVariablesFromFolder('site/custom/variables/');
 
         Utils::prepareGenericVariables();
         preparePath(PFY_LOGS_PATH);

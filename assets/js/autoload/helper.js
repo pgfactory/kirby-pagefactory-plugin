@@ -154,7 +154,7 @@ function translateVar(transvarDef) {
       return transvarDef['_'];
     }
   }
-  return '';
+  return transvarDef;
 } // translateVar
 
 
