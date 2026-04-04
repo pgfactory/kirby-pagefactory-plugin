@@ -51,7 +51,7 @@ class Extensions
             }
 
             $obj = new $extensionClass(); // -> initialize extension
-            self::$loadedExtensionObjects[] = $obj;
+            self::$loadedExtensionObjects[$extensionClassName] = $obj;
         }
     } // loadExtensions
 

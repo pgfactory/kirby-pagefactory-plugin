@@ -110,6 +110,10 @@ class Utils
         }
 
         self::resetAll();
+        if ((Extensions::$loadedExtensions['PageElements']??false) && isset($_GET['purge-old'])) {
+            \PgFactory\PageFactoryElements\PageElements::purgeOldVersionFolders(false);
+        }
+
         self::setInstallationCheckFile();
         reloadAgent(message: "Automatic reset executed");
     } // checkInstallationPath

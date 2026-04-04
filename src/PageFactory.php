@@ -229,6 +229,9 @@ class PageFactory
 
         Extensions::loadExtensions();
         Utils::checkInstallationPath();
+        if (Extensions::$loadedExtensions['PageElements']??false) {
+            (Extensions::$loadedExtensionObjects['PageElements'])->handleAdminRequests();
+        }
 
         if (self::$dev) {
             Assets::compileAssets();
