@@ -10,6 +10,7 @@ const PFY_MIME_TYPES = [
     'svg' => 'image/svg+xml',
     // misc
     'txt' => 'text/plain',
+    'html' => 'text/html',
     'csv' => 'text/csv',
     'zip' => 'application/zip',
     //'json' => 'application/json',
@@ -35,6 +36,7 @@ const PFY_MIME_TYPES = [
 
 function respondWithDownload($file, $accessCritearia = 'loggedin|localhost')
 {
+    $file = urldecode($file);
     if (!is_file($file)) {
         http_response_code(404);
         exit('File not found');
@@ -52,13 +54,28 @@ function respondWithDownload($file, $accessCritearia = 'loggedin|localhost')
         exit('File format error');
     }
 
-    header('Content-Description: File Transfer');
-    header("Content-Type: $mimeType");
-    header('Content-Disposition: attachment; filename="' . basename($file) . '"');
-    header('Content-Length: ' . filesize($file));
-    header('Expires: 0');
-    header('Cache-Control: must-revalidate');
-    header('Pragma: public');
+    if ($ext === 'pdf') {
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: inline; filename="' . basename($file) . '"');
+        header('Content-Length: ' . filesize($file));
+        header('Accept-Ranges: bytes');
+
+    } elseif ($ext === 'txt') {
+        header('Content-Type: text/plain');
+        header('Content-Disposition: inline; filename="' . basename($file) . '"');
+        header('Content-Length: ' . filesize($file));
+        header('Accept-Ranges: bytes');
+
+    } else {
+
+        header('Content-Description: File Transfer');
+        header("Content-Type: $mimeType");
+        header('Content-Disposition: attachment; filename="' . basename($file) . '"');
+        header('Content-Length: ' . filesize($file));
+        header('Expires: 0');
+        header('Cache-Control: must-revalidate');
+        header('Pragma: public');
+    }
 
     readfile($file);
     exit;
