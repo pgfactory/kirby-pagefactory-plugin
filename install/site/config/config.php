@@ -15,7 +15,6 @@ if (!defined('PFY_KIRBY_BASE_PATH')) {
 if (!defined('PFY_PAGE_META_FILE_BASENAME')) {
     define('PFY_PAGE_META_FILE_BASENAME', 'z');
 }
-const PFY_RESTRICTED_DOWNLOADS_PATH = 'Archive/';
 
 
 // Defaults recommended by PageFactory plugin:
@@ -88,18 +87,21 @@ return [
         // 'debug_logIP'                   => true,   // if true, serverLog() includes agent's IP address
     ],
 
-    // apply access restrictions to download files:
+  /* Uncomment to enable management of download folders starting with '_' (e.g. for _downloads):
     'routes' => [
         [
-            'pattern' => PFY_RESTRICTED_DOWNLOADS_PATH . '(:all)',
-            'action'  => function ($file) {
+            // manage access to folders starting with '_' -> typically for downloads:
+            'pattern' => '(_(:all))',
+            'action'  => function () {
+                $file = $this->arguments[0];
                 require_once 'site/plugins/pagefactory/src/downloadHelper.php';
-                respondWithDownload(PFY_RESTRICTED_DOWNLOADS_PATH . $file, accessCritearia: 'loggedin|localhost');
+                respondWithDownload($file, accessCritearia: 'loggedin|localhost');
             }
         ],
     ],
+  */
     
-    /* Enable Kirby-Cache support:
+    /* Uncomment to enable Kirby-Cache support:
         // note: caching always disabled while in debug mode.
         'cache' => [
             'pages' => [
