@@ -47,6 +47,7 @@ define('PFY_TEMP_DOWNLOAD_PATH',        PFY_TEMP_PATH.'download/'); // for temp 
 
 const PFY_GITTAG_FILE =                 PFY_KIRBY_BASE_PATH.'site/custom/gittag.txt';
 const PFY_CRASH_RELOAD_FILE =           PFY_KIRBY_BASE_PATH.'site/logs/first-reload-after-crash.txt';
+const PFY_SITEMAP_FILE =                '~/sitemap.txt';
 
 define('PFY_WEBMASTER_EMAIL_CACHE',     PFY_CACHE_PATH.'webmaster-email.txt');
 define('PFY_INSTALLATION_PATH_CHECK',   PFY_CACHE_PATH.'installation-path.txt');
@@ -185,6 +186,12 @@ class PageFactory
                 'bodyEndInjections'         => Page::renderBodyEndInjections(),
                 'cacheIndicator'            => '',
             ];
+
+            if (kirby()->option('pgfactory.pagefactory.variablesAvailableInTemplates')) {
+                foreach (TransVars::$variables as $varName => $varValue) {
+                    $pageFields[$varName] = $varValue;
+                }
+            }
             self::$renderingClosed = true;
             Cache::updatePageCache($pageFields);
         }

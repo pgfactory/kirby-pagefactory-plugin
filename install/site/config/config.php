@@ -78,6 +78,8 @@ return [
         // 'keepDbHistory'                 => 6,      // If true, old state is copied to dated file (e.g. /.history/xx) whenever 
                                                       // a DB is updated; int arg = number of month to keep
         // 'enablePageCache'               => true,   // -> caching of template variables, e.g. 'pageContent' etc.
+        // 'variablesAvailableInTemplates' => true,   // if true, all TransVars are available in PHP templates
+        // 'maintainSitemap'               => false,  // if false, sitemap.txt file generation is inhibited (default: !loggedIn)
 
         // Options for dev phase:
         // 'debug_checkMetaFiles'          => true,   // if true, Pagefactory will skip checks for presence of metafiles
