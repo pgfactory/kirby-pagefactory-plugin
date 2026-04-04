@@ -15,6 +15,7 @@ if (!defined('PFY_KIRBY_BASE_PATH')) {
 if (!defined('PFY_PAGE_META_FILE_BASENAME')) {
     define('PFY_PAGE_META_FILE_BASENAME', 'z');
 }
+const PFY_RESTRICTED_DOWNLOADS_PATH = 'Archive/';
 
 
 // Defaults recommended by PageFactory plugin:
@@ -87,20 +88,31 @@ return [
         // 'debug_logIP'                   => true,   // if true, serverLog() includes agent's IP address
     ],
 
-/* Enable Kirby-Cache support:
-    // note: caching always disabled while in debug mode.
-    'cache' => [
-        'pages' => [
-            'active' => true,
-            'ignore' => function () {
-                $cacheFlagFile = 'site/cache/pagefactory/last-cache-update.txt';
-                $lastCacheRefresh = file_exists($cacheFlagFile) ? filemtime($cacheFlagFile) : 0;
-                if (date('d', $lastCacheRefresh) !== date('d')) {
-                    return true; // cache expired, don't cache, let PageFactory re-build pages
-                }
-                return false; // page may be cached
+    // apply access restrictions to download files:
+    'routes' => [
+        [
+            'pattern' => PFY_RESTRICTED_DOWNLOADS_PATH . '(:all)',
+            'action'  => function ($file) {
+                require_once 'site/plugins/pagefactory/src/downloadHelper.php';
+                respondWithDownload(PFY_RESTRICTED_DOWNLOADS_PATH . $file, accessCritearia: 'loggedin|localhost');
             }
         ],
     ],
-*/
+    
+    /* Enable Kirby-Cache support:
+        // note: caching always disabled while in debug mode.
+        'cache' => [
+            'pages' => [
+                'active' => true,
+                'ignore' => function () {
+                    $cacheFlagFile = 'site/cache/pagefactory/last-cache-update.txt';
+                    $lastCacheRefresh = file_exists($cacheFlagFile) ? filemtime($cacheFlagFile) : 0;
+                    if (date('d', $lastCacheRefresh) !== date('d')) {
+                        return true; // cache expired, don't cache, let PageFactory re-build pages
+                    }
+                    return false; // page may be cached
+                }
+            ],
+        ],
+    */
 ];
