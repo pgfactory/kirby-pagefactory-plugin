@@ -736,6 +736,7 @@ EOT;
         Assets::reset(); // Deletes all files created by Assets
         PageFactory::$forceAssetsUpdate = true;
         Assets::compileAssets();
+        @unlink(PFY_SITEMAP_FILE);
     } // resetAll
 
 
@@ -981,7 +982,43 @@ EOT;
         }
 
         return $prefix . $result . ($hasTrailingSlash ? '/' : '');
-    }
+    } // normalizePath
+
+
+    /**
+     * Resolves a custom path syntax to a full URL.
+     * Supports:
+     * - '~page/image.jpg' -> Current page image URL
+     * - '~/assets/css/main.css' -> Global asset URL
+     * - '~/' -> Webroot URL
+     */
+    public static function resolveUrl(string $path, bool $forAssets = false): string {
+        // 1. Handle '~page/' syntax
+        if (strpos($path, '~page/') === 0) {
+            $filename = str_replace('~page/', '', $path);
+            // Returns the file URL if found, otherwise falls back to page URL
+            if ($file = page()->file($filename)) {
+                return $file->url();
+            }
+            return page()->url() . '/' . $filename;
+        }
+
+        // 2. Handle '~/' syntax (App Root / Assets)
+        if (strpos($path, '~/') === 0) {
+            $cleanPath = ltrim(str_replace('~/', '', $path), '/');
+
+            // If it's an asset, use asset() helper for robustness
+            if ($forAssets || strpos($cleanPath, 'assets/') === 0) {
+                return asset($cleanPath)->url();
+            }
+
+            // Otherwise, return a URL relative to the Kirby root
+            return url($cleanPath);
+        }
+
+        // 3. Return as-is if no special syntax is found
+        return $path;
+    } // resolveUrl
 
 
     /**
