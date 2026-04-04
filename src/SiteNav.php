@@ -24,7 +24,7 @@ class SiteNav
     private static ?string $defaultNav = null;
     private static string $branchClass = '';
     private static bool $sitemapUpdateEnabled = false;
-    private static string $sitemap = '';
+    private static array $sitemap = [];
 
 
     /**
@@ -208,7 +208,7 @@ EOT;
         }
 
         if (self::$sitemapUpdateEnabled && (PageFactory::$forceAssetsUpdate || !file_exists(PFY_SITEMAP_FILE))) {
-            writeFile(PFY_SITEMAP_FILE, self::$sitemap);
+            writeFile(PFY_SITEMAP_FILE, implode("\n", self::$sitemap));
         }
 
         return $out;
@@ -271,7 +271,7 @@ EOT;
 
     private static function addToSitemap(string $url, array $elem): void
     {
-        self::$sitemap .= "$url\n";
+        self::$sitemap[$url] = $url;
     } // addToSitemap
 
 
