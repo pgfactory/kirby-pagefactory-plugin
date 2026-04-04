@@ -786,6 +786,9 @@ function removeCStyleComments(string $str): string
   */
 function getDir(string $pat, mixed $associative = false, string $type = '', int $flag = 0, string|false $sort = false): array
 {
+    if (($pat[0]??'') === '~') {
+        $pat = Utils::resolvePath($pat);
+    }
     if ($type) {
         // 'type' specified (either files and/or folders):
         $files = $folders = [];
