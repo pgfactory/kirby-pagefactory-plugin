@@ -88,6 +88,7 @@ class Frontmatter
             } elseif ($key === 'assets') {
                 $assets = Yaml::decode($value);
                 foreach ($assets as $asset) {
+                    $asset = trim($asset, '"\'');
                     Assets::addAssets($asset);
                 }
 
