@@ -13,6 +13,8 @@ class DragImageCrosshair {
     this.isDragging = false;
     this.offsetX = 0;
     this.offsetY = 0;
+    this.posX = 0;
+    this.posY = 0;
 
     // Bind event handlers to the class instance
     this.handleMouseDown = this.handleMouseDown.bind(this);
@@ -64,8 +66,15 @@ class DragImageCrosshair {
     const height = wrapper.clientHeight;
     const x = parseInt(el.style.left);
     const y = parseInt(el.style.top);
-    console.debug(`Pos: ${(x/width*100).toFixed(0)}%, ${(y/height*100).toFixed(0)}%`);
+    this.posX = (x/width*100).toFixed(0);
+    this.posY = (y/height*100).toFixed(0);
+    console.debug(`Pos: ${this.posX}%, ${this.posY}%`);
   } // handleMouseUp
+
+
+  getLastPosition() {
+    return {x: this.posX, y: this.posY};
+  }
 } // DragImageCrosshair
 
 // Example usage:

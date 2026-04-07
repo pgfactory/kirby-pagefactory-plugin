@@ -12,6 +12,7 @@ class KenBurns {
   Oy = null;
   debug = false;
   crosshairEl = null;
+  crosshairObj = null;
 
   constructor(wrapperEl, options, animationOptions) {
     options = this.parseOptions(wrapperEl, options, animationOptions);
@@ -221,6 +222,8 @@ class KenBurns {
       const debugInx = this.imgEl.dataset.kbDebug === '1' ? 0 : 1;
       this.imgEl.dataset.kbDebug = debugInx;
       console.debug(`debug: ${debugInx ? 'end position' : 'start position'}  [${transform[debugInx]}]`);
+      const pos = this.crosshairObj.getLastPosition();
+      this.imgEl.style.transformOrigin = `${pos.x}% ${pos.y}%`;
       this.imgEl.style.transform = transform[debugInx];
     });
     this.activateMeasure();
@@ -229,7 +232,7 @@ class KenBurns {
 
   activateMeasure() {
     this.showTransformOrigin();
-    new DragImageCrosshair(this.crosshairEl);
+    this.crosshairObj = new DragImageCrosshair(this.crosshairEl);
   } // activateMeasure
 
 
