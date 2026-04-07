@@ -1,6 +1,7 @@
 /*
 ** Ken Burns Effect
 */
+console.debug('KenBurns');
 
 class KenBurns {
   imgEl = null;

@@ -1039,7 +1039,10 @@ EOT;
             $str = $m[1];
             $unit = $m[2];
         }
-        return [floatval($str), $unit];
+        if (is_numeric($str)) {
+            $str = (float)$str;
+        }
+        return [$str, $unit];
     } // extractUnit
 
 
