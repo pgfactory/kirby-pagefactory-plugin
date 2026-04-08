@@ -237,9 +237,10 @@
 
  // === busy spinner =========================
 .pfy-spinner-overlay {
-  position: fixed;
+  position: absolute;
   inset: 0;
   width: 100dvw;
+  max-height: 1600px;
   height: 100dvh;
   background: #0008;
   z-index: 9998;
