@@ -16,6 +16,9 @@ require_once __DIR__ . '/vendor/autoload.php';
 use PgFactory\PageFactory\PageFactory as PageFactory;
 
 define('PFY_DOWNLOAD_PATH', '~/download/');
+if (!defined('PFY_PAGE_META_FILE_BASENAME')) {
+    define('PFY_PAGE_META_FILE_BASENAME', 'z');
+}
 
 Kirby::plugin('pgfactory/pagefactory', [
 
