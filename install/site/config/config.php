@@ -80,6 +80,7 @@ return [
         // 'enablePageCache'               => true,   // -> caching of template variables, e.g. 'pageContent' etc.
         // 'variablesAvailableInTemplates' => true,   // if true, all TransVars are available in PHP templates
         // 'maintainSitemap'               => false,  // if false, sitemap.txt file generation is inhibited (default: !loggedIn)
+        // 'maintainSitemapBaseUrl'        => 'http://192.168.64.1:8888/',  // if defined, urls in sitemap.txt are modified to use this base-url
 
         // Options for dev phase:
         // 'debug_checkMetaFiles'          => true,   // if true, Pagefactory will skip checks for presence of metafiles

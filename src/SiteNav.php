@@ -25,6 +25,7 @@ class SiteNav
     private static string $branchClass = '';
     private static bool $sitemapUpdateEnabled = false;
     private static array $sitemap = [];
+    private static string $maintainSitemapBaseUrl = '';
 
 
     /**
@@ -38,6 +39,7 @@ class SiteNav
             } elseif ($maintainSitemap === true) {
                 $maintainSitemap = Permission::isLocalhost() || !Permission::isLoggedIn();
             }
+            self::$maintainSitemapBaseUrl = kirby()->option('pgfactory.pagefactory.maintainSitemapBaseUrl', '');
         }
         self::$sitemapUpdateEnabled = $maintainSitemap;
 
@@ -271,6 +273,10 @@ EOT;
 
     private static function addToSitemap(string $url, array $elem): void
     {
+        if (self::$maintainSitemapBaseUrl) {
+            // override base-url in sitemap:
+            $url = str_replace(PFY_HOST_URL, self::$maintainSitemapBaseUrl, $url);
+        }
         self::$sitemap[$url] = $url;
     } // addToSitemap
 
