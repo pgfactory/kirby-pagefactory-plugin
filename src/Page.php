@@ -385,8 +385,11 @@ EOT;
         $js .= self::$js ? self::$js."\n": '';
         $js .= PageFactory::$page->js()->value() ?? ''; // js from meta-file
 
-        if (option('pgfactory.pagefactory.pfyPageSwipeEnabled', false)) {
+        if (option('pgfactory.pagefactory.pageSwipeEnabled', false)) {
             $js .= "const pfyPageSwipeEnabled = true;\n";
+        }
+        if (option('pgfactory.pagefactory.pageSwitchingKeysEnabled', false) || PageFactory::$dev) {
+            $js .= "const pfyPageSwitchingKeysEnabled = true;\n";
         }
 
         if ($js) {

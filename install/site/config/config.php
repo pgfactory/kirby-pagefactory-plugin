@@ -63,7 +63,8 @@ return [
         // 'lazyLoading'                   => false,   // disable lazy loading of images
         // 'favicon'                       => PFY_BASE_OFFSET.'assets/favicon/favicon.png', // defines source favicon file
         // 'excludeFilesRegex'             => '\.old\.md$',// regex pattern to exclude certain .md files from rendering
-        // 'pfyPageSwipeEnabled'           => true,  // enables page switching by right and left swipes on touch devices
+        // 'pageSwipeEnabled'              => true,  // enables page switching by right and left swipes on touch devices
+        // 'pageSwitchingKeysEnabled'      => true,  // enables page switching by right and left cursor keys
         // 'default-nav'                   => false,  // omit automatic loading of NAV resources
                 // Note: normally, nav() is used in templates, but that's too late for loading assets.
                 // Thus, Pfy loads NAV assets, unless option 'default-nav' is false
