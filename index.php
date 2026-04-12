@@ -52,9 +52,6 @@ Kirby::plugin('pgfactory/pagefactory', [
             if (str_ends_with($path, '.map')) {
                 exit();
             }
-            if (str_starts_with($path, 'download') && \PgFactory\PageFactory\Download::handler($path)) {
-                exit();
-            }
             // when user opens panel -> update .txt files according to .md content:
             if (strpos($path, 'panel/pages/') === 0) {
                 require_once __DIR__ . '/src/panelHelper.php';
