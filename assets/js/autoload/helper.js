@@ -107,11 +107,19 @@ function timeStamp(short = false, toLocale = false) {
 } // timeStamp
 
 
-function isEmpty(obj) {
-  if (typeof obj !== 'object' || obj === null) {
-    return true;
+function isEmpty(value) {
+  if (value === null || value === undefined) return true;
+  if (typeof value === 'boolean') return false;
+  if (typeof value === 'number') return isNaN(value);
+  if (typeof value === 'string') return value.trim() === '';
+  if (Array.isArray(value)) return value.length === 0 || value.every(item => isEmpty(item));
+  if (value instanceof Map || value instanceof Set) return value.size === 0;
+  if (value instanceof Date) return isNaN(value.getTime());
+  if (typeof value === 'object') {
+    const keys = Object.keys(value);
+    return keys.length === 0 || keys.every(key => isEmpty(value[key]));
   }
-  return Object.keys(obj).length === 0;
+  return false;
 } // isEmpty
 
 
