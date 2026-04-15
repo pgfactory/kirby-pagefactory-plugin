@@ -358,3 +358,19 @@ function isElementDimmed(element) {
 
   return false;
 } // isElementDimmed
+
+
+function pfyHandleEvent(selector, func, trigger = 'click', containerEl = null) {
+  document.addEventListener('DOMContentLoaded', () => {
+    console.debug(`registring event handler for "${selector}"`);
+    document.addEventListener(trigger, (ev) => {
+      if (containerEl && !containerEl.contains(ev.target)) {
+        return;
+      }
+      if (!ev.target.closest(selector)) {
+        return;
+      }
+      func(ev, ev.target);
+    });
+  });
+} // pfyHandleEvent
