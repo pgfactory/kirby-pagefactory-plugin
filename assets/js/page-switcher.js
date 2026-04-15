@@ -52,7 +52,7 @@ console.debug('page-switcher.js');
 
 
   document.addEventListener("DOMContentLoaded", function () {
-    if (!(pfyPageSwitchingKeysEnabled ?? false)) {
+    if (typeof pfyPageSwitchingKeysEnabled === 'undefined' || !pfyPageSwitchingKeysEnabled) {
       return;
     }
     const prevLinkElem = document.querySelector('.pfy-previous-page-link a');
