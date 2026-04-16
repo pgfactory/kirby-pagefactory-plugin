@@ -23,8 +23,8 @@ class Frontmatter
         $wrapperTag = 'section';
         $wrapperClass = '';
         $fields = preg_split('!\n-{4}\n!', $mdStr);
-        $n = count($fields) - 1;
-        $mdStr = $fields[$n];
+        $n = count($fields);
+        $mdStr = $fields[$n - 1];
         $continue = true;
 
         // loop through all fields and add them to the content
