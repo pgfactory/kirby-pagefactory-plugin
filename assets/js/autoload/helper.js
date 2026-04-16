@@ -360,17 +360,20 @@ function isElementDimmed(element) {
 } // isElementDimmed
 
 
+/*
+    Register a global event handler
+    -> must be called inside jsReady
+ */
 function pfyHandleEvent(selector, func, trigger = 'click', containerEl = null) {
-  document.addEventListener('DOMContentLoaded', () => {
-    console.debug(`registring event handler for "${selector}"`);
-    document.addEventListener(trigger, (ev) => {
-      if (containerEl && !containerEl.contains(ev.target)) {
-        return;
-      }
-      if (!ev.target.closest(selector)) {
-        return;
-      }
-      func(ev, ev.target);
-    });
+  console.debug(`registring event handler for "${selector}"`);
+  document.addEventListener(trigger, (ev) => {
+    if (containerEl && !containerEl.contains(ev.target)) {
+      return;
+    }
+    if (!ev.target.closest(selector)) {
+      return;
+    }
+    func(ev, ev.target);
   });
 } // pfyHandleEvent
+
