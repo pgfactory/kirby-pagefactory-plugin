@@ -63,8 +63,6 @@ class CompileJs
      */
     public static function compileAggregatedFile(string $srcPath, string $aggregatedTargetFile): void
     {
-        $aggregatedTargetFile = PFY_BASE_OFFSET . $aggregatedTargetFile;
-        $srcPath = PFY_BASE_OFFSET . $srcPath;
         $srcPath = rtrim($srcPath, '*');
         $files = getDir($srcPath.'*.js');
         $tTarg = fileTime($aggregatedTargetFile);
