@@ -36,7 +36,8 @@ return [
 
     'pgfactory.markdownplus' => [
         // 'smartypants'        => false,  // activate smartypants (default: true)
-        // 'divblockChars'		=> '@%:',  // chars identifying DIV-Blocks, (default: '@%')
+        // 'processInlinePhp'   => true,   // activate inline PHP expressions, e.g. ≺?= $var ?≻ (default: false)
+        // 'divblockChars'      => '@%:',  // chars identifying DIV-Blocks, (default: '@%')
         // 'autoConvertLinks'   => true,   // automatically convert URLs and email addresses to <link> tags  (default: false)
         // 'enableIcons'        => false,  // makes icons available in markdown (default: true)
         // 'compileCodeBlocks'  => false,  // If active, parses output, finds <code> elements and
