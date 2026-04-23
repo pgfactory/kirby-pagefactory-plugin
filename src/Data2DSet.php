@@ -440,11 +440,23 @@ class Data2DSet
             throw new \Exception("Support for Office Formats not available in this installation.");
         }
         if (!$this->officeDoc) {
-            $this->officeDoc = new OfficeFormat($this->data2D);
+            $data = $this->prependHeaderRow($this->data);
+            $this->officeDoc = new OfficeFormat($data);
         }
         $this->officeDoc->export($file);
         return $file;
     } // exportToOfficeDoc
+
+
+    /**
+     * @param array $data
+     * @return array|array[]
+     */
+    private function prependHeaderRow(array $data): array
+    {
+        $data = ['header' => $this->colHeaders] + $data;
+        return $data;
+    } // prependHeaderRow
 
 
     /**
