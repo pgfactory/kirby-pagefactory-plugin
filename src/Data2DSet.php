@@ -440,7 +440,7 @@ class Data2DSet
             throw new \Exception("Support for Office Formats not available in this installation.");
         }
         if (!$this->officeDoc) {
-            $data = $this->prependHeaderRow($this->data);
+            $data = $this->prependHeaderRow($this->data2D);
             $this->officeDoc = new OfficeFormat($data);
         }
         $this->officeDoc->export($file);
