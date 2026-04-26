@@ -38,14 +38,14 @@ const PFY_MIME_TYPES = [
     'mp4' => 'video/mp4',
 ];
 
-if (!defined('PFY_TEMP_DOWNLOAD_PATH')) {
-    define('PFY_TEMP_DOWNLOAD_PATH', '~/tmp/download/');
+if (!defined('PFY_PROTECTED_DOWNLOAD_PATH')) {
+    define('PFY_PROTECTED_DOWNLOAD_PATH', '~/tmp/download/');
 }
 
 class Download
 {
     /**
-     * Downloads are restricted to either PFY_TEMP_DOWNLOAD_PATH or a path specified in the session var pfy.permittedDownloadPath.
+     * Downloads are restricted to either PFY_PROTECTED_DOWNLOAD_PATH or a path specified in the session var pfy.permittedDownloadPath.
      * Moreover, download is checked for permission defined in session var pfy.downloadPermission or default 'localhost|loggedin'.
      * @param string $path
      * @return bool
@@ -56,7 +56,7 @@ class Download
             return;
         }
         // handle download requests:
-        $permittedPath = kirby()->session()->get('pfy.permittedDownloadPath', PFY_TEMP_DOWNLOAD_PATH);
+        $permittedPath = kirby()->session()->get('pfy.permittedDownloadPath', PFY_PROTECTED_DOWNLOAD_PATH);
         if (!is_dir($permittedPath)) {
             return;
         }
@@ -103,7 +103,7 @@ class Download
      * @param string $path
      * @return void
      */
-    public static function setupDownloadFolder(string $path = PFY_TEMP_DOWNLOAD_PATH): void
+    public static function setupDownloadFolder(string $path = PFY_PROTECTED_DOWNLOAD_PATH): void
     {
         $path = Utils::resolvePath($path);
         $path = dir_name($path);

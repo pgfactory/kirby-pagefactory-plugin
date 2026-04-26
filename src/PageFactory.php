@@ -42,8 +42,10 @@ if (!defined('PFY_CACHE_PATH')) {
 if (!defined('PFY_LOGIN_LOG_FILE')) {
     define('PFY_LOGIN_LOG_FILE', 'login-log.txt');
 }
-define('PFY_TEMP_PATH',                 '~/media/pgfactory/');
-define('PFY_TEMP_DOWNLOAD_PATH',        PFY_TEMP_PATH.'download/'); // for temp download of datasets (excel-format)
+define('PFY_PUBLIC_DOWNLOAD_PATH',      '~/media/pgfactory/');  // public download folder
+if (!defined('PFY_PROTECTED_DOWNLOAD_PATH')) {          // protected folder to download from
+    define('PFY_PROTECTED_DOWNLOAD_PATH','~/tmp/download/');
+}
 
 const PFY_GITTAG_FILE =                 PFY_KIRBY_BASE_PATH.'site/custom/gittag.txt';
 const PFY_CRASH_RELOAD_FILE =           PFY_KIRBY_BASE_PATH.'site/logs/first-reload-after-crash.txt';
@@ -244,6 +246,8 @@ class PageFactory
         Macros::initMacros();
 
         Utils::queuePfyIconDefinitions();
+
+        Download::handler(); // handle '?download=filename' requests
     } // init
 
 
