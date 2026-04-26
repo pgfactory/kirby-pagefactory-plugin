@@ -38,38 +38,38 @@ const PFY_MIME_TYPES = [
     'mp4' => 'video/mp4',
 ];
 
-if (!defined('PFY_DOWNLOAD_PATH')) {
-    define('PFY_DOWNLOAD_PATH', '~/download/');
+if (!defined('PFY_TEMP_DOWNLOAD_PATH')) {
+    define('PFY_TEMP_DOWNLOAD_PATH', '~/tmp/download/');
 }
 
 class Download
 {
     /**
+     * Downloads are restricted to either PFY_TEMP_DOWNLOAD_PATH or a path specified in the session var pfy.permittedDownloadPath.
+     * Moreover, download is checked for permission defined in session var pfy.downloadPermission or default 'localhost|loggedin'.
      * @param string $path
      * @return bool
      */
-    public static function handler(string $path): bool
+    public static function handler(): void
     {
-        $path1 = urldecode(substr($path, strlen('download/')));
-        $realLocations = kirby()->session()->get('pfy.realLocations');
-        $downloadPermission = kirby()->session()->get('pfy.downloadPermission');
-        if (!$downloadPermission) {
-            return false;
+        if (!($_GET['download']??false)) {
+            return;
         }
-        if (!isset($realLocations[$path1])) {
-            return false;
+        // handle download requests:
+        $permittedPath = kirby()->session()->get('pfy.permittedDownloadPath', PFY_TEMP_DOWNLOAD_PATH);
+        if (!is_dir($permittedPath)) {
+            return;
         }
-        $path = $realLocations[$path1];
-
-        if (is_dir($path)) {
-            $basename = self::translateToFilename(basename($path));
-            $filename = "media/download/$basename.zip";
-            $destFile = PFY_KIRBY_BASE_PATH . $filename;
-            self::zipFolder($path, $destFile);
-            $path = $destFile;
+        $downloadPermission = kirby()->session()->get('pfy.downloadPermission', 'localhost|loggedin');
+        $file = urldecode($_GET['download']);
+        $files = getDirDeep($permittedPath, assoc:true);
+        if (in_array(basename($file), array_keys($files))) {
+            $file = $permittedPath . $file;
+            if (is_dir($file)) {
+                self::zipFolder($file, $file . '.zip');
+            }
+            Download::initiateDownload($file, $downloadPermission);
         }
-
-        return self::downloadFile($path);
     } // handler
 
 
@@ -97,6 +97,21 @@ class Download
         $zip->close();
         return true;
     } // zipFolder
+
+
+    /**
+     * @param string $path
+     * @return void
+     */
+    public static function setupDownloadFolder(string $path = PFY_TEMP_DOWNLOAD_PATH): void
+    {
+        $path = Utils::resolvePath($path);
+        $path = dir_name($path);
+        if (!is_dir($path)) {
+            mkdir($path, 0755, true);
+            file_put_contents("$path.htaccess", "Deny from all\n");
+        }
+    } // setupDownloadFolder
 
 
     /**
@@ -204,6 +219,9 @@ class Download
     public static function initiateDownload($file, $accessCritearia = 'loggedin|localhost')
     {
         $file = urldecode($file);
+        if (($file[0]??'') === '~') {
+            $file = Utils::resolvePath($file);
+        }
         if (!is_file($file)) {
             http_response_code(404);
             exit('File not found');
