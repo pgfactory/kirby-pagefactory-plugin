@@ -876,6 +876,9 @@ function getDirs(array $patterns): array
   */
 function getDirDeep(string $path, bool $onlyDir = false, bool $assoc = false, bool $returnAll = false): array
 {
+    if (($path[0]??'') === '~') {
+        $path = Utils::resolvePath($path);
+    }
     $files = [];
     $inclPat = base_name($path);
     if (!$returnAll && $inclPat && ($inclPat !== '*')) {
