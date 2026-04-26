@@ -252,7 +252,7 @@ class Data2DSet
     {
         $newValue = '';
         if ($key === DATAREC_TIMESTAMP) {
-            $newValue = date('Y-m-d H:i', $value);
+            $newValue = is_string($value) ? $value : date('Y-m-d H:i', $value);
         } elseif (is_bool($value)) {
             $newValue = $value ? '1' : '0';
         } elseif (is_scalar($value)) {
@@ -387,7 +387,7 @@ class Data2DSet
         if ($toFile === $this->file) {
             throw new \Exception("Export to original data file '$toFile' is not allowed.");
         }
-        preparePath($toFile, 0755);
+        Download::setupDownloadFolder($toFile); // make sure the protected download folder is properly set up
 
         if (!$this->data2D) {
             return '';
@@ -405,8 +405,8 @@ class Data2DSet
             $data = $this->data;
             writeFileLocking($toFile, $data);
         }
-
-        return Utils::resolveUrls($targetFile, forResoucres:true);
+        $targetFile = str_replace(PFY_PROTECTED_DOWNLOAD_PATH, '', $targetFile);
+        return "~/?download=$targetFile";
     } // export
 
 
@@ -477,19 +477,9 @@ class Data2DSet
             $downloadFilename = base_name($basename, false);
         } else {
             $downloadFilename = $this->options['tableName'] ?? 'download';
-            $basename = base_name($downloadFilename, false);
         }
-        // determine download path (i.e. random hash static per page):
-        $dlLinkFile = Utils::resolvePath('~cache/links/'.str_replace('/','_', $basename)).'.txt';
-        preparePath($dlLinkFile);
-        if (file_exists($dlLinkFile) && filemtime($dlLinkFile) >= (time() - 600)) {
-            $dlHash = file_get_contents($dlLinkFile);
-        } else {
-            $dlHash = createHash(8, type:'l');
-            file_put_contents($dlLinkFile, $dlHash);
-        }
-        $file = PFY_TEMP_DOWNLOAD_PATH."$dlHash/$downloadFilename.";
-        return $file;
+
+        return PFY_PROTECTED_DOWNLOAD_PATH . $downloadFilename . '.';
     } // getDownloadFilename
 
 
