@@ -1,12 +1,9 @@
 <?php
 
-// reviewed copy
-
 namespace PgFactory\PageFactory;
 
 use Error;
 use Kirby\Data\Data;
-//use Kirby\Data\Yaml as Yaml;
 
  // meta keys:
 if (!defined('DATAREC_TIMESTAMP')) {
@@ -21,7 +18,6 @@ if (!defined('PFY_DB_METAREC_KEY')) {
 if (!defined('SUPPORTED_FILE_TYPES')) {
     define('SUPPORTED_FILE_TYPES', 'yaml,json,csv,txt');
 }
-//const SUPPORTED_FILE_TYPES = 'yaml,json,csv,txt';
 
  // timings:
 const PFY_DEFAULT_MAX_REC_LOCK_TIME     = 600; // sec
@@ -284,7 +280,6 @@ class DataStore
         if ($this->obfuscateRecKeys) {
             $key = $this->deObfuscateRecKey($key);
         }
-//        $key = $this->deObfuscateRecKey($key);
         mylog("DataSet: deleting dataRec $key from DB $this->file");
         if (isset($this->data[$key])) {
             unset($this->data[$key]);
@@ -381,14 +376,6 @@ class DataStore
 
     /**
      * Finds one or multiple records that match the description.
-//     *   $dataRec = $ds->find(2); // index
-//     *   $dataRec = $ds->find('M40ED116'); // uid
-//     *   $dataRec = $ds->find('Bob'); // key
-//     *   $dataRec = $ds->find('Bob@site.com', 'email'); // value and element-label
-//     *   $dataRec = $ds->find('M40ED116', 'uid'); // uid
-//     *   $dataRec = $ds->find('M40ED116', DATAREC_RECKEY); // uid (internally used label)
-//     *   $dataRec = $ds->find('A', 'cat'); // finds first match
-//     *   $dataSet = $ds->find('A', 'cat', 'all'); // returns a DataSet of all matching records
      * @param ...$keys
      * @return object
      * @throws \Exception
@@ -702,23 +689,38 @@ class DataStore
      */
     protected function exportToMasterFile(): void
     {
-        $masterFileRecKeyType =   $this->masterFileRecKeyType;
+        // if necessary, remove old data records, move them to archive file:
+        $this->archiveOldData();
+
         $recKeySort =             $this->options['masterFileRecKeySort'] ?? false;
         $recKeySortOnElement =    $this->options['masterFileRecKeySortOnElement'] ?? false;
 
         $data = $this->data(includeMetaFields: true, recKeyType: $this->masterFileRecKeyType);
 
         if ($recKeySort) {
-            if ($recKeySort === 'sort' || $recKeySort === 'asc' || $recKeySort === true) {
-                $recKeySort = false;
-            } elseif ($recKeySort === 'desc') {
-                $recKeySort = 'arsort';
+            if (!$recKeySortOnElement) {
+                if (str_starts_with($recKeySort, 'desc')) {
+                    krsort($data);
+                } else {
+                    ksort($data);
+                }
+            } else {
+                $reverse = str_starts_with($recKeySort, 'desc');
+                uasort($data, function ($a, $b) use ($recKeySortOnElement, $reverse) {
+                    $a = $a[$recKeySortOnElement] ?? '';
+                    $b = $b[$recKeySortOnElement] ?? '';
+                    if ($a === $b) {
+                        return 0;
+                    }
+                    return $reverse ? ($a < $b ? 1 : -1) : ($a < $b ? -1 : 1);
+                });
+                $data = array_values($data);
             }
-            //ToDo: sort
         }
 
-        // remove old data records, move them to archive file:
-        //$this->archiveOldData(); //???
+        array_walk($data, function (&$rec) {
+            $rec[DATAREC_TIMESTAMP] = is_string($rec[DATAREC_TIMESTAMP]) ? $rec[DATAREC_TIMESTAMP] : date('Y-m-d\TH:i:s', $rec[DATAREC_TIMESTAMP]);
+        });
 
         $this->writeDataFile($this->file, $data);
     } // exportToMasterFile
@@ -759,15 +761,18 @@ class DataStore
             }
             $keepDataThreshold = $this->keepDataThreshold;
             $archive = [];
-            foreach ($this->data as $i => $rec) {
+            foreach ($this->data as $key => $rec) {
                 if ($this->keepDataOnField) {
                     $t = strtotime($rec->recData[$this->keepDataOnField] ?? '');
                 } else {
-                    $t = $rec->_timestamp;
+                    $t = $rec[PFY_DB_METAREC_KEY][DATAREC_TIMESTAMP];
+                    if (is_string($t)) {
+                        $t = strtotime($t);
+                    }
                 }
                 if ($t < $keepDataThreshold) {
-                    unset($this->data[$i]);
-                    $archive[] = $rec->data(true);
+                    unset($this->data[$key]);
+                    $archive[] = $rec;
                 }
             }
         }
@@ -1032,9 +1037,10 @@ class DataStore
         self::$dev = kirby()->session()->get('pfy.dev');
 
         if ($file) {
-                // access data file:
-            if (!file_exists(PFY_CACHE_PATH . 'data')) {
-                preparePath(PFY_CACHE_PATH . 'data/');
+            // access data file:
+            $cachePath = PFY_CACHE_PATH . 'data/';
+            if (!file_exists($cachePath)) {
+                preparePath($cachePath);
             }
             $file = Utils::resolvePath($file);
             $this->checkAndFixDataFile($file); // migrate between json and yaml if necessary
@@ -1044,9 +1050,9 @@ class DataStore
                 throw new \Exception("Error: DataSet invoked with unsupported file-type: '$type'");
             }
             $this->file = $file;
-            $p = substr(dirname($file), strlen(PFY_APP_BASE_PATH));
-            $dataFile = str_replace('/', '_', $p) . '_' . base_name($file, false);
-            $this->cacheFile = PFY_CACHE_PATH . "data/$dataFile.cache.json";
+            $relPth = substr(dirname($file), strlen(PFY_APP_BASE_PATH));
+            $dataFile = str_replace('/', '_', $relPth) . '_' . base_name($file, false);
+            $this->cacheFile = "$cachePath$dataFile.cache.json";
             preparePath($this->cacheFile);
 
             // if data file doesn't exist, prepare it empty and make sure no old cache/lock-files exist.
