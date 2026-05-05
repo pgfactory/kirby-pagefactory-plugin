@@ -8,7 +8,8 @@ use Kirby\Data\Data;
 use Kirby\Exception\InvalidArgumentException;
 use Kirby\Filesystem\F;
 use Exception;
-use PgFactory\MarkdownPlus\MarkdownPlus;
+ use Kirby\Toolkit\V;
+ use PgFactory\MarkdownPlus\MarkdownPlus;
  use PgFactory\MarkdownPlus\MdPlusHelper;
  use PgFactory\MarkdownPlus\Permission;
 
@@ -26,6 +27,17 @@ const HASH_CODE_CHARACTERS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWX
 
 define('KIRBY_ROOTS',           kirby()->roots()->toArray());
 define('KIRBY_ROOT_PATTERNS',   ','.implode(',', array_keys(KIRBY_ROOTS)).',');
+
+
+ /**
+  * Checks validity of email address
+  * @param $email
+  * @return bool
+  */
+ function isValidEmail($email): bool
+ {
+    return V::email($email);
+ } // isValidEmail
 
 
  /**
