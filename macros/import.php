@@ -14,7 +14,9 @@ return function($argStr = '')
             'If file-extension is ".md", loaded content will be markdown-compiled automatically.', false],
             'subfolder' => ['Looks for file(s) in given sub-folders, e.g. ``subfolder:*``.', false],
             'template' => ['.', false],
-            'literal' => ['If true, file content will be rendered as is - i.e. in \<pre> tags.', false],
+            'literal' => ['If true, file content will be rendered as is - i.e. without any wrapper or shielding of '.
+                'special characters.', false],
+            'pre' => ['If true, file content will be rendered in \<pre> tags.', false],
             'highlight' => ['(true|list-of-markers) If true, patters ``&#96;``, ``&#96;&#96;`` and ``&#96;&#96;&#96;` are used. '.
                 'These patterns will be detected and wrapped in "&lt;span class=\'hl{n}\'> elements".', false],
             'translate' => ['If true, variables and macros inside imported files will be translated resp. executed.', false],

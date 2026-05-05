@@ -21,6 +21,7 @@ class Import
         $file = $args['file'];
         $subfolder = $args['subfolder'];
         $literal = $args['literal'];
+        $pre = $args['pre'];
         $highlight = $args['highlight'];
         $wrapperTag = $args['wrapperTag'];
         $wrapperClass = $args['wrapperClass'];
@@ -42,9 +43,9 @@ class Import
             foreach ($keys as $key) {
                 $path = $folders[$key];
                 if (is_dir($path)) {
-                    $s = $elemHeader.self::importFile("~/$path$file", $literal)."$elemFooter\n\n";
+                    $s = $elemHeader.self::importFile("~/$path$file", $pre, $literal)."$elemFooter\n\n";
                 } elseif (is_file($path)) {
-                    $s = $elemHeader.self::importFile("~/$path", $literal)."$elemFooter\n\n";
+                    $s = $elemHeader.self::importFile("~/$path", $pre, $literal)."$elemFooter\n\n";
                 } else {
                     continue;
                 }
@@ -66,10 +67,10 @@ EOT;
             }
             // handle 'file':
         } elseif ($file) {
-            $str = self::importFile($file, $literal);
+            $str = self::importFile($file, $pre, $literal);
         }
 
-        if ($literal) {
+        if ($pre) {
             $str = str_replace(['{{','<'], ['&#123;{', '&lt;'], $str);
             $str = str_replace('/', '&#47;', $str);
             if ($highlight) {
@@ -83,7 +84,7 @@ EOT;
             }
             $str = shieldStr($str);
         }
-        if ($literal && !$wrapperTag) {
+        if ($pre && !$wrapperTag) {
             $wrapperTag = 'pre';
         }
         if ($args['translate']) {
@@ -131,7 +132,7 @@ EOT;
      * @param bool $literal
      * @return string
      */
-    private static function importFile(string $file, bool $literal = false): string
+    private static function importFile(string $file, bool $pre = true, bool $literal = false): string
     {
         $str = '';
         if ($file && (strpbrk($file, '*{') !== false || $file[strlen($file)-1] === '/')) {
@@ -147,11 +148,15 @@ EOT;
             $files = [$file];
         }
         foreach ($files as $f) {
-            if (($f[0]??false) !== '~') {
+            if ($f && ($f[0] !== '~') && ($f[0] !== '/')) {
                 $f = "~page/$f";
             }
             $f = Utils::resolvePath($f);
             if ($literal) {
+                $str .= @file_get_contents($f) ?: '';
+                continue;
+            }
+            if ($pre) {
                 $s = @file_get_contents($f) ?: '';
             } else {
                 $s = getFile($f);
