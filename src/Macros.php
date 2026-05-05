@@ -154,6 +154,13 @@ EOT;
         }
 
         // get arguments:
+        if (($args[0] ?? '') === '{') {
+            list($p1, $p2) = strPosMatching($args, 0, '{', '}');
+            if ($p1 !== false) {
+                $args = substr($args, 0, $p2) . substr($args, $p2 + 1);
+                $args = substr($args, 1);
+            }
+        }
         $options = self::parseMacroArguments($config, $args);
 
         $auxOptions = [];
@@ -265,14 +272,15 @@ EOT;
                 $optVal = fixDataType($optVal);
             }
         }
-
         // handle arguments defined by position -> submitted as "_anonInxN":
         foreach ($options as $key => $value) {
             if (str_starts_with($key,'_anonInx') && ($value !== null)) {
                 $k = substr($key, 8);
-                $key1 = array_keys($config['options'])[$k];
-                $options[$key1] = fixDataType($value);
-                unset($options[$key]);
+                $key1 = array_keys($config['options'])[$k] ?? null;
+                if ($key1 !== null) {
+                    $options[$key1] = fixDataType($value);
+                    unset($options[$key]);
+                }
             }
         }
         return $options;
