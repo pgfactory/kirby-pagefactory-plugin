@@ -7,6 +7,19 @@ class Import
 {
     public static int $inx = 1;
     private static bool|null $mdCompile = null;
+    private const PFY_IMPORT_DEFAULT_OPTIONS = [
+        'file' => '',
+        'subfolder' => '',
+        'literal' => false,
+        'pre' => false,
+        'highlight' => false,
+        'wrapperTag' => false,
+        'wrapperClass' => '',
+        'mdCompile' => false,
+        'elemHeader' => '',
+        'elemFooter' => '',
+        'translate' => false,
+    ];
 
 
     /**
@@ -18,6 +31,7 @@ class Import
     {
         $inx = self::$inx++;
 
+        $args += self::PFY_IMPORT_DEFAULT_OPTIONS;
         $file = $args['file'];
         $subfolder = $args['subfolder'];
         $literal = $args['literal'];
