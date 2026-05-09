@@ -3,6 +3,7 @@
 namespace PgFactory\PageFactory;
 
 use Kirby\Data\Yaml;
+use PgFactory\MarkdownPlus\MdPlusHelper;
 use PgFactory\MarkdownPlus\Permission;
 
 class Frontmatter
@@ -25,6 +26,8 @@ class Frontmatter
         $fields = preg_split('!\n-{4}\n!', $mdStr);
         $n = count($fields);
         $mdStr = $fields[$n - 1];
+        $showFrom = false;
+        $showTill = false;
         $continue = true;
 
         // loop through all fields and add them to the content
@@ -99,23 +102,17 @@ class Frontmatter
 
             } elseif ($key === 'showfrom') {
                 $value = trim($value, '\'"');
-                if (strlen($value) <= 10) { // if no time, assume beginning of this day
+                if (!preg_match('/\d\d:\d\d/', $value)) {
                     $value .= ' 00:00:00';
                 }
-                $timestamp = strtotime($value);
-                if ($timestamp !== false && time() < $timestamp) {
-                    $continue = false;
-                }
+                $showFrom = $value;
 
             } elseif ($key === 'showtill') {
                 $value = trim($value, '\'"');
-                if (strlen($value) <= 10) { // if no time, assume end of this day
+                if (!preg_match('/\d\d:\d\d/', $value)) {
                     $value .= ' 23:59:59';
                 }
-                $timestamp = strtotime($value);
-                if ($timestamp !== false && time() > $timestamp) {
-                    $continue = false;
-                }
+                $showTill = $value;
 
             } elseif ($key === 'slidingpanels') {
                 PageFactory::$slidingPanels = $value;
@@ -123,6 +120,11 @@ class Frontmatter
             } else {
                 TransVars::setVariable($key, $value);
             }
+        }
+
+        // check and evaluate time constraints:
+        if ($continue && ($showFrom || $showTill)) {
+            $continue = MdPlusHelper::isNowVisible($showFrom, $showTill);
         }
         return $continue ? [$mdStr, $wrapperTag, $wrapperClass]: false;
     } // extract

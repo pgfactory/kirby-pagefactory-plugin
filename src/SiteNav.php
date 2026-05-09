@@ -4,6 +4,7 @@ namespace PgFactory\PageFactory;
 
 
 use Kirby\Cms\Permissions;
+use PgFactory\MarkdownPlus\MdPlusHelper;
 use PgFactory\MarkdownPlus\Permission;
 
 class SiteNav
@@ -75,16 +76,16 @@ class SiteNav
                 }
                 $out[$i]['url'] = $url;
             }
-            if ($showFrom = $pg->showfrom()->value()) {
-                if (strtotime($showFrom) > time()) {
+
+            // check and evaluate time constraints (showFrom,showTill) from variables in meta-file:
+            $showFrom = $pg->showfrom()->value();
+            $showTill = $pg->showtill()->value();
+            if ($showFrom || $showTill) {
+                if (!MdPlusHelper::isNowVisible($showFrom, $showTill)) {
                     continue;
                 }
             }
-            if ($showTill = $pg->showtill()->value()) {
-                if (strtotime($showTill) < time()) {
-                    continue;
-                }
-            }
+
             $hasContent = self::hasMdContent($pg);
             // set $next once $curr was passed and the next page with content has been reached:
             if (self::$next === false && $hasContent) {
