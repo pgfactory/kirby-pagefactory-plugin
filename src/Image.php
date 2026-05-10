@@ -137,6 +137,18 @@ class Image
      */
     private function getImage(): bool
     {
+        // in case of remotely stored images, we need to copy them to the assets/ folder first:
+        if (str_starts_with($this->absFilePath, 'http')) {
+            $imgfile = PFY_KIRBY_BASE_PATH . 'content/assets/images/' . basename($this->absFilePath);
+            if (!file_exists($imgfile)) {
+                preparePath($imgfile);
+                $data = file_get_contents($this->absFilePath);
+                file_put_contents($imgfile, $data);
+            }
+            $this->absFilePath = $imgfile;
+            $this->src = '~assets/images/' . basename($this->absFilePath);
+        }
+
         if (!file_exists($this->absFilePath)) {
             if ($this->options['ignoreMissing']??false) {
                 return false;

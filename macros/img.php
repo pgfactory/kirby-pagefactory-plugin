@@ -115,8 +115,10 @@ EOT,
     if (!($options['src']??false)) {
         throw new \Exception("Option 'src' is required.");
     }
-    if ((($c = $options['src'][0]) !== '~') && ($c !== '/') && ($c !== '.')) {
-        $options['src'] = '~page/'.$options['src'];
+    if (!str_starts_with($options['src'], 'http')) {
+        if ((($c = $options['src'][0]) !== '~') && ($c !== '/') && ($c !== '.')) {
+            $options['src'] = '~page/' . $options['src'];
+        }
     }
 
     if (is_string($options['responsiveSteps'])) {
