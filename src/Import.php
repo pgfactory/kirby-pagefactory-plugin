@@ -82,6 +82,7 @@ EOT;
             // handle 'file':
         } elseif ($file) {
             $str = self::importFile($file, $pre, $literal);
+            $str = "$elemHeader$str$elemFooter";
         }
 
         if ($pre) {
