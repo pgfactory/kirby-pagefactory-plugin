@@ -1,0 +1,10 @@
+<svg aria-hidden="true" width="800" height="800" style="width:1em;height:1em;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" xml:space="preserve">
+<g transform="scale(0.8) translate(110,100)">
+  <rect x="33.4" y="28.4" width="749" height="749" stroke-width="33" stroke="currentColor" fill="transparent" stroke-linejoin="round"  />
+  <rect fill="transparent" x="338.4" y="185.4" width="341" height="277" stroke-width="33" stroke="currentColor" stroke-linejoin="round"  />
+  <line stroke="currentColor" stroke-width="33" x1="30" x2="781" y1="92" y2="92"  />
+  <line stroke="currentColor" stroke-width="33" x1="292" x2="80" y1="510" y2="719"  />
+  <line stroke="currentColor" stroke-width="33" x1="290" x2="290" y1="500" y2="660"  />
+  <line stroke="currentColor" stroke-width="33" x1="140" x2="290" y1="512" y2="512"  />
+</g>
+</svg>
