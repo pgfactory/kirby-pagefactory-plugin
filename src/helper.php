@@ -1883,6 +1883,13 @@ function parseArgValue(string &$rest, string $delim): mixed
         }
 
     // case string wrapped in {} -> assume it's relaxed Json:
+    } elseif ($ch1 === '[') {
+        $p = strPosMatching($rest, 0, '[', ']');
+        $value = substr($rest, $p[0]+1, $p[1]-$p[0]-1);
+        $rest = ltrim(substr($rest, $p[1]+1), ",\n\t ");
+        $value = json_encode(parseArgumentStr($value));
+        return $value;
+
     } elseif ($ch1 === '{') {
         $p = strPosMatching($rest, 0, '{', '}');
         $value = substr($rest, $p[0]+1, $p[1]-$p[0]-1);
