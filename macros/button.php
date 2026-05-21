@@ -28,7 +28,7 @@ Renders a button.
 ### Example
 
     js:
-    function myCallback() {mylog('button clicked');}
+    function myCallback() {console.log('button clicked');}
     -\--\-
     \{{ button(
         label: My Button
