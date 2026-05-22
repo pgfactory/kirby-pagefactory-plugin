@@ -2,6 +2,7 @@
 
 namespace PgFactory\PageFactory;
 
+use Exception;
 use Kirby\Data\Yaml;
 use PgFactory\MarkdownPlus\MdPlusHelper;
 use PgFactory\MarkdownPlus\Permission;
@@ -16,7 +17,7 @@ class Frontmatter
     /**
      * @param $mdStr
      * @return array|false
-     * @throws Kirby\Exception\InvalidArgumentException
+     * @throws Exception
      */
     public static function extract(string $mdStr): array|false
     {
@@ -24,14 +25,16 @@ class Frontmatter
         $wrapperTag = 'section';
         $wrapperClass = '';
         $fields = preg_split('!\n-{4}\n!', $mdStr);
-        $n = count($fields);
-        $mdStr = $fields[$n - 1];
-        $showFrom = false;
-        $showTill = false;
-        $continue = true;
+        $mdStr = $fields[count($fields) - 1];
+        unset($fields[count($fields) - 1]);
 
-        // loop through all fields and add them to the content
-        for ($i = 0; $i < $n; $i++) {
+        // first check visibility and showFrom/showTill fields in frontmatter:
+        if (!self::evaluateVisibility($fields)) {
+            return false;
+        }
+
+        // loop through remaining fields and evaluate them:
+        for ($i = 0; $i < count($fields); $i++) {
             $field = trim($fields[$i]);
             $pos = strpos($field, ':');
             $key = strtolower(camelCase(trim(substr($field, 0, $pos))));
@@ -95,25 +98,6 @@ class Frontmatter
                     Assets::addAssets($asset);
                 }
 
-            } elseif (($key === 'visibility') || ($key === 'visible')) {
-                if (!Permission::evaluate($value)) {
-                    $continue = false;
-                }
-
-            } elseif ($key === 'showfrom') {
-                $value = trim($value, '\'"');
-                if (!preg_match('/\d\d:\d\d/', $value)) {
-                    $value .= ' 00:00:00';
-                }
-                $showFrom = $value;
-
-            } elseif ($key === 'showtill') {
-                $value = trim($value, '\'"');
-                if (!preg_match('/\d\d:\d\d/', $value)) {
-                    $value .= ' 23:59:59';
-                }
-                $showTill = $value;
-
             } elseif ($key === 'slidingpanels') {
                 PageFactory::$slidingPanels = $value;
 
@@ -122,11 +106,7 @@ class Frontmatter
             }
         }
 
-        // check and evaluate time constraints:
-        if ($continue && ($showFrom || $showTill)) {
-            $continue = MdPlusHelper::isNowVisible($showFrom, $showTill);
-        }
-        return $continue ? [$mdStr, $wrapperTag, $wrapperClass]: false;
+        return [$mdStr, $wrapperTag, $wrapperClass];
     } // extract
 
 
@@ -147,6 +127,60 @@ class Frontmatter
             self::$sectionsScss = '';
         }
     } // propagateStyles
+
+
+    /**
+     * @param array $fields
+     * @return bool
+     * @throws \Exception
+     */
+    private static function evaluateVisibility(array &$fields): bool
+    {
+        $showFrom = false;
+        $showTill = false;
+        $visible = true;
+        for ($i = 0; $i < count($fields); $i++) {
+            $field = trim($fields[$i]);
+            $pos = strpos($field, ':');
+            $key = strtolower(camelCase(trim(substr($field, 0, $pos))));
+
+            if ($key === '') {
+                continue;
+            }
+
+            $value = trim(substr($field, $pos + 1));
+
+            if (($key === 'visibility') || ($key === 'visible')) {
+                if (!Permission::evaluate($value)) {
+                    $visible = false;
+                }
+                unset($fields[$i]);
+
+            } elseif ($key === 'showfrom') {
+                $value = trim($value, '\'"');
+                if (!preg_match('/\d\d:\d\d/', $value)) {
+                    $value .= ' 00:00:00';
+                }
+                $showFrom = $value;
+                unset($fields[$i]);
+
+            } elseif ($key === 'showtill') {
+                $value = trim($value, '\'"');
+                if (!preg_match('/\d\d:\d\d/', $value)) {
+                    $value .= ' 23:59:59';
+                }
+                $showTill = $value;
+                unset($fields[$i]);
+            }
+        }
+
+        // check and evaluate time constraints:
+        if ($visible && ($showFrom || $showTill)) {
+            $visible = MdPlusHelper::isNowVisible($showFrom, $showTill);
+        }
+        $fields = array_values($fields);
+        return $visible;
+    } // evaluateVisibility
 
 
 } // Frontmatter
