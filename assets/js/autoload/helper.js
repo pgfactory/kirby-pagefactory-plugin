@@ -365,7 +365,7 @@ function isElementDimmed(element) {
     -> must be called inside jsReady
  */
 function pfyHandleEvent(selector, func, trigger = 'click', containerEl = null) {
-  console.debug(`registring event handler for "${selector}"`);
+  console.debug(`registering event handler for "${selector}"`);
   document.addEventListener(trigger, (ev) => {
     if (containerEl && !containerEl.contains(ev.target)) {
       return;
