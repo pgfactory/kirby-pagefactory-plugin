@@ -57,6 +57,7 @@ class Download
         }
         // handle download requests:
         $permittedPath = kirby()->session()->get('pfy.permittedDownloadPath', PFY_PROTECTED_DOWNLOAD_PATH);
+        $permittedPath = Utils::resolvePath($permittedPath);
         if (!is_dir($permittedPath)) {
             return;
         }
