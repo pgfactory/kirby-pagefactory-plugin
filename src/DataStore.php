@@ -280,7 +280,7 @@ class DataStore
         if ($this->obfuscateRecKeys) {
             $key = $this->deObfuscateRecKey($key);
         }
-        mylog("DataSet: deleting dataRec $key from DB $this->file");
+        mylog("DataStore: deleting dataRec $key from DB $this->file");
         if (isset($this->data[$key])) {
             unset($this->data[$key]);
         } else {
@@ -799,7 +799,7 @@ class DataStore
             $archiveFile = "$destPath$timestamp$basename";
         }
 
-        mylog("DataSet: extracting data to archive file '$archiveFile'");
+        mylog("DataStore: extracting data to archive file '$archiveFile'");
         preparePath($archiveFile);
         appendFile($archiveFile, $archive);
     } // archiveOldData
@@ -1047,7 +1047,7 @@ class DataStore
             $this->name = base_name($file, false);
             $type = fileExt($file);
             if (!str_contains(SUPPORTED_FILE_TYPES, $type)) {
-                throw new \Exception("Error: DataSet invoked with unsupported file-type: '$type'");
+                throw new \Exception("Error: DataStore invoked with unsupported file-type: '$type'");
             }
             $this->file = $file;
             $relPth = substr(dirname($file), strlen(PFY_APP_BASE_PATH));
@@ -1316,4 +1316,4 @@ class DataStore
         return $content;
     } // encodeData
 
-} // DataSet
+} // DataStore
