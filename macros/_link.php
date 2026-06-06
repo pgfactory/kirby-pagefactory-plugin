@@ -26,6 +26,7 @@ return function($argStr = '')
             'target' => ['[newwin] Target attribute to be applied to the &lt;a> Tag. "newwin" means opening page in new window (or tab).', null],
             'subject' => ['In case of "mail" and "sms": subject to be preset.', false],
             'body' => ['In case of "mail": mail body to be preset.', false],
+            'countClicks' => ['(counter-name) If defined, clicks on this link are counted on the server. E.g. "countClicks:mylink"', false],
             'href' => ['Synonyme for "url"', false],
         ],
         'summary' => <<<EOT

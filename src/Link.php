@@ -27,6 +27,7 @@ class Link
     private static $hiddenText;
     private static $isExternalLink;
     private static $download;
+    private static $clickLinkInstances = 0;
     private static $iconReplacements = [
         'gsm' => 'mobile',
         'mailto' => 'mail',
@@ -48,6 +49,25 @@ class Link
         self::$text = '';
         self::$title = '';
         self::$id = $args['id'] ?? '';
+
+        if ($countClicks = ($args['countClicks'] ?? false)) {
+            if (!self::$id) {
+                self::$clickLinkInstances++;
+                self::$id = 'pfy-cc-link-' . self::$clickLinkInstances;
+            }
+            $id = self::$id;
+            if ($countClicks === true) {
+                $countClicks = 'true';
+            }
+            $js = <<<EOT
+pfyHandleEvent("#$id", ev => {
+    execAjaxPromise('count=$countClicks');
+})
+EOT;
+            Page::addJsReady($js);
+        }
+
+
         self::$class = $args['class'] ?? '';
         self::$alt = $args['alt'] ?? '';
         self::$proto = '';
