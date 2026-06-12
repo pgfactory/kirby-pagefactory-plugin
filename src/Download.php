@@ -20,16 +20,19 @@ const PFY_MIME_TYPES = [
     //'json' => 'application/json',
     // docs
     'pdf' => 'application/pdf',
+    'doc' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     'dotx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     'odt' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     'ott' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     // spreadsheets
+    'xls' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     'xltx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     'ods' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     'ots' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     // presentations
+    'ppt' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
     'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
     'potx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
     'odp' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
@@ -45,6 +48,7 @@ if (!defined('PFY_PROTECTED_DOWNLOAD_PATH')) {
 class Download
 {
     /**
+     * Handles '?download=xy' requests.
      * Downloads are restricted to either PFY_PROTECTED_DOWNLOAD_PATH or a path specified in the session var pfy.permittedDownloadPath.
      * Moreover, download is checked for permission defined in session var pfy.downloadPermission or default 'localhost|loggedin'.
      * @param string $path
@@ -55,21 +59,29 @@ class Download
         if (!($_GET['download']??false)) {
             return;
         }
+
         // handle download requests:
-        $permittedPath = kirby()->session()->get('pfy.permittedDownloadPath', PFY_PROTECTED_DOWNLOAD_PATH);
-        $permittedPath = Utils::resolvePath($permittedPath);
-        if (!is_dir($permittedPath)) {
-            return;
-        }
+        $realLocations = kirby()->session()->get('pfy.realLocations');
         $downloadPermission = kirby()->session()->get('pfy.downloadPermission', 'localhost|loggedin');
         $file = urldecode($_GET['download']);
-        $files = getDirDeep($permittedPath, assoc:true);
-        if (in_array(basename($file), array_keys($files))) {
-            $file = $permittedPath . $file;
-            if (is_dir($file)) {
-                self::zipFolder($file, $file . '.zip');
+        $filename = basename($file);
+        if ($realLocations[$filename] ?? false) {
+            Download::initiateDownload($realLocations[$filename], $downloadPermission);
+
+        } else {
+            $permittedPath = kirby()->session()->get('pfy.permittedDownloadPath', PFY_PROTECTED_DOWNLOAD_PATH);
+            $permittedPath = Utils::resolvePath($permittedPath);
+            if (!is_dir($permittedPath)) {
+                return;
             }
-            Download::initiateDownload($file, $downloadPermission);
+            $files = getDirDeep($permittedPath, assoc: true);
+            if (in_array(basename($file), array_keys($files))) {
+                $file = $permittedPath . $file;
+                if (is_dir($file)) {
+                    self::zipFolder($file, $file . '.zip');
+                }
+                Download::initiateDownload($file, $downloadPermission);
+            }
         }
     } // handler
 
@@ -267,5 +279,24 @@ class Download
         ob_end_flush();
         exit(file_get_contents($file));
     } // initiateDownload
+
+
+    /**
+     * @param string $file
+     * @param string $text
+     * @param string $accessCritearia
+     * @return string
+     */
+    public static function renderFileDownload(string $file, string $text, string $accessCritearia = 'anybody'): string
+    {
+        $realLocations = kirby()->session()->get('pfy.realLocations', []);
+        $realLocations[basename($file)] = $file;
+        kirby()->session()->set('pfy.realLocations', $realLocations);
+        kirby()->session()->set('pfy.downloadPermission', $accessCritearia);
+        $filename = basename($file);
+        $text = $text ?: $filename;
+        $str = Link::render(['url' => "~page/?download=$filename", 'text' => $text, 'target' => 'newwin']);
+        return $str;
+    } // renderFileDownload
 
 } // Download
