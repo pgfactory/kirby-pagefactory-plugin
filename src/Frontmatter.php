@@ -24,9 +24,7 @@ class Frontmatter
         $mdStr .= "\n";
         $wrapperTag = 'section';
         $wrapperClass = '';
-        $fields = preg_split('!\n-{4}\n!', $mdStr);
-        $mdStr = $fields[count($fields) - 1];
-        unset($fields[count($fields) - 1]);
+        $fields = Frontmatter::extractFields($mdStr);
 
         // first check visibility and showFrom/showTill fields in frontmatter:
         if (!self::evaluateVisibility($fields)) {
@@ -34,16 +32,10 @@ class Frontmatter
         }
 
         // loop through remaining fields and evaluate them:
-        for ($i = 0; $i < count($fields); $i++) {
-            $field = trim($fields[$i]);
-            $pos = strpos($field, ':');
-            $key = strtolower(camelCase(trim(substr($field, 0, $pos))));
-
+        foreach ($fields as $key => $value) {
             if ($key === '') {
                 continue;
             }
-
-            $value = trim(substr($field, $pos + 1));
 
             if ($key === 'variables') {
                 $value = str_replace('{{', "'{=={'", $value);
@@ -139,22 +131,17 @@ class Frontmatter
         $showFrom = false;
         $showTill = false;
         $visible = true;
-        for ($i = 0; $i < count($fields); $i++) {
-            $field = trim($fields[$i]);
-            $pos = strpos($field, ':');
-            $key = strtolower(camelCase(trim(substr($field, 0, $pos))));
+        foreach ($fields as $key => $value) {
 
             if ($key === '') {
                 continue;
             }
 
-            $value = trim(substr($field, $pos + 1));
-
             if (($key === 'visibility') || ($key === 'visible')) {
                 if (!Permission::evaluate($value)) {
                     $visible = false;
                 }
-                unset($fields[$i]);
+                unset($fields[$key]);
 
             } elseif ($key === 'showfrom') {
                 $value = trim($value, '\'"');
@@ -162,7 +149,7 @@ class Frontmatter
                     $value .= ' 00:00:00';
                 }
                 $showFrom = $value;
-                unset($fields[$i]);
+                unset($fields[$key]);
 
             } elseif ($key === 'showtill') {
                 $value = trim($value, '\'"');
@@ -170,7 +157,7 @@ class Frontmatter
                     $value .= ' 23:59:59';
                 }
                 $showTill = $value;
-                unset($fields[$i]);
+                unset($fields[$key]);
             }
         }
 
@@ -178,9 +165,27 @@ class Frontmatter
         if ($visible && ($showFrom || $showTill)) {
             $visible = MdPlusHelper::isNowVisible($showFrom, $showTill);
         }
-        $fields = array_values($fields);
         return $visible;
     } // evaluateVisibility
 
+
+    /**
+     * @param string $mdStr
+     * @return array
+     */
+    public static function extractFields(string &$mdStr): array
+    {
+        $out = [];
+        $mdStr .= "\n";
+        $fields = preg_split('!\n-{4}\n!', $mdStr);
+        $mdStr = $fields[count($fields) - 1];
+        unset($fields[count($fields) - 1]);
+        foreach ($fields as $field) {
+            $pos = strpos($field, ':');
+            $key = strtolower(camelCase(trim(substr($field, 0, $pos))));
+            $out[$key] = trim(substr($field, $pos + 1));
+        }
+        return $out;
+    } // extractFields
 
 } // Frontmatter
