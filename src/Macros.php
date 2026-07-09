@@ -233,6 +233,8 @@ EOT;
                     $default = $default? 'true': 'false';
                 } elseif (is_array($default)) {
                     $default = json_encode($default);
+                } else {
+                    $default = str_replace('{{', '\\{{', $default);
                 }
                 $default = " (default: $default)";
             }
