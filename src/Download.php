@@ -42,7 +42,7 @@ const PFY_MIME_TYPES = [
 ];
 
 if (!defined('PFY_PROTECTED_DOWNLOAD_PATH')) {
-    define('PFY_PROTECTED_DOWNLOAD_PATH', '~/tmp/download/');
+    define('PFY_PROTECTED_DOWNLOAD_PATH', '~/download/_/');
 }
 
 class Download

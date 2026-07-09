@@ -42,9 +42,9 @@ if (!defined('PFY_CACHE_PATH')) {
 if (!defined('PFY_LOGIN_LOG_FILE')) {
     define('PFY_LOGIN_LOG_FILE', 'login-log.txt');
 }
-define('PFY_PUBLIC_DOWNLOAD_PATH',      '~/media/pgfactory/');  // public download folder
-if (!defined('PFY_PROTECTED_DOWNLOAD_PATH')) {          // protected folder to download from
-    define('PFY_PROTECTED_DOWNLOAD_PATH','~/tmp/download/');
+define('PFY_PUBLIC_DOWNLOAD_PATH',      '~/download/');      // public download folder
+if (!defined('PFY_PROTECTED_DOWNLOAD_PATH')) {  // protected folder to download from
+    define('PFY_PROTECTED_DOWNLOAD_PATH','~/download/_/');
 }
 
 const PFY_GITTAG_FILE =                 PFY_KIRBY_BASE_PATH.'site/custom/gittag.txt';
