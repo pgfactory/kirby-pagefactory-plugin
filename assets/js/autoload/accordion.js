@@ -109,7 +109,7 @@ class Accordion {
 
 document.addEventListener('DOMContentLoaded', () => {
   const cssSupport = CSS.supports('selector(::details-content)');
-  const elems = document.querySelectorAll('details.mdp-accordion, .mdp-accordion details');
+  const elems = document.querySelectorAll('.mdp-accordion-group > details.mdp-accordion, .mdp-accordion details');
   const ignoredTypes = new Set(['button', 'submit', 'cancel', 'hidden']);
 
   elems.forEach(el => {
