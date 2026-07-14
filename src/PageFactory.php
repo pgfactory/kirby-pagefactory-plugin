@@ -390,7 +390,7 @@ class PageFactory
             $mdStr = getFile($file, 'cstyle');
 
             // handle pseudo macro "{{ include() }} -> inject text from file:
-            $mdStr = $this->handleIncludeFile($mdStr);
+            $mdStr = $this->handleIncludes($mdStr);
 
             // extract frontmatter:
             if ((!$res = Frontmatter::extract($mdStr)) || !trim($res[0], " \n\t")) {
@@ -594,9 +594,9 @@ EOT;
      * @param string $mdStr
      * @return string
      */
-    private function handleIncludeFile(string $mdStr): string
+    private function handleIncludes(string $mdStr): string
     {
-        if (preg_match("/{{ include\((.*?)\) }}/", $mdStr, $m)) {
+        while (preg_match("/(?<!\\\){{\s*include\((.*?)\)\s*}}/", $mdStr, $m)) {
             $fileToInclude = trim($m[1], ' "\'');
             $fileToInclude = Utils::resolvePath($fileToInclude);
             if ($fileToInclude && file_exists($fileToInclude)) {
@@ -605,6 +605,6 @@ EOT;
             }
         }
         return $mdStr;
-    } // handleIncludeFile
+    } // handleIncludes
 
 } // PageFactory
