@@ -40,9 +40,9 @@ class Macros
                     continue;
                 }
                 $argStr = $m[2];
-                if (str_contains($argStr, '{{')) {
-                    $argStr = TransVars::translate($argStr);
-                }
+//                if (str_contains($argStr, '{{')) {
+//                    $argStr = TransVars::translate($argStr);
+//                }
 
                 $value = self::execute($macroName, $argStr);
                 if ($value === false) {
