@@ -2,7 +2,7 @@
 namespace PgFactory\PageFactory;
 
 /*
- * PageFactory Macro (and Twig Function)
+ * PageFactory Macro
  */
 
 use function PgFactory\PageFactoryElements\intlDate;

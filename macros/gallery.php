@@ -15,7 +15,7 @@ if (!defined('DEFAULT_THUMB_HEIGHT')) {
 }
 
 /*
- * PageFactory Macro (and Twig Function)
+ * PageFactory Macro
  *
  * Uses js module "baguetteBox.js"
  *  -> https://github.com/feimosi/baguetteBox.js#customization

@@ -127,7 +127,7 @@ EOT;
 
 
     /**
-     * Helper for twig-functions -> prepares options, handles special cases: help, showSource, ?notranslate
+     * Helper for macros -> prepares options, handles special cases: help, showSource, ?notranslate
      * @param string $file
      * @param array $config
      * @param string $args
@@ -206,7 +206,7 @@ EOT;
 
 
     /**
-     * Renders Help output for given twig-function
+     * Renders Help output for given macro
      * @param array $config
      * @param bool $mdCompile
      * @return string
@@ -251,7 +251,7 @@ EOT;
 
 
     /**
-     * Parses argument string of twig-functions, returns as $options array
+     * Parses argument string of macros, returns as $options array
      * @param array $config
      * @param mixed $args
      * @return array

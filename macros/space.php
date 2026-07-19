@@ -2,7 +2,7 @@
 namespace PgFactory\PageFactory;
 
 /*
- * Twig function
+ * Macro
  */
 
 return function ($argStr = '')

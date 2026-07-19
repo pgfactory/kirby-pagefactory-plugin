@@ -2,7 +2,7 @@
 namespace PgFactory\PageFactory;
 
 /*
- * Twig extension
+ * Macro
  */
 
 require_once __DIR__.'/../src/Link.php';

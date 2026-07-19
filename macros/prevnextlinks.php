@@ -2,7 +2,7 @@
 namespace PgFactory\PageFactory;
 
 /*
- * Twig function
+ * Macro
  */
 
 require_once dirname(__DIR__).'/src/PrevNextLinks.php';

@@ -4,7 +4,7 @@ namespace PgFactory\PageFactory;
 use PgFactory\PageFactory\Image;
 
 /*
- * Twig function
+ * Macro
  */
 
 use Kirby\Exception\InvalidArgumentException;
