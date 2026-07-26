@@ -88,10 +88,7 @@ require_once __DIR__ . '/helper.php';
 
 class PageFactory
 {
-    public static $kirby;
-    public static $page;
-    public static $pages;
-    public static $site;
+    public $page;
 
     public static $debug;
     public static $dev;
@@ -121,14 +118,11 @@ class PageFactory
     public static string $sectionWrapperClass = '';
     public static bool $slidingPanels = false;
 
-    public function __construct($page, $pages, $site, $kirby)
+    public function __construct($page)
     {
         self::checkInstallation();
 
-        self::$kirby = $kirby;
-        self::$pages = $pages;
-        self::$page = $page;
-        self::$site = $site;
+        $this->page = $page;
 
         self::$dev = Utils::determineDevState();
         self::$productionMode = !self::$dev;
@@ -279,7 +273,7 @@ class PageFactory
                 writeFile(PFY_CRASH_RELOAD_FILE, '');
                 Utils::sendMail([
                     'to'          => self::$webmasterEmail,
-                    'subject'     => 'PageFactory: Fatal error on page '.self::$page->url(),
+                    'subject'     => 'PageFactory: Fatal error on page '.$this->page->url(),
                     'body'        => $e->getMessage()."\n\nNow clearing cache and reloading page.",
                 ]);
                 Cache::flushAll();
@@ -291,7 +285,7 @@ class PageFactory
             mylog($e->getMessage().".\n=> Second attempt to flush cache failed.\nGiving up now.");
             Utils::sendMail([
                 'to'          => self::$webmasterEmail,
-                'subject'     => 'PageFactory: Fatal error second run on page '.self::$page->url(),
+                'subject'     => 'PageFactory: Fatal error second run on page '.$this->page->url(),
                 'body'        => $e->getMessage()."\n\nSecond attempt to flush cache failed. Giving up now.",
             ]);
             return 'An error occurred on the server - please try again later';
@@ -313,7 +307,7 @@ class PageFactory
 
         if (self::$config['includeMetaFileContent']) {
             // get and compile meta-file's text field:
-            if ($mdStr = self::$page->text()->value()) {
+            if ($mdStr = $this->page->text()->value()) {
                 $html = TransVars::compile($mdStr. "\n\n", $inx);
             }
         }
@@ -358,7 +352,7 @@ class PageFactory
         }
 
         $excludePattern = kirby()->option('pgfactory.pagefactory.excludeFilesRegex');
-        $path = self::$page->root();
+        $path = $this->page->root();
         $files = getDir("$path/*.md");
 
         // first find _meta.md files (only containing frontmatter but no content):

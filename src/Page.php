@@ -306,6 +306,7 @@ EOT;
      */
     public static function renderHeadInjections(): string
     {
+        $page = page();
         // check config settings, whether default-nav should be activated:
         if (PageFactory::$config['default-nav']) {
             self::addAssets('NAV');
@@ -333,10 +334,10 @@ EOT;
 
         // add CSS-Code (compile if it's SCSS):
         $css = self::$css ? self::$css."\n" : '';
-        $css .= PageFactory::$page->css()->value() ?? '';   // css from meta-file
+        $css .= $page->css()->value() ?? '';   // css from meta-file
 
         $scss = self::$scss ? self::$scss."\n" : '';
-        $scss .= PageFactory::$page->scss()->value() ?? ''; // scss from meta-file
+        $scss .= $page->scss()->value() ?? ''; // scss from meta-file
 
         if ($scss) {
             $css .= "\n".Scss::compileStr($scss);
@@ -368,6 +369,8 @@ EOT;
             self::$jsWhenReady = self::$override['jsWhenReady'];
         }
 
+        $page = page();
+
         $jsInjection = '';
         $jsReadyInjection = '';
         $miscInjection = "\n".self::$bodyEndInjections;
@@ -384,7 +387,7 @@ EOT;
         $js .= "const currLang = '" .       PageFactory::$langCode . "';\n";
         $js .= "const pageLoaded =          Math.floor(Date.now()/1000);\n";
         $js .= self::$js ? self::$js."\n": '';
-        $js .= PageFactory::$page->js()->value() ?? ''; // js from meta-file
+        $js .= $page->js()->value() ?? ''; // js from meta-file
 
         if (option('pgfactory.pagefactory.pageSwipeEnabled', false)) {
             $js .= "const pfyPageSwipeEnabled = true;\n";
@@ -412,7 +415,7 @@ EOT;
         }
 
         $jsWhenReady = self::$jsWhenReady ? self::$jsWhenReady."\n": '';
-        $jsWhenReady .= PageFactory::$page->jsWhenReady()->value() ?? ''; // jsReady from meta-file
+        $jsWhenReady .= $page->jsWhenReady()->value() ?? ''; // jsReady from meta-file
         if ($jsWhenReady) {
             $jsWhenReady = "\t\t\t".str_replace("\n", "\n\t\t\t", rtrim($jsWhenReady, "\n"));
             $jsReadyInjection .= <<<EOT
@@ -452,7 +455,7 @@ EOT;
     private static function getHeaderElem(string $name): string
     {
         // checks page-attrib, then site-attrib for requested keyword and returns it
-        $out = PageFactory::$page->$name()->value() ?? '';
+        $out = page()->$name()->value() ?? '';
         if (!$out) {
             $out = site()->$name()->value();
         }
