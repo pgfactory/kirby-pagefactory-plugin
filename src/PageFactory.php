@@ -21,7 +21,7 @@ define('PFY_APP_BASE_URL',              URL::index().'/');    // https://domain.
 define('PFY_PAGE_URL',                  page()->url() . '/'); // https://domain.net/webapp/pg1/
 
  // Further Urls and Paths:
-define('PFY_PLUGIN_PFY_PATH',           dirname(__DIR__) . '/'); // site/plugins/pagefactory/
+define('PFY_PLUGIN_PATH',               dirname(__DIR__) . '/'); // site/plugins/pagefactory/
 define('PFY_CONTENT_ASSETS_PATH',       PFY_KIRBY_BASE_PATH . 'content/assets/');
 
 define('PFY_PAGE_PATH',                 page()->root() . '/');

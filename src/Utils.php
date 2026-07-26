@@ -888,7 +888,7 @@ EOT;
      */
     public static function resolvePath(string $path, $localToApproot = false): string
     {
-        if (($path[0]??'') !== '~') {
+        if (!str_starts_with($path, '~')) {
             return $path;
         }
         // first check for root-paths defined by kirby:

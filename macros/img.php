@@ -116,7 +116,8 @@ EOT,
         throw new \Exception("Option 'src' is required.");
     }
     if (!str_starts_with($options['src'], 'http')) {
-        if ((($c = $options['src'][0]) !== '~') && ($c !== '/') && ($c !== '.')) {
+        $c = $options['src'][0]??'';
+        if (($c !== '~') && ($c !== '/') && ($c !== '.')) {
             $options['src'] = '~page/' . $options['src'];
         }
     }

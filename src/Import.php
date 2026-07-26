@@ -151,7 +151,7 @@ EOT;
     {
         $str = '';
         if ($file && (strpbrk($file, '*{') !== false || $file[strlen($file)-1] === '/')) {
-            if (($file[0]??false) !== '~') {
+            if (!str_starts_with($file, '~')) {
                 $file = "~page/$file";
             }
             $resolved = Utils::resolvePath($file);
@@ -163,7 +163,7 @@ EOT;
             $files = [$file];
         }
         foreach ($files as $f) {
-            if ($f && ($f[0] !== '~') && ($f[0] !== '/')) {
+            if (!str_starts_with($f, '~') && !str_starts_with($f, '/')) {
                 $f = "~page/$f";
             }
             $f = Utils::resolvePath($f);

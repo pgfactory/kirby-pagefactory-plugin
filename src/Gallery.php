@@ -41,7 +41,7 @@ class Gallery
         $path = fixPath($options['path'] ?? '');
         if (!$path) { // no path means all images in page folder
             $path = "~page/";
-        } elseif ($path[0] !== '~') {
+        } elseif (str_starts_with($path, '~')) {
             $path = "~page/$path";
         }
 
@@ -82,6 +82,7 @@ EOT;
         if (($options['thumbCaptions'] ?? false) === '') {
             $thumbCaption = "\n<div class='pfy-gallery-thumb-caption'></div>";
         } elseif ($options['thumbCaptions'] ?? false) {
+            $caption = htmlspecialchars($caption, ENT_QUOTES, 'UTF-8');
             $thumbCaption = "\n<div class='pfy-gallery-thumb-caption'>$caption</div>";
         }
 
@@ -133,6 +134,7 @@ EOT;
                 if (is_bool($value)) {
                     $value = $value ? 'true' : 'false';
                 } elseif (!is_numeric($value)) {
+                    $value = json_encode($value);
                     $value = "'$value'";
                 }
                 $js .= "    $key: $value,\n";
@@ -150,7 +152,7 @@ EOT;
      */
     private static function getImages(string $path, string $captionFilename = ''): array
     {
-        if ($path[0] !== '~') {
+        if (str_starts_with($path, '~')) {
             $path = "~page/$path";
         }
         $images = [];

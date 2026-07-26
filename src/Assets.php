@@ -4,87 +4,86 @@ namespace PgFactory\PageFactory;
 
 use Kirby\Exception\Exception;
 
-const PFY_PATH = 'site/plugins/pagefactory/';
-const PFY_ASSETS_PATH = PFY_PATH.'assets/';
-const JQUERY = ['js' => PFY_ASSETS_PATH.'js/jquery-3.7.1.min.js', 'priority' => true];
-
- // DEFAULT_ASSET_GROUPS define where PageFactory will look for assets, compiling and aggregating them where necessary.
-define('DEFAULT_AGGREGATED_ASSETS', [
-
-    // 1) Plugin-Assets
-    // Note: plugin assets are made available via URL 'media/plugins/pgfactory/pagefactory/...':
-    PFY_ASSETS_PATH.'css/-pagefactory.css' => PFY_PATH.'scss/autoload/*',               // $sources
-
-    PFY_ASSETS_PATH.'js/-pagefactory.js' => PFY_ASSETS_PATH.'js/autoload/*',
-
-    PFY_ASSETS_PATH.'css/-pagefactory-async.css' => PFY_PATH.'scss/autoload-async/*',
-
-    // 2) Custom Assets
-    'content/assets/css/-app.css' => 'content/assets/css/autoload/*',
-    'assets/css/-app.css' => 'assets/css/autoload/*',
-
-    'content/assets/css/-app-async.css' => 'content/assets/css/autoload-async/*',
-    'assets/css/-app-async.css' => 'assets/css/autoload-async/*',
-
-    'content/assets/js/-app.js' => 'content/assets/js/autoload/*',
-    'assets/js/-app.js' => 'assets/js/autoload/*',
-]);
-
-define('DEFAULT_SCSS_ASSET_LOCATIONS', [
-    // scss-compile to site/plugins/pagefactory/css/xy.css, where xy is filename of source
-   PFY_ASSETS_PATH.'css/' => PFY_PATH.'scss/*',
-   'content/assets/css/' => 'content/assets/css/scss/*',
-   'assets/css/' => 'assets/css/scss/*',
-]);
-
-
-define('ASSETS_PATH_DEFINITIONS', [
-    'JQUERY' => JQUERY,
-    'NAV' => [
-       PFY_ASSETS_PATH.'js/nav.js',
-       PFY_ASSETS_PATH.'css/-nav.css',
-    ],
-    'QUICKZOOM' => [
-       PFY_ASSETS_PATH.'js/quickzoom.js',
-    ],
-    'LAZY_SIZES' => [
-       PFY_ASSETS_PATH.'js/lazysizes.min.js',
-    ],
-    'PAGE_SWITCHER' => [
-       PFY_ASSETS_PATH.'css/-page-switcher.css',
-       PFY_ASSETS_PATH.'js/page-switcher.js',
-    ],
-    'KEN_BURNS' => [
-       PFY_ASSETS_PATH.'js/kenburns.js',
-       PFY_ASSETS_PATH.'js/dragImgCrosshair.js',
-    ],
-    'CARDS' => [
-       PFY_ASSETS_PATH.'css/-cards.css',
-    ],
-]);
-
- // define system assets:
-define('SYSTEM_ASSETS', [
-    'css' => [
-       'site/plugins/markdownplus/assets/css/markdownplus.css',
-       PFY_ASSETS_PATH.'css/-pagefactory.css',
-       PFY_ASSETS_PATH.'css/-pagefactory-async.css',
-       'content/assets/css/-app.css',
-       'assets/css/-app.css',
-    ],
-    'js' => [
-       PFY_ASSETS_PATH.'js/-pagefactory.js',
-       'content/assets/js/-app.js',
-       'assets/js/-app.js',
-    ],
-]);
-
 
 class Assets
 {
-    private static array $assetUrlDefinitions = ASSETS_PATH_DEFINITIONS;
-    private static array $aggregatedAssets = DEFAULT_AGGREGATED_ASSETS;
-    private static array $assetsLocation = DEFAULT_SCSS_ASSET_LOCATIONS;
+    const PFY_PATH = 'site/plugins/pagefactory/';
+    const PFY_ASSETS_PATH = self::PFY_PATH.'assets/';
+    const JQUERY = ['js' => self::PFY_ASSETS_PATH.'js/jquery-3.7.1.min.js', 'priority' => true];
+
+    // DEFAULT_ASSET_GROUPS define where PageFactory will look for assets, compiling and aggregating them where necessary.
+    const DEFAULT_AGGREGATED_ASSETS = [
+
+            // 1) Plugin-Assets
+            // Note: plugin assets are made available via URL 'media/plugins/pgfactory/pagefactory/...':
+        self::PFY_ASSETS_PATH.'css/-pagefactory.css' => self::PFY_PATH.'scss/autoload/*',               // $sources
+
+        self::PFY_ASSETS_PATH.'js/-pagefactory.js' => self::PFY_ASSETS_PATH.'js/autoload/*',
+
+        self::PFY_ASSETS_PATH.'css/-pagefactory-async.css' => self::PFY_PATH.'scss/autoload-async/*',
+
+            // 2) Custom Assets
+        'content/assets/css/-app.css' => 'content/assets/css/autoload/*',
+        'assets/css/-app.css' => 'assets/css/autoload/*',
+
+        'content/assets/css/-app-async.css' => 'content/assets/css/autoload-async/*',
+        'assets/css/-app-async.css' => 'assets/css/autoload-async/*',
+
+        'content/assets/js/-app.js' => 'content/assets/js/autoload/*',
+        'assets/js/-app.js' => 'assets/js/autoload/*',
+    ];
+
+    const DEFAULT_SCSS_ASSET_LOCATIONS = [
+        // scss-compile to site/plugins/pagefactory/css/xy.css, where xy is filename of source
+        self::PFY_ASSETS_PATH.'css/' => self::PFY_PATH.'scss/*',
+        'content/assets/css/' => 'content/assets/css/scss/*',
+        'assets/css/' => 'assets/css/scss/*',
+    ];
+
+    const ASSETS_PATH_DEFINITIONS = [
+        'JQUERY' => self::JQUERY,
+        'NAV' => [
+            self::PFY_ASSETS_PATH.'js/nav.js',
+            self::PFY_ASSETS_PATH.'css/-nav.css',
+        ],
+        'QUICKZOOM' => [
+            self::PFY_ASSETS_PATH.'js/quickzoom.js',
+        ],
+        'LAZY_SIZES' => [
+            self::PFY_ASSETS_PATH.'js/lazysizes.min.js',
+        ],
+        'PAGE_SWITCHER' => [
+        self::PFY_ASSETS_PATH.'css/-page-switcher.css',
+        self::PFY_ASSETS_PATH.'js/page-switcher.js',
+        ],
+        'KEN_BURNS' => [
+        self::PFY_ASSETS_PATH.'js/kenburns.js',
+        self::PFY_ASSETS_PATH.'js/dragImgCrosshair.js',
+        ],
+        'CARDS' => [
+        self::PFY_ASSETS_PATH.'css/-cards.css',
+        ],
+    ];
+
+    // define system assets:
+    const SYSTEM_ASSETS = [
+        'css' => [
+        'site/plugins/markdownplus/assets/css/markdownplus.css',
+        self::PFY_ASSETS_PATH.'css/-pagefactory.css',
+        self::PFY_ASSETS_PATH.'css/-pagefactory-async.css',
+        'content/assets/css/-app.css',
+        'assets/css/-app.css',
+        ],
+        'js' => [
+        self::PFY_ASSETS_PATH.'js/-pagefactory.js',
+        'content/assets/js/-app.js',
+        'assets/js/-app.js',
+        ],
+    ];
+
+    private static array $assetUrlDefinitions = self::ASSETS_PATH_DEFINITIONS;
+    private static array $aggregatedAssets = self::DEFAULT_AGGREGATED_ASSETS;
+    private static array $assetsLocation = self::DEFAULT_SCSS_ASSET_LOCATIONS;
     private static array $cssAssets = [];
     private static array $jsAssets = [];
     private static array $cssPriorityAssets = [];
@@ -232,9 +231,12 @@ class Assets
      */
     public static function renderCssLoadingCode(): string
     {
-        $assets = array_merge(array_keys(self::$cssPriorityAssets), SYSTEM_ASSETS['css']);
-        $assets = array_merge($assets, array_keys(self::$cssAssets));
-        $assets = array_merge($assets, self::getPageAssetTags('css'));
+        $assets = array_merge(array_keys(
+            self::$cssPriorityAssets),
+            self::SYSTEM_ASSETS['css'],
+            array_keys(self::$cssAssets),
+            self::getPageAssetTags('css')
+        );
         return self::renderAssetLoadingCode($assets, 'css');
     } // renderCssLoadingCode
 
@@ -244,9 +246,11 @@ class Assets
      */
     public static function renderJsLoadingCode(): string
     {
-        $assets = array_merge(array_keys(self::$jsPriorityAssets), SYSTEM_ASSETS['js']);
-        $assets = array_merge($assets, array_keys(self::$jsAssets));
-        $assets = array_merge($assets, self::getPageAssetTags('js'));
+        $assets = array_merge(
+            array_keys(self::$jsPriorityAssets), self::SYSTEM_ASSETS['js'],
+            array_keys(self::$jsAssets),
+            self::getPageAssetTags('js')
+        );
         return self::renderAssetLoadingCode($assets, 'js');
     } // renderJsLoadingCode
 
@@ -265,69 +269,10 @@ class Assets
         $contentFiles = $contentPage ? $contentPage->files() : [];
 
         foreach ($assets as $asset) {
-            $code = '';
-
-            // assets already provided as html:
-            if (str_starts_with($asset, '<')) {
-                $html .= "  $asset\n";
+            $code = self::compileAssetPath($asset, $type, $contentFiles, $html);
+            if ($code === false) {
                 continue;
             }
-
-            // skip empty CSS files:
-            if ($type === 'css') {
-                $f = PFY_BASE_OFFSET.$asset;
-                if (!str_contains($asset, 'media/') && (!file_exists($f) || !filesize($f))) {
-                    continue;
-                }
-            }
-
-            // assets in content folder:
-            if (str_starts_with($asset, 'content')) {
-                if (!$contentFiles) {
-                    continue;
-                }
-                $file = $contentFiles->find(basename($asset));
-                if (!$file) {
-                    continue;
-                }
-                $code = ($type === 'css') ? css($file) : js($file);
-
-            // assets in plugin folders:
-            } elseif (str_starts_with($asset, 'site/plugins')) {
-                $asset = str_replace('site/plugins/markdownplus/assets/',
-                    PFY_BASE_OFFSET.'media/plugins/pgfactory/markdownplus/', $asset);
-                $asset = preg_replace('|site/plugins/pagefactory(-.*?)?/assets/|',
-                    PFY_BASE_OFFSET.'media/plugins/pgfactory/pagefactory\1/', $asset);
-                $code = ($type === 'css') ? css($asset) : js($asset);
-
-            // assets in folder starting in app root:
-            } elseif (str_starts_with($asset, '~/')) {
-                $asset = PFY_BASE_OFFSET . substr($asset, 2);
-                $code = ($type === 'css') ? css($asset) : js($asset);
-
-            // assets in ~/assets folder:
-            } elseif (str_starts_with($asset, 'assets/')) {
-                if ($type === 'js' && !file_exists($asset)) {
-                    continue;
-                }
-                $asset = PFY_BASE_OFFSET.$asset;
-                $code = ($type === 'css') ? css($asset) : js($asset);
-
-            // explicitly provided urls:
-            } elseif (str_starts_with($asset, 'http')) {
-                $code = ($type === 'css')
-                    ? "<link href='$asset' rel='stylesheet'>"
-                    : "<script src='$asset'></script>";
-
-            // any other assets:
-            } else {
-                $code = ($type === 'css') ? css($asset) : js($asset);
-                // double check that code points to the right location in case we have a PFY_BASE_OFFSET:
-                if ($code && PFY_BASE_OFFSET && !str_contains($code, PFY_HOST_URL . PFY_BASE_OFFSET)) {
-                    $code = str_replace(PFY_HOST_URL, PFY_HOST_URL . PFY_BASE_OFFSET, $code);
-                }
-            }
-
             if ($code) {
                 // handle cache busting request:
                 if ($bustCache) {
@@ -340,6 +285,76 @@ class Assets
         }
         return $html;
     } // renderAssetLoadingCode
+
+
+    /**
+     * @param string $asset
+     * @param string $type
+     * @param $contentFiles
+     * @param $html
+     * @return string|false
+     */
+    private static function compileAssetPath(string $asset, string $type, $contentFiles, &$html): string|false
+    {
+        // assets already provided as html:
+        if (str_starts_with($asset, '<')) {
+            $html .= "  $asset\n";
+            return false;
+        }
+
+        // skip empty CSS files:
+        if ($type === 'css') {
+            $f = PFY_BASE_OFFSET.$asset;
+            if (!str_contains($asset, 'media/') && (!file_exists($f) || !filesize($f))) {
+                return false;
+            }
+        }
+
+        // assets in content folder:
+        if (str_starts_with($asset, 'content')) {
+            if (!$contentFiles) {
+                return false;
+            }
+            $file = $contentFiles->find(basename($asset));
+            if (!$file) {
+                return false;
+            }
+            $code = ($type === 'css') ? css($file) : js($file);
+
+            // assets in plugin folders:
+        } elseif (str_starts_with($asset, 'site/plugins')) {
+            $asset = convertToKirbyMediaFolder($asset);
+            $code = ($type === 'css') ? css($asset) : js($asset);
+
+            // assets in folder starting in app root:
+        } elseif (str_starts_with($asset, '~/')) {
+            $asset = PFY_BASE_OFFSET . substr($asset, 2);
+            $code = ($type === 'css') ? css($asset) : js($asset);
+
+            // assets in ~/assets folder:
+        } elseif (str_starts_with($asset, 'assets/')) {
+            if (!file_exists($asset)) {
+                return false;
+            }
+            $asset = PFY_BASE_OFFSET.$asset;
+            $code = ($type === 'css') ? css($asset) : js($asset);
+
+            // explicitly provided urls:
+        } elseif (str_starts_with($asset, 'http')) {
+            $code = ($type === 'css')
+                ? "<link href='$asset' rel='stylesheet'>"
+                : "<script src='$asset'></script>";
+
+            // any other assets:
+        } else {
+            $code = ($type === 'css') ? css($asset) : js($asset);
+            // double check that code points to the right location in case we have a PFY_BASE_OFFSET:
+            if ($code && PFY_BASE_OFFSET && !str_contains($code, PFY_HOST_URL . PFY_BASE_OFFSET)) {
+                $code = str_replace(PFY_HOST_URL, PFY_HOST_URL . PFY_BASE_OFFSET, $code);
+            }
+        }
+        return $code;
+    } // compileAssetPath
 
 
     /**
@@ -369,8 +384,8 @@ class Assets
         $dir = [];
         if (is_dir(PFY_KIRBY_BASE_PATH.'assets/')) {
             $dir = array_merge(
-                getDirDeep(PFY_PLUGIN_PFY_PATH.'assets/css/'),
-                getDirDeep(PFY_PLUGIN_PFY_PATH.'assets/js/'),
+                getDirDeep(PFY_PLUGIN_PATH.'assets/css/'),
+                getDirDeep(PFY_PLUGIN_PATH.'assets/js/'),
                 getDirDeep(PFY_KIRBY_BASE_PATH.'assets/-*.css'),
             );
         }

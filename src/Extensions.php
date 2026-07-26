@@ -16,7 +16,7 @@ class Extensions
      */
     public static function findExtensions(): void
     {
-        $prefix = rtrim(PFY_PLUGIN_PFY_PATH, '/') . '-';
+        $prefix = rtrim(PFY_PLUGIN_PATH, '/') . '-';
         $extensions = getDir($prefix . '*');
         foreach ($extensions as $extension) {
             $extensionName = rtrim(substr($extension, strlen($prefix)), '/');

@@ -305,9 +305,7 @@ function getFile(string $file, mixed $removeComments = true)
   */
  function fileTime(string $file): int
  {
-     if ($file[0] === '~') {
-         $file = Utils::resolvePath($file);
-     }
+     $file = Utils::resolvePath($file);
      if (file_exists($file)) {
          return (int)@filemtime($file);
      } else {
@@ -378,9 +376,7 @@ function updateDataCache(string $file, mixed $data, string $tag = '')
   */
 function cacheFileName(string $file, string $tag = ''): string
 {
-    if ($file[0] === '~') {
-        $file = Utils::resolvePath($file);
-    }
+    $file = Utils::resolvePath($file);
     $cacheFile = localPath($file);
     $cacheFile = str_replace('/', '_', $cacheFile);
     return PFY_CACHE_PATH . "data/$cacheFile$tag.cache";
@@ -798,9 +794,7 @@ function removeCStyleComments(string $str): string
   */
 function getDir(string $pat, mixed $associative = false, string $type = '', int $flag = 0, string|false $sort = false): array
 {
-    if (($pat[0]??'') === '~') {
-        $pat = Utils::resolvePath($pat);
-    }
+    $pat = Utils::resolvePath($pat);
     if ($type) {
         // 'type' specified (either files and/or folders):
         $files = $folders = [];
@@ -888,9 +882,7 @@ function getDirs(array $patterns): array
   */
 function getDirDeep(string $path, bool $onlyDir = false, bool $assoc = false, bool $returnAll = false): array
 {
-    if (($path[0]??'') === '~') {
-        $path = Utils::resolvePath($path);
-    }
+    $path = Utils::resolvePath($path);
     $files = [];
     $inclPat = base_name($path);
     if (!$returnAll && $inclPat && ($inclPat !== '*')) {
@@ -1019,7 +1011,7 @@ function deleteFiles(mixed $files): void
 function findAvailableIcons(): array
  {
      $availableIcons = getDir(PFY_SVG_ICONS_PATH, 'name_only');
-     $availableIcons = array_merge($availableIcons, getDir(PFY_PLUGIN_PFY_PATH . 'assets/icons/', 'name_only'));
+     $availableIcons = array_merge($availableIcons, getDir(PFY_PLUGIN_PATH . 'assets/icons/', 'name_only'));
      return $availableIcons;
  } // findAvailableIcons
 
@@ -1044,7 +1036,7 @@ function resolvePath(string $path): string
 function getGitTag(): string
 {
     if (isLocalhost()) {
-        $tag = exec('cd '.PFY_PLUGIN_PFY_PATH.';git describe --tags');
+        $tag = exec('cd '.PFY_PLUGIN_PATH.';git describe --tags');
         writeFile(PFY_GITTAG_FILE, $tag);
     } else {
         $tag = readFile(PFY_GITTAG_FILE);
@@ -1572,9 +1564,7 @@ function parseCsv (string $csv_string, mixed $delimiter = false): array
 function preparePath(string $path0, $accessRights = false): void
 {
     // resolve path if necessary:
-    if ($path0 && ($path0[0] === '~')) {
-        $path0 = Utils::resolvePath($path0);
-    }
+    $path0 = Utils::resolvePath($path0);
 
     if (file_exists(dirname($path0))) {
         return; // nothing to do
@@ -1958,7 +1948,7 @@ function handleDataImportPattern(string $str): string
         // get data from file:
         } elseif (str_starts_with($arg, 'file:')) {
             $arg = ltrim(substr($arg, 5));
-            $file = (($arg[0]??false) !== '~') ? "~page/$arg": $arg;
+            $file = (!str_starts_with($arg, '~')) ? "~page/$arg": $arg;
             $file = Utils::resolvePath($file);
             $s = getFile($file);
             $s = str_replace("  \n", "<br>", $s); // 2 spaces at eol = <br>
@@ -2912,3 +2902,22 @@ function iconExists(string $iconName): bool
     $res = $fun($args);
     return $res;
 } // funProxy
+
+
+ /**
+  * Converts a path to a pagefactory or markdownplus asset to a media folder path.
+  * @param string $path
+  * @return string
+  */
+ function convertToKirbyMediaFolder(string $path) : string
+{
+    // convert refs to markdownplus assets:
+    $path = str_replace('site/plugins/markdownplus/assets/',
+        PFY_BASE_OFFSET.'media/plugins/pgfactory/markdownplus/', $path);
+
+    // convert refs to pfy extensions:
+    $path = preg_replace('|site/plugins/pagefactory(-.*?)?/assets/|',
+        PFY_BASE_OFFSET.'media/plugins/pgfactory/pagefactory\1/', $path);
+
+    return $path;
+} // convertToKirbyMediaFolder

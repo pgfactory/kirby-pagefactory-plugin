@@ -188,9 +188,7 @@ class Download
      */
     private static function preparePath(string $filePath): void
     {
-        if ($filePath && $filePath[0] === '~') {
-            $filePath = Utils::resolvePath($filePath);
-        }
+        $filePath = Utils::resolvePath($filePath);
         $dir = dirname($filePath);
         if (file_exists($dir)) {
             return;
@@ -232,9 +230,7 @@ class Download
     public static function initiateDownload($file, $accessCritearia = 'loggedin|localhost')
     {
         $file = urldecode($file);
-        if (($file[0]??'') === '~') {
-            $file = Utils::resolvePath($file);
-        }
+        $file = Utils::resolvePath($file);
         if (!is_file($file)) {
             http_response_code(404);
             exit('File not found');
