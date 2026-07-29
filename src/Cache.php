@@ -3,15 +3,34 @@
 namespace PgFactory\PageFactory;
 
 
-const CACHE_PATH = PFY_KIRBY_BASE_PATH.'site/cache/';
-const PFY_CACHE_PATH = CACHE_PATH.'pagefactory/';
-const LAST_CACHE_UPDATE_FILE = PFY_CACHE_PATH . 'last-cache-update.txt';
-const PFY_PAGE_CACHE_PATH = PFY_CACHE_PATH . 'page-cache/';
+use Exception;
 
 class Cache
 {
+    private const KIRBY_CACHE_PATH = PFY_KIRBY_BASE_PATH.'site/cache/';
+    private const LAST_CACHE_UPDATE_FILE = PFY_CACHE_PATH . 'last-cache-update.txt';
+    private const PFY_PAGE_CACHE_PATH = PFY_CACHE_PATH . 'page-cache/';
+    private const GENERIC_URL_COMMANDS = [
+        'gclid',
+        'fbclid',
+        'ref',
+        'q',
+        'query',
+        'page',
+        'next',
+        'token',
+        'affid',
+    ];
+
+    /**
+     * @var bool
+     */
     public static bool $pageCachingEnabled = true;
+    /**
+     * @var bool
+     */
     public static bool $cacheUpdateNecessary = false;
+    private static bool $pfyUrlCmdPresent = false;
 
 
     /**
@@ -19,10 +38,11 @@ class Cache
      */
     public static function init(): void
     {
+        self::$pfyUrlCmdPresent = self::checkUrlCmdPresent();
         self::$pageCachingEnabled = kirby()->option('pgfactory.pagefactory.enablePageCache') &&
             !kirby()->session()->pull('pfy.message');
         self::preparePath();
-        $lastCacheRefresh = file_exists(LAST_CACHE_UPDATE_FILE) ? filemtime(LAST_CACHE_UPDATE_FILE) : 0;
+        $lastCacheRefresh = file_exists(self::LAST_CACHE_UPDATE_FILE) ? filemtime(self::LAST_CACHE_UPDATE_FILE) : 0;
         if (($lastCacheRefresh === 0) || PageFactory::$dev) {
             self::$pageCachingEnabled = false;
             self::$cacheUpdateNecessary = true;
@@ -53,7 +73,8 @@ class Cache
     public static function checkPageCache(string $prefix = ''): mixed
     {
         $cacheFile = self::getPageCacheFileName($prefix);
-        if ($_REQUEST || !self::$pageCachingEnabled) {
+        // any url cmds may potentially the page content, thus we force
+        if (self::$pfyUrlCmdPresent || !self::$pageCachingEnabled) {
             if (file_exists($cacheFile)) {
                 unlink($cacheFile);
             }
@@ -63,8 +84,13 @@ class Cache
             return false;
         }
         $data = file_get_contents($cacheFile);
-        $rec = $data ? @unserialize($data) : false;
-        if (!is_array($rec)) {
+        try {
+            $rec = $data ? unserialize($data) : false;
+            if (!is_array($rec)) {
+                unlink($cacheFile);
+                return false;
+            }
+        } catch (Exception) {
             unlink($cacheFile);
             return false;
         }
@@ -110,7 +136,7 @@ class Cache
     {
         $pageId = str_replace('/', '_', page()->id());
         $prefix = $prefix ? '_' . $prefix : '';
-        return PFY_PAGE_CACHE_PATH . PageFactory::$lang . "/$pageId$prefix.dat";
+        return self::PFY_PAGE_CACHE_PATH . PageFactory::$lang . "/$pageId$prefix.dat";
     } // getPageCacheFileName
 
 
@@ -119,7 +145,7 @@ class Cache
      */
     private static function flushPageCache(): void
     {
-        rrmdir(PFY_PAGE_CACHE_PATH);
+        rrmdir(self::PFY_PAGE_CACHE_PATH);
     } // flushPageCache
 
 
@@ -129,7 +155,7 @@ class Cache
      */
     public static function flushAll(): void
     {
-        rrmdir(CACHE_PATH);
+        rrmdir(self::KIRBY_CACHE_PATH);
         rrmdir(PFY_KIRBY_BASE_PATH.'media');
     } // flushAll
 
@@ -148,7 +174,7 @@ class Cache
      */
     public static function clearKirbyCache(): void
     {
-        foreach (glob(CACHE_PATH.'*') as $item) {
+        foreach (glob(self::KIRBY_CACHE_PATH.'*') as $item) {
             if (!str_contains($item, '/pagefactory')) {
                 rrmdir($item);
             }
@@ -177,8 +203,27 @@ class Cache
         if ($t === null) {
             $t = time();
         }
-        touch(LAST_CACHE_UPDATE_FILE, $t);
+        touch(self::LAST_CACHE_UPDATE_FILE, $t);
         self::$cacheUpdateNecessary = true;
     } // updateCacheFlag
+
+
+    /**
+     * @return bool
+     */
+    private static function checkUrlCmdPresent(): bool
+    {
+        if (!($_REQUEST ?? false)) {
+            return false;
+        }
+        $pfyUrlCmdPresent = false;
+        foreach ($_REQUEST as $key => $val) {
+            if (!str_starts_with($key, 'utm') &&
+                !in_array($key, self::GENERIC_URL_COMMANDS)) {
+                $pfyUrlCmdPresent = true;
+            }
+        }
+        return $pfyUrlCmdPresent;
+    } // checkUrlCmdPresent
 
 } // Cache
