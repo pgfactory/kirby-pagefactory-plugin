@@ -8,25 +8,29 @@ use ScssPhp\ScssPhp\Exception\SassException;
 
 class Page
 {
-    private static string $content = '';
-    private static string $headInjections = '';
-    public static string $bodyEndInjections = '';
-    public static string $bodyTagClasses = '';
-    public static string $bodyTagAttributes = '';
-    public static string $css = '';
-    public static string $scss = '';
-    public static string $js = '';
-    public static string $jsWhenReady = '';
+    private static array $pageElements = [
+        'headInjections' => '',
+        'bodyEndInjections' => '',
+        'bodyTagClasses' => '',
+        'bodyTagAttributes' => '',
+        'css' => '',
+        'scss' => '',
+        'js' => '',
+        'jsWhenReady' => '',
+        'description' => '',
+        'robots' => '',
+        'head' => '',
+        'keywords' => '',
+        'author' => '',
+    ];
 
-    public static array $override = [];
-
-    private static string $description = '';
-    private static string $keywords = '';
-    private static string $author = '';
-    private static string|bool $robots = false;
-    public static array|null $asset = [];
-    private static string|false $overrideContent = false;
-    public static array|null $definitions;
+    private static array $override = [
+        'content' => false,
+        'css' => '',
+        'scss' => '',
+        'js' => '',
+        'jsWhenReady' => '',
+    ];
 
 
     // === Helper methods: accept queuing requests from macros and other objects ============
@@ -49,7 +53,7 @@ class Page
      */
     public static function get(string $key): mixed
     {
-        return self::$$key ?? null;
+        return self::$pageElements[$key] ?? null;
     } // get
 
 
@@ -60,8 +64,8 @@ class Page
      */
     public static function set(string $key, $value): void
     {
-        self::$$key = $value;
-    }
+        self::$pageElements[$key] = $value;
+    } // set
 
 
     /**
@@ -75,8 +79,8 @@ class Page
         if (PageFactory::$renderingClosed) {
             throw new \Exception("Error: Rendering closed for $key = '$value'");
 
-        } elseif (!str_contains(self::$$key, $value)) { // avoid repetitions
-            self::$$key .= $value;
+        } elseif (!str_contains(self::$pageElements[$key], $value)) { // avoid repetitions
+            self::$pageElements[$key] .= $value;
         }
     } // append
 
@@ -97,7 +101,7 @@ class Page
      */
     public static function applyRobotsAttrib(bool|string $robots = true): void
     {
-        self::$robots = $robots;
+        self::$pageElements['robots'] = $robots;
     } // applyRobotsAttrib
 
 
@@ -110,13 +114,15 @@ class Page
         if ($compile) {
             $str = TransVars::compile($str);
         }
-        self::$overrideContent = $str;
 
         // save states of in-text assets:
-        self::$override['css'] = self::$css;
-        self::$override['scss'] = self::$scss;
-        self::$override['js'] = self::$js;
-        self::$override['jsWhenReady'] = self::$jsWhenReady;
+        self::$override = [
+            'content'       => $str,
+            'css'           => self::$pageElements['css'],
+            'scss'          => self::$pageElements['scss'],
+            'js'            => self::$pageElements['js'],
+            'jsWhenReady'   => self::$pageElements['jsWhenReady'],
+        ];
     } // overrideContent
 
 
@@ -131,10 +137,10 @@ class Page
             $pe = new \PgFactory\PageFactoryElements\Overlay();
             $pe->set($str, $mdCompile);
 
-        // if PageElements are not loaded, we need to create bare page and exit immediately:
+        // if PageElements are not loaded, we need to create bare page and get it rendered via self::$override['content']:
         } else {
             if ($mdCompile) {
-                $str = markdown($str);
+                $str = compileMarkdown($str);
             }
             $html = <<<EOT
 <!DOCTYPE html>
@@ -149,7 +155,7 @@ $str
 </html>
 
 EOT;
-            exit($html);
+            self::$override['content'] = $html;
         }
     } // setOverlay
 
@@ -171,6 +177,7 @@ EOT;
             if ($mdCompile) {
                 $str = compileMarkdown($str);
             }
+            $str = json_encode($str);
             self::addJsReady("window.alert('$str')");
         }
     } // setMessage
@@ -194,6 +201,7 @@ EOT;
             if ($mdCompile) {
                 $str = compileMarkdown($str);
             }
+            $str = json_encode($str);
             self::addJsReady("window.alert('$str')");
         }
     } // setPopup
@@ -290,8 +298,8 @@ EOT;
      */
     public static function renderBody(string $html): string
     {
-        if (self::$overrideContent) {
-            $html = self::$overrideContent;
+        if (self::$override['content']) {
+            $html = self::$override['content'];
             $html = TransVars::resolveVariables($html);
         }
         return $html;
@@ -313,9 +321,9 @@ EOT;
         }
 
         // case override: restore assets to time of override-invokation:
-        if (self::$overrideContent) {
-            self::$css = self::$override['css'];
-            self::$scss = self::$override['scss'];
+        if (self::$override['content']) {
+            self::$pageElements['css']  = self::$override['css'];
+            self::$pageElements['scss'] = self::$override['scss'];
         }
 
 
@@ -327,16 +335,16 @@ EOT;
         $html .= self::getHeaderElem('robots');
 
         // add injections that had been supplied explicitly:
-        $html .= self::$headInjections;
+        $html .= self::$pageElements['headInjections'];
 
         // add CSS-Files loading instructions:
         $html .= Assets::renderCssLoadingCode();
 
         // add CSS-Code (compile if it's SCSS):
-        $css = self::$css ? self::$css."\n" : '';
+        $css = self::$pageElements['css'] ? self::$pageElements['css']."\n" : '';
         $css .= $page->css()->value() ?? '';   // css from meta-file
 
-        $scss = self::$scss ? self::$scss."\n" : '';
+        $scss = self::$pageElements['scss'] ? self::$pageElements['scss']."\n" : '';
         $scss .= $page->scss()->value() ?? ''; // scss from meta-file
 
         if ($scss) {
@@ -364,16 +372,16 @@ EOT;
         self::addBodyEndInjections(MdPlusHelper::getBodyEndInjections());
 
         // case override: restore assets to time of override-invokation:
-        if (self::$overrideContent) {
-            self::$js = self::$override['js'];
-            self::$jsWhenReady = self::$override['jsWhenReady'];
+        if (self::$override['content']) {
+            self::$pageElements['js']          = self::$override['js'];
+            self::$pageElements['jsWhenReady'] = self::$override['jsWhenReady'];
         }
 
         $page = page();
 
         $jsInjection = '';
         $jsReadyInjection = '';
-        $miscInjection = "\n".self::$bodyEndInjections;
+        $miscInjection = "\n".self::$pageElements['bodyEndInjections'];
         $screenSizeBreakpoint = PageFactory::$config['screenSizeBreakpoint'] ?? false;
         $screenSizeBreakpoint = $screenSizeBreakpoint ?: 480;
 
@@ -386,7 +394,7 @@ EOT;
         $js .= "const loggedinUser = '" .   PageFactory::$userName . "';\n";
         $js .= "const currLang = '" .       PageFactory::$langCode . "';\n";
         $js .= "const pageLoaded =          Math.floor(Date.now()/1000);\n";
-        $js .= self::$js ? self::$js."\n": '';
+        $js .= self::$pageElements['js'] ? self::$pageElements['js'] . "\n": '';
         $js .= $page->js()->value() ?? ''; // js from meta-file
 
         if (option('pgfactory.pagefactory.pageSwipeEnabled', false)) {
@@ -414,7 +422,7 @@ $js
 EOT;
         }
 
-        $jsWhenReady = self::$jsWhenReady ? self::$jsWhenReady."\n": '';
+        $jsWhenReady = self::$pageElements['jsWhenReady'] ? self::$pageElements['jsWhenReady'] . "\n": '';
         $jsWhenReady .= $page->jsWhenReady()->value() ?? ''; // jsReady from meta-file
         if ($jsWhenReady) {
             $jsWhenReady = "\t\t\t".str_replace("\n", "\n\t\t\t", rtrim($jsWhenReady, "\n"));
@@ -461,8 +469,8 @@ EOT;
         }
 
         // check frontmatter for overriding setting:
-        if (in_array($name, ['description', 'keywords', 'author', 'robots']) && (self::$$name ?? false)) {
-            $out = self::$$name; // overridden by frontmatter
+        if (in_array($name, ['description', 'keywords', 'author', 'robots']) && (self::$pageElements[$name] ?? false)) {
+            $out = self::$pageElements[$name]; // overridden by frontmatter
         }
 
         // in dev-mode, always include robots-tag:

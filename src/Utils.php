@@ -222,8 +222,8 @@ class Utils
         }
         if ($webmasterEmail) {
             PageFactory::$webmasterEmail = $webmasterEmail;
-        } elseif (!isLocalhost()) {
-            exit('Please define "webmaster_email" in config.php.');
+        } else {
+            throw new Kirby\Exception\Exception('Please define "webmaster_email" in config.php.');
         }
         $webmasterLink = Link::render([
             'url' => "mailto:$webmasterEmail",
@@ -768,7 +768,6 @@ EOT;
             return;
         }
         if (!(PageFactory::$config['productionModeDataPath'] ?? false)) {
-//        if (!PageFactory::$config['productionModeDataPath']??false) {
             return;
         }
 
@@ -789,7 +788,6 @@ EOT;
         $dataPath = $customPath.'data/';
         // if folder already exists, move it to .history/:
         if (is_dir($customPath)) {
-//        if (!is_dir($customPath)) {
             preparePath($customPath . '.history');
             rename($dataPath, "$customPath.history/" . date('Y-m-d_H-i-s') . '_data');
         }
@@ -945,7 +943,13 @@ EOT;
      */
     public static function normalizePath(string $path): string
     {
-        if ($path === '') return '';
+        if ($path === '') {
+            return '';
+        }
+        if (!str_contains($path, '../')) {
+            // just apply tailing slash:
+            return rtrim($path, '/') . '/';
+        }
 
         $isAbsolute = str_starts_with($path, '/');
         $hasTrailingSlash = str_ends_with($path, '/') && $path !== '/';
@@ -1416,10 +1420,15 @@ EOT;
      */
     public static function getServerTimezone():string
     {
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, "https://ipapi.co/timezone");
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        $output = curl_exec($ch);
+        try {
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, "https://ipapi.co/timezone");
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+            $output = curl_exec($ch);
+        } catch (\Exception $e) {
+            throw new Exception("getServerTimezone(): internet call timed out.");
+        }
         return $output;
     } // getServerTimezone
 
@@ -1614,3 +1623,5 @@ EOT;
     } // setInstallationCheckFile
 
 } // Utils
+$aaa = Utils::resolvePath('~/../_regtest/');
+$aaa = $aaa;
