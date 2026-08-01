@@ -71,17 +71,35 @@ class Page
     /**
      * Appends $value to property identified by $key.
      * If renderingClosed (i.e. when rendering twig template), the $value is appended to the kirby field instead.
+     * Optional arg $args: if present, store value in array structure and later render separately.
      * @param string $key
      * @param $value
      */
-    public static function append(string $key, $value): void
+    public static function append(string $key, $value, string $args = ''): void
     {
         if (PageFactory::$renderingClosed) {
             throw new \Exception("Error: Rendering closed for $key = '$value'");
-
-        } elseif (!str_contains(self::$pageElements[$key], $value)) { // avoid repetitions
-            self::$pageElements[$key] .= $value;
         }
+        if (!$args && is_string(self::$pageElements[$key])) {
+            if (!str_contains(self::$pageElements[$key], $value)) {
+                self::$pageElements[$key] .= $value;
+            }
+
+        // special case: args provided:
+        } else {
+            $args = $args ?: '_';
+            if (is_string(self::$pageElements[$key])) {
+                $tmp = self::$pageElements[$key];
+                self::$pageElements[$key] = [];
+                self::$pageElements[$key]['_'] = $tmp;
+            }
+            if (self::$pageElements[$key][$args]??false) {
+                self::$pageElements[$key][$args] .= $value;
+            } else {
+                self::$pageElements[$key][$args] = $value;
+            }
+        }
+
     } // append
 
 
@@ -261,10 +279,10 @@ EOT;
      * Accepts JS code to be injected at the end of the <body> element, but before js-files are loaded
      * @param string $str
      */
-    public static function addJs(string $str): void
+    public static function addJs(string $str, string $args = ''): void
     {
-        self::append('js', trim($str, "\t\n ")."\n");
-    }
+        self::append('js', trim($str, "\t\n ") . "\n", $args);
+    } // addJs
 
 
     /**
@@ -274,7 +292,7 @@ EOT;
     public static function addJsReady(string $str): void
     {
         self::append('jsWhenReady', trim($str, "\t\n ")."\n");
-    }
+    } // addJsReady
 
 
     /**
@@ -377,6 +395,16 @@ EOT;
             self::$pageElements['jsWhenReady'] = self::$override['jsWhenReady'];
         }
 
+        // check whether js contains variants, put in $jsVariants[], if so:
+        $jsVariants = [];
+        if ($localJs = self::$pageElements['js']) {
+            if (is_array($localJs)) {
+                $jsVariants = $localJs;
+                $localJs = $jsVariants['_'] ?? '';
+                unset($jsVariants['_']);
+            }
+        }
+
         $page = page();
 
         $jsInjection = '';
@@ -394,7 +422,7 @@ EOT;
         $js .= "const loggedinUser = '" .   PageFactory::$userName . "';\n";
         $js .= "const currLang = '" .       PageFactory::$langCode . "';\n";
         $js .= "const pageLoaded =          Math.floor(Date.now()/1000);\n";
-        $js .= self::$pageElements['js'] ? self::$pageElements['js'] . "\n": '';
+        $js .= $localJs;
         $js .= $page->js()->value() ?? ''; // js from meta-file
 
         if (option('pgfactory.pagefactory.pageSwipeEnabled', false)) {
@@ -420,6 +448,18 @@ $js
     </script>
 
 EOT;
+        }
+
+        // if js with args present, render accordingly:
+        if ($jsVariants) {
+            foreach ($jsVariants as $arg => $js) {
+                $jsInjection .= <<<EOT
+    <script $arg>
+$js
+    </script>
+
+EOT;
+            }
         }
 
         $jsWhenReady = self::$pageElements['jsWhenReady'] ? self::$pageElements['jsWhenReady'] . "\n": '';

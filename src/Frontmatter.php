@@ -4,6 +4,7 @@ namespace PgFactory\PageFactory;
 
 use Exception;
 use Kirby\Data\Yaml;
+use PgFactory\MarkdownPlus\MarkdownPlus;
 use PgFactory\MarkdownPlus\MdPlusHelper;
 use PgFactory\MarkdownPlus\Permission;
 
@@ -80,6 +81,10 @@ class Frontmatter
             } elseif ($key === 'js') {
                 Page::addJs($value);
 
+            // handle special case of "js(arguments)":
+            } elseif (preg_match('/^js\((.*)\)/', $key, $m)) {
+                Page::addJs($value, $m[1]);
+
             } elseif ($key === 'jsready') {
                 Page::addJsReady($value);
 
@@ -89,6 +94,9 @@ class Frontmatter
                     $asset = trim($asset, '"\'');
                     Assets::addAssets($asset);
                 }
+
+            } elseif ($key === 'smartypants') {
+                MdPlusHelper::enableSmartypants($value !== 'false');
 
             } elseif ($key === 'slidingpanels') {
                 PageFactory::$slidingPanels = $value;
