@@ -302,6 +302,13 @@ class Assets
             return false;
         }
 
+        // check for args in asset string, e.g. '(defer)~/media/plugins/pgfactory/pagefactory/js/quickzoom.js'
+        $args = '';
+        if (preg_match('/\((.*)\)/', $asset, $m)) {
+            $args = $m[1];
+            $asset = str_replace($m[0], '', $asset);
+        }
+
         // skip empty CSS files:
         if ($type === 'css') {
             $f = PFY_BASE_OFFSET.$asset;
@@ -352,6 +359,9 @@ class Assets
             if ($code && PFY_BASE_OFFSET && !str_contains($code, PFY_HOST_URL . PFY_BASE_OFFSET)) {
                 $code = str_replace(PFY_HOST_URL, PFY_HOST_URL . PFY_BASE_OFFSET, $code);
             }
+        }
+        if ($args) {
+            $code = preg_replace('|^<(\w+) |', "<$1 $args ", $code);
         }
         return $code;
     } // compileAssetPath

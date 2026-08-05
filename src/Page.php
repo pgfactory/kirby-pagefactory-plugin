@@ -300,12 +300,12 @@ EOT;
      * @param mixed $assets  array or comma separated list
      * @return void
      */
-    public static function addAssets(mixed $assets): void
+    public static function addAssets(mixed $assets, string $args = ''): void
     {
         if (PageFactory::$renderingClosed) {
             throw new \Exception("Error: a Macro is trying to queue a resource after page rendering has finished.");
         }
-        Assets::addAssets($assets);
+        Assets::addAssets($assets, $args);
     } // addAssets
 
 
