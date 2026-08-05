@@ -79,7 +79,7 @@ console.debug('page-switcher.js');
 
 
     const touchSupport = ('ontouchstart' in window || window.navigator.msPointerEnabled);
-    if (touchSupport && (pfyPageSwipeEnabled ?? false)) {
+    if (touchSupport && (typeof pfyPageSwipeEnabled !== 'undefined') && pfyPageSwipeEnabled) {
       // Swipe handling:
       document.addEventListener('touchstart', e => {
         console.log(`touchstart: ${inhibitPageSwitch.toString()}`);
