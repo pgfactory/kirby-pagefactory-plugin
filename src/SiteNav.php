@@ -355,16 +355,6 @@ EOT;
     private static function updateSitemap()
     {
         if (self::$sitemapUpdateEnabled && (PageFactory::$forceAssetsUpdate || !file_exists(self::$sitemapFile))) {
-            if (file_exists(self::$sitemapFile)) {
-                // skip updating, if first line starts with '#', i.e. that it had been manually modified:
-                $f = fopen(self::$sitemapFile, 'r');
-                $line1 = fgets($f);
-                fclose($f);
-                if (str_starts_with($line1, '#')) {
-                    self::$sitemapUpdateEnabled = false;
-                }
-            }
-
             if (self::$sitemapUpdateEnabled) {
                 writeFile(self::$sitemapFile, implode("\n", self::$sitemap));
                 self::$sitemapUpdateEnabled = false;
