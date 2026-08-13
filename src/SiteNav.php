@@ -24,8 +24,9 @@ class SiteNav
     private static array $siteStruct = [];
     private static ?string $defaultNav = null;
     private static string $branchClass = '';
-    private static bool $sitemapUpdateEnabled = false;
+    private static bool $sitemapUpdateEnabled = true;
     private static array $sitemap = [];
+    private static string $sitemapFile;
 
 
     /**
@@ -33,14 +34,15 @@ class SiteNav
      */
     public static function init(): void
     {
-        if ($maintainSitemap = kirby()->option('pgfactory.pagefactory.maintainSitemap', true)) {
+        self::$sitemapFile = Utils::resolvePath(PFY_SITEMAP_FILE);
+        if ($maintainSitemap = kirby()->option('pgfactory.pagefactory.maintainSitemap', PageFactory::$dev)) {
             if (is_string($maintainSitemap)) {
                 $maintainSitemap = Permissions::evaluate($maintainSitemap);
             } elseif ($maintainSitemap === true) {
                 $maintainSitemap = Permission::isLocalhost() || !Permission::isLoggedIn();
             }
         }
-        self::$sitemapUpdateEnabled = $maintainSitemap;
+        self::$sitemapUpdateEnabled &= $maintainSitemap;
 
         $tree = site()->children();
         self::$siteStruct = self::_parseSite($tree, true);
@@ -208,9 +210,7 @@ EOT;
             }
         }
 
-        if (self::$sitemapUpdateEnabled && (PageFactory::$forceAssetsUpdate || !file_exists(PFY_SITEMAP_FILE))) {
-            writeFile(PFY_SITEMAP_FILE, implode("\n", self::$sitemap));
-        }
+        self::updateSitemap();
 
         return $out;
     } // render
@@ -251,12 +251,14 @@ EOT;
             $class = $class ? " class='$class'" : '';
 
             if (self::$deep && ($elem['sub'] ?? false)) {
-                self::addToSitemap($url, $elem);
+                if ($hasContent) {
+                    self::$sitemap[$url] = $url;
+                }
                 $out .= "$indent <li$class><a href='$url'$curr>$title</a>";
                 $out .=  self::_render($elem['sub'], "$indent    ");
                 $out .= "$indent </li>\n";
             } else {
-                self::addToSitemap($url, $elem);
+                self::$sitemap[$url] = $url;
                 $out .= "$indent <li><a href='$url'$curr>$title</a></li>\n";
             }
         }
@@ -268,13 +270,6 @@ EOT;
         $out = "\n$indent<{$listTag}>$prefix\n$out$indent</{$listTag}>\n";
         return $out;
     } // _render
-
-
-    private static function addToSitemap(string $url, array $elem): void
-    {
-        self::$sitemap[$url] = $url;
-    } // addToSitemap
-
 
 
     /**
@@ -352,5 +347,29 @@ EOT;
         return $out;
     } // renderBranch
 
+
+    /**
+     * @return void
+     * @throws \Exception
+     */
+    private static function updateSitemap()
+    {
+        if (self::$sitemapUpdateEnabled && (PageFactory::$forceAssetsUpdate || !file_exists(self::$sitemapFile))) {
+            if (file_exists(self::$sitemapFile)) {
+                // skip updating, if first line starts with '#', i.e. that it had been manually modified:
+                $f = fopen(self::$sitemapFile, 'r');
+                $line1 = fgets($f);
+                fclose($f);
+                if (str_starts_with($line1, '#')) {
+                    self::$sitemapUpdateEnabled = false;
+                }
+            }
+
+            if (self::$sitemapUpdateEnabled) {
+                writeFile(self::$sitemapFile, implode("\n", self::$sitemap));
+                self::$sitemapUpdateEnabled = false;
+            }
+        }
+    } // updateSitemap
 
 } // SiteNav
