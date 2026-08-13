@@ -125,53 +125,10 @@ img {
 	}
 }
 
-// Onboarding Aid
-.pfy-onboardingaid-button * {
-	color: orange;
-	margin: 0 0.3em 0 0.2em;
-}
-.pfy-popup .pfy-onboardingaid {
-	margin: 2em 0;
-	padding: 2em;
-	border: 1px solid orange;
-	background: rgb(255, 242, 218);
-}
-#pfy .pfy-onboarding-link {
-	display: block;
-	margin: 1em 0 0 0;
-	color: red;
-	border: 1px solid red;
-	padding: 0.5em;
-}
-
-
-// for dev on localhost only:
-.dev-footer {
-	margin-bottom: 1em;
-	display: flex;
-	justify-content: space-between;
-	background: #a537ff;
-	background: repeating-linear-gradient(-55deg, #9f29ff, #9f29ff 10px, #9310fe 10px, #9310fe 15px);
-}
-
 
 // === page switcher ================================
 .pfy-page-switcher-wrapper.pfy-page-switcher-empty.pfy-page-switcher-empty {
 	margin: 0; // avoid taking up space on single pager, where page-switcher is obsolete and thus empty
-}
-
-
-// === form tables =================================
-.pfy-default-styling .pfy-table td:not(.pfy-service-col) > div {
-  max-height: 3.5em;
-  overflow-y: auto;
-  // scroll-hints:
-  // background: linear-gradient(var(--pfy-page-bg-color, white) 15px, hsla(0,0%,100%,0)) 0 0 / 100% 50px,
-  // radial-gradient(at top, var(--pfy-hint-shadow-color, rgba(0,0,0,.4)), transparent 70%) 0 0 / 100% 15px,
-  // linear-gradient(to top, var(--pfy-page-bg-color, white) 15px, hsla(0,0%,100%,0)) bottom / 100% 50px,
-  // radial-gradient(at bottom, var(--pfy-hint-shadow-color, rgba(0,0,0,.4)), transparent 70%) bottom / 100% 15px;
-  // background-repeat: no-repeat;
-  // background-attachment: local, scroll, local, scroll;
 }
 
 
