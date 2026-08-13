@@ -12,13 +12,6 @@
 
 namespace PgFactory\PageFactory;
 
-if (!defined('DATAREC_TIMESTAMP')) {
-    define('DATAREC_TIMESTAMP', '_timestamp');
-}
-if (!defined('DATAREC_RECKEY')) {
-    define('DATAREC_RECKEY', '_reckey');
-}
-
 class Data2DSet
 {
     private string $file = '';
@@ -70,9 +63,9 @@ class Data2DSet
         $needsUpdate = false;
         $data = $this->data;
         foreach ($data as $key => $rec) {
-            if (!($rec[DATAREC_RECKEY] ?? false)) {
+            if (!($rec[PFY_RECKEY] ?? false)) {
                 $needsUpdate = true;
-                $data[$key][DATAREC_RECKEY] = createHash();
+                $data[$key][PFY_RECKEY] = createHash();
             }
         }
         if ($needsUpdate) {
@@ -103,7 +96,7 @@ class Data2DSet
     /**
      * @return array
      */
-    public function getColHeaders(): array
+    public function getColHeaders(bool $includeSystemElements = false): array
     {
         return $this->colHeaders;
     } // getColHeaders
@@ -197,18 +190,18 @@ class Data2DSet
         $data = $this->data;
 
         // determine colHeaders:
-        $colHeaders = $this->colHeaders;
-        if (!array_is_list($colHeaders)) {
-            $colHeaders = array_keys($colHeaders);
-        }
+        $colHeaders = $this->colHeaders; // array of key:label
 
         // assemble 2D data:
         $data2D = [];
         foreach ($data as $recKey => $rec) {
             $newRec = [];
-            foreach ($colHeaders as $elemKey) {
+            foreach ($colHeaders as $elemKey => $label) {
                 if (isset($rec[$elemKey])) {
                     $newRec[$elemKey] = $this->normalizeDataElement($elemKey, $rec[$elemKey]);
+
+                } elseif (isset($rec[$label])) {
+                    $newRec[$elemKey] = $this->normalizeDataElement($elemKey, $rec[$label]);
 
                 } else {
                     // no elem found, check for indexed element of type 'a.b':
@@ -251,7 +244,7 @@ class Data2DSet
     private function normalizeDataElement(string $key, mixed $value): string
     {
         $newValue = '';
-        if ($key === DATAREC_TIMESTAMP) {
+        if ($key === PFY_TIMESTAMP) {
             $newValue = is_string($value) ? $value : date('Y-m-d H:i', $value);
         } elseif (is_bool($value)) {
             $newValue = $value ? '1' : '0';
@@ -272,15 +265,10 @@ class Data2DSet
     private function sortData(): void
     {
         $sortElem = $this->order;
-        $reversed = $this->options['reversed'] ?? false;
         $data = $this->data2D;
         uasort($data, function ($a, $b) use ($sortElem) {
             return strcmp($a[$sortElem] ?? '', $b[$sortElem] ?? '');
         });
-
-        if ($reversed) {
-            $data = array_reverse($data, true);
-        }
         $this->data2D = $data;
     } // sortData
 
@@ -309,6 +297,12 @@ class Data2DSet
                 '>=' => $v >= $filterValue,
                 '<' => $v < $filterValue,
                 '<=' => $v <= $filterValue,
+                'contains' => str_contains($v, $filterValue),
+                'starts-width' => str_starts_with($v, $filterValue),
+                'ends-with' => str_ends_with($v, $filterValue),
+                '!contains' => !str_contains($v, $filterValue),
+                '!starts-width' => !str_starts_with($v, $filterValue),
+                '!ends-with' => !str_ends_with($v, $filterValue),
                 default => $v === $filterValue,  // '===' and any unknown op
             };
         });
@@ -326,20 +320,14 @@ class Data2DSet
         if (!$cols) {
             return;
         }
-        foreach ($cols as $i => $patt) {
-            if (preg_match('/^(.*?)\*.*/', $patt, $m)) {
-                $patt = strtolower($m[1]);
-                foreach (array_keys($this->colHeaders) as $key) {
-                    if (str_starts_with(strtolower($key), $patt)) {
-                        $cols[$i] = $key;
-                    }
-                }
-            }
+        if (is_string($cols)) {
+            $cols = explodeTrim(',', $cols);
         }
         $data2D = &$this->data2D;
         foreach ($data2D as $row => $rec) {
             foreach ($rec as $key => $value) {
-                if (in_array($key, $cols)) {
+                $key2 = $this->colHeaders[$key] ?? 'unknown';
+                if (in_array($key, $cols) || in_array($key2, $cols)) {
                     $data2D[$row][$key] = '*****';
                 }
             }
@@ -484,6 +472,7 @@ class Data2DSet
 
 
     /**
+     * popupates $this->colHeaders => array of key:label
      * @return void
      */
     private function determineColHeaders(): void
@@ -495,29 +484,41 @@ class Data2DSet
                     $rec0 = reset($this->data);
                     $keys = array_keys($rec0);
                     $this->colHeaders = array_combine($keys, $keys);
+
                 } else {
                     $this->colHeaders = [];
                 }
+
             } elseif (is_string($headers)) {
                 $keys = explodeTrim(',', $headers);
                 $this->colHeaders = array_combine($keys, $keys);
+
+            } elseif (is_array($headers)) {
+                if (((array_keys($headers))[0] ?? false) === 0) {
+                    $this->colHeaders = array_combine($headers, $headers);
+                } else {
+                    $this->colHeaders = $headers;
+                }
             } else {
-                $this->colHeaders = $headers;
+                throw new \Exception('Data2DSet: $headers contains incompatible data type.');
             }
-            return;
+
+        } else {
+            $data = $this->data;
+            $colHeaders = [];
+            foreach ($data as $rec) {
+                foreach ($rec as $colKey => $col) {
+                    $colHeaders[$colKey] = $colKey;
+                }
+            }
+            if ($this->markLocked) {
+                $colHeaders['_locked'] = '_locked';
+            }
+            $this->colHeaders = $colHeaders;
         }
 
-        $data = $this->data;
-        $colHeaders = [];
-        foreach ($data as $rec) {
-            foreach ($rec as $colKey => $col) {
-                $colHeaders[$colKey] = $colKey;
-            }
-        }
-        if ($this->markLocked) {
-            $colHeaders['_locked'] = '_locked';
-        }
-        $this->colHeaders = $colHeaders;
+        self::fixSystemElements($this->colHeaders, $this->options['includeSystemElements'], $this->options['includeTimestamp']);
+
     } // determineColHeaders
 
 
@@ -560,7 +561,32 @@ class Data2DSet
         $this->order = ($options['order'] ?? false) ?: ($options['sort'] ?? false);
         $this->filter = $options['filter'] ?? false;
         $this->downloadFilename = $options['downloadFilename'] ?? '';
-
     } // parseOptions
+
+
+    /**
+     * @return void
+     */
+    public static function fixSystemElements(array &$colHeaders, bool $includeSystemElements, bool $includeTimestamp): void
+    {
+        if ($includeSystemElements) {
+            $colHeaders[PFY_TIMESTAMP] = TransVars::getVariable('pfy-table-timestamp-header');
+            $colHeaders[PFY_RECKEY] = TransVars::getVariable('pfy-table-reckey-header');
+        } elseif ($colHeaders[PFY_RECKEY]??false) {
+            unset($colHeaders[PFY_RECKEY]);
+        }
+        if ($includeTimestamp && !isset($colHeaders[PFY_TIMESTAMP])) {
+            $colHeaders[PFY_TIMESTAMP] = TransVars::getVariable('pfy-table-timestamp-header');
+        } elseif (!$includeTimestamp && ($colHeaders[PFY_TIMESTAMP]??false)) {
+            unset($colHeaders[PFY_TIMESTAMP]);
+        }
+
+        if (($colHeaders[PFY_RECKEY] ?? false) === PFY_RECKEY) {
+            $colHeaders[PFY_RECKEY] = TransVars::getVariable('pfy-table-reckey-header');
+        }
+        if (($colHeaders[PFY_TIMESTAMP] ?? false) === PFY_TIMESTAMP) {
+            $colHeaders[PFY_TIMESTAMP] = TransVars::getVariable('pfy-table-timestamp-header');
+        }
+    } // fixSystemElements
 
 } // Data2DSet

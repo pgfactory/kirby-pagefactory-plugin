@@ -53,6 +53,8 @@ const PFY_SITEMAP_FILE =                '~/sitemap.txt';
 
 define('PFY_WEBMASTER_EMAIL_CACHE',     PFY_CACHE_PATH.'webmaster-email.txt');
 define('PFY_INSTALLATION_PATH_CHECK',   PFY_CACHE_PATH.'installation-path.txt');
+define('PFY_TIMESTAMP', '_timestamp');
+define('PFY_RECKEY', '_reckey');
 
 
  // misc constants:

@@ -6,11 +6,11 @@ use Error;
 use Kirby\Data\Data;
 
  // meta keys:
-if (!defined('DATAREC_TIMESTAMP')) {
-    define('DATAREC_TIMESTAMP', '_timestamp');
+if (!defined('PFY_TIMESTAMP')) {
+    define('PFY_TIMESTAMP', '_timestamp');
 }
-if (!defined('DATAREC_RECKEY')) {
-    define('DATAREC_RECKEY', '_reckey');
+if (!defined('PFY_RECKEY')) {
+    define('PFY_RECKEY', '_reckey');
 }
 if (!defined('PFY_DB_METAREC_KEY')) {
     define('PFY_DB_METAREC_KEY', '_META');
@@ -19,30 +19,30 @@ if (!defined('SUPPORTED_FILE_TYPES')) {
     define('SUPPORTED_FILE_TYPES', 'yaml,json,csv,txt');
 }
 
- // timings:
-const PFY_DEFAULT_MAX_REC_LOCK_TIME     = 600; // sec
-const PFY_DEFAULT_MAX_REC_BLOCKING_TIME = 2; // sec
-const PFY_DEFAULT_KEEP_DATA_DURATION    = 12; // month
-const PFY_MAX_DB_FILE_SIZE              = 10485760; // 10MB
-const PFY_DB_FILE_BLOCKING_MAX_TIME     = 2000; // 500; //ms
-const PFY_DB_FILE_BLOCKING_CYCLE_TIME   = 1000; //us
-const PFY_DB_FILE_BLOCKING_CYCLES       = PFY_DB_FILE_BLOCKING_MAX_TIME / PFY_DB_FILE_BLOCKING_CYCLE_TIME;
-
- // data archive:
-const PFY_ARCHIVE_SUBPATH               = '-archive/';
-
-const PFY_DATASTORE_DEFAULT_REC = [
-    PFY_DB_METAREC_KEY => [
-        DATAREC_TIMESTAMP       => 0,
-        DATAREC_RECKEY          => '',
-        '_lock'                 => false,
-        '_lockedBy'             => false,
-        'maxRecLockTime'        => 0,
-    ]
-];
-
 class DataStore
 {
+    // timings:
+    protected const DEFAULT_MAX_REC_LOCK_TIME     = 600; // sec
+    protected const DEFAULT_MAX_REC_BLOCKING_TIME = 2; // sec
+    protected const DEFAULT_KEEP_DATA_DURATION    = 12; // month
+    protected const MAX_DB_FILE_SIZE              = 10485760; // 10MB
+    protected const DB_FILE_BLOCKING_MAX_TIME     = 2000; // 500; //ms
+    protected const DB_FILE_BLOCKING_CYCLE_TIME   = 1000; //us
+    protected const DB_FILE_BLOCKING_CYCLES       = self::DB_FILE_BLOCKING_MAX_TIME / self::DB_FILE_BLOCKING_CYCLE_TIME;
+
+    // data archive:
+    protected const ARCHIVE_SUBPATH               = '-archive/';
+
+    protected const DATASTORE_DEFAULT_REC = [
+        PFY_DB_METAREC_KEY => [
+            PFY_TIMESTAMP       => 0,
+            PFY_RECKEY          => '',
+            '_lock'             => false,
+            '_lockedBy'         => false,
+            'maxRecLockTime'    => 0,
+        ]
+    ];
+
     protected $name;
     protected $file;
     protected $cacheFile;
@@ -94,27 +94,26 @@ class DataStore
     public function data(mixed $includeMetaFields = false, string|null $recKeyType = null): array
     {
         if ($this->data) {
+            $recKeyType = ($recKeyType !== null) ? $recKeyType : $this->options['masterFileRecKeyType']??false;
             $data = $this->data;
             if ($includeMetaFields === true) {
-                $includeMetaFields = '_reckey,_timestamp';
+                $includeMetaFields = PFY_RECKEY.','.PFY_TIMESTAMP;
             }
             if (is_string($includeMetaFields)) {
                 $includeMetaFields = strtolower($includeMetaFields);
                 if (str_contains($includeMetaFields, 'reckey')) {
                     foreach ($data as $key => $dataRec) {
-                        $data[$key][DATAREC_RECKEY] = $dataRec[PFY_DB_METAREC_KEY][DATAREC_RECKEY];
+                        $data[$key][PFY_RECKEY] = $dataRec[PFY_DB_METAREC_KEY][PFY_RECKEY];
                     }
                 }
                 if (str_contains($includeMetaFields, 'timestamp')) {
                     foreach ($data as $key => $dataRec) {
-                        $data[$key][DATAREC_TIMESTAMP] = $dataRec[PFY_DB_METAREC_KEY][DATAREC_TIMESTAMP];
+                        $data[$key][PFY_TIMESTAMP] = $dataRec[PFY_DB_METAREC_KEY][PFY_TIMESTAMP];
                     }
                 }
             }
-            if ($recKeyType !== null) {
-                if ($recKeyType === 'index') {
-                    $data = array_values($data);
-                }
+            if ($recKeyType === 'index') {
+                $data = array_values($data);
             }
             foreach ($data as $key => $dataRec) {
                 unset($data[$key][PFY_DB_METAREC_KEY]);
@@ -170,11 +169,11 @@ class DataStore
             if (!isset($rec[PFY_DB_METAREC_KEY])) {
                 $rec[PFY_DB_METAREC_KEY] = [];
             }
-            $rec[PFY_DB_METAREC_KEY][DATAREC_RECKEY] = $recKey;
-            $rec[PFY_DB_METAREC_KEY][DATAREC_TIMESTAMP] = time();
+            $rec[PFY_DB_METAREC_KEY][PFY_RECKEY] = $recKey;
+            $rec[PFY_DB_METAREC_KEY][PFY_TIMESTAMP] = time();
             $rec[PFY_DB_METAREC_KEY]['_lock'] = false;
             $rec[PFY_DB_METAREC_KEY]['_lockedBy'] = '';
-            $rec[PFY_DB_METAREC_KEY] += PFY_DATASTORE_DEFAULT_REC[PFY_DB_METAREC_KEY];
+            $rec[PFY_DB_METAREC_KEY] += self::DATASTORE_DEFAULT_REC[PFY_DB_METAREC_KEY];
             $this->data[$recKey] = $rec;
         }
         $this->lastCreatedRecKey = $recKey; // -> to be picked up by consecutive ->recId() call
@@ -236,9 +235,9 @@ class DataStore
     public function update(array $data, bool $flush = false): void
     {
         foreach ($data as $key => $rec) {
-            $rec += PFY_DATASTORE_DEFAULT_REC;
-            $rec[PFY_DB_METAREC_KEY][DATAREC_RECKEY] = $key;
-            $rec[PFY_DB_METAREC_KEY][DATAREC_TIMESTAMP] = time();
+            $rec += self::DATASTORE_DEFAULT_REC;
+            $rec[PFY_DB_METAREC_KEY][PFY_RECKEY] = $key;
+            $rec[PFY_DB_METAREC_KEY][PFY_TIMESTAMP] = time();
             $this->data[$key] = $rec;
         }
         if ($flush) {
@@ -312,8 +311,8 @@ class DataStore
         }
         $elementKeys = array_keys($elementKeys);
         if ($includeMeta) {
-            $elementKeys[] = DATAREC_RECKEY;
-            $elementKeys[] = DATAREC_TIMESTAMP;
+            $elementKeys[] = PFY_RECKEY;
+            $elementKeys[] = PFY_TIMESTAMP;
         }
         return $elementKeys;
     } // getElementKeys
@@ -323,7 +322,7 @@ class DataStore
      * Returns the index of one or multiple record(s) that match description.
      *    $inx = $ds->findRecKeyOf('Bob'); // case insensitive
      *    $inx = $ds->findRecKeyOf('M40ED116'); // uid instead of key
-     *    $inx = $ds->findRecKeyOf('M40ED116', DATAREC_RECKEY);
+     *    $inx = $ds->findRecKeyOf('M40ED116', PFY_RECKEY);
      *    $inx = $ds->findRecKeyOf('123456', 'password'); // value and element-label
      *    $inx = $ds->findRecKeyOf('x', 'x'); // no match returns null
      *    $inx = $ds->findRecKeyOf(2); // error
@@ -337,13 +336,13 @@ class DataStore
     {
         $found = [];
         if ($attribute) {
-            // allow for 'uid' instead of internally used DATAREC_RECKEY:
+            // allow for 'uid' instead of internally used PFY_RECKEY:
             if ($attribute === 'reckey') {
-                $attribute = DATAREC_RECKEY;
+                $attribute = PFY_RECKEY;
             }
             foreach ($this->data as $recUid => $elem) {
-                // check whether matches with DATAREC_RECKEY-property:
-                if (($attribute === DATAREC_RECKEY) && strcasecmp($elem[PFY_DB_METAREC_KEY][DATAREC_RECKEY] ?? '', $key) === 0) {
+                // check whether matches with PFY_RECKEY-property:
+                if (($attribute === PFY_RECKEY) && strcasecmp($elem[PFY_DB_METAREC_KEY][PFY_RECKEY] ?? '', $key) === 0) {
                     $found[] = $recUid;
                     if (!$all) { break; }
 
@@ -392,7 +391,7 @@ class DataStore
             $attribute = $args[0] ?? null;
             if (is_int($key) && ($attribute === null)) { // case: index supplied
                 $rec = $this->nth($key);
-                return $rec[PFY_DB_METAREC_KEY][DATAREC_RECKEY];
+                return $rec[PFY_DB_METAREC_KEY][PFY_RECKEY];
 
             } elseif (is_scalar($key)) {    // normal case: key and opt. attribute supplied
                 $key = (string)$key;
@@ -719,7 +718,7 @@ class DataStore
         }
 
         array_walk($data, function (&$rec) {
-            $rec[DATAREC_TIMESTAMP] = is_string($rec[DATAREC_TIMESTAMP]) ? $rec[DATAREC_TIMESTAMP] : date('Y-m-d\TH:i:s', $rec[DATAREC_TIMESTAMP]);
+            $rec[PFY_TIMESTAMP] = is_string($rec[PFY_TIMESTAMP]) ? $rec[PFY_TIMESTAMP] : date('Y-m-d\TH:i:s', $rec[PFY_TIMESTAMP]);
         });
 
         $this->writeDataFile($this->file, $data);
@@ -746,14 +745,14 @@ class DataStore
 
     /**
      * Manages size and age of data-source files.
-     * a) limits size of source-file as well as archive files to PFY_MAX_DB_FILE_SIZE
+     * a) limits size of source-file as well as archive files to self::MAX_DB_FILE_SIZE
      * b) based on 'keepDataDuration' argument, extracts old records and moves them to archive file
-     *      -> path/PFY_ARCHIVE_SUBPATH/file.ext
+     *      -> path/self::ARCHIVE_SUBPATH/file.ext
      * @return void
      */
     private function archiveOldData(): void
     {
-        if (filesize($this->file) > PFY_MAX_DB_FILE_SIZE) {
+        if (filesize($this->file) > self::MAX_DB_FILE_SIZE) {
             $archive = $this->reduceDbFileSize();
         } else {
             if (!$this->keepDataThreshold) {
@@ -765,7 +764,7 @@ class DataStore
                 if ($this->keepDataOnField) {
                     $t = strtotime($rec->recData[$this->keepDataOnField] ?? '');
                 } else {
-                    $t = $rec[PFY_DB_METAREC_KEY][DATAREC_TIMESTAMP];
+                    $t = $rec[PFY_DB_METAREC_KEY][PFY_TIMESTAMP];
                     if (is_string($t)) {
                         $t = strtotime($t);
                     }
@@ -782,7 +781,7 @@ class DataStore
         }
 
         // append new recs to (possibly) existing archive:
-        $destPath = dir_name($this->file).PFY_ARCHIVE_SUBPATH;
+        $destPath = dir_name($this->file).self::ARCHIVE_SUBPATH;
         $basename = basename($this->file);
         $timestamp = '';
         foreach (getDir($destPath) as $file) {
@@ -794,7 +793,7 @@ class DataStore
             $timestamp = date('Y-m-d_');
         }
         $archiveFile = "$destPath$timestamp$basename";
-        if (file_exists($archiveFile) && filesize($archiveFile) > PFY_MAX_DB_FILE_SIZE) {
+        if (file_exists($archiveFile) && filesize($archiveFile) > self::MAX_DB_FILE_SIZE) {
             $timestamp = date('Y-m-d_');
             $archiveFile = "$destPath$timestamp$basename";
         }
@@ -870,7 +869,7 @@ class DataStore
                     if ($rec[PFY_DB_METAREC_KEY]['_lock']) {
                         $lockedBy = $rec[PFY_DB_METAREC_KEY]['_lockedBy'];
                         if ($lockedBy !== $sessionId) {
-                            if ($rec[PFY_DB_METAREC_KEY]['_lock'] > time() - PFY_DEFAULT_MAX_REC_LOCK_TIME) {
+                            if ($rec[PFY_DB_METAREC_KEY]['_lock'] > time() - self::DEFAULT_MAX_REC_LOCK_TIME) {
                                 continue;
                             }
                         }
@@ -905,7 +904,7 @@ class DataStore
                     if ($rec[PFY_DB_METAREC_KEY]['_lock']) {
                         $lockedBy = $rec[PFY_DB_METAREC_KEY]['_lockedBy'];
                         if ($lockedBy !== $sessionId) {
-                            if ($rec[PFY_DB_METAREC_KEY]['_lock'] > time() - PFY_DEFAULT_MAX_REC_LOCK_TIME) {
+                            if ($rec[PFY_DB_METAREC_KEY]['_lock'] > time() - self::DEFAULT_MAX_REC_LOCK_TIME) {
                                 return false;
                             }
                         }
@@ -957,7 +956,7 @@ class DataStore
                         if ($rec[PFY_DB_METAREC_KEY]['_lock']) {
                             $lockedBy = $rec[PFY_DB_METAREC_KEY]['_lockedBy'];
                             if (!$force && ($lockedBy !== $sessionId)) {
-                                if ($rec[PFY_DB_METAREC_KEY]['_lock'] > time() - PFY_DEFAULT_MAX_REC_LOCK_TIME) {
+                                if ($rec[PFY_DB_METAREC_KEY]['_lock'] > time() - self::DEFAULT_MAX_REC_LOCK_TIME) {
                                     continue;
                                 }
                             }
@@ -1020,14 +1019,14 @@ class DataStore
         $this->includeMeta = $options['includeMeta'] ?? null;
         $this->obfuscateRecKeys = $options['obfuscateRecKeys'] ?? false;
         $this->maxRecLockTime = (isset($options['maxRecLockTime']) && $options['maxRecLockTime']) ?
-            $options['maxRecLockTime'] : PFY_DEFAULT_MAX_REC_LOCK_TIME;
+            $options['maxRecLockTime'] : self::DEFAULT_MAX_REC_LOCK_TIME;
         $this->maxRecBlockingTime = (isset($options['maxRecBlockingTime']) && $options['maxRecBlockingTime'])
-            ? $options['maxRecBlockingTime'] : PFY_DEFAULT_MAX_REC_BLOCKING_TIME;
+            ? $options['maxRecBlockingTime'] : self::DEFAULT_MAX_REC_BLOCKING_TIME;
         $this->avoidDuplicates = $options['avoidDuplicates'] ?? true;
         $this->recKeyType = $options['recKeyType'] ?? 'hash';
         $this->masterFileRecKeyType = $options['masterFileRecKeyType'] ?? 'hash';
 
-        if ($keepDataDuration = ($options['keepDataDuration'] ?? PFY_DEFAULT_KEEP_DATA_DURATION)) {
+        if ($keepDataDuration = ($options['keepDataDuration'] ?? self::DEFAULT_KEEP_DATA_DURATION)) {
             $this->keepDataThreshold = strtotime("-$keepDataDuration months");
         }
         $this->keepDataOnField = $options['keepDataOnField'] ?? false; // false means '_timestamp'
@@ -1145,23 +1144,23 @@ class DataStore
             if (!is_array($rec)) {
                 throw new \Exception("Incompatible data: file '$this->file' does not contain an array of records.");
             }
-            if ($rec[DATAREC_RECKEY]??false) {
-                $recKey = $rec[DATAREC_RECKEY];
-                unset($rec[DATAREC_RECKEY]);
+            if ($rec[PFY_RECKEY]??false) {
+                $recKey = $rec[PFY_RECKEY];
+                unset($rec[PFY_RECKEY]);
             } else {
                 $recKey = createHash();
                 $modified = true;
             }
-            if ($rec[DATAREC_TIMESTAMP]??false) {
-                $timestamp = $rec[DATAREC_TIMESTAMP];
-                unset($rec[DATAREC_TIMESTAMP]);
+            if ($rec[PFY_TIMESTAMP]??false) {
+                $timestamp = $rec[PFY_TIMESTAMP];
+                unset($rec[PFY_TIMESTAMP]);
             } else {
                 $timestamp = time();
                 $modified = true;
             }
-            $newRec = $rec + PFY_DATASTORE_DEFAULT_REC;
-            $newRec[PFY_DB_METAREC_KEY][DATAREC_RECKEY] = $recKey;
-            $newRec[PFY_DB_METAREC_KEY][DATAREC_TIMESTAMP] = $timestamp;
+            $newRec = $rec + self::DATASTORE_DEFAULT_REC;
+            $newRec[PFY_DB_METAREC_KEY][PFY_RECKEY] = $recKey;
+            $newRec[PFY_DB_METAREC_KEY][PFY_TIMESTAMP] = $timestamp;
 
             $this->data[$recKey] = $newRec;
         }
@@ -1264,14 +1263,14 @@ class DataStore
     
     private function awaitFileLock($fp, string $filename): void
     {
-        $count = PFY_DB_FILE_BLOCKING_CYCLES;
+        $count = self::DB_FILE_BLOCKING_CYCLES;
         $locked = false;
         while ($count-- > 0) {
             if (flock($fp, LOCK_EX | LOCK_NB)) {
                 $locked = true;
                 break;
             }
-            usleep(PFY_DB_FILE_BLOCKING_CYCLE_TIME);
+            usleep(self::DB_FILE_BLOCKING_CYCLE_TIME);
         }
         if (!$locked) {
             throw new \Exception("Failed to lock '$filename'");
