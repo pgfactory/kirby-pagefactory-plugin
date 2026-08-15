@@ -490,6 +490,12 @@ class Data2DSet
      */
     private function determineColHeaders(): void
     {
+        $skipDataFielCheck = !$this->data;
+        if ($skipDataFielCheck && !$this->options['headers']) {
+            $this->colHeaders = [];
+            return;
+        }
+        $colHeaders = [];
         $headers = $this->options['headers'] ?? false;
         if ($headers) {
             if ($headers === true) {
@@ -504,8 +510,13 @@ class Data2DSet
                 $headers = parseArgumentStr($headers, anonIndex: '');
 
             }
-            $colHeaders = [];
-            if (is_array($headers)) {
+            if (!is_array($headers)) {
+                throw new \Exception('Data2DSet: $headers contains incompatible data type.');
+            }
+
+            if ($skipDataFielCheck) {
+                $colHeaders = $headers;
+            } else {
                 foreach ($headers as $key => $label) {
                     if (in_array($key, $this->dataKeys)) {
                         $colHeaders[$key] = $label;
@@ -518,8 +529,6 @@ class Data2DSet
                         throw new \Exception("Form -> Error in table options => unkown header requested");
                     }
                 }
-            } else {
-                throw new \Exception('Data2DSet: $headers contains incompatible data type.');
             }
 
         } else {
@@ -536,7 +545,6 @@ class Data2DSet
         }
         $this->colHeaders = $colHeaders;
         self::fixSystemElements($this->colHeaders, $this->options['includeSystemElements'], $this->options['includeTimestamp']);
-
     } // determineColHeaders
 
 
