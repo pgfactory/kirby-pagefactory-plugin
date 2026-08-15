@@ -20,6 +20,7 @@ class Data2DSet
     private array $options = [];
     private array $data = [];
     private array $data2D = [];
+    private array|null $dataKeys = null;
     private array $colHeaders = [];  // recKey => Label
     private bool  $markLocked;
     private string|false $order;
@@ -41,12 +42,15 @@ class Data2DSet
 
         if (is_array($file)) {
             $this->data = $file;
+            $this->dataKeys = array_keys(reset($this->data));
         } elseif ($file === '' || $file === '1') {
             $this->data = [];
+            $this->dataKeys = [];
         } else {
             $this->file = $file;
             $this->db = new DataStore($file, $options);
             $this->data = $this->db->data(includeMetaFields: true);
+            $this->dataKeys = $this->db->getElementKeys();
             $this->checkDataIntegrity();
         }
 
@@ -99,6 +103,15 @@ class Data2DSet
     public function getColHeaders(bool $includeSystemElements = false): array
     {
         return $this->colHeaders;
+    } // getColHeaders
+
+
+    /**
+     * @return array
+     */
+    public function getDataKeys(bool $includeSystemElements = false): array
+    {
+        return $this->dataKeys;
     } // getColHeaders
 
 
@@ -477,27 +490,33 @@ class Data2DSet
      */
     private function determineColHeaders(): void
     {
+        $colHeaders = [];
         $headers = $this->options['headers'] ?? false;
         if ($headers) {
             if ($headers === true) {
                 if ($this->data) {
-                    $rec0 = reset($this->data);
-                    $keys = array_keys($rec0);
-                    $this->colHeaders = array_combine($keys, $keys);
+                    $colHeaders = array_combine($this->dataKeys, $this->dataKeys);
 
                 } else {
-                    $this->colHeaders = [];
+                    $colHeaders = [];
                 }
 
             } elseif (is_string($headers)) {
-                $keys = explodeTrim(',', $headers);
-                $this->colHeaders = array_combine($keys, $keys);
+                $headers = parseArgumentStr($headers, anonIndex: '');
 
-            } elseif (is_array($headers)) {
-                if (((array_keys($headers))[0] ?? false) === 0) {
-                    $this->colHeaders = array_combine($headers, $headers);
-                } else {
-                    $this->colHeaders = $headers;
+            }
+            if (is_array($headers)) {
+                foreach ($headers as $key => $label) {
+                    if (in_array($key, $this->dataKeys)) {
+                        $colHeaders[$key] = $label;
+
+                    } elseif (($k = array_search($label, $this->dataKeys)) !== false) {
+                        $key = $this->dataKeys[$k];
+                        $colHeaders[$key] = $label;
+
+                    } else {
+                        throw new \Exception("Form -> Error in table options => unkown header requested");
+                    }
                 }
             } else {
                 throw new \Exception('Data2DSet: $headers contains incompatible data type.');
@@ -505,18 +524,17 @@ class Data2DSet
 
         } else {
             $data = $this->data;
-            $colHeaders = [];
+            // get all data keys in entire data set:
             foreach ($data as $rec) {
                 foreach ($rec as $colKey => $col) {
                     $colHeaders[$colKey] = $colKey;
                 }
             }
-            if ($this->markLocked) {
+            if ($this->markLocked) { //ToDo:???
                 $colHeaders['_locked'] = '_locked';
             }
-            $this->colHeaders = $colHeaders;
         }
-
+        $this->colHeaders = $colHeaders;
         self::fixSystemElements($this->colHeaders, $this->options['includeSystemElements'], $this->options['includeTimestamp']);
 
     } // determineColHeaders
