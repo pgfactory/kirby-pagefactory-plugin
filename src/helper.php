@@ -128,6 +128,19 @@ function isLoggedinOrLocalhost(): bool
 
 
  /**
+  * @param array $object
+  * @return bool
+  */
+ function is2dArray(array $object): bool
+ {
+     if (!$object) {
+         return false;
+     }
+     return array_keys($object) !== range(0, sizeof($object)-1);
+ } // is2dArray
+
+
+ /**
   * Loads content of file, applies some cleanup on demand: remove comments, zap end after __END__.
   * If file extension is yaml, csv or json, data is decoded and returned as a data structure.
   * @param string $file
