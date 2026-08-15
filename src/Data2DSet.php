@@ -490,21 +490,21 @@ class Data2DSet
      */
     private function determineColHeaders(): void
     {
-        $colHeaders = [];
         $headers = $this->options['headers'] ?? false;
         if ($headers) {
             if ($headers === true) {
                 if ($this->data) {
-                    $colHeaders = array_combine($this->dataKeys, $this->dataKeys);
+                    $headers = array_combine($this->dataKeys, $this->dataKeys);
 
                 } else {
-                    $colHeaders = [];
+                    $headers = [];
                 }
 
             } elseif (is_string($headers)) {
                 $headers = parseArgumentStr($headers, anonIndex: '');
 
             }
+            $colHeaders = [];
             if (is_array($headers)) {
                 foreach ($headers as $key => $label) {
                     if (in_array($key, $this->dataKeys)) {
