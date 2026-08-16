@@ -3,6 +3,7 @@
  * Helper functions for Kirby PageFactory plugin
  */
 
+console.debug('helper.js');
 
 document.addEventListener('DOMContentLoaded', function() {
   execLateLoading();
@@ -131,7 +132,7 @@ function foreach(obj, fun) {
 } // foreach
 
 
-// usage: await sleep(<duration>);
+ // usage: await sleep(<duration>);
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 } // sleep
@@ -254,8 +255,20 @@ function createHash(size = 8) {
 } // createHash
 
 
+function pullCssFile(href) {
+  return new Promise((resolve, reject) => {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    link.onload = () => resolve(link);
+    link.onerror = () => reject(new Error(`Failed to load stylesheet: ${href}`));
+    document.head.appendChild(link);
+  });
+} // pullCssFile
+
+
 function pullScript(url, callback){
-  pull(url, function loadReturn(data, status, xhr){
+  _pullScript(url, function loadReturn(data, status, xhr){
     if(status === 200){
       var script = document.createElement('script');
       script.innerHTML = data; // Instead of setting .src set .innerHTML
@@ -266,25 +279,24 @@ function pullScript(url, callback){
       setTimeout(function runCallback(){callback(data, status, xhr)}, 0);
     }
   });
-}
 
-
-/*
- * https://stackoverflow.com/questions/16839698/jquery-getscript-alternative-in-native-javascript#answer-74353637
- * Usage: pullScript(URL);
- */
-function pull(url, callback) {
-  var xhr = new XMLHttpRequest();
-  xhr.onreadystatechange = function() {
-    if (xhr.readyState === XMLHttpRequest.DONE) {
-      callback(xhr.responseText, xhr.status, xhr);
-    }
-  };
-  xhr.open('GET', url, true);
-  xhr.setRequestHeader('accept', '*/*;q=0.5, text/javascript, application/javascript, application/ecmascript, application/x-ecmascript');
-  xhr.setRequestHeader('x-requested-with', 'XMLHttpRequest');
-  xhr.send();
-}
+  /*
+   * https://stackoverflow.com/questions/16839698/jquery-getscript-alternative-in-native-javascript#answer-74353637
+   * Usage: pullScript(URL);
+   */
+  function _pullScript(url, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === XMLHttpRequest.DONE) {
+        callback(xhr.responseText, xhr.status, xhr);
+      }
+    };
+    xhr.open('GET', url, true);
+    xhr.setRequestHeader('accept', '*/*;q=0.5, text/javascript, application/javascript, application/ecmascript, application/x-ecmascript');
+    xhr.setRequestHeader('x-requested-with', 'XMLHttpRequest');
+    xhr.send();
+  } // _pullScript
+} // pullScript
 
 
 function scrollAnchorIntoView() {
