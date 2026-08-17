@@ -41,12 +41,17 @@ class Data2DSet
         $this->parseOptions($options);
 
         if (is_array($file)) {
+            // special case where first arg contains data rather than filename:
             $this->data = $file;
             $this->dataKeys = array_keys(reset($this->data));
+
         } elseif ($file === '' || $file === '1') {
+            // case where neither filename nor data supplied:
             $this->data = [];
             $this->dataKeys = [];
+
         } else {
+            // normal case: file supplied:
             $this->file = $file;
             $this->db = new DataStore($file, $options);
             $this->data = $this->db->data(includeMetaFields: true);
@@ -518,16 +523,11 @@ class Data2DSet
                 $colHeaders = $headers;
             } else {
                 foreach ($headers as $key => $label) {
-                    if (in_array($key, $this->dataKeys)) {
-                        $colHeaders[$key] = $label;
-
-                    } elseif (($k = array_search($label, $this->dataKeys)) !== false) {
+                    if (($k = array_search($label, $this->dataKeys)) !== false) {
+                        // case where provided headers refer to label instead of key:
                         $key = $this->dataKeys[$k];
-                        $colHeaders[$key] = $label;
-
-                    } else {
-                        throw new \Exception("Form -> Error in table options => unkown header requested");
                     }
+                    $colHeaders[$key] = $label;
                 }
             }
 
