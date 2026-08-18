@@ -34,6 +34,11 @@ pfy-logged-in-now:
     de2: Du bist jetzt angemeldet
     _:   You are logged in now
 
+pfy-logged-in-as:
+  de: 'Sie sind angemeldet als '
+  de2: 'Du bist angemeldet als '
+  _:  'You are logged in as '
+
 pfy-logged-out-now:
     de:  Sie sind jetzt abgemeldet
     de2: Du bist jetzt abgemeldet
