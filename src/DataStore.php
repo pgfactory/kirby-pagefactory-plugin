@@ -82,6 +82,7 @@ class DataStore
     public function __construct(string $file, array $options = [])
     {
         $this->parseOptions($file, $options);
+        $this->initDataStore();
     } // __construct
 
 
@@ -628,7 +629,7 @@ class DataStore
      * @return void
      * @throws \Exception
      */
-    protected function initData(): void
+    protected function initDataStore(): void
     {
         if (!$this->file) {
             return;
@@ -654,7 +655,7 @@ class DataStore
         if (is_array($this->data)) {
             $this->nRows = sizeof($this->data);
         }
-    } // initData
+    } // initDataStore
 
 
     /**
@@ -1016,6 +1017,7 @@ class DataStore
      */
     private function parseOptions(string $file, array $options): void
     {
+        $this->file = $file;
         $this->includeMeta = $options['includeMeta'] ?? null;
         $this->obfuscateRecKeys = $options['obfuscateRecKeys'] ?? false;
         $this->maxRecLockTime = (isset($options['maxRecLockTime']) && $options['maxRecLockTime']) ?
@@ -1062,7 +1064,6 @@ class DataStore
                     unlink($this->cacheFile);
                 }
             }
-            $this->initData();
         }
     } // parseOptions
 
