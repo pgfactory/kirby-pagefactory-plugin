@@ -40,7 +40,7 @@ class Cache
     {
         self::$pfyUrlCmdPresent = self::checkUrlCmdPresent();
         self::$pageCachingEnabled = kirby()->option('pgfactory.pagefactory.enablePageCache') &&
-            !kirby()->session()->pull('pfy.message');
+            !kirby()->session()->get('pfy.message');
         self::preparePath();
         $lastCacheRefresh = file_exists(self::LAST_CACHE_UPDATE_FILE) ? filemtime(self::LAST_CACHE_UPDATE_FILE) : 0;
         if (($lastCacheRefresh === 0) || PageFactory::$dev) {
