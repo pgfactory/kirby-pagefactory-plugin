@@ -21,6 +21,12 @@ if (!defined('PFY_PAGE_META_FILE_BASENAME')) {
 
 Kirby::plugin('pgfactory/pagefactory', [
 
+    'controllers' => [
+        'site' => function ($page, $pages, $site, $kirby) {
+            return (new PageFactory())->prepareTemplateFields();
+        }
+    ],
+
     'snippets' => [     // Macros that are available in templates
         'css' =>            __DIR__ . '/snippets/_css.php',
         'img' =>            __DIR__ . '/snippets/img.php',
@@ -30,12 +36,6 @@ Kirby::plugin('pgfactory/pagefactory', [
         'nav' =>            __DIR__ . '/snippets/nav.php',
         'prevnextlinks' =>  __DIR__ . '/snippets/prevnextlinks.php',
         'sitemap' =>        __DIR__ . '/snippets/sitemap.php',
-    ],
-
-    'controllers' => [
-        'site' => function ($page, $pages, $site, $kirby) {
-            return (new PageFactory($page, $pages, $site, $kirby))->prepareTemplateFields();
-        }
     ],
 
     'blueprints' => [
