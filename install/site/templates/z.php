@@ -55,7 +55,7 @@
 
         <?php snippet('nav', ['args' => 'type:sitemap']); ?>
 
-        <?php snippet('prevnextlinks', ['args' => "'wrapperClass':'pfy-full-width', center:'%loginButton%'"]) ?>
+        <?php snippet('prevnextlinks', ['args' => "'wrapperClass':'pfy-full-width', center:'%loginNameAndButton%'"]) ?>
 
       </div>
 

@@ -15,6 +15,7 @@ class Utils
 {
     public static string $loginLink;
     public static string $loginButton = '';
+    public static string $loginNameAndButton = '';
     public static string $langSelection = '';
     public static mixed $loggedIn;
     public static mixed $menuIcon;
@@ -187,6 +188,7 @@ class Utils
             $pfyLoginButtonLabel = TransVars::getVariable('pfy-logout-button-title');
             // PageElements may have injected onboarding-aid button, hence append string:
             self::$loginButton .= "<span class='pfy-login-button'><a href='$logoutLink' class='pfy-login-button' title='$pfyLoginButtonLabel'>$logoutIcon</a></span>";
+            self::$loginNameAndButton = self::$loggedIn . ' '. self::$loginButton;
 
         } else {
             $login = TransVars::getVariable('pfy-login');
@@ -198,6 +200,7 @@ class Utils
             $loginIcon = self::renderPfyIcon('user');
             $pfyLoginButtonLabel = TransVars::getVariable('pfy-login-button-title');
             self::$loginButton = "<span class='pfy-login-button'><a href='$loginLink' class='pfy-login-button' title='$pfyLoginButtonLabel'>$loginIcon</a></span>";
+            self::$loginNameAndButton = self::$loginButton;
         }
     } // prepareUserRelatedVars
 
