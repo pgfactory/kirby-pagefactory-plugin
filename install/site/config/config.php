@@ -26,6 +26,12 @@ return [
         'interlace' => true,
         'format' => 'webp',
     ],
+    // define Kirby's session times:
+    // 'session' => [
+    //     'durationNormal' => 86400,    //Standard: 2 hours = 7200
+    //     'durationLong'   => 1209600,  // Standard: 2 weeks
+    //     'timeout'        => 86400,    // Standard: 30 minutes inactivity = 1800
+    // ],
 
     // define Kirby's login mode, e.g. allow login by mailed access-code:
     // 'auth' => [
