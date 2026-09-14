@@ -182,7 +182,7 @@ class Utils
             self::$loginLink = "<a href='$logoutLink'>$logout</a>";
 
             $label = TransVars::getVariable('pfy-logged-in-label');
-            self::$loggedIn = $label.$username;
+            self::$loggedIn = "<span class='pfy-loggedin-as'>$label$username </span>";
 
             $logoutIcon = self::renderPfyIcon('logout');
             $pfyLoginButtonLabel = TransVars::getVariable('pfy-logout-button-title');
