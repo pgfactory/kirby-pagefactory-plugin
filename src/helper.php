@@ -1579,10 +1579,6 @@ function preparePath(string $path0, $accessRights = false): void
     // resolve path if necessary:
     $path0 = Utils::resolvePath($path0);
 
-    if (file_exists(dirname($path0))) {
-        return; // nothing to do
-    }
-
     //ToDo: security risk to skip this check?
     // check for inappropriate path, e.g. one attempting to point to an ancestor directory:
     //    if (strpos($path0, '../') !== false) {
