@@ -332,6 +332,9 @@ class Download
         $today = date('Y-m-d H:i');
         foreach ($folders as $folder) {
             $folder = resolvePath($folder);
+            if (!file_exists($folder)) {
+                continue;
+            }
             $files = getDirDeep($folder, assoc: true);
             foreach ($files as $filename => $file) {
                 if ((fileExt($filename) === 'json') && (file_exists(fileExt($file, true)))) {
