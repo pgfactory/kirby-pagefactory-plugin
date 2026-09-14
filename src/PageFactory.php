@@ -51,6 +51,9 @@ const PFY_GITTAG_FILE =                 PFY_KIRBY_BASE_PATH.'site/custom/gittag.
 const PFY_CRASH_RELOAD_FILE =           PFY_KIRBY_BASE_PATH.'site/logs/first-reload-after-crash.txt';
 const PFY_SITEMAP_FILE =                '~/sitemap.txt';
 
+const PFY_UPLOAD_FOLDER =               '~/uploads/';
+define('PFY_DEFAULT_MAX_UPLOAD_SIZE',    intval(ini_get('upload_max_filesize')));
+
 define('PFY_WEBMASTER_EMAIL_CACHE',     PFY_CACHE_PATH.'webmaster-email.txt');
 define('PFY_INSTALLATION_PATH_CHECK',   PFY_CACHE_PATH.'installation-path.txt');
 define('PFY_TIMESTAMP', '_timestamp');
