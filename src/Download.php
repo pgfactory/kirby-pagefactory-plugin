@@ -4,42 +4,6 @@ namespace PgFactory\PageFactory;
 
 use ZipArchive;
 
-const PFY_MIME_TYPES = [
-    // images
-    'jpg' => 'image/jpeg',
-    'jpeg' => 'image/jpeg',
-    'png' => 'image/png',
-    'gif' => 'image/gif',
-    'webp' => 'image/webp',
-    'svg' => 'image/svg+xml',
-    // misc
-    'txt' => 'text/plain',
-    'html' => 'text/html',
-    'csv' => 'text/csv',
-    'zip' => 'application/zip',
-    //'json' => 'application/json',
-    // docs
-    'pdf' => 'application/pdf',
-    'doc' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'dotx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'odt' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'ott' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    // spreadsheets
-    'xls' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    'xltx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    'ods' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    'ots' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    // presentations
-    'ppt' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-    'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-    'potx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-    'odp' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-    'otp' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-    // audio
-    'mp4' => 'video/mp4',
-];
 
 if (!defined('PFY_PROTECTED_DOWNLOAD_PATH')) {
     define('PFY_PROTECTED_DOWNLOAD_PATH', '~/download/_/');
@@ -47,6 +11,54 @@ if (!defined('PFY_PROTECTED_DOWNLOAD_PATH')) {
 
 class Download
 {
+    private const PFY_MIME_TYPES = [
+        // images
+        'jpg' => 'image/jpeg',
+        'jpeg' => 'image/jpeg',
+        'png' => 'image/png',
+        'gif' => 'image/gif',
+        'webp' => 'image/webp',
+        'svg' => 'image/svg+xml',
+        // misc
+        'txt' => 'text/plain',
+        'html' => 'text/html',
+        'csv' => 'text/csv',
+        'zip' => 'application/zip',
+        //'json' => 'application/json',
+        // docs
+        'pdf' => 'application/pdf',
+        'doc' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'dotx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'odt' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'ott' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        // spreadsheets
+        'xls' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'xltx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'ods' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'ots' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        // presentations
+        'ppt' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'potx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'odp' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'otp' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        // audio
+        'mp4' => 'video/mp4',
+    ];
+
+    private const WIDGET_OPTIONS = [
+        'path' =>'~/uploads/', null,
+        'multi' => true,
+        'downloadLink' => false,
+        'filetypes' => 'images',  // -> filter
+        'maxMegaByte' => 10,
+    ];
+    private static int $inx = 1;
+    private static $oldFilesPurged = false;
+
+
     /**
      * Handles '?download=xy' requests.
      * Downloads are restricted to either PFY_PROTECTED_DOWNLOAD_PATH or a path specified in the session var pfy.permittedDownloadPath.
@@ -242,7 +254,7 @@ class Download
 
         $path_parts = pathinfo($file);
         $ext = strtolower($path_parts['extension']);
-        $mimeType = PFY_MIME_TYPES[$ext] ?? false;
+        $mimeType = self::PFY_MIME_TYPES[$ext] ?? false;
         if (!$mimeType) {
             http_response_code(404);
             exit('File format error');
@@ -294,5 +306,63 @@ class Download
         $str = Link::render(['url' => "~page/?download=$filename", 'text' => $text, 'target' => 'newwin']);
         return $str;
     } // renderFileDownload
+
+
+    /**
+     * Purges files that are accompanied by a meta-file (json-format) containing an 'expiration' date field.
+     * @param string $path
+     * @return void
+     * @throws \Exception
+     */
+    public static function purgeOldFiles(string $path = ''): void
+    {
+        if (self::$oldFilesPurged) {
+            return;
+        }
+        self::$oldFilesPurged = true;
+
+        $folders = [
+            resolvePath(PFY_UPLOAD_FOLDER),
+            resolvePath(PFY_PROTECTED_DOWNLOAD_PATH),
+            resolvePath(PFY_PUBLIC_DOWNLOAD_PATH)
+        ];
+        if ($path && !in_array($path, $folders)) {
+            $folders[] = $path;
+        }
+        $today = date('Y-m-d H:i');
+        foreach ($folders as $folder) {
+            $folder = resolvePath($folder);
+            $files = getDirDeep($folder, assoc: true);
+            foreach ($files as $filename => $file) {
+                if ((fileExt($filename) === 'json') && (file_exists(fileExt($file, true)))) {
+                    try {
+                        $meta = readFile($file);
+                    } catch (\Exception $e) {
+                        continue;
+                    }
+                    $targPath = $meta['path'] ?? false;
+                    $expirationDate = $meta['expiration'] ?? PHP_INT_MAX;
+                    if ($expirationDate < $today) {
+                        if ($targPath) {
+                            if (is_dir($targPath)) {
+                                rrmdir($targPath);
+                            } else {
+                                if (file_exists($targPath)) {
+                                    unlink($targPath);
+                                }
+                            }
+                        }
+                        if (file_exists($file)) {
+                            unlink($file); // delete meta file
+                        }
+                        $targFile = fileExt($file, true);
+                        if (file_exists($targFile)) {
+                            unlink($targFile); // delete target file
+                        }
+                    }
+                }
+            }
+        }
+    } // purgeOldFiles
 
 } // Download
