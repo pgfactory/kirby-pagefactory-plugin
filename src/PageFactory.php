@@ -381,6 +381,14 @@ class PageFactory
 
         // sort out remaining files:
         foreach ($files as $i => $file) {
+            // ignore language specific files in multilungual site, that don't match the current language:
+            if ((sizeof(self::$supportedLanguages) > 1) && preg_match('/ \. (\w\w) \.md $/x', basename($file), $m)) {
+                if ($m[1] !== self::$lang) {
+                    unset($files[$i]);
+                    continue;
+                }
+            }
+
             $mdStr = getFile($file, 'cstyle');
 
             // handle pseudo macro "{{ include() }} -> inject text from file:
