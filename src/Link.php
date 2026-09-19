@@ -384,6 +384,10 @@ EOT;
             return '';
         }
 
+        if (self::$icon??false) {
+            return self::$icon;
+        }
+
         if (str_starts_with(self::$type, 'intern')) {
             $icon = '';
         } elseif (self::$linkCat === 'download') {
