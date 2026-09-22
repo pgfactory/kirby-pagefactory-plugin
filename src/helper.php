@@ -1877,7 +1877,8 @@ function parseArgValue(string &$rest, string $delim): mixed
         $pattern = "$ch1 (.*?) (?<!\\\)$ch1";
         // case 'value' without key:
         if (preg_match("/^ ($pattern) (.*)/xms", $rest, $m)) {
-            $value = $m[2];
+            $value = preg_replace("/(?<!\\\\)\\\\$ch1/", $ch1, $m[2]);  // fix \' to '
+            $value = preg_replace('/(?<!\\\\)\\\\\\\\/', '\\', $value); // fix \\' to \'
             $rest = ltrim($m[3], ', ');
         }
 
