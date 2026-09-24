@@ -1932,6 +1932,7 @@ function parseArgValue(string &$rest, string $delim): mixed
   *     $[users]
   *     $[users:role]
   *     $[users:role {%username%...}]
+  *     $[urlarg(argName, default)] -> imports url arguments
   * @param string $str
   * @return string
   * @throws Exception
@@ -2006,6 +2007,24 @@ function handleDataImportPattern(string $str): string
             });
             $s = implode(',', $dir);
             $s = trim($s, ',');
+
+        // get url argument:
+        } elseif (str_starts_with($arg, 'urlarg(')) {
+            if (preg_match('/urlarg\((.*?)\)/', $arg, $mm)) {
+                $a = explodeTrim(',', $mm[1]);
+                $urlArgName = $a[0];
+                $default = $a[1] ?? '';
+                if (isset($_GET[$urlArgName])) {
+                    $value = $_GET[$urlArgName];
+                    if ($default && !$value) {
+                        $value = $default;
+                    }
+
+                } else {
+                    $value = $default;
+                }
+            }
+            $s = $value??'';
         }
         $s = str_replace(["\n", '"', '{{', '}}'], ['\\n', '\\"', '{!!{', '}!!}'], $s);
         $str = str_replace($m[0], $s, $str);
