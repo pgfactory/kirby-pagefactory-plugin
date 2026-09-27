@@ -2,88 +2,85 @@
 
 @import '../_scss-variables.scss';
 
-.pfy-default-styling {
-  p {
-    padding: 0;
-    margin: 0.2em 0 0.5em 0;
-    line-height: 1.25em;
+p {
+  padding: 0;
+  margin: 0.2em 0 0.5em 0;
+  line-height: 1.25em;
+}
+
+li {
+  padding: 0;
+  margin: 0.2em 0 0.2em 0;
+  line-height: 1.4em;
+}
+
+li > p {
+  margin: 0;
+}
+
+a {
+  text-underline-offset: 0.12em;
+  &:not(:is(:hover, :focus)) {
+    text-decoration-color:
+      color-mix(in srgb, currentColor, transparent 75%);
   }
+}
 
-  li {
-    padding: 0;
-    margin: 0.2em 0 0.2em 0;
-    line-height: 1.4em;
-  }
+nav a:not(:is(:hover, :focus)) {
+  text-decoration: none;
+}
 
-  li > p {
-    margin: 0;
-  }
+.pfy-logo a, .pfy-logo a:hover {
+  border-bottom: none;
+}
 
-  a {
-    text-underline-offset: 0.12em;
-    &:not(:is(:hover, :focus)) {
-      text-decoration-color:
-        color-mix(in srgb, currentColor, transparent 75%);
-    }
-  }
+kbd {
+  padding: 0 3px;
+  background: #ddd;
+  border-radius: 3px;
+}
 
-  nav a:not(:is(:hover, :focus)) {
-    text-decoration: none;
-  }
+samp {
+  padding: 0 3px;
+  background: #efefff;
+  border-radius: 3px;
+}
 
-  .pfy-logo a, .pfy-logo a:hover {
-    border-bottom: none;
-  }
+var {
+  padding: 2px 4px 0 4px;
+  background: #555;
+  color: #ffb;
+  border-radius: 3px;
+  font-weight: bold;
+  font-style: normal;
+}
 
-  kbd {
-    padding: 0 3px;
-    background: #ddd;
-    border-radius: 3px;
-  }
+pre {
+  margin: 1.5rem 0;
+  tab-size: 4;
+  white-space: pre-wrap;
+}
 
-  samp {
-    padding: 0 3px;
-    background: #efefff;
-    border-radius: 3px;
-  }
+mark {
+  padding: 0 3px;
+}
 
-  var {
-    padding: 2px 4px 0 4px;
-    background: #555;
-    color: #ffb;
-    border-radius: 3px;
-    font-weight: bold;
-    font-style: normal;
-  }
+.no-underline,
+figure a:hover,
+figure a {
+  text-decoration: none;
+}
 
-  pre {
-    margin: 1.5rem 0;
-    tab-size: 4;
-    white-space: pre-wrap;
-  }
+.sup {
+  vertical-align: super;
+  font-size: 60%;
+}
 
-  mark {
-    padding: 0 3px;
-  }
-
-  .no-underline,
-  figure a:hover,
-  figure a {
-    text-decoration: none;
-  }
-
-  .sup {
-    vertical-align: super;
-    font-size: 60%;
-  }
-
-  button {
-    cursor: pointer;
-  }
+button {
+  cursor: pointer;
+}
 
 
-  .pfy-vgap {
-    height: 0;
-  }
-
+.pfy-vgap {
+  height: 0;
 }

@@ -2,32 +2,33 @@
 
 @import '../_scss-variables.scss';
 
-.pfy-default-styling {
-    .pfy-button {
-      @include _pfy-button;
-    }
-    .pfy-slim-button,
-    .pfy-button-lean {
-        padding: 0.3em 0.5em;
-    }
-    .pfy-button a:visited,
-    a.pfy-button:visited,
-    .pfy-button a,
-    a.pfy-button {
-        color: inherit;
-    }
-    .pfy-button-submit {
-        color: #444;
-        border-color: #444;
-    }
-    .pfy-button-active {
-        box-shadow: inset 0 0 4px red;
-    }
-    [aria-pressed=true],
-    .pfy-button-pressed,
-    &.pfy-button-pressed {
-      box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
-    }
-
-} // pfy-default-styling
+.pfy-button {
+  @include _pfy-button;
+}
+.pfy-slim-button,
+.pfy-button-lean {
+    padding: 0.3em 0.5em;
+}
+.pfy-button a:visited,
+a.pfy-button:visited,
+.pfy-button a,
+a.pfy-button {
+    color: inherit;
+}
+.pfy-button-submit {
+    color: #444;
+    border-color: #444;
+}
+.pfy-button-active {
+    box-shadow: inset 0 0 4px red;
+}
+[aria-pressed=true],
+.pfy-button-pressed {
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+}
+//[aria-pressed=true],
+//.pfy-button-pressed,
+//&.pfy-button-pressed {
+//  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+//}
 

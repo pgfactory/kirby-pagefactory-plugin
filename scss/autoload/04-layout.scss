@@ -4,114 +4,110 @@ $box-width: 300px;
 $dl-as-table-dt-width: 6em;
 
 
-.pfy-default-styling {
 
-    hr {
-      margin: 2em 0;
-    }
+hr {
+  margin: 2em 0;
+}
 
-    .pfy-h-space {
-        display: inline-block;
-    }
-
-  .pfy-h-v-centered, .h-v-centered,
-    .pfy-v-h-centered, .v-h-centered {
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    /* stretch-wrapping boxes: */
-    .pfy-stretch-wrapping-box-container {
-        //--pfy-box-width: 300px;
-        //--pfy-grid-gap: 10px;
-        display: grid;
-        grid-gap: var(--pfy-grid-gap, $grid-gap);
-        grid-template-columns: repeat(auto-fill, minmax(var(--pfy-box-width, $box-width), 1fr));
-        grid-auto-flow: dense;
-        padding: var(--pfy-grid-gap, $grid-gap);
-    }
-
-    .pfy-stretch-wrapping-box-container > div {
-        overflow: hidden;
-    }
-
-    .pfy-stretch-wrapping-box-container > div img {
-        width: 100%;
-        height: auto;
-        margin-bottom: -5px; /* ??? bug workaround? */
-    }
-
-    .mdp-iframe {
-        width: 100%;
-        min-height: 20em;
-        border: none;
-    }
-
-    .pfy-full-width {
-      width: 100dvw;
-      max-width: 100%;
-      position: relative;
-      left: 50%;
-      transform: translateX(-50%);
-      //outline: 1px dashed magenta;
-      //outline-offset: -1px;
-    }
-    &#pfy .pfy-full-width {
-      margin: 0;
-    }
-
-    .pfy-presentation-only {
-      display: none;
-    }
-
-
-  // dl as table:
-  &.pfy-large-screen
-  .pfy-dl-as-table {
-    --inline-block: inline-block;
-    dl {
-      margin: 0;
-    }
-
-    dt, dd {
-      display: var(--inline-block); // hack to get round IE
-      vertical-align: top;
-      margin: 0 0 0.5em 0;
-    }
-
-    dt {
-      width: var(--pfy-dl-as-table-dt-width, $dl-as-table-dt-width);
-    }
-
-    dd {
-      width: calc(100% - var(--pfy-dl-as-table-dt-width, #{$dl-as-table-dt-width}) - 0.5em);
-    }
-    p {
-      margin: 0;
-    }
-  }
-
-  // === columns ==========================
-  .pfy-2col {
+.pfy-h-space {
     display: inline-block;
-    width: calc(50% - 1em);
-    vertical-align: top;
+}
+
+.pfy-h-v-centered, .h-v-centered,
+.pfy-v-h-centered, .v-h-centered {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* stretch-wrapping boxes: */
+.pfy-stretch-wrapping-box-container {
+    //--pfy-box-width: 300px;
+    //--pfy-grid-gap: 10px;
+    display: grid;
+    grid-gap: var(--pfy-grid-gap, $grid-gap);
+    grid-template-columns: repeat(auto-fill, minmax(var(--pfy-box-width, $box-width), 1fr));
+    grid-auto-flow: dense;
+    padding: var(--pfy-grid-gap, $grid-gap);
+}
+
+.pfy-stretch-wrapping-box-container > div {
+    overflow: hidden;
+}
+
+.pfy-stretch-wrapping-box-container > div img {
+    width: 100%;
+    height: auto;
+    margin-bottom: -5px; /* ??? bug workaround? */
+}
+
+.mdp-iframe {
+    width: 100%;
+    min-height: 20em;
+    border: none;
+}
+
+.pfy-full-width {
+  width: 100dvw;
+  max-width: 100%;
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+  //outline: 1px dashed magenta;
+  //outline-offset: -1px;
+}
+#pfy .pfy-full-width {
+  margin: 0;
+}
+
+.pfy-presentation-only {
+  display: none;
+}
+
+
+// dl as table:
+.pfy-large-screen
+.pfy-dl-as-table {
+  --inline-block: inline-block;
+  dl {
+    margin: 0;
   }
 
-  .pfy-2col33 {
-    display: inline-block;
-    width: calc(33% - 1em);
+  dt, dd {
+    display: var(--inline-block); // hack to get round IE
     vertical-align: top;
+    margin: 0 0 0.5em 0;
   }
 
-  .pfy-2col66 {
-    display: inline-block;
-    width: calc(66% - 1em);
-    vertical-align: top;
+  dt {
+    width: var(--pfy-dl-as-table-dt-width, $dl-as-table-dt-width);
   }
 
+  dd {
+    width: calc(100% - var(--pfy-dl-as-table-dt-width, #{$dl-as-table-dt-width}) - 0.5em);
+  }
+  p {
+    margin: 0;
+  }
+}
 
-} // pfy-default-styling
+// === columns ==========================
+.pfy-2col {
+  display: inline-block;
+  width: calc(50% - 1em);
+  vertical-align: top;
+}
+
+.pfy-2col33 {
+  display: inline-block;
+  width: calc(33% - 1em);
+  vertical-align: top;
+}
+
+.pfy-2col66 {
+  display: inline-block;
+  width: calc(66% - 1em);
+  vertical-align: top;
+}
 

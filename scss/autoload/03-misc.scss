@@ -13,358 +13,356 @@
 
 
 
-.pfy-default-styling {
 
 
-    /* --- menu icon ------------------ */
-    .pfy-menu-icon {
-        width: 2em;
-        height: 2em;
-        vertical-align: middle;
-    }
-
-
-    /* --- pre ------------------------ */
-    pre {
-        padding: 5px 10px;
-        background: var(--pfy-pre-background, #f3f5e3);
-        outline: 1px solid var(--pfy-pre-outline-color, #aaa);
-        outline-offset: -1px;
-    }
-    code {
-        font-size: 90%;
-        font-family: "Input", "Menlo", monospace;
-        color: var(--pfy-pre-code-color, black);
-    }
-
-
-
-    // --- Login ------------------------------
-    a.pfy-login-button:hover,
-    a.pfy-login-button:focus,
-    a.pfy-login-button {
-        border-bottom: none;
-    }
-    .pfy-login-button {
-        display: inline-block;
-        position: relative;
-        background: none;
-        border: none;
-        padding: 0;
-        width: 1.2em;
-        height: 1.2em;
-        white-space: nowrap;
-        svg {
-          width: 1em;
-          transform: translateY(0.1em);
-        }
-    }
-    .pfy-onboardingaid-button {
-        display: inline-block;
-        position: relative;
-        background: none;
-        border: none;
-        padding: 0;
-        width: 1.2em;
-        height: 1.2em;
-        white-space: nowrap;
-        svg {
-          transform: skewX(-25deg) translateY(10%);
-        }
-    }
-
-    .pfy-login-form .pfy-form-show-password input {
-        display: none;
-    }
-
-    .pfy-account-form-wrapper .pfy-delete-profile-popup {
-        position: absolute;
-        bottom: 20px;
-        left: 20px;
-        width: 20em;
-        height: 10em;
-        background: #ffe2c4;
-        border: 1px solid gray;
-        border-radius: 10px;
-        z-index: 999;
-    }
-
-
-
-  // credit to Lea Verou
-  .pfy-scroll-hints {
-    @include _scroll-hints;
+  /* --- menu icon ------------------ */
+  .pfy-menu-icon {
+      width: 2em;
+      height: 2em;
+      vertical-align: middle;
   }
 
 
-  /* -- variable assignment -------- */
-  .pfy-transvar-assigned {
-    display: none;
+  /* --- pre ------------------------ */
+  pre {
+      padding: 5px 10px;
+      background: var(--pfy-pre-background, #f3f5e3);
+      outline: 1px solid var(--pfy-pre-outline-color, #aaa);
+      outline-offset: -1px;
+  }
+  code {
+      font-size: 90%;
+      font-family: "Input", "Menlo", monospace;
+      color: var(--pfy-pre-code-color, black);
   }
 
 
 
-  /* --- Laguage Selection -------- */
-    .pfy-lang-elem {
-        position: relative;
-        display: inline-block;
-        padding: 0 0.1em;
-    }
-    .pfy-lang-flag .pfy-lang-elem {
-        height: 1em;
-        width: 1.4em;
-        &.pfy-active-lang > * {
-            border: 2px solid gray;
-            border-radius: 50%;
-        }
-        &.de > * {
-            background-image: url(~/media/plugins/pgfactory/pagefactory/icons/de.png);
-        }
-        &.en > * {
-            background-image: url(~/media/plugins/pgfactory/pagefactory/icons/en.png);
-        }
-        &.fr > * {
-            background-image: url(~/media/plugins/pgfactory/pagefactory/icons/fr.png);
-        }
-        &.it > * {
-            background-image: url(~/media/plugins/pgfactory/pagefactory/icons/it.png);
-        }
-        > * {
-            position: absolute;
-            top: 0;
-            left: 0;
-            background-repeat: no-repeat;
-            background-position: center center;
-            background-size: 1.2em 1.2em;
-            height: 1.4em;
-            width: 1.4em;
-        }
-        &.pfy-lang-elem > * {
-            color: transparent;
-        }
-        a {
-            border-bottom: none;
-        }
-    }
-
-    .pfy-lang-selection a {
-        border-bottom: none;
-    }
-
-
-
-
-    // DB
-    .pfy-record-locked, .pfy-locked {
-        background: #dceeee;
-        background: repeating-linear-gradient(-55deg, #eeffff, #eeffff 10px, #edf8f8 10px, #edf8f8 15px);
-        cursor: not-allowed;
-    }
-
-    .pfy-locked {
-        outline: 1px solid red;
-    }
-
-    .pfy-record-locked {
-        outline: 1px dashed red;
-    }
-
-
-    #pfy .pfy-element-locked,
-    #pfy .pfy-editable.pfy-element-locked {
-        background: #dceeee;
-        background: repeating-linear-gradient(-55deg, #eeffff, #eeffff 10px, #edf8f8 10px, #edf8f8 15px);
-        cursor: not-allowed !important;
-    }
-
-    .pfy-element-locked *,
-    .pfy-editable.pfy-element-locked * {
-        cursor: not-allowed !important;
-    }
-
-    .pfy-element-frozen,
-    .pfy-editable.pfy-element-frozen {
-        background: #eee;
-        cursor: not-allowed;
-    }
-
-    .pfy-inactive {
-        color: #888;
-    }
-
-    .pfy-login-menu .pfy-popup-container {
-        padding: 1.5em 1em;
-
-        li::before {
-            content: "\2192 ";
-        }
-    }
-
-
-    // === Images ==========
-    a.pfy-img-link.pfy-img-link {
-      display: contents;
-      padding: 0;
-    }
-
-    .pfy-img-link::before {
-        display: none;
-    }
-
-    .pfy-quickzoom {
-      cursor: url(../icons/fullscreen.svg), zoom-in;
-    }
-    .pfy-quickzoom-overlay {
-      cursor: url(../icons/shrink.svg), zoom-out;
-    }
-
-    .pfy-gallery .pfy-img,
-    .pfy-img-wrapper:not(.pfy-kenburns) .pfy-img {
-      object-fit: cover;
-    }
-    .pfy-img-100 img {
-      width: 100%;
-      height: 100%;
-    }
-
-    .pfy-figure {
-        margin: 0;
-    }
-    .pfy-img-preload {
-        width: 1px;
-        height: 1px;
-        position: absolute;
-        overflow: hidden;
-        opacity: 0;
-    }
-
-
-  // === gallery =======
-  .pfy-gallery {
-    a, a:hover {
+  // --- Login ------------------------------
+  a.pfy-login-button:hover,
+  a.pfy-login-button:focus,
+  a.pfy-login-button {
       border-bottom: none;
-    }
   }
-
-
-
-
-  // === Timeout / freezeWindowAfter
-    .pfy-timedout {
-        cursor: pointer;
-    }
-
-  .pfy-img-wrapper {
-    position: relative;
-  }
-
-
-
-    //=== Icons ====================
-    .pfy-link-icon,
-    .pfy-icon {
-        position: relative;
-        display: inline-block;
+  .pfy-login-button {
+      display: inline-block;
+      position: relative;
+      background: none;
+      border: none;
+      padding: 0;
+      width: 1.2em;
+      height: 1.2em;
+      white-space: nowrap;
+      svg {
         width: 1em;
-        height: 0.8em; // not to overshoot rest of line
-        // transform: translateY(0.12em);
-        > * {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 1em;
-            height: 1em;
-        }
-    }
+        transform: translateY(0.1em);
+      }
+  }
+  .pfy-onboardingaid-button {
+      display: inline-block;
+      position: relative;
+      background: none;
+      border: none;
+      padding: 0;
+      width: 1.2em;
+      height: 1.2em;
+      white-space: nowrap;
+      svg {
+        transform: skewX(-25deg) translateY(10%);
+      }
+  }
 
-    // list of icons, i.e. output of ListIcons():
-    .pfy-icon-row.pfy-icon-row {
-        display: inline-block;
-        margin-right: 2em;
+  .pfy-login-form .pfy-form-show-password input {
+      display: none;
+  }
 
-        span {
-            display: inline-block;
-        }
-
-        .pfy-icon-label {
-            width: 12em;
-        }
-
-        .pfy-icon {
-            color: red;
-        }
-
-        .pfy-icon-sample {
-            color: #bbb;
-        }
-    }
-
-  #pfy-log {
-    border: 1px solid red;
-    background: #feee;
-    padding: 5px;
-    height: 10rem;
-    overflow-y: auto;
-    position: fixed;
-    left: 0;
-    bottom: 0;
-    right: 0;
+  .pfy-account-form-wrapper .pfy-delete-profile-popup {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      width: 20em;
+      height: 10em;
+      background: #ffe2c4;
+      border: 1px solid gray;
+      border-radius: 10px;
+      z-index: 999;
   }
 
 
-  // === admin styles =======
-  &:not(.localhost) .pfy-localhost-only {
-    display: none!important;
+
+// credit to Lea Verou
+.pfy-scroll-hints {
+  @include _scroll-hints;
+}
+
+
+/* -- variable assignment -------- */
+.pfy-transvar-assigned {
+  display: none;
+}
+
+
+
+/* --- Laguage Selection -------- */
+  .pfy-lang-elem {
+      position: relative;
+      display: inline-block;
+      padding: 0 0.1em;
+  }
+  .pfy-lang-flag .pfy-lang-elem {
+      height: 1em;
+      width: 1.4em;
+      &.pfy-active-lang > * {
+          border: 2px solid gray;
+          border-radius: 50%;
+      }
+      &.de > * {
+          background-image: url(~/media/plugins/pgfactory/pagefactory/icons/de.png);
+      }
+      &.en > * {
+          background-image: url(~/media/plugins/pgfactory/pagefactory/icons/en.png);
+      }
+      &.fr > * {
+          background-image: url(~/media/plugins/pgfactory/pagefactory/icons/fr.png);
+      }
+      &.it > * {
+          background-image: url(~/media/plugins/pgfactory/pagefactory/icons/it.png);
+      }
+      > * {
+          position: absolute;
+          top: 0;
+          left: 0;
+          background-repeat: no-repeat;
+          background-position: center center;
+          background-size: 1.2em 1.2em;
+          height: 1.4em;
+          width: 1.4em;
+      }
+      &.pfy-lang-elem > * {
+          color: transparent;
+      }
+      a {
+          border-bottom: none;
+      }
   }
 
-  &:not(.pfy-loggedin) .pfy-loggedin-only {
-    display: none!important;
-  }
-
-  .pfy-loggedin-or-localhost-only {
-    display: none;
-  }
-  &.localhost .pfy-loggedin-or-localhost-only {
-    display: initial;
-    font-family: monospace;
-    font-style: italic;
-  }
-  &.pfy-loggedin .pfy-loggedin-or-localhost-only {
-    display: initial;
-    font-family: monospace;
-    font-style: italic;
+  .pfy-lang-selection a {
+      border-bottom: none;
   }
 
 
-  // === footer =======
-  .pfy-footer-center {
-    text-align: center;
+
+
+  // DB
+  .pfy-record-locked, .pfy-locked {
+      background: #dceeee;
+      background: repeating-linear-gradient(-55deg, #eeffff, #eeffff 10px, #edf8f8 10px, #edf8f8 15px);
+      cursor: not-allowed;
+  }
+
+  .pfy-locked {
+      outline: 1px solid red;
+  }
+
+  .pfy-record-locked {
+      outline: 1px dashed red;
   }
 
 
-  // === debugging ===================================
-  &.pfy-dev::before {
-    content: 'Dev';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 2.5em;
-    background: rgb(250, 216, 152, 0.5);
-    border-right: 1px solid orange;
-    border-bottom: 1px solid orange;
-    border-bottom-right-radius: 0.5em;
-    color: black;
-    font-size: 10pt;
-    text-align: center;
-    padding: 0.2em;
-    z-index: 1000;
+  #pfy .pfy-element-locked,
+  #pfy .pfy-editable.pfy-element-locked {
+      background: #dceeee;
+      background: repeating-linear-gradient(-55deg, #eeffff, #eeffff 10px, #edf8f8 10px, #edf8f8 15px);
+      cursor: not-allowed !important;
+  }
+
+  .pfy-element-locked *,
+  .pfy-editable.pfy-element-locked * {
+      cursor: not-allowed !important;
+  }
+
+  .pfy-element-frozen,
+  .pfy-editable.pfy-element-frozen {
+      background: #eee;
+      cursor: not-allowed;
+  }
+
+  .pfy-inactive {
+      color: #888;
+  }
+
+  .pfy-login-menu .pfy-popup-container {
+      padding: 1.5em 1em;
+
+      li::before {
+          content: "\2192 ";
+      }
   }
 
 
-} // pfy-default-styling
+  // === Images ==========
+  a.pfy-img-link.pfy-img-link {
+    display: contents;
+    padding: 0;
+  }
+
+  .pfy-img-link::before {
+      display: none;
+  }
+
+  .pfy-quickzoom {
+    cursor: url(../icons/fullscreen.svg), zoom-in;
+  }
+  .pfy-quickzoom-overlay {
+    cursor: url(../icons/shrink.svg), zoom-out;
+  }
+
+  .pfy-gallery .pfy-img,
+  .pfy-img-wrapper:not(.pfy-kenburns) .pfy-img {
+    object-fit: cover;
+  }
+  .pfy-img-100 img {
+    width: 100%;
+    height: 100%;
+  }
+
+  .pfy-figure {
+      margin: 0;
+  }
+  .pfy-img-preload {
+      width: 1px;
+      height: 1px;
+      position: absolute;
+      overflow: hidden;
+      opacity: 0;
+  }
+
+
+// === gallery =======
+.pfy-gallery {
+  a, a:hover {
+    border-bottom: none;
+  }
+}
+
+
+
+
+// === Timeout / freezeWindowAfter
+  .pfy-timedout {
+      cursor: pointer;
+  }
+
+.pfy-img-wrapper {
+  position: relative;
+}
+
+
+
+  //=== Icons ====================
+  .pfy-link-icon,
+  .pfy-icon {
+      position: relative;
+      display: inline-block;
+      width: 1em;
+      height: 0.8em; // not to overshoot rest of line
+      // transform: translateY(0.12em);
+      > * {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          width: 1em;
+          height: 1em;
+      }
+  }
+
+  // list of icons, i.e. output of ListIcons():
+  .pfy-icon-row.pfy-icon-row {
+      display: inline-block;
+      margin-right: 2em;
+
+      span {
+          display: inline-block;
+      }
+
+      .pfy-icon-label {
+          width: 12em;
+      }
+
+      .pfy-icon {
+          color: red;
+      }
+
+      .pfy-icon-sample {
+          color: #bbb;
+      }
+  }
+
+#pfy-log {
+  border: 1px solid red;
+  background: #feee;
+  padding: 5px;
+  height: 10rem;
+  overflow-y: auto;
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  right: 0;
+}
+
+
+// === admin styles =======
+body:not(.localhost) .pfy-localhost-only {
+  display: none!important;
+}
+
+body:not(.pfy-loggedin) .pfy-loggedin-only {
+  display: none!important;
+}
+
+.pfy-loggedin-or-localhost-only {
+  display: none;
+}
+body.localhost .pfy-loggedin-or-localhost-only {
+  display: initial;
+  font-family: monospace;
+  font-style: italic;
+}
+body.pfy-loggedin .pfy-loggedin-or-localhost-only {
+  display: initial;
+  font-family: monospace;
+  font-style: italic;
+}
+
+
+// === footer =======
+.pfy-footer-center {
+  text-align: center;
+}
+
+
+// === debugging ===================================
+body.pfy-dev::before {
+  content: 'Dev';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 2.5em;
+  background: rgb(250, 216, 152, 0.5);
+  border-right: 1px solid orange;
+  border-bottom: 1px solid orange;
+  border-bottom-right-radius: 0.5em;
+  color: black;
+  font-size: 10pt;
+  text-align: center;
+  padding: 0.2em;
+  z-index: 1000;
+}
+
+
 
 @media print {
-  .pfy-default-styling.pfy-dev::before {
+  .pfy-dev::before {
     display: none!important;
   }
 }

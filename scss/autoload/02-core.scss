@@ -22,7 +22,6 @@ section {
 
 
  // ======= Default Styling =========================
-.pfy-default-styling {
 
   // --- generic rules:
   .pfy-dispno,
@@ -68,11 +67,10 @@ section {
     @include visually-hidden;
   }
 
-} // pfy-default-styling
 
 
  // === Screen-Size ==========================
-.pfy-default-styling.pfy-large-screen {
+.pfy-large-screen {
     .pfy-small-screen-only {
         display: none;
     }

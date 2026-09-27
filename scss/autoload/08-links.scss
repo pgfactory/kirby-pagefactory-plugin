@@ -1,25 +1,23 @@
 /* === Pfy-Buttons ========================= */
 
-.pfy-default-styling {
 
-    .pfy-link {
-        white-space: nowrap; // avoid line-break between icon and link-text
-    }
-    .pfy-link-text {
-        white-space: normal;
-    }
-    .pfy-link-icon {
-        margin-right: 0.25em;
-    }
-    .pfy-icon-trailing svg {
-        margin-right: 0;
-        margin-left: 0.25em;
-    }
-    .pfy-link-download .pfy-link-icon {
-        transform: scale(1.2);
-    }
-  .pfy-home-link {
-    border-bottom: none;
-    color: inherit;
-  }
-} // pfy-default-styling
+.pfy-link {
+    white-space: nowrap; // avoid line-break between icon and link-text
+}
+.pfy-link-text {
+    white-space: normal;
+}
+.pfy-link-icon {
+    margin-right: 0.25em;
+}
+.pfy-icon-trailing svg {
+    margin-right: 0;
+    margin-left: 0.25em;
+}
+.pfy-link-download .pfy-link-icon {
+    transform: scale(1.2);
+}
+.pfy-home-link {
+border-bottom: none;
+color: inherit;
+}

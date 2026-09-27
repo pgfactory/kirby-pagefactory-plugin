@@ -39,7 +39,7 @@ $mobile-nav-bg-color:     var(--pfy-mobile-nav-bg-color, #{$mobile-nav-bg-color}
 
 
  // === Small/Mobile Screen:
-#pfy.pfy-default-styling.pfy-small-screen {
+#pfy.pfy-small-screen {
 
   h1, .h1, h2, .h2, h3, .h3, h4, .h4 {
     line-height: 1em;
@@ -134,8 +134,7 @@ $mobile-nav-bg-color:     var(--pfy-mobile-nav-bg-color, #{$mobile-nav-bg-color}
 
 
   // class 'pfy-auto-tabulator' enables automatic adaption of tabulators to small screen:
-  &.pfy-auto-tabulator,
-  .pfy-auto-tabulator {
+  &:not(.pfy-no-auto-tabulator) {
     .mdp-tabulator-wrapper {
       > div {
         display: block;
@@ -149,11 +148,31 @@ $mobile-nav-bg-color:     var(--pfy-mobile-nav-bg-color, #{$mobile-nav-bg-color}
         color: var(--tt1-color-vertical-view, inherit);
         margin-left: 0;
       }
+
       &:not(:first-child) .tt1 {
         margin-top: 0.8em;
       }
     }
-  } // .pfy-auto-tabulator
+  }
+//  } // .pfy-auto-tabulator  .pfy-auto-tabulator {
+//    .mdp-tabulator-wrapper {
+//      > div {
+//        display: block;
+//        margin-bottom: 0.3rem;
+//        margin-left: 2rem;
+//        width: calc(100% - 2rem);
+//      }
+//
+//      .tt1 {
+//        font-weight: var(--tt1-weight-vertical-view, bold);
+//        color: var(--tt1-color-vertical-view, inherit);
+//        margin-left: 0;
+//      }
+//      &:not(:first-child) .tt1 {
+//        margin-top: 0.8em;
+//      }
+//    }
+//  } // .pfy-auto-tabulator
 
   .pfy-form .pfy-elem-wrapper {
     input,
@@ -162,19 +181,18 @@ $mobile-nav-bg-color:     var(--pfy-mobile-nav-bg-color, #{$mobile-nav-bg-color}
     }
   }
 
-
 } // .pfy-small-screen
 
 
 
-#pfy.pfy-default-styling.pfy-small-screen {
+#pfy.pfy-small-screen {
 
   .pfy-large-screen-only {
     display: none;
   }
 }
 
-#pfy.pfy-default-styling.pfy-large-screen {
+#pfy.pfy-large-screen {
 
   .pfy-small-screen-only {
     display: none;

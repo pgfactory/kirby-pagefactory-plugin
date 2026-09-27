@@ -1,158 +1,151 @@
 
 
-.pfy-default-styling {
-    .pfy-general-help .c1 {
-        width: 10em!important;
-    }
-
-    .pfy-src-code code strong {
-        font-weight: normal;
-        color: red;
-    }
-
-
-    /* --- fade out effect --- */
-    @-webkit-keyframes fadeOut {
-        from {
-            opacity: 1;
-        }
-        to {
-            opacity: 0;
-        }
-    }
-    @-moz-keyframes fadeOut {
-        from {
-            opacity: 1;
-        }
-        to {
-            opacity: 0;
-        }
-    }
-    @keyframes fadeOut {
-        from {
-            opacity: 1;
-        }
-        to {
-            opacity: 0;
-        }
-    }
-
-
-    // --------- dimmed
-    .pfy-dimmed::before {
-        content: ' ';
-        background: rgba(0,0,0,0.5);
-        position: fixed;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        z-index: 999;
-    }
-
-  // === Copy-button =======================
-  // requires initCopyButton() in helper.js
-  .pfy-has-copy-btn {
-    position: relative;
-  }
-  .pfy-copy-btn.pfy-button {
-    position: absolute;
-    top: 2px;
-    right: 2px;
-    width: 1em;
-    height: 1em;
-    padding: 0;
-    font-size: 1.4em;
-    cursor: pointer;
-    user-select: none;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    opacity: 0.3;
-    @at-root .pfy-has-copy-btn:hover .pfy-copy-btn.pfy-button {
-      opacity: 0.4;
-      &:hover {
-        opacity: 1;
-      }
-    }
+  .pfy-general-help .c1 {
+      width: 10em!important;
   }
 
-  .pfy-flash-copied .pfy-button {
-    background: #aaa;
-  }
-  .pfy-flash-copied,
-  .pfy-flash-copied div:not(.pfy-button):not(.pfy-button > div),
-  .pfy-flash-copied textarea {
-    background: #fafaa0;
-    transition: background 0.3s;
-  }
-
-  .pfy-flash-copied::before {
-    content: "Copied";
-    position: absolute;
-    inset: 8px;
-    font-size: 28pt;
-    color: black;
-    background: #ffffd6;
-    outline: 1px solid #c1c196;
-    text-align: center;
-    height: 1.2em;
-    width: 6em;
-    margin: 2% auto 0 auto;
-    font-family: arial, sans-serif;
-    font-weight: bold;
-    -webkit-text-stroke-width: 1px;
-    -webkit-text-stroke-color: white;
-    letter-spacing: 2px;
-    z-index: 999;
-  }
-
-  // Macro -> showSource:
-  .pfy-source-code {
-    strong {
-      color: red;
+  .pfy-src-code code strong {
       font-weight: normal;
-    }
-    em {
-      color: blue;
-      font-style: normal;
-    }
-    code {
-      color: black;
-    }
-  }
-  pre.pfy-source-code {
-    padding: 5px 10px;
-    margin: 10px 0;
-    background: #f3f5e3;
-    outline: 1px solid #aaa;
-    font-size: 8pt;
-    line-height: 1.25;
-    font-family: "Input", "Menlo", monospace;
-    color: #000000;
+      color: red;
   }
 
-  // === Macro source code
-  .pfy-src-html-wrapper,
-  .pfy-src-code {
-    padding: 1em;
-    border: 1px solid #dbddcd;
-    background: #fdffee;
-    max-width: 40rem;
-    overflow-x: auto;
-    font-size: 10pt;
-  }
 
-  .pfy-src-html-wrapper,
-  .pfy-src-wrapper {
-    > div {
-      margin-bottom: 1em;
-
-      > h2 {
-        font-size: 14pt;
-        margin: 0 0 0.6em 0;
+  /* --- fade out effect --- */
+  @-webkit-keyframes fadeOut {
+      from {
+          opacity: 1;
       }
+      to {
+          opacity: 0;
+      }
+  }
+  @-moz-keyframes fadeOut {
+      from {
+          opacity: 1;
+      }
+      to {
+          opacity: 0;
+      }
+  }
+  @keyframes fadeOut {
+      from {
+          opacity: 1;
+      }
+      to {
+          opacity: 0;
+      }
+  }
+
+
+  // --------- dimmed
+  .pfy-dimmed::before {
+      content: ' ';
+      background: rgba(0,0,0,0.5);
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 999;
+  }
+
+// === Copy-button =======================
+// requires initCopyButton() in helper.js
+.pfy-has-copy-btn {
+  position: relative;
+}
+.pfy-copy-btn.pfy-button {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 1em;
+  height: 1em;
+  padding: 0;
+  font-size: 1.4em;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0.3;
+  @at-root .pfy-has-copy-btn:hover .pfy-copy-btn.pfy-button {
+    opacity: 0.4;
+    &:hover {
+      opacity: 1;
     }
+  }
+}
+
+.pfy-flash-copied .pfy-button {
+  background: #aaa;
+}
+.pfy-flash-copied,
+.pfy-flash-copied div:not(.pfy-button):not(.pfy-button > div),
+.pfy-flash-copied textarea {
+  background: #fafaa0;
+  transition: background 0.3s;
+}
+
+.pfy-flash-copied::before {
+  content: "Copied";
+  position: absolute;
+  inset: 8px;
+  font-size: 28pt;
+  color: black;
+  background: #ffffd6;
+  outline: 1px solid #c1c196;
+  text-align: center;
+  height: 1.2em;
+  width: 6em;
+  margin: 2% auto 0 auto;
+  font-family: arial, sans-serif;
+  font-weight: bold;
+  -webkit-text-stroke-width: 1px;
+  -webkit-text-stroke-color: white;
+  letter-spacing: 2px;
+  z-index: 999;
+}
+
+// Macro -> showSource:
+.pfy-source-code {
+  strong {
+    color: red;
+    font-weight: normal;
+  }
+  em {
+    color: blue;
+    font-style: normal;
+  }
+  code {
+    color: black;
+  }
+}
+pre.pfy-source-code {
+  padding: 5px 10px;
+  margin: 10px 0;
+  background: #f3f5e3;
+  outline: 1px solid #aaa;
+  font-size: 8pt;
+  line-height: 1.25;
+  font-family: "Input", "Menlo", monospace;
+  color: #000000;
+}
+
+// === Macro source code
+.pfy-src-html-wrapper,
+.pfy-src-code {
+  padding: 1em;
+  border: 1px solid #dbddcd;
+  background: #fdffee;
+  max-width: 40rem;
+  overflow-x: auto;
+  font-size: 10pt;
+}
+
+.pfy-src-html-wrapper,
+.pfy-src-wrapper {
+  > div {
+    margin-bottom: 1em;
 
     > h2 {
       font-size: 14pt;
@@ -160,41 +153,45 @@
     }
   }
 
-  .pfy-src-html-wrapper {
-    code {
-      white-space: pre;
-    }
+  > h2 {
+    font-size: 14pt;
+    margin: 0 0 0.6em 0;
   }
+}
 
-  .pfy-src-code-popup {
-    position: relative;
-    border: 1px solid #dbddcd;
-    padding: 4px;
-
-    .pfy-src-output h2 {
-      display: none;
-    }
+.pfy-src-html-wrapper {
+  code {
+    white-space: pre;
   }
+}
 
-  .pfy-show-source-btn {
-    position: absolute;
-    top: 0;
-    right: 0;
-    padding: 0.3rem;
-    font-family: arial, sans-serif;
-    font-size: 10pt;
+.pfy-src-code-popup {
+  position: relative;
+  border: 1px solid #dbddcd;
+  padding: 4px;
+
+  .pfy-src-output h2 {
+    display: none;
   }
+}
+
+.pfy-show-source-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 0.3rem;
+  font-family: arial, sans-serif;
+  font-size: 10pt;
+}
 
 
-  // === Misc ================================
-  .pfy-error {
-    display: inline-block;
-    border: 1px solid red;
-    padding: 5px;
-    background: #fee;
-  }
-
-} // pfy-default-styling
+// === Misc ================================
+.pfy-error {
+  display: inline-block;
+  border: 1px solid red;
+  padding: 5px;
+  background: #fee;
+}
 
 
 

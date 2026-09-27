@@ -1,7 +1,6 @@
 
 
-#pfy.pfy-default-styling .pfy-gallery,
-.pfy-default-styling .pfy-gallery {
+.pfy-gallery {
 
   a {
     display: inline-block;
@@ -10,7 +9,7 @@
   }
 } // pfy-gallery
 
-.pfy-default-styling #baguetteBox-overlay .full-image img {
+#baguetteBox-overlay .full-image img {
   max-height: 93vh;
   max-height: -webkit-fill-available;
   max-width: 100vw;
