@@ -1090,7 +1090,11 @@ class DataStore
             $yamlFile = fileExt($file, true).'.yaml';
             if (file_exists($yamlFile)) {
                 $this->convertToJson($yamlFile);
-                $renamedFile = dir_name($yamlFile).'#'.basename($yamlFile);
+                $i = '';
+                do {
+                    $renamedFile = dir_name($yamlFile) . "#$i" . basename($yamlFile);
+                    $i = $i ? $i + 1 : 1;
+                } while (file_exists($renamedFile));
                 rename($yamlFile, $renamedFile);
             }
         } elseif (fileExt($file) === 'yaml') {
