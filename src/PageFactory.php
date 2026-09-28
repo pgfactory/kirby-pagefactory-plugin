@@ -79,7 +79,7 @@ define('OPTIONS_DEFAULTS', [
     'externalLinksToNewWindow'      => true,  // -> used by Link() -> whether to open external links in new window
     'imageAutoQuickzoom'            => true,  // -> default for Img() macro
     'imageAutoSrcset'               => true,  // -> default for Img() macro
-    'includeMetaFileContent'        => true,  // -> option for website using '(include: *.md)' in metafile
+    'includeMetaFileContent'        => false, // -> option for website using '(include: *.md)' in metafile
                                               // e.g. when converting from MdP site to Pfy
     'screenSizeBreakpoint'          => 480,   // Value used by JS to switch body classes ('pfy-large-screen' and 'pfy-small-screen')
     'webmaster_email'               => '',    // email address of webmaster
@@ -378,6 +378,7 @@ class PageFactory
         $sectionTitles = [];
         $mdContents = [];
         $outerWrapper1 = $outerWrapper2 = '';
+        $abort = false;
 
         // sort out remaining files:
         foreach ($files as $i => $file) {
@@ -393,6 +394,12 @@ class PageFactory
 
             // handle pseudo macro "{{ include() }} -> inject text from file:
             $mdStr = $this->handleIncludes($mdStr);
+
+            // check for end-of-page tag:
+            if (str_contains($mdStr, '__EOP__')) {
+                $abort = true; // skip any further md files
+                $mdStr = substr($mdStr, 0, strpos($mdStr, '__EOP__')); // cut off tag and all that follows
+            }
 
             // extract frontmatter:
             if ((!$res = Frontmatter::extract($mdStr)) || !trim($res[0], " \n\t")) {
@@ -411,6 +418,11 @@ class PageFactory
                 $sectionTitle = ucfirst(preg_replace('/^\d+_/', '', $sectionTitle));
                 $sectionTitles[] = $sectionTitle;
             }
+
+            if ($abort) {
+                $files = array_slice($files, 0, $i+1);
+                break;
+            }
         }
 
         $slidingPanelsMode = $slidingPanelsMode || self::$slidingPanels;
@@ -422,7 +434,6 @@ class PageFactory
         // process remaining .md files:
         $inx = 0;
         $finalHtml = '';
-        $abort = false;
         foreach ($files as $file) {
             // inner wrappers for sections -> used by PresentationSupport:
             $innerWrapper1 = $innerWrapper2 = '';
@@ -433,12 +444,6 @@ class PageFactory
 
             list($mdStr, $wrapperTag, $wrapperClass) = $mdContents[$inx];
             $inx++;
-
-            // check for end-of-page tag:
-            if (str_contains($mdStr, '__EOP__')) {
-                $abort = true; // skip any further md files
-                $mdStr = substr($mdStr, 0, strpos($mdStr, '__EOP__')); // cut off tag and all that follows
-            }
 
             $wrapperClass .= self::$sectionWrapperClass; // -> used by Presentation
 
@@ -468,9 +473,6 @@ EOT;
             Frontmatter::propagateStyles($wrapperId);
 
             $finalHtml .= $html;
-            if ($abort) {
-                break;
-            }
         } // loop over files
 
         if ($slidingPanelsMode) {
