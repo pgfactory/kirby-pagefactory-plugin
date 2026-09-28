@@ -295,7 +295,7 @@ EOT;
         if (self::$args['text'] ?? false) {
             self::$text = trim(markdownParagraph(self::$args['text'], true));
         } elseif (!self::$text) {
-            $url = preg_replace('|^~/|', '', self::$url);
+            $url = preg_replace(['|^~/|', '/[#?].*/'], '', self::$url);
             if ($pg = page($url)) {
                 self::$text = (string)$pg->title();
             } else {
