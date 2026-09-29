@@ -8,7 +8,6 @@ console.debug('helper.js');
 document.addEventListener('DOMContentLoaded', function() {
   execLateLoading();
   initCopyButton();
-  initToDoLists();
   adaptToWidth();
   scrollAnchorIntoView();
   initBusySpinner();
@@ -337,18 +336,6 @@ function initBusySpinner() {
   const url = spinnerImg.dataset.src;
   spinnerImg.setAttribute('src', url);
 } // initBusySpinner
-
-
-function initToDoLists() {
-  document.body.addEventListener('click', (ev) => {
-    if (!ev.target.closest('.mdp-todo-list li')) {
-      return;
-    }
-    const liEl = ev.target;
-    liEl.classList.toggle('checked');
-    liEl.toggleAttribute('aria-checked');
-  });
-} // initToDoLists
 
 
 function removeUrlQueryParam(url, paramToRemove) {
