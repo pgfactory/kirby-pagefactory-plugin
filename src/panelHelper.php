@@ -4,6 +4,8 @@
  * Panel Helper
 */
 
+use Kirby\Data\Data;
+
 if (!defined('PFY_PAGE_META_FILE_BASENAME')) {
     define('PFY_PAGE_META_FILE_BASENAME', 'z');
 }
@@ -23,7 +25,7 @@ function onPanelLoad(string $pageRef): void
     if (!($pg = page($id))) {
         return;
     }
-    checkMetaFiles();
+    checkMetaFiles($pg);
 
     $path = $pg->root();
     $txtFiles = glob("$path/".PFY_PAGE_META_FILE_BASENAME."*.txt");
@@ -37,31 +39,25 @@ function onPanelLoad(string $pageRef): void
 
     // read all .md files, merge into fields:
     $mdFiles = getMdFiles($path);
-    $fields = [];
-    if ($mdFiles) {
-        $fields = $pg->content()->data();
-        foreach ($mdFiles as $file) {
-            $md = file_get_contents($file);
+    if (!$mdFiles) {
+        return;
+    }
 
-            // shield frontmatter from being interpreted as fields:
-            $md = preg_replace("/\n----/", "\n\\----", $md);
-            $name = filenameToVarname($file);
-            $fields[$name] = $md;
-        }
+    $fields = $pg->content()->data();
+    foreach ($mdFiles as $file) {
+        $md = file_get_contents($file);
+
+        // shield frontmatter from being interpreted as fields:
+        $md = preg_replace("/\n----/", "\n\\----", $md);
+        $name = filenameToVarname($file);
+        $fields[$name] = $md;
     }
 
     // update .txt files with field data:
-    $txt = '';
-    foreach ($fields as $fieldName => $fieldValue) {
-        $fieldName = ucfirst($fieldName);
-        if (str_ends_with($fieldName, '_md') || str_contains($fieldValue, "\n")) {
-            $txt .= "\n$fieldName:\n\n$fieldValue\n\n----\n";
-        } else {
-            $txt .= "\n$fieldName: $fieldValue\n\n----\n";
-        }
-    }
     foreach ($txtFiles as $txtFile) {
-        file_put_contents($txtFile, $txt);
+        $fields1 = Data::read($txtFile);
+        $fields1 = $fields + $fields1;
+        Data::write($txtFile, $fields1);
     }
 } // onPanelLoad
 
@@ -71,44 +67,52 @@ function onPanelLoad(string $pageRef): void
  * If multilang is active, missing lang variants are created based on the primary lang.
  * @return void
  */
-function checkMetaFiles(): void
+function checkMetaFiles(object $page): void
 {
     if (!kirby()->option('pgfactory.pagefactory.debug_checkMetaFiles')) {
         return;
     }
 
-    $language = kirby()->language() ?: kirby()->defaultLanguage();
-    $langCode = $language ? $language->code() : 'en';
-    $languages = kirby()->languages()->toArray();
+    $kirby = kirby();
+    $language = $kirby->language() ?: $kirby->defaultLanguage();
+    if ($language) {
+        $langCode = $language ? $language->code() : 'en';
+        $languages = $kirby->languages()->toArray();
+    } else {
+        $language = $kirby->option('pgfactory.pagefactory.defaultLanguage', 'en');
+        if (!$kirby->option('languages')) {
+            $langCode = '';
+            $languages = [];
+        } else {
+            $langCode = $language ? $language->code() : 'en';
+            $languages = $kirby->languages()->toArray();
+        }
+    }
     $langTag = $languages ? ".$langCode" : '';
 
-    // loop over all pages:
-    $pages = site()->pages()->index();
-    foreach ($pages as $page) {
-        $path = $page->root();
-        if (str_contains($path, 'content/assets') ||
-            str_contains($path, 'content/error')) {
+    $path = $page->root();
+    if (str_contains($path, 'content/assets') ||
+        str_contains($path, 'content/error')) {
+        return;
+    }
+    $primaryMetaFilename = "$path/".PFY_PAGE_META_FILE_BASENAME."$langTag.txt";
+    if (!file_exists($primaryMetaFilename)) {
+        $primaryMetaFilename0 = "$path/".PFY_PAGE_META_FILE_BASENAME.".txt";
+        if (file_exists($primaryMetaFilename0)) {
+            if ($languages) {
+                rename($primaryMetaFilename0, $primaryMetaFilename);
+            }
+        } else {
+            return;
+        }
+    }
+    foreach ($languages as $lang) {
+        $code = $lang['code'] ?? $lang;
+        $metaFilename = "$path/".PFY_PAGE_META_FILE_BASENAME.".$code.txt";
+        if (($primaryMetaFilename === $metaFilename) || file_exists($metaFilename)) {
             continue;
         }
-        $primaryMetaFilename = "$path/".PFY_PAGE_META_FILE_BASENAME."$langTag.txt";
-        if (!file_exists($primaryMetaFilename)) {
-            $primaryMetaFilename0 = "$path/".PFY_PAGE_META_FILE_BASENAME.".txt";
-            if (file_exists($primaryMetaFilename0)) {
-                if ($languages) {
-                    rename($primaryMetaFilename0, $primaryMetaFilename);
-                }
-            } else {
-                continue;
-            }
-        }
-        foreach ($languages as $lang) {
-            $code = $lang['code'];
-            $metaFilename = "$path/".PFY_PAGE_META_FILE_BASENAME.".$code.txt";
-            if (($primaryMetaFilename === $metaFilename) || file_exists($metaFilename)) {
-                continue;
-            }
-            copy($primaryMetaFilename, $metaFilename);
-        }
+        copy($primaryMetaFilename, $metaFilename);
     }
 } // checkMetaFiles
 
