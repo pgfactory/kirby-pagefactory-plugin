@@ -40,8 +40,10 @@ Kirby::plugin('pgfactory/pagefactory', [
 
     'blueprints' => [
         'pages/'.PFY_PAGE_META_FILE_BASENAME => function() {    // == PFY_PAGE_META_FILE_BASENAME
-            require_once __DIR__ . '/src/panelHelper.php';
-            return assembleBlueprint();
+            if (kirby()->option('pgfactory.pagefactory.autoPageBlueprint', false)) {
+                require_once __DIR__ . '/src/panelHelper.php';
+                return assembleBlueprint();
+            }
         },
     ],
 
@@ -52,7 +54,7 @@ Kirby::plugin('pgfactory/pagefactory', [
                 exit();
             }
             // when user opens panel -> update .txt files according to .md content:
-            if (strpos($path, 'panel/pages/') === 0) {
+            if (str_starts_with($path, 'panel/pages/')) {
                 require_once __DIR__ . '/src/panelHelper.php';
                 onPanelLoad($path);
             }

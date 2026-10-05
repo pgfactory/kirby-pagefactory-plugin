@@ -20,7 +20,7 @@ if (!defined('PFY_PAGE_META_FILE_BASENAME')) {
 // Defaults recommended by PageFactory plugin:
 return [
     'debug' => false,
-    'languages' => true, // enables language option in Panel
+    // 'languages' => true, // enables language option in Panel
 
     'thumbs' => [
         'interlace' => true,
@@ -53,13 +53,13 @@ return [
     ],
 
     'pgfactory.pagefactory' => [
-        'enableCodeBlock'               => 'before', // [b or a] whether and where to render code-blocks relative to output of .md files
         // 'defaultLanguage'               => 'de',   // multilang -> configure in panel instead! (Opt. use 'Code: de2' and 'PHP locale string: de_DE')
         // 'locale'                        => 'de_CH',// default: 'en_GB'
         'webmaster_email'               => true, // guess webmaster address based on $_SERVER['SERVER_NAME']
         // 'webmaster_email'               => 'webmaster@MY-DOMAIN.NET', // define a webmaster address
         // 'emailDevModeOverride'          => 'test@MY-DOMAIN.NET',     // email used for forms in dev mode
         // 'robots'                        => true,   // inject "robots" elem in HTML header
+        'enableCodeBlock'               => 'before', // [b or a] whether and where to render code-blocks relative to output of .md files
 
         // Control Dev-Mode:
          'productionHostPathPattern'     => 'onair', // activates dev-mode, if false or pattern is not contained in path resp. PFY_BASE_OFFSET
@@ -88,6 +88,7 @@ return [
         // 'enablePageCache'               => true,   // -> caching of template variables, e.g. 'pageContent' etc.
         // 'variablesAvailableInTemplates' => true,   // if true, all TransVars are available in PHP templates
         // 'maintainSitemap'               => false,  // if false, sitemap.txt file generation is inhibited (default: !loggedIn)
+        // 'autoPageBlueprint'             => true,   // if true, panel/site/pages -> blueprints are composed by Pagefactory to edit .md files
 
         // Options for dev phase:
         // 'debug_checkMetaFiles'          => true,   // if true, Pagefactory will skip checks for presence of metafiles
