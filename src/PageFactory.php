@@ -494,24 +494,29 @@ EOT;
      */
     private function checkAccessRestriction(): bool
     {
-        if ($accessRestriction = page()->accessrestriction()->value()) {
-            $accessGranted = Permission::evaluate($accessRestriction);
-            if (!$accessGranted) {
-                if (Extensions::$loadedExtensions['PageElements']??false) {
-                    \PgFactory\PageFactoryElements\Login::init();
-                    $html = \PgFactory\PageFactoryElements\Login::render('{{ pfy-restricted-page }}');
-                    if ($html) {
-                        Page::overrideContent($html);
-                    }
-                    return false;
-
-                } else {
-                    $loginLink = PFY_APP_BASE_URL.'panel/login/';
-                    reloadAgent($loginLink);
-                }
-            }
+        $accessRestriction = page()->accessrestriction()->value() ?:
+            page()->visible()->value() ?:
+                page()->visibility()->value();
+        if (!$accessRestriction) {
+            return true;
         }
-        return true;
+        $accessGranted = Permission::evaluate($accessRestriction);
+        if ($accessGranted) {
+            return true;
+        }
+        // access not granted -> respond with login form:
+        if (Extensions::$loadedExtensions['PageElements']??false) {
+            \PgFactory\PageFactoryElements\Login::init();
+            $html = \PgFactory\PageFactoryElements\Login::render('{{ pfy-restricted-page }}');
+            if ($html) {
+                Page::overrideContent($html);
+            }
+            return false;
+
+        } else {
+            $loginLink = PFY_APP_BASE_URL.'panel/login/';
+            reloadAgent($loginLink);
+        }
     } // checkAccessRestriction
 
 
