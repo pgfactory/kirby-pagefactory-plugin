@@ -1,5 +1,7 @@
 // Sample styles - remove or modify as you like
 
+@layer base, components, utility;
+
 html {
 	// define font-size of 1rem:
 	font-size: clamp(11pt, 2.1vw, 20pt);

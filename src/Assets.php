@@ -68,11 +68,11 @@ class Assets
     // define system assets:
     const SYSTEM_ASSETS = [
         'css' => [
-        'site/plugins/markdownplus/assets/css/markdownplus.css',
-        self::PFY_ASSETS_PATH.'css/-pagefactory.css',
-        self::PFY_ASSETS_PATH.'css/-pagefactory-async.css',
-        'content/assets/css/-app.css',
-        'assets/css/-app.css',
+            '(layer:base)site/plugins/markdownplus/assets/css/markdownplus.css',
+            self::PFY_ASSETS_PATH.'css/-pagefactory.css',
+            self::PFY_ASSETS_PATH.'css/-pagefactory-async.css',
+            'content/assets/css/-app.css',
+            'assets/css/-app.css',
         ],
         'js' => [
         self::PFY_ASSETS_PATH.'js/-pagefactory.js',
@@ -215,10 +215,19 @@ class Assets
                 }
                 $basename = str_replace(' ', '-', $basename); // css filenames must not contain spaces
                 $destFile = "$destPath-$basename.css";
+
+                // wrap pagefactory style sheets in @layer:
+                $cssLayer = '';
+                if (str_contains($destFile, 'plugins/pagefactory-')) {
+                    $cssLayer = PFY_CSS_COMPONENT_LAYER_NAME;
+                } elseif (str_contains($srcPath, 'plugins/pagefactory')) {
+                    $cssLayer = PFY_CSS_LAYER_NAME;
+                }
+
                 if (PageFactory::$forceAssetsUpdate) {
-                    Scss::compileFile($file, $destFile);
+                    Scss::compileFile($file, $destFile, $cssLayer);
                 } else {
-                    Scss::updateFile($file, $destFile);
+                    Scss::updateFile($file, $destFile, $cssLayer);
                 }
             }
         }
@@ -302,10 +311,16 @@ class Assets
             return false;
         }
 
+        $layer = '';
+
         // check for args in asset string, e.g. '(defer)~/media/plugins/pgfactory/pagefactory/js/quickzoom.js'
         $args = '';
         if (preg_match('/\((.*)\)/', $asset, $m)) {
             $args = $m[1];
+            if (preg_match('/layer:\s*(\w*)/', $args, $mm)) {
+                $layer = $mm[1];
+                $args = '';
+            }
             $asset = str_replace($m[0], '', $asset);
         }
 
@@ -331,7 +346,15 @@ class Assets
             // assets in plugin folders:
         } elseif (str_starts_with($asset, 'site/plugins')) {
             $asset = convertToKirbyMediaFolder($asset);
-            $code = ($type === 'css') ? css($asset) : js($asset);
+            if ($type === 'css') {
+                if ($layer) {
+                    $code = "<style>@import url($asset) layer($layer);</style>";
+                } else {
+                    $code = css($asset);
+                }
+            } else {
+                $code = js($asset);
+            }
 
             // assets in folder starting in app root:
         } elseif (str_starts_with($asset, '~/')) {
@@ -443,6 +466,16 @@ class Assets
                         $str .= getFile($srcFile);
                     }
                 }
+
+                // wrap pagefactory style sheets in @layer:
+                if (str_contains($destFile, 'plugins/pagefactory')) {
+                    $cssLayer = PFY_CSS_LAYER_NAME;
+                    if (str_contains($destFile, 'plugins/pagefactory-')) {
+                        $cssLayer = PFY_CSS_COMPONENT_LAYER_NAME;
+                    }
+                    $str = "@layer $cssLayer {\n\n$str\n\n} /* $cssLayer */\n";
+                }
+
                 writeFile($destFile, $str);
             } else {
                 CompileJs::compileAll($srcPath, $destFile);

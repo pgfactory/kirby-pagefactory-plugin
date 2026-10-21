@@ -61,6 +61,8 @@ define('PFY_RECKEY', '_reckey');
 
 
  // misc constants:
+const PFY_CSS_LAYER_NAME =              'base';
+const PFY_CSS_COMPONENT_LAYER_NAME =    'components';
 const PFY_KIRBY_ASSETS_BASE_URL =       PFY_APP_BASE_URL . PFY_BASE_OFFSET;
 const PAGED_POLYFILL_SCRIPT =           PFY_KIRBY_ASSETS_BASE_URL.'media/plugins/pgfactory/pagefactory/js/paged.polyfill.min.js';
 const PFY_DEFAULT_LOCALE =              'en_GB';

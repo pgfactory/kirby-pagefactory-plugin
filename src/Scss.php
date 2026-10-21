@@ -3,6 +3,7 @@
 namespace PgFactory\PageFactory;
 use Kirby\Exception\InvalidArgumentException;
 use ScssPhp\ScssPhp\Compiler;
+use ScssPhp\ScssPhp\Exception\SassException;
 
 class Scss
 {
@@ -30,16 +31,17 @@ class Scss
 
     /**
      * @param string $srcFile
-     * @param string $targetPath
+     * @param string $targetFile
+     * @param string $cssLayer
      * @return string|false
-     * @throws \ScssPhp\ScssPhp\Exception\SassException
+     * @throws SassException
      */
-    public static function updateFile(string $srcFile, string $targetFile = ''): string|false
+    public static function updateFile(string $srcFile, string $targetFile = '', string $cssLayer = ''): string|false
     {
         $tTarget = fileTime($targetFile);
         $tSrc = fileTime($srcFile);
         if ($tTarget < $tSrc) {
-            self::compileFile($srcFile, $targetFile);
+            self::compileFile($srcFile, $targetFile, $cssLayer);
             return $targetFile;
         }
         return false;
@@ -65,15 +67,24 @@ class Scss
     /**
      * @param string $srcFile
      * @param string $targetFile
+     * @param string $cssLayer
      * @return void
-     * @throws \ScssPhp\ScssPhp\Exception\SassException
+     * @throws SassException
      */
-    public static function compileFile(string $srcFile, string $targetFile): void
+    public static function compileFile(string $srcFile, string $targetFile, string $cssLayer = ''): void
     {
         if (fileExt($srcFile) !== 'scss') { // skip any non-scss files
             return;
         }
         $css = self::compileFileToString($srcFile);
+        if ($cssLayer) {
+            $css = <<<EOT
+@layer $cssLayer {
+$css
+} /* $cssLayer */
+
+EOT;
+        }
         writeFile($targetFile, $css);
     } // compileFile
 
