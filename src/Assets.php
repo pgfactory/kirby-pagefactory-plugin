@@ -473,7 +473,9 @@ class Assets
                     if (str_contains($destFile, 'plugins/pagefactory-')) {
                         $cssLayer = PFY_CSS_COMPONENT_LAYER_NAME;
                     }
-                    $str = "@layer $cssLayer {\n\n$str\n\n} /* $cssLayer */\n";
+                    if (!str_contains($str, '@layer ')) { // wrap in @layer, unless one is already defined
+                        $str = "@layer $cssLayer {\n\n$str\n\n} /* $cssLayer */\n";
+                    }
                 }
 
                 writeFile($destFile, $str);

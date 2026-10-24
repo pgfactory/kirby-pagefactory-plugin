@@ -77,7 +77,7 @@ class Scss
             return;
         }
         $css = self::compileFileToString($srcFile);
-        if ($cssLayer) {
+        if ($cssLayer && !str_contains($css, '@layer ')) {
             $css = <<<EOT
 @layer $cssLayer {
 $css
