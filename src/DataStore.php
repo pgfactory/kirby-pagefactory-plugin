@@ -126,6 +126,12 @@ class DataStore
     } // data
 
 
+    /**
+     * @param array $data
+     * @param bool $flush
+     * @return object|$this
+     * @throws \Exception
+     */
     public function write(array $data, bool $flush = true): object
     {
         $this->convertToInternalFormat($data);
@@ -187,12 +193,24 @@ class DataStore
     } // addRec
 
 
+    /**
+     * @param array $rec
+     * @param $recKey
+     * @param bool $flush
+     * @return bool
+     * @throws \Exception
+     */
     public function updateRec(array $rec, $recKey, bool $flush = true): bool
     {
         return (bool) $this->addRec($rec, $flush, $recKey);
     } // updateRec
 
 
+    /**
+     * @param string $recKey
+     * @param bool $includeMeta
+     * @return array|null
+     */
     public function getRec(string $recKey, bool $includeMeta = false): array|null
     {
         $rec = $this->data[$recKey] ?? null;
@@ -859,6 +877,10 @@ class DataStore
     } // readCacheFile
 
 
+    /**
+     * @param string $recKey
+     * @return bool
+     */
     public function lockRec(string $recKey): bool
     {
         try {
@@ -896,6 +918,10 @@ class DataStore
     } // lockRec
 
 
+    /**
+     * @param string $recKey
+     * @return bool
+     */
     public function unlockRec(string $recKey): bool
     {
         try {
@@ -1138,8 +1164,13 @@ class DataStore
         $data = readFile($file);
         $this->writeDataFile($yamlFile, $data);
     } // convertToYaml
-    
-    
+
+
+    /**
+     * @param array $data
+     * @return bool
+     * @throws \Exception
+     */
     private function convertToInternalFormat(array $data): bool
     {
         $this->data = [];
@@ -1173,6 +1204,11 @@ class DataStore
     } // convertToInternalFormat
 
 
+    /**
+     * @param string $file
+     * @return mixed
+     * @throws \Throwable
+     */
     private function readFile(string $file): mixed
     {
         $fp = fopen($file, 'r');
@@ -1189,11 +1225,21 @@ class DataStore
             return null;
         }
         $type = strtolower(fileExt($file));
-        $data = Data::decode($str, $type);
+        if ($type === 'csv') {
+            $data = $this->readCsv($file);
+        } else {
+            $data = Data::decode($str, $type);
+        }
         return $data;
     } // readFile
 
 
+    /**
+     * @param string $file
+     * @param callable $callback
+     * @return void
+     * @throws \Exception
+     */
     private function readModifyWrite(string $file, callable $callback): void
     {
         $fp = fopen($file, 'c+b');
@@ -1224,6 +1270,12 @@ class DataStore
     } // readModifyWrite
 
 
+    /**
+     * @param string $file
+     * @param mixed|null $data
+     * @return void
+     * @throws \Exception
+     */
     private function writeDataFile(string $file, mixed $data = null): void
     {
         $type = strtolower(fileExt($file));
@@ -1234,9 +1286,15 @@ class DataStore
         }
         $this->writeFile($file, $content);
     } // writeDataFile
-    
-    
-    private function writeFile(string $file, string $content): void 
+
+
+    /**
+     * @param string $file
+     * @param string $content
+     * @return void
+     * @throws \Exception
+     */
+    private function writeFile(string $file, string $content): void
     {
         // write data to file:
         // Use 'c' mode to prevent truncation before the lock is acquired
@@ -1264,8 +1322,14 @@ class DataStore
             }
         }
     } // writeFile
-    
-    
+
+
+    /**
+     * @param $fp
+     * @param string $filename
+     * @return void
+     * @throws \Exception
+     */
     private function awaitFileLock($fp, string $filename): void
     {
         $count = self::DB_FILE_BLOCKING_CYCLES;
@@ -1283,6 +1347,11 @@ class DataStore
     } // awaitFileLock
 
 
+    /**
+     * @param mixed $content
+     * @param string|false $type
+     * @return string
+     */
     private function encodeData(mixed $content, string|false $type): string
     {
         // encode data:
@@ -1319,5 +1388,29 @@ class DataStore
         }
         return $content;
     } // encodeData
+
+
+    /**
+     * @param string $file
+     * @param string $delimiter
+     * @return array
+     */
+    private function readCsv(string $file, string $delimiter = ''): array
+    {
+        $lines = file($file);
+        $lines[0] = str_replace("\xEF\xBB\xBF", '', $lines[0]); // strip UTF-8 BOM
+        if (!$delimiter) {
+            // if $delimiter not specified, derive automatically from from number of appearance:
+            $str = implode("\n", $lines);
+            $delimiter = (substr_count($str, ',') > substr_count($str, ';')) ? ',': ';';
+        }
+        $csv = array_map(fn($d) => str_getcsv($d, $delimiter), $lines);
+        array_walk($csv, function (&$a) use ($csv) {
+            $a = array_combine($csv[0], $a);   // header row becomes the keys
+        });
+        array_shift($csv);                      // drop the header row
+        return $csv;
+    } // readCsv
+
 
 } // DataStore
