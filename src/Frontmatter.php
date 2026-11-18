@@ -98,6 +98,9 @@ class Frontmatter
             } elseif ($key === 'smartypants') {
                 MdPlusHelper::enableSmartypants($value !== 'false');
 
+            } elseif ($key === 'autoconvertlinks') {
+                MdPlusHelper::enableAutoConvertLinks($value !== 'false');
+
             } elseif ($key === 'slidingpanels') {
                 PageFactory::$slidingPanels = $value;
 

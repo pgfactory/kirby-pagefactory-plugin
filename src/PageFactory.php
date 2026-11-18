@@ -357,7 +357,7 @@ class PageFactory
         $path = page()->root();
         $files = getDir("$path/*.md");
 
-        // first find _meta.md files (only containing frontmatter but no content):
+        // first find .meta.md files (only containing frontmatter but no content):
         foreach ($files as $i => $file) {
             if (str_contains('#-_', basename($file)[0])) {
                 unset($files[$i]);
