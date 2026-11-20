@@ -401,6 +401,13 @@ class TransVars
     } // removeVariable
 
 
+    public static function setLanguage(string $lang): void
+    {
+        self::$lang = $lang;
+        self::compileVars();
+    } // setLanguage
+
+
     /**
      * @param mixed $var
      * @param string|false $lang

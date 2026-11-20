@@ -104,6 +104,9 @@ class Frontmatter
             } elseif ($key === 'slidingpanels') {
                 PageFactory::$slidingPanels = $value;
 
+            } elseif ($key === 'lang' || $key === 'language') {
+                TransVars::setLanguage($value);
+
             } else {
                 TransVars::setVariable($key, $value);
             }
