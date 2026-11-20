@@ -3,14 +3,12 @@ namespace PgFactory\PageFactory;
 
  // Use helper functions with prefix '\PgFactory\PageFactory\'
 use Kirby\Data\Yaml as Yaml;
-use Kirby\Data\Json as Json;
 use Kirby\Data\Data;
 use Kirby\Exception\InvalidArgumentException;
 use Kirby\Filesystem\F;
 use Exception;
  use Kirby\Toolkit\V;
  use PgFactory\MarkdownPlus\MarkdownPlus;
- use PgFactory\MarkdownPlus\MdPlusHelper;
  use PgFactory\MarkdownPlus\Permission;
 
 
@@ -2299,7 +2297,7 @@ function compileMarkdown(string $mdStr, bool $omitPWrapperTag = false): string
      } elseif ($ch1 === 'i') {
          return '<'.INLINE_SHIELD.">$base64</".INLINE_SHIELD.'>';
      } else {
-         return '<'.BLOCK_SHIELD.">$base64</".BLOCK_SHIELD.'>';
+         return '<'.BLOCK_SHIELD.">$base64</".BLOCK_SHIELD.">\n";
      }
  } // shieldStr
 
