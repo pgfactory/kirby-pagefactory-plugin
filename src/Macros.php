@@ -92,9 +92,18 @@ class Macros
             $argStr = str_replace($m[0], '', $argStr);
         }
         $argStr = TransVars::resolveShortFormVariables($argStr, keepUnknowns: true);
-        if (function_exists("PgFactory\\PageFactory\\_$macroName")) {
+
+        // Note: in PageFactory, some macro files carry leading _ to avoid clash with PHP identifiers,
+        // e.g. "_list.php", so take care of this here
+        if (function_exists("PgFactory\\PageFactory\\$macroName")) {
+            // macro already loaded, nothing to do
+
+        } elseif (function_exists("PgFactory\\PageFactory\\_$macroName")) {
+            // macro with modified name already loaded, just fix $macroName, otherwise nothing to do
             $macroName = "_$macroName";
-        } elseif (!function_exists("PgFactory\\PageFactory\\$macroName")) {
+        }
+        if (!function_exists("PgFactory\\PageFactory\\$macroName")) {
+            // macro not yet loaded, so load it now:
             $macroFile = "site/plugins/pagefactory/macros/$macroName.php";
             if (!file_exists($macroFile)) {
                 return false;

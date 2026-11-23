@@ -296,7 +296,7 @@ EOT;
             self::$text = trim(markdownParagraph(self::$args['text'], true));
         } elseif (!self::$text) {
             $url = preg_replace(['|^~/|', '/[#?].*/'], '', self::$url);
-            if ($pg = page($url)) {
+            if ($pg = pfyPage($url)) {
                 self::$text = (string)$pg->title();
             } else {
                 self::$text = self::$url;
@@ -447,7 +447,7 @@ EOT;
             $url = str_replace(['<samp>', '</samp>'], '``', $url);
             $url = preg_replace('#<span class="underline">(.*?)</span>#s', '__$1__', $url);
         }
-        if (page()->id() === 'home') {
+        if (pfyPage()->id() === 'home') {
             $url = str_replace('~page/', '~page/home/', $url);
         }
         return $url;
@@ -460,7 +460,7 @@ EOT;
     private static function compileUrl()
     {
         if (str_starts_with(self::$url, '~page/')) {
-            $imgFile = page()->image(basename(self::$url));
+            $imgFile = pfyPage()->image(basename(self::$url));
             if ($imgFile) {
                 self::$url = $imgFile->url();
             }

@@ -92,7 +92,7 @@ class Utils
         if ($overrideKey) {
             $sessKey = $overrideKey;
         } else {
-            $pageId = str_replace('/', '-', page()->id());
+            $pageId = str_replace('/', '-', pfyPage()->id());
             $sessKey = "pfy.$pageId:$key";
         }
         return $sessKey;
@@ -125,7 +125,7 @@ class Utils
      */
     public static function importKirbyFieldsToVariables(): void
     {
-        $fields = page()->content()->fields();
+        $fields = pfyPage()->content()->fields();
         foreach ($fields as $key => $field) {
             $value = $field->value();
             // check whether it's a content block, unpack it if necessary:
@@ -144,7 +144,7 @@ class Utils
     {
         TransVars::setVariable('today', date('Y-m-d'));
         TransVars::setVariable('now', date('Y-m-d H:i'));
-        TransVars::setVariable('pageTitle', page()->title()->value());
+        TransVars::setVariable('pageTitle', pfyPage()->title()->value());
         TransVars::setVariable('siteTitle', site()->title()->value());
         TransVars::setVariable('lang', PageFactory::$lang);
         TransVars::setVariable('langCode', PageFactory::$langCode);
@@ -152,7 +152,7 @@ class Utils
 
         $headTitle = TransVars::getVariable('headTitle', false);
         if (!$headTitle) {
-            $headTitle = page()->title() . " / " . site()->title();
+            $headTitle = pfyPage()->title() . " / " . site()->title();
         }
         $headTitle = TransVars::translate($headTitle);
         TransVars::setVariable('headTitle', $headTitle);
@@ -385,7 +385,7 @@ EOT;
      */
     public static function renderBodyTagClasses(): string
     {
-        $pageId = str_replace('/', '-', page()->id());
+        $pageId = str_replace('/', '-', pfyPage()->id());
         $bodyTagClasses   = "page-$pageId ";
         $bodyTagClasses   .= Page::get('bodyTagClasses') ?: 'pfy-large-screen';
         if (isAdmin()) {
@@ -578,7 +578,7 @@ EOT;
                     }
                     break;
                 case 'iframe': // ?iframe
-                    if (!($a = page()->supportExportAsIframe()->value())) {
+                    if (!($a = pfyPage()->supportExportAsIframe()->value())) {
                         $a = kirby()->option('pgfactory.pagefactory.supportExportAsIframe');
                     }
                     if ($a) {
@@ -665,8 +665,8 @@ EOT;
     private static function preparePrintVariables()
     {
         // prepare css-variables:
-        $url = (string) page()->url().'/';
-        $pageTitle = (string) page()->title();
+        $url = (string) pfyPage()->url().'/';
+        $pageTitle = (string) pfyPage()->title();
         $siteTitle = (string) site()->title();
         $css = <<<EOT
 body {
@@ -909,7 +909,7 @@ EOT;
         if (str_starts_with($path, '~pages/')) {
             $filename = base_name($path);
             $path = dir_name(substr($path, 7));
-            $pg = page($path);
+            $pg = pfyPage($path);
             if ($pg) {
                 $path = $pg->root().'/'.$filename;
             }
@@ -926,7 +926,7 @@ EOT;
                 '~download/'    => $appRoot . 'download/',
                 '~data/'        => PageFactory::$dataPath,
                 '~pagefactory/' => $appRoot . 'site/plugins/pagefactory/assets/',
-                '~page/'        => PFY_PAGE_PATH,
+                '~page/'        => ($GLOBALS['pfyOverridePage']??false) ? $GLOBALS['pfyOverridePage']->root() .'/' : PFY_PAGE_PATH,
             ];
             $path = str_replace(array_keys($pathPatterns), array_values($pathPatterns), $path);
             if (str_contains($path, '../')) {
@@ -1008,10 +1008,10 @@ EOT;
         if (strpos($path, '~page/') === 0) {
             $filename = str_replace('~page/', '', $path);
             // Returns the file URL if found, otherwise falls back to page URL
-            if ($file = page()->file($filename)) {
+            if ($file = pfyPage()->file($filename)) {
                 return $file->url();
             }
-            return page()->url() . '/' . $filename;
+            return pfyPage()->url() . '/' . $filename;
         }
 
         // 2. Handle '~/' syntax (App Root / Assets)
@@ -1058,18 +1058,18 @@ EOT;
             $homeSlug = site()->homePage()->slug().'/';
             foreach ($m[1] as $i => $aTag) {
                 // if it's homepage -> fix path to '':
-                $pageUrl = page()->url().'/';
+                $pageUrl = pfyPage()->url().'/';
                 $html = str_replace($m[0][$i], $aTag.$pageUrl, $html);
             }
 
         // ~page/ for instances of "src=...":
         } elseif (preg_match_all('|(src=[\'"])~page/|', $html, $m)) {
-            $pageUrl = page()->url().'/';
+            $pageUrl = pfyPage()->url().'/';
             foreach ($m[1] as $i => $aTag) {
                 $html = str_replace($m[0][$i], $aTag.$pageUrl, $html);
             }
         }
-        $html = str_replace('~page/', page()->url().'/', $html);
+        $html = str_replace('~page/', pfyPage()->url().'/', $html);
 
         // ~/ for <a> tags -> replace without redir-offset, unless it's a resource:
         $baseUrl = PFY_APP_BASE_URL;
@@ -1148,7 +1148,7 @@ EOT;
             if (in_array($lang, $supportedLanguages) || in_array($langCode, $supportedLanguages)) {
                 $kirby->session()->set('pfy.lang', $lang);
                 $kirby->setCurrentLanguage($langCode);
-                $url = page()->url();
+                $url = pfyPage()->url();
                 reloadAgent($url);
             }
         } else {
@@ -1626,5 +1626,3 @@ EOT;
     } // setInstallationCheckFile
 
 } // Utils
-$aaa = Utils::resolvePath('~/../_regtest/');
-$aaa = $aaa;

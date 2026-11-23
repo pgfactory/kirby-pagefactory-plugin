@@ -22,7 +22,7 @@ function onPanelLoad(string $pageRef): void
     $allowNonPfyPages = kirby()->option('pgfactory.pagefactory.debug_checkMetaFiles');
 
     $id = str_replace(['+', 'panel/pages/'], ['/', ''], $pageRef);
-    if (!($pg = page($id))) {
+    if (!($pg = pfyPage($id))) {
         return;
     }
     checkMetaFiles($pg);

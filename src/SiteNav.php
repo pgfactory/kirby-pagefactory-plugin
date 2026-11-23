@@ -10,6 +10,8 @@ use PgFactory\MarkdownPlus\Permission;
 class SiteNav
 {
     public const DEFAULT_LIST_TAG = 'ol';
+    private const MIN_NPAGES_FOR_SITESEARCH = 4;
+    private static array $defaultSiteSearchOptions;
 
     public static int $inx = 1;
     public static int $primInx = 0;
@@ -27,6 +29,8 @@ class SiteNav
     private static bool $sitemapUpdateEnabled = true;
     private static array $sitemap = [];
     private static string $sitemapFile;
+    private static array $pages;
+    private static array $siteSearchOptions = [];
 
 
     /**
@@ -43,6 +47,11 @@ class SiteNav
             }
         }
         self::$sitemapUpdateEnabled &= $maintainSitemap;
+        self::$defaultSiteSearchOptions = [
+            'fieldType'     => 'icon',
+            'ignore'        => ['/<script\b.*?<\/script>/s', '/<style\b.*?<\/style>/s'],
+            'resultsUrl'    =>  pfyPage()->url(),
+        ];
 
         $tree = site()->children();
         self::$siteStruct = self::_parseSite($tree, true);
@@ -77,6 +86,8 @@ class SiteNav
                     }
                 }
                 $out[$i]['url'] = $url;
+                $id = $pg->id();
+                self::$pages[$id] = $pg;
             }
 
             // check and evaluate time constraints (showFrom,showTill) from variables in meta-file:
@@ -108,6 +119,8 @@ class SiteNav
             }
             $hasChildren = !$pg->children()->listed()->isEmpty();
             $out[$i]['pg'] = $pg;
+            $id = $pg->id();
+            self::$pages[$id] = $pg;
             if (self::$deep && $hasChildren) {
                 $out[$i]['sub'] = self::_parseSite($pg->children());
             }
@@ -129,53 +142,7 @@ class SiteNav
             return '';
         }
 
-        $args = $args ?? [];
-
-        $inx = self::$inx++; // index of nav-element
-        $wrapperClass = $args['wrapperClass'] ?? '';
-        $class = $args['class'] ?? '';
-        self::$listTag = ($args['listTag'] ?? false) ?: self::DEFAULT_LIST_TAG;
-        $type = $args['type'] ?? '';
-
-        // 'top' shorthand:
-        if (str_contains($type, 'top')) {
-            $wrapperClass .= ' pfy-nav-horizontal pfy-nav-indented pfy-nav-animated pfy-nav-collapsible pfy-nav-collapsed';
-            if (($args['isPrimary'] ?? null) === null) {
-                $args['isPrimary'] = true;
-            }
-
-        // 'side' shorthand:
-        } elseif (str_contains($type, 'side')) {
-            $wrapperClass .= ' pfy-nav-indented pfy-nav-animated pfy-nav-collapsible pfy-nav-open-current';
-
-        // 'sitemap' shorthand:
-        } elseif (str_contains($type, 'sitemap')) {
-            $wrapperClass .= ' pfy-sitemap pfy-sitemap-horizontal pfy-nav-indented';
-
-        // else, e.g. sitemap:
-        } else {
-            $wrapperClass .= ' pfy-nav-plain';
-        }
-
-        // add pfy-nav-collapsible if pfy-nav-collapsed:
-        if (str_contains($wrapperClass, 'pfy-nav-collapsed') && !str_contains($wrapperClass, 'pfy-nav-collapsible')) {
-            $wrapperClass .= ' pfy-nav-collapsible';
-        }
-
-        // find out whether this is the primary nav:
-        if (($args['isPrimary'] ?? false) || str_contains($wrapperClass, 'pfy-primary-nav')) {
-            self::$primInx++;
-            if (!str_contains($wrapperClass, 'pfy-primary-nav')) {
-                $wrapperClass .= ' pfy-primary-nav';
-            }
-            if (!($args['id'] ?? false)) {
-                $args['id'] = 'pfy-primary-nav' . ((self::$primInx > 1) ? '-'.self::$primInx : '');
-            }
-        }
-
-        if (!str_contains($wrapperClass, 'pfy-nav-collapsible')) {
-            $wrapperClass .= ' pfy-nav-not-collapsible';
-        }
+        list($inx, $type, $class, $wrapperClass) = self::parseOptions($args);
 
         // === render: ========
         $out = '';
@@ -190,8 +157,11 @@ class SiteNav
             $pageNr = self::$pageNr;
             $dataPageNr = " data-currpagenr='$pageNr'";
         }
-
+        $overlay = '';
         if ($out) {
+            // site search:
+            list($siteSearchWidget, $overlay) = self::renderSiteSearchWidget();
+
             $placeholder = ($type === 'top')? '<div class="pfy-top-nav-placeholder" style="color:transparent">placeholder</div>': '';
             $id = ($args['id'] ?? false) ? " id='{$args['id']}'" : '';
             $out = <<<EOT
@@ -200,7 +170,7 @@ class SiteNav
   <nav$id class='pfy-nav $class' style="display: none;">
 $out
   </nav>
-$placeholder
+$siteSearchWidget$placeholder
 </div><!-- /pfy-nav-wrapper -->
 EOT;
         }
@@ -212,7 +182,7 @@ EOT;
 
         self::updateSitemap();
 
-        return $out;
+        return $out . $overlay;
     } // render
 
 
@@ -307,7 +277,7 @@ EOT;
         }
 
         // find top-level parent:
-        $page = page();
+        $page = pfyPage();
         while ($page->parent()) {
             $page = $page->parent();
         }
@@ -361,5 +331,123 @@ EOT;
             }
         }
     } // updateSitemap
+
+
+    /**
+     * @return array
+     */
+    public static function getVisiblePages()
+    {
+        return self::$pages;
+    } // getVisiblePages
+
+
+    /**
+     * @return array
+     */
+    private static function renderSiteSearchWidget(): array
+    {
+        if ((self::$pageNr < self::MIN_NPAGES_FOR_SITESEARCH) ||
+                !kirby()->option('pgfactory.pagefactory.activateSiteSearch', true)) {
+            return ['',''];
+        }
+        $siteSearchWidget = $overlay = '';
+        if (self::$siteSearchOptions) {
+            $ss = new SiteSearch(self::$siteSearchOptions);
+            $siteSearchWidget = $ss->renderSearchField();
+            $urlArg = 'q';
+            if ($_GET[$urlArg] ?? false) {
+                $query = $_GET[$urlArg];
+                $pageContents = PageFactory::$allPagesContent;
+                $overlay = $ss->renderSearchResults($query, $pageContents);
+                $label = TransVars::getVariable('pfy-searchresult-label');
+                $overlay = <<<EOT
+
+    <!-- === search results ================================================ -->
+<dialog id="pfy-sitesearch-results" class="pfy-search-popup pfy-popup-wrapper">
+        <div class="pfy-search-header pfy-popup-header pfy-draggable">
+            <div>$label</div>
+            <button class="pfy-close-button pfy-popup-close-button" type="button">
+                <span class="visually-hidden">Close modal</span> 
+                <span aria-hidden="true">✕</span>
+            </button>
+        </div>
+        <div class="pfy-popup-container">
+$overlay
+        </div>
+    </dialog>
+    <!-- === /search results =============================================== -->
+EOT;
+            }
+        }
+        return [$siteSearchWidget, $overlay];
+    } // renderSiteSearchWidget
+
+
+    /**
+     * @param array $options
+     * @return array
+     */
+    private static function parseOptions(array $options): array
+    {
+        $options = $options ?? [];
+
+        $inx = self::$inx++; // index of nav-element
+        $wrapperClass = $options['wrapperClass'] ?? '';
+        $class = $options['class'] ?? '';
+        self::$listTag = ($options['listTag'] ?? false) ?: self::DEFAULT_LIST_TAG;
+        $type = $options['type'] ?? '';
+
+        // 'top' shorthand:
+        if (str_contains($type, 'top')) {
+            $wrapperClass .= ' pfy-nav-horizontal pfy-nav-indented pfy-nav-animated pfy-nav-collapsible pfy-nav-collapsed';
+            if (($options['isPrimary'] ?? null) === null) {
+                $options['isPrimary'] = true;
+            }
+
+            // 'side' shorthand:
+        } elseif (str_contains($type, 'side')) {
+            $wrapperClass .= ' pfy-nav-indented pfy-nav-animated pfy-nav-collapsible pfy-nav-open-current';
+
+            // 'sitemap' shorthand:
+        } elseif (str_contains($type, 'sitemap')) {
+            $wrapperClass .= ' pfy-sitemap pfy-sitemap-horizontal pfy-nav-indented';
+
+            // else, e.g. sitemap:
+        } else {
+            $wrapperClass .= ' pfy-nav-plain';
+        }
+
+        // add pfy-nav-collapsible if pfy-nav-collapsed:
+        if (str_contains($wrapperClass, 'pfy-nav-collapsed') && !str_contains($wrapperClass, 'pfy-nav-collapsible')) {
+            $wrapperClass .= ' pfy-nav-collapsible';
+        }
+
+        // find out whether this is the primary nav:
+        if (($options['isPrimary'] ?? false) || str_contains($wrapperClass, 'pfy-primary-nav')) {
+            self::$primInx++;
+            if (!str_contains($wrapperClass, 'pfy-primary-nav')) {
+                $wrapperClass .= ' pfy-primary-nav';
+            }
+            if (!($options['id'] ?? false)) {
+                $options['id'] = 'pfy-primary-nav' . ((self::$primInx > 1) ? '-'.self::$primInx : '');
+            }
+        }
+
+        if (!str_contains($wrapperClass, 'pfy-nav-collapsible')) {
+            $wrapperClass .= ' pfy-nav-not-collapsible';
+        }
+
+        self::$siteSearchOptions = [];
+        if ($options['siteSearch']) {
+            if (is_array($options['siteSearch'])) {
+                self::$siteSearchOptions = $options['siteSearch'] + self::$defaultSiteSearchOptions;
+            } elseif ($options['isPrimary']) {
+                self::$siteSearchOptions = self::$defaultSiteSearchOptions;
+            }
+        }
+
+        return [$inx, $type, $class, $wrapperClass];
+    } // parseOptions
 
 } // SiteNav

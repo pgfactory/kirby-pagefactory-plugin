@@ -159,6 +159,39 @@ pfy-operate-menu:
     de: 'Menü öffnen und schliessen'
     _:  'Operate navigation menu'
 
+pfy-search-label:
+  _: 'Search'
+  de: 'Suchen'
+
+pfy-searchresult-label:
+  _: 'Search result(s)'
+  de: 'Suchresultat(e)'
+
+pfy-search-placeholder:
+  _: 'Search …'
+  de: 'Suche …'
+
+pfy-search-submitText:
+  _: 'Search'
+  de: 'Suchen'
+
+pfy-search-openText:
+  _: 'Open search'
+  de: 'Suche öffnen'
+
+pfy-search-resultsText:
+  _: '{count} result(s) for “{query}”'
+  de: '{count} Suchresultat(e) für “{query}”'
+
+pfy-search-noResultsText:
+  _: 'No results for “{query}”.'
+  de: 'Kein Suchresultat für “{query}”'
+
+pfy-search-tooShortText:
+  _: 'Please enter at least {min} characters.'
+  de: 'Bitte mindest {min} Zeichen eingeben.'
+
+
 #--- Skip-Links
 pfy-skip-links:
     de: 'Direktsprünge'

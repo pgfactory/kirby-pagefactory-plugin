@@ -134,7 +134,7 @@ class Cache
      */
     private static function getPageCacheFileName(string $prefix = ''): string
     {
-        $pageId = str_replace('/', '_', page()->id());
+        $pageId = str_replace('/', '_', pfyPage()->id());
         $prefix = $prefix ? '_' . $prefix : '';
         return self::PFY_PAGE_CACHE_PATH . PageFactory::$lang . "/$pageId$prefix.dat";
     } // getPageCacheFileName

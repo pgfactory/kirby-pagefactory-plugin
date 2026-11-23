@@ -13,6 +13,8 @@ return function($args = null)
             'class' => ['Class applied to the Nav element.', ''],
             'id' => ['Id applied to the Nav element.', ''],
             'type' => ['[top,side,branch|primary].', ''],
+            'siteSearch' => ['If true (and site has more than 3 pages) a site-search function is activated. '.
+                'Then a search icon appears next to the menu, which opens the search field.', true],
             'isPrimary' => ['By default, first Nav is primary. Set to false to override.', null],
             'listTag' => ['[ul,ol] The tag to be used in list of nav-elements.', 'ol'],
             'prefix' => ['String to be prepended to nav, e.g. to add "link to home" in branch menu.', null],

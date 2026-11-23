@@ -53,7 +53,7 @@ EOT,
 
     // get field from kirby:
     $out = '';
-    $blocks = page()->$name()->toBlocks();
+    $blocks = pfyPage()->$name()->toBlocks();
     foreach ($blocks as $block) {
         $out .= $block->toHTML();
     }

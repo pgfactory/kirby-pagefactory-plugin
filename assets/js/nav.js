@@ -130,6 +130,9 @@ class PfyNav {
     ev.stopImmediatePropagation();
     const aElem = ev.target;
     const liElem = aElem.closest('li');
+    if (!liElem) {
+      return;
+    }
     const isTopNav = liElem.closest('.pfy-nav-wrapper').classList.contains('pfy-nav-horizontal');
     const isCollapsible = !!liElem.closest('.pfy-nav-collapsible');
 
@@ -698,8 +701,188 @@ class PfyNav {
 } // PfyNav
 
 
+
+ // === SiteSearch ===================================================================
+
+class PfyDialog {
+  static #instances = new WeakMap();
+
+  /** Returns exactly one instance per <dialog>. */
+  static for(dialog, options) {
+    if (!this.#instances.has(dialog)) {
+      this.#instances.set(dialog, new PfyDialog(dialog, options));
+    }
+    return this.#instances.get(dialog);
+  }
+
+  constructor(dialog, { backdropClose = true } = {}) {
+    this.dialog = dialog;
+    this.backdropClose = backdropClose;
+    this.dx = 0;
+    this.dy = 0;
+    this.drag = null;
+    this.pressedOnBackdrop = false;
+    this.onResize = () => this.#clamp();
+
+    dialog.addEventListener('click', (e) => this.#onClick(e));
+    dialog.addEventListener('pointerdown', (e) => this.#onPointerDown(e));
+    dialog.addEventListener('pointermove', (e) => this.#onPointerMove(e));
+    dialog.addEventListener('pointerup', (e) => this.#endDrag(e));
+    dialog.addEventListener('pointercancel', (e) => this.#endDrag(e));
+    dialog.addEventListener('close', () => {          // also fires on Esc
+      window.removeEventListener('resize', this.onResize);
+      this.#setOffset(0, 0);
+    });
+  }
+
+  open() {
+    if (!this.dialog.open) {
+      this.dialog.showModal();
+      window.addEventListener('resize', this.onResize);
+    }
+    return this;
+  }
+
+  close() {
+    this.dialog.close();
+    return this;
+  }
+
+  // ---- Close button & click on backdrop ----
+  #onClick(e) {
+    if (e.target.closest('.pfy-popup-close-button')) {
+      this.close();
+      return;
+    }
+    if (this.backdropClose && this.pressedOnBackdrop
+      && e.target === this.dialog && this.#isOutside(e)) {
+      this.close();
+    }
+  }
+
+  #isOutside(e) {
+    const r = this.dialog.getBoundingClientRect();
+    return e.clientX < r.left || e.clientX > r.right
+      || e.clientY < r.top || e.clientY > r.bottom;
+  }
+
+  // ---- Drag ----
+  #onPointerDown(e) {
+    // remember whether the click *started* on the backdrop (prevents closing after text selection)
+    this.pressedOnBackdrop = e.target === this.dialog && this.#isOutside(e);
+
+    const handle = e.target.closest('.pfy-draggable');
+    if (!handle || e.button !== 0 || e.target.closest('button')) return;
+
+    const r = this.dialog.getBoundingClientRect();
+    const vw = document.documentElement.clientWidth;
+    const vh = document.documentElement.clientHeight;
+    this.drag = {
+      handle,
+      id: e.pointerId,
+      startX: e.clientX,
+      startY: e.clientY,
+      baseDx: this.dx,
+      baseDy: this.dy,
+      // allowed range so the dialog stays fully inside the window
+      minDx: this.dx - r.left,
+      maxDx: this.dx + vw - r.right,
+      minDy: this.dy - r.top,
+      maxDy: this.dy + vh - r.bottom,
+    };
+    handle.setPointerCapture(e.pointerId);
+  }
+
+  #onPointerMove(e) {
+    const d = this.drag;
+    if (!d || e.pointerId !== d.id) return;
+    const dx = Math.min(Math.max(d.baseDx + e.clientX - d.startX, d.minDx), d.maxDx);
+    const dy = Math.min(Math.max(d.baseDy + e.clientY - d.startY, d.minDy), d.maxDy);
+    this.#setOffset(dx, dy);
+  }
+
+  #endDrag(e) {
+    const d = this.drag;
+    if (!d || e.pointerId !== d.id) return;
+    d.handle.releasePointerCapture?.(d.id);
+    this.drag = null;
+  }
+
+  #setOffset(dx, dy) {
+    this.dx = dx;
+    this.dy = dy;
+    this.dialog.style.setProperty('--pfy-popup-dx', `${dx}px`);
+    this.dialog.style.setProperty('--pfy-popup-dy', `${dy}px`);
+  }
+
+  // push back into the window after a window resize
+  #clamp() {
+    const r = this.dialog.getBoundingClientRect();
+    const vw = document.documentElement.clientWidth;
+    const vh = document.documentElement.clientHeight;
+    let { dx, dy } = this;
+    if (r.right > vw) dx -= r.right - vw;
+    if (r.left < 0) dx -= r.left;
+    if (r.bottom > vh) dy -= r.bottom - vh;
+    if (r.top < 0) dy -= r.top;
+    if (dx !== this.dx || dy !== this.dy) this.#setOffset(dx, dy);
+  }
+} // PfyDialog
+
+
 domReady(() => {
   domForEach('.pfy-nav-wrapper', (navWrapper) => {
     new PfyNav(navWrapper);
   });
+  domForEach('.pfy-sitesearch--icon', el => {
+    initSitesearchIcon(el);
+  })
+  domForOne('#pfy-sitesearch-results', el => {
+    PfyDialog.for(el).open();
+  })
+
+  // remove search query from URL:
+  const url = new URL(location.href);
+  if (url.searchParams.has('q')) {
+    url.searchParams.delete('q');
+    history.replaceState(history.state, '', url);
+  }
 });
+
+
+function initSitesearchIcon(root) {
+  var toggle = root.querySelector('.pfy-sitesearch-toggle');
+  var input  = root.querySelector('input[type="search"]');
+  if (!toggle || !input) {
+    return;
+  }
+  root.classList.add('is-enhanced');
+  toggle.hidden = false;
+  function setOpen(open, focus) {
+    root.classList.toggle('is-open', open);
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (open && focus) {
+      input.focus(); input.select();
+    }
+  }
+  setOpen(false);
+  toggle.addEventListener('click', function () {
+    setOpen(!root.classList.contains('is-open'), true);
+  });
+  root.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      setOpen(false); toggle.focus();
+    }
+  });
+  document.addEventListener('click', function (e) {
+    if (!root.contains(e.target)) {
+      setOpen(false);
+    }
+  });
+  root.addEventListener('focusout', function (e) {
+    if (e.relatedTarget && !root.contains(e.relatedTarget)) {
+      setOpen(false);
+    }
+  });
+} // initSitesearchIcon
+

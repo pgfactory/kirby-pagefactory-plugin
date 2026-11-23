@@ -56,7 +56,7 @@ EOT,
     $img = new Image($options);
     $html = $img->render();
 
-    if (page()->id() !== 'home') {
+    if (pfyPage()->id() !== 'home') {
         $html = "<a href='$url'>$html</a>";
     }
 

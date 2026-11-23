@@ -180,14 +180,14 @@ class Image
     private function getImageObject(): object|null
     {
         $file = $this->src;
-        $page = page();
+        $page = pfyPage();
         if (str_starts_with($file, '~page/')) {
             $filename = substr($file, 6);
             if (str_contains($filename, '/')) {
                 // image in subfolder of page:
                 $f = preg_replace('/^\d{1,3}_/', '', dirname($filename));
                 $pgId = $page->id() . '/' . $f;
-                $subdir = page($pgId);
+                $subdir = pfyPage($pgId);
                 if (!$subdir) {
                     throw new \Exception("Error: subdirectory '$pgId' not found");
                 }
@@ -200,7 +200,7 @@ class Image
         } elseif (str_starts_with($file, '~assets/')) {
             // image in folder below content/assets/:
             $path = dirname(substr($file, 1));
-            $subdir = page($path);
+            $subdir = pfyPage($path);
             if (!$subdir) {
                 throw new \Exception("Error: subdirectory '$path' not found");
             }
@@ -209,7 +209,7 @@ class Image
         } elseif (str_starts_with($file, '~pages/')) {
             // image in folder below content/pages/:
             $path = dirname(substr($file, 7));
-            $subdir = page($path);
+            $subdir = pfyPage($path);
             if (!$subdir) {
                 throw new \Exception("Error: subdirectory '$path' not found");
             }

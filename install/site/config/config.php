@@ -88,6 +88,7 @@ return [
         // 'enablePageCache'               => true,   // -> caching of template variables, e.g. 'pageContent' etc.
         // 'variablesAvailableInTemplates' => true,   // if true, all TransVars are available in PHP templates
         // 'maintainSitemap'               => false,  // if false, sitemap.txt file generation is inhibited (default: !loggedIn)
+        // 'activateSiteSearch'            => false,  // if true, site-search is activated as part of the navigation menu
         // 'autoPageBlueprint'             => true,   // if true, panel/site/pages -> blueprints are composed by Pagefactory to edit .md files
 
         // Options for dev phase:

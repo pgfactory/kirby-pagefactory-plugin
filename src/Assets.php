@@ -274,7 +274,7 @@ class Assets
     {
         $bustCache = self::$bustCache;
         $html = "\n";
-        $contentPage = page("assets/$type");
+        $contentPage = pfyPage("assets/$type");
         $contentFiles = $contentPage ? $contentPage->files() : [];
 
         foreach ($assets as $asset) {
@@ -398,7 +398,7 @@ class Assets
     private static function getPageAssetTags(string $type): array
     {
         $tags = [];
-        $files = page()->files()->filterBy('extension', $type);
+        $files = pfyPage()->files()->filterBy('extension', $type);
         foreach ($files as $file) {
             if ($file->filename()[0] !== '#') {
                 $tags[] = ($type === 'css') ? css($file) : js($file);

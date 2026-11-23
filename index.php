@@ -36,6 +36,7 @@ Kirby::plugin('pgfactory/pagefactory', [
         'nav' =>            __DIR__ . '/snippets/nav.php',
         'prevnextlinks' =>  __DIR__ . '/snippets/prevnextlinks.php',
         'sitemap' =>        __DIR__ . '/snippets/sitemap.php',
+        //'sitesearch' =>     __DIR__ . '/snippets/sitesearch.php',
     ],
 
     'blueprints' => [

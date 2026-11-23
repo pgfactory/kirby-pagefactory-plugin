@@ -311,7 +311,7 @@ class TransVars
         self::$variables[$varName] = $value;
         if ($propagateToField) {
             try {
-                page()->$varName()->value = $value;
+                pfyPage()->$varName()->value = $value;
             } catch (\Exception $e) {
                 // field not available on current page; ignore
             }
@@ -330,7 +330,7 @@ class TransVars
     public static function getVariable(string $varName, bool|string $varNameIfNotFound = false, string $lang = ''): mixed
     {
         $varName1 = camelCase($varName);
-        $page = page();
+        $page = pfyPage();
 
         // first check temporary variables (as used by TemplateCompiler):
         if (isset(self::$tempVariables[$varName1])) {

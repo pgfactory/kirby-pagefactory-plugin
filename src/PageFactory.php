@@ -14,19 +14,20 @@ use PgFactory\MarkdownPlus\Permission;
  //  PFY_BASE_OFFSET        = onair/
  //  PFY_KIRBY_BASE_PATH    = /path/to/localhost/app/onair/     = PFY_APP_BASE_PATH . PFY_BASE_OFFSET
 
+$pfyOverridePage = null;
 
  // System URLs:
 define('PFY_HOST_URL',                  ($_SERVER['REQUEST_SCHEME']??'') . '://' . ($_SERVER['HTTP_HOST']??'') . '/'); // https://domain.net/
 define('PFY_APP_BASE_URL',              URL::index().'/');    // https://domain.net/webapp/
-define('PFY_PAGE_URL',                  page()->url() . '/'); // https://domain.net/webapp/pg1/
+define('PFY_PAGE_URL',                  pfyPage()->url() . '/'); // https://domain.net/webapp/pg1/
 
  // Further Urls and Paths:
 define('PFY_PLUGIN_PATH',               dirname(__DIR__) . '/'); // site/plugins/pagefactory/
 define('PFY_CONTENT_ASSETS_PATH',       PFY_KIRBY_BASE_PATH . 'content/assets/');
 
-define('PFY_PAGE_PATH',                 page()->root() . '/');
-define('PFY_PAGE_URI',                  page()->uri() . '/');
-define('PFY_PAGE_ID',                   page()->id());
+define('PFY_PAGE_PATH',                 pfyPage()->root() . '/');
+define('PFY_PAGE_URI',                  pfyPage()->uri() . '/');
+define('PFY_PAGE_ID',                   pfyPage()->id());
 
 define('PFY_SVG_ICONS_PATH',            PFY_KIRBY_BASE_PATH . 'site/plugins/markdownplus/assets/svg-icons/');
 define('PFY_CONFIG_PATH',               PFY_KIRBY_BASE_PATH . 'site/config/');
@@ -122,6 +123,9 @@ class PageFactory
     public static bool $addSectionInnerWrapper = false;
     public static string $sectionWrapperClass = '';
     public static bool $slidingPanels = false;
+    public static object|null $overridePage = null;
+    public static array|null $allPagesContent = null;
+
 
     public function __construct()
     {
@@ -215,7 +219,6 @@ class PageFactory
 
         SiteNav::init(); // determines site structure, prev and next pages/links
 
-
         self::$timezone = Utils::getTimezone();
         self::$locale = Utils::getCurrentLocale();
 
@@ -240,6 +243,11 @@ class PageFactory
         Utils::showPendingMessage();
         Utils::handleAgentRequests();
         Macros::initMacros();
+
+        // handle site-search query:
+        if ($_GET['q'] ?? false) {
+            self::$allPagesContent = $this->renderAllPages();
+        }
 
         Utils::queuePfyIconDefinitions();
 
@@ -275,7 +283,7 @@ class PageFactory
                 writeFile(PFY_CRASH_RELOAD_FILE, '');
                 Utils::sendMail([
                     'to'          => self::$webmasterEmail,
-                    'subject'     => 'PageFactory: Fatal error on page '.page()->url(),
+                    'subject'     => 'PageFactory: Fatal error on page '.pfyPage()->url(),
                     'body'        => $e->getMessage()."\n\nNow clearing cache and reloading page.",
                 ]);
                 Cache::flushAll();
@@ -287,7 +295,7 @@ class PageFactory
             mylog($e->getMessage().".\n=> Second attempt to flush cache failed.\nGiving up now.");
             Utils::sendMail([
                 'to'          => self::$webmasterEmail,
-                'subject'     => 'PageFactory: Fatal error second run on page '.page()->url(),
+                'subject'     => 'PageFactory: Fatal error second run on page '.pfyPage()->url(),
                 'body'        => $e->getMessage()."\n\nSecond attempt to flush cache failed. Giving up now.",
             ]);
             return 'An error occurred on the server - please try again later';
@@ -298,24 +306,25 @@ class PageFactory
     /**
      * Renders the actual content of the current page,
      *   i.e. what is invoked in template as {{ page.text.kirbytext | raw }}
+     * @param object|null $page
      * @return string
-     * @throws Kirby\Exception\LogicException
-     * @throws SassException
+     * @throws \Exception
      */
-    private function renderPageContentInner(): string
+    private function renderPageContentInner(?object $page = null): string
     {
         $html = '';
         $inx = 0;
+        $page = $page ?? pfyPage(); // allow for override of current page
 
         if (self::$config['includeMetaFileContent']) {
             // get and compile meta-file's text field:
-            if ($mdStr = page()->text()->value()) {
+            if ($mdStr = $page->text()->value()) {
                 $html = TransVars::compile($mdStr. "\n\n", $inx);
             }
         }
 
         // load content from .md files:
-        $html .= $this->loadMdFiles();
+        $html .= $this->loadMdFiles($page->root());
 
         // finalize:
         if ($html) {
@@ -342,10 +351,11 @@ class PageFactory
 
 
     /**
+     * @param string $path
      * @return string
      * @throws \Exception
      */
-    private function loadMdFiles(): string
+    private function loadMdFiles(string $path): string
     {
         // check page access restriction:
         if (!$this->checkAccessRestriction()) {
@@ -354,7 +364,6 @@ class PageFactory
         }
 
         $excludePattern = kirby()->option('pgfactory.pagefactory.excludeFilesRegex');
-        $path = page()->root();
         $files = getDir("$path/*.md");
 
         // first find .meta.md files (only containing frontmatter but no content):
@@ -375,7 +384,7 @@ class PageFactory
             }
         }
 
-        $slidingPanelsMode = !strcasecmp((string)page()->mode()->value(), 'slidingPanels');
+        $slidingPanelsMode = !strcasecmp((string)pfyPage()->mode()->value(), 'slidingPanels');
         $slidingPanelsHeader = '';
         $sectionTitles = [];
         $mdContents = [];
@@ -496,9 +505,10 @@ EOT;
      */
     private function checkAccessRestriction(): bool
     {
-        $accessRestriction = page()->accessrestriction()->value() ?:
-            page()->visible()->value() ?:
-                page()->visibility()->value();
+        $pg = pfyPage();
+        $accessRestriction = $pg->accessrestriction()->value() ?:
+            $pg->visible()->value() ?:
+                $pg->visibility()->value();
         if (!$accessRestriction) {
             return true;
         }
@@ -617,5 +627,24 @@ EOT;
         }
         return $mdStr;
     } // handleIncludes
+
+
+    /**
+     * @return array
+     * @throws \Exception
+     */
+    private function renderAllPages(): array
+    {
+        $pageContents = [];
+        $pages = SiteNav::getVisiblePages();
+        foreach ($pages as $id => $pg) {
+            $GLOBALS['pfyOverridePage'] = $pg;
+            if ($html = $this->renderPageContentInner($pg)) {
+                $pageContents[$id] = unshieldStr($html);
+            }
+        }
+        $GLOBALS['pfyOverridePage'] = null;
+        return $pageContents;
+    } // renderAllPages
 
 } // PageFactory

@@ -332,7 +332,7 @@ EOT;
      */
     public static function renderHeadInjections(): string
     {
-        $page = page();
+        $page = pfyPage();
         // check config settings, whether default-nav should be activated:
         if (PageFactory::$config['default-nav']) {
             self::addAssets('NAV');
@@ -405,7 +405,7 @@ EOT;
             }
         }
 
-        $page = page();
+        $page = pfyPage();
 
         $jsInjection = '';
         $jsReadyInjection = '';
@@ -418,7 +418,7 @@ EOT;
         $js .= "const hostAssetUrl = '" .   PFY_APP_BASE_URL . PFY_BASE_OFFSET. "';\n";
         $js .= "const pageUrl = '" .        PFY_HOST_URL . ltrim($_SERVER['REQUEST_URI'], '/') . "';\n";
         $js .= "const pageUrl0 = '" .       PFY_PAGE_URL . "';\n";
-        $js .= "const pageId = '" .         page()->id() . "';\n";
+        $js .= "const pageId = '" .         pfyPage()->id() . "';\n";
         $js .= "const loggedinUser = '" .   PageFactory::$userName . "';\n";
         $js .= "const currLang = '" .       PageFactory::$langCode . "';\n";
         $js .= "const pageLoaded =          Math.floor(Date.now()/1000);\n";
@@ -503,7 +503,7 @@ EOT;
     private static function getHeaderElem(string $name): string
     {
         // checks page-attrib, then site-attrib for requested keyword and returns it
-        $out = page()->$name()->value() ?? '';
+        $out = pfyPage()->$name()->value() ?? '';
         if (!$out) {
             $out = site()->$name()->value();
         }

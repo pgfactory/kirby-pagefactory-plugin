@@ -2623,7 +2623,7 @@ function var_r($var, string $varName = '', bool $flat = false, bool $toHtml = fa
 function reloadAgent(mixed $target = '', mixed $message = ''): void
 {
     if (!$target) {
-        $target = page()->url();
+        $target = pfyPage()->url();
     }
     if (is_string($message) && $message) {
         if (str_contains($message, '{{')) {

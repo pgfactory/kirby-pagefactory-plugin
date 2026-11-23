@@ -102,7 +102,7 @@ EOT,
         $img = new Image($options);
         $imgHtml = $img->render();
 
-        $pg = page()->find($basename);
+        $pg = pfyPage()->find($basename);
         $pageName = $pg->title()->value();
         $link = Link::render([
             'url' => "~page/$basename/",
