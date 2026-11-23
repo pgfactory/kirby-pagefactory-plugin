@@ -18,6 +18,7 @@ class SiteNav
     private static bool $deep = true;
     private static string $listTag = self::DEFAULT_LIST_TAG;
     public static int $pageNr = 1;
+    public static int $nPages = 0;
     /** @var object|false  Previous page with content before the current page, or false if none */
     public static $prev = false;
     /** @var object|null|false  Next page with content after the current page, or null/false if none */
@@ -55,6 +56,7 @@ class SiteNav
 
         $tree = site()->children();
         self::$siteStruct = self::_parseSite($tree, true);
+        self::$nPages = count(self::$pages);
     } // init
 
     /**
@@ -138,7 +140,7 @@ class SiteNav
     public static function render(?array $args = null): string
     {
         // if site consists of just 1 page, return empty nav/sitemap:
-        if (count(self::$siteStruct) === 1) {
+        if (self::$nPages <= 1) {
             return '';
         }
 
@@ -347,7 +349,7 @@ EOT;
      */
     private static function renderSiteSearchWidget(): array
     {
-        if ((self::$pageNr < self::MIN_NPAGES_FOR_SITESEARCH) ||
+        if ((self::$nPages < self::MIN_NPAGES_FOR_SITESEARCH) ||
                 !kirby()->option('pgfactory.pagefactory.activateSiteSearch', true)) {
             return ['',''];
         }
