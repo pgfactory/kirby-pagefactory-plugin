@@ -127,6 +127,19 @@ img {
 	}
 }
 
+// dev footer on localhost only:
+.dev-footer {
+	margin: 1em 0;
+	padding: 0.3em 0.5em;
+	display: flex;
+	justify-content: space-between;
+	background: #a537ff;
+	background: repeating-linear-gradient(-55deg, #9f29ff, #9f29ff 10px, #9310fe 10px, #9310fe 15px);
+}
+
+
+
+
 
 // === page switcher ================================
 .pfy-page-switcher-wrapper.pfy-page-switcher-empty.pfy-page-switcher-empty {
