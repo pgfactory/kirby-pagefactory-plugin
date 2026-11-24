@@ -195,6 +195,7 @@ EOT;
             if ($mdCompile) {
                 $str = compileMarkdown($str);
             }
+            $str = strip_tags(trim($str, "\"' \n"));
             $str = json_encode($str);
             self::addJsReady("window.alert('$str')");
         }
