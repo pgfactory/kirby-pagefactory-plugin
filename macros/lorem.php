@@ -8,7 +8,8 @@ return function($argStr = '')
         'options' => [
             'min' => ['If set, defines the minimum number of random words to be rendered.', null],
             'max' => ['If set, defines the maximum number of random words to be rendered (max: 99).', null],
-            'dot' => ['If true, a dot will be appended at the end of the output', false],
+            'dot' => ['If true, special characters will be removed and a dot will be appended at the end of the output', true],
+            'random' => ['If true, random words will be selected. If min and max are defined, random is default', null],
             'class' => ['Class to be applied to the wrapper element', null],
             'wrapperClass' => ['Synonym for "class".', null],
             'wrapperTag' => ['Allows to define the tag of the wrapper element', 'div'],
@@ -38,38 +39,50 @@ consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et
 sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no
 sea takimata sanctus est Lorem ipsum dolor sit amet.
 EOT;
-    if ($args['max'] === false) {
-        $args['max'] = $args['min'];
-    }
-    if ($args['min']) {
-        $words = explode(' ', $lorem);
-        $nWords = sizeof($words) - 1;
-        $min = intval($args['min']);
-        if (!intval($args['max'])) {
-            $n = $min;
+    $lorem = str_replace("\n", ' ', $lorem);
+
+    $min = intval($args['min']);
+    $max = intval($args['max']);
+    if (!$max) {
+        if ($min) {
+            $max = $min;
+            $min = 0;
         } else {
-            $max = intval($args['max']);
-            $n = rand($min, min($nWords, $max));
+            $max = 99;
         }
+    }
+    $random = $args['random'];
+    if ($random === null) {
+        $random = ($min && $max);
+    }
+    $dot = $args['dot'];
+    if (!$dot) {
+        $lorem = preg_replace('/[^\w\s]/', '', $lorem);
+    }
 
-        $str = "";
-        for ($i = 0; $i < $n; $i++) {
-            $str .= $words[rand(1, $nWords - 1)] . ' ';
+    if ($min || $max || $random) {
+        $words = explode(' ', $lorem);
+        $nWords = sizeof($words);
+        $max = min($nWords, $max);
+        $n = $max - $min;
+
+        if ($random) {
+            shuffle($words);
         }
-        $str = preg_replace('/\W$/', '', trim($str));
+        $words = array_slice($words, $min, $n);
+        $lorem = implode(' ', $words);
+    }
 
-    } else {
-        $str = $lorem;
+    if ($dot) {
+        $lorem .= '.';
     }
-    if ($args['dot']) {
-        $str .= '.';
-    }
-    $str = ucfirst($str);
-    $class = $args['class']? " {$args['class']}": '';
+    $lorem = ucfirst($lorem);
+    $class = $args['class'] ?: ($args['wrapperClass'] ?: '');
+    $class =$class ? " $class": '';
     if ($tag = $args['wrapperTag']) {
-        $str = "<$tag class='lorem$class'>$str</$tag>";
+        $lorem = "<$tag class='lorem$class'>$lorem</$tag>";
     }
 
-    return $sourceCode.$str;
+    return $sourceCode.$lorem;
 }; // lorem
 
