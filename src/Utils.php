@@ -297,7 +297,9 @@ class Utils
     public static function renderAdminPanelLink(): string
     {
         $pfyAdminPanelLinkText = TransVars::getVariable('pfy-admin-panel-link-text');
-        return "<a href='~/panel' target='_blank'>$pfyAdminPanelLinkText</a>";
+        $str = "<a href='~/panel' target='_blank'>$pfyAdminPanelLinkText</a>";
+        TransVars::setVariable('adminPanelLink', $str);
+        return $str;
     } // renderAdminPanelLink
 
 
