@@ -27,7 +27,7 @@ pfy-logout-button-title:
     _:  Log out
 
 pfy-admin-panel-link-text:
-    _: 'Admin'
+    _: 'Admin-Panel'
 
 pfy-logged-in-now:
     de:  Sie sind jetzt angemeldet
