@@ -9,10 +9,10 @@ return function($args = null)
     $funcName = basename(__FILE__, '.php');
     $config =  [
         'options' => [
-            'wrapperClass' => ['Class applied to the Nav\'s wrapper.', ''],
-            'class' => ['Class applied to the Nav element.', ''],
-            'id' => ['Id applied to the Nav element.', ''],
-            'type' => ['[top,side,branch|primary].', ''],
+            'type' => ['[top,side,sitemap,branch|primary].', null],
+            'wrapperClass' => ['Class applied to the Nav\'s wrapper.', null],
+            'class' => ['Class applied to the Nav element.', null],
+            'id' => ['Id applied to the Nav element.', null],
             'siteSearch' => ['If true (and site has more than 3 pages) a site-search function is activated. '.
                 'Then a search icon appears next to the menu, which opens the search field.', true],
             'isPrimary' => ['By default, first Nav is primary. Set to false to override.', null],
@@ -28,12 +28,12 @@ Renders a navigation menu that reflects the currently published pages.
 
 ## Supported wrapperClasses:
 
-- ``pfy-nav-horizontal``      18em>> horizontal navigation menu
-- ``pfy-nav-indented``       18em>>     sub-elements get hierarchically indented
-- ``pfy-nav-collapsed``       18em>>    sub-elements are initially collapsed and can be opened
-- ``pfy-nav-collapsible``       18em>>    sub-elements are initially open and can be collapsed
-- ``pfy-nav-open-current``       18em>>   nav tree is pre-opened down to the current page, the rest is collapsed
-- ``pfy-nav-animated``         18em>>    adds an animation effect when opening/closing
+- ``pfy-nav-horizontal``      18em>> horizontal top nav, sub-trees open as drop-downs
+- ``pfy-sitemap-horizontal``  18em>> horizontal sitemap, all sub-trees visible
+- (default)                   18em>> vertical, collapsible tree
+- ``pfy-nav-collapsed``       18em>>    vertical: all sub-trees initially closed
+- ``pfy-nav-open-current``       18em>>   vertical: sub-trees closed except the one containing the current page
+- ``pfy-nav-primary``       18em>>    the nav used as mobile nav (default: first nav on the page)
 - ``pfy-nav-colored``       18em>>    applies some default coloring based on  ``-\-nav-base-color1`` and ``-\-nav-base-color2``
 
 ## Supported CSS-Variables:

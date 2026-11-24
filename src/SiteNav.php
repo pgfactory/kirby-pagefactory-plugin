@@ -169,7 +169,7 @@ class SiteNav
             $out = <<<EOT
 
 <div id='pfy-nav-$inx' class='pfy-nav-wrapper $wrapperClass'$dataPageNr data-nav-inx='$inx'>
-  <nav$id class='pfy-nav $class' style="display: none;">
+  <nav$id class='pfy-nav $class' hidden>
 $out
   </nav>
 $siteSearchWidget$placeholder
@@ -366,15 +366,15 @@ EOT;
                 $overlay = <<<EOT
 
     <!-- === search results ================================================ -->
-<dialog id="pfy-sitesearch-results" class="pfy-search-popup pfy-popup-wrapper">
-        <div class="pfy-search-header pfy-popup-header pfy-draggable">
+<dialog id="pfy-sitesearch-results" class="pfy-sitesearch-popup">
+        <div class="pfy-sitesearch-popup-header pfy-draggable">
             <div>$label</div>
-            <button class="pfy-close-button pfy-popup-close-button" type="button">
+            <button class="pfy-close-button pfy-sitesearch-popup-close-button" type="button">
                 <span class="visually-hidden">Close modal</span> 
                 <span aria-hidden="true">✕</span>
             </button>
         </div>
-        <div class="pfy-popup-container">
+        <div class="pfy-sitesearch-popup-container">
 $overlay
         </div>
     </dialog>
@@ -426,13 +426,13 @@ EOT;
         }
 
         // find out whether this is the primary nav:
-        if (($options['isPrimary'] ?? false) || str_contains($wrapperClass, 'pfy-primary-nav')) {
+        if (($options['isPrimary'] ?? false) || str_contains($wrapperClass, 'pfy-nav-primary')) {
             self::$primInx++;
-            if (!str_contains($wrapperClass, 'pfy-primary-nav')) {
-                $wrapperClass .= ' pfy-primary-nav';
+            if (!str_contains($wrapperClass, 'pfy-nav-primary')) {
+                $wrapperClass .= ' pfy-nav-primary';
             }
             if (!($options['id'] ?? false)) {
-                $options['id'] = 'pfy-primary-nav' . ((self::$primInx > 1) ? '-'.self::$primInx : '');
+                $options['id'] = 'pfy-nav-primary' . ((self::$primInx > 1) ? '-'.self::$primInx : '');
             }
         }
 

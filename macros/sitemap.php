@@ -25,13 +25,13 @@ Renders a sitemap.
 
 Supported wrapperClasses:
 
-- ``pfy-nav-horizontal``      18em>> horizontal navigation menu
-- ``pfy-nav-indented``       18em>>     sub-elements get hierarchically indented
-- ``pfy-nav-collapsed``       18em>>    sub-elements are initially collapsed and can be opened
-- ``pfy-nav-collapsible``       18em>>    sub-elements are initially open and can be collapsed
-- ``pfy-nav-open-current``       18em>>   nav tree is pre-opened down to the current page, the rest is collapsed
-- ``pfy-nav-animated``         18em>>    adds an animation effect when opening/closing
-- ``pfy-nav-colored``       18em>>    applies some default coloring
+- ``pfy-nav-horizontal``      18em>> horizontal top nav, sub-trees open as drop-downs
+- ``pfy-sitemap-horizontal``  18em>> horizontal sitemap, all sub-trees visible
+- (default)                   18em>> vertical, collapsible tree
+- ``pfy-nav-collapsed``       18em>>    vertical: all sub-trees initially closed
+- ``pfy-nav-open-current``       18em>>   vertical: sub-trees closed except the one containing the current page
+- ``pfy-nav-primary``       18em>>    the nav used as mobile nav (default: first nav on the page)
+- ``pfy-nav-colored``       18em>>    applies some default coloring based on  ``-\-nav-base-color1`` and ``-\-nav-base-color2``
 
 EOT,
     ];

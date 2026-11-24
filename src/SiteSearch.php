@@ -104,8 +104,7 @@ class SiteSearch
 			static::$assetsInjected = true;
 		}
 
-		$classes = 'pfy-sitesearch' . ($isIcon ? ' pfy-sitesearch--icon' : '')
-			. ($isIcon && $this->options['popoverAlign'] === 'left' ? ' pfy-sitesearch--align-left' : '');
+		$classes = 'pfy-sitesearch-wrapper'	. ($isIcon && $this->options['popoverAlign'] === 'left' ? ' pfy-sitesearch--align-left' : '');
 
 		$html .= '<div class="' . $classes . '">';
 		$html .= '<form class="pfy-sitesearch-form" action="' . $this->e($action) . '" method="get" role="search">';
@@ -113,11 +112,11 @@ class SiteSearch
 		if ($isIcon) {
 			// hidden until JS enhances the widget; without JS the plain field is shown
 			$html .= '<button type="button" class="pfy-sitesearch-toggle" aria-expanded="false" aria-controls="' . $id . '-field" title="' . $this->e($this->options['openText']) . '" hidden>'
-				. static::icon() . '<span class="pfy-sitesearch-sr">' . $this->e($this->options['openText']) . '</span></button>';
+				. static::icon() . '<span class="visually-hidden">' . $this->e($this->options['openText']) . '</span></button>';
 		}
 
 		$html .= '<div class="pfy-sitesearch-field" id="' . $id . '-field">'
-			. '<label class="pfy-sitesearch-label pfy-sitesearch-sr" for="' . $id . '">' . $this->e($this->options['label']) . '</label>'
+			. '<label class="pfy-sitesearch-label visually-hidden" for="' . $id . '">' . $this->e($this->options['label']) . '</label>'
 			. '<input type="search" id="' . $id . '" name="' . $this->e($urlArgName) . '" value="' . $this->e($query) . '"'
 			. ' placeholder="' . $this->e($this->options['placeholder']) . '" autocomplete="off">'
 			. '<button type="submit" class="pfy-sitesearch-submit pfy-button pfy-button-lean">' . $this->e($this->options['submitText']) . '</button>'

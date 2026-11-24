@@ -1,5 +1,11 @@
 /***************************
-**  Styles for macro nav()
+**  Styles for macro nav()  (works together with assets/js/nav.js)
+**
+**  Modes (set by nav.js on .pfy-nav-wrapper):
+**    .pfy-nav-horizontal       top nav with drop-downs
+**    .pfy-sitemap-horizontal   horizontal sitemap, all open
+**    .pfy-nav-vertical         default: vertical, collapsible tree
+**    .pfy-nav-mobile           primary nav while body.pfy-small-screen (always vertical)
 **
 **    CSS Variables:
 
@@ -15,7 +21,7 @@
 --pfy-nav-curr-txt-color:
 --pfy-nav-hover-txt-color:
 
- // Background and border-left:
+ // Background:
 --pfy-nav-bg-color:
 --pfy-nav-elem-bg-color:
 --pfy-nav-hover-bg-color:
@@ -27,256 +33,406 @@
 --pfy-focus-frame-color1:
 --pfy-focus-frame-color2:
 
-
  // Layout:
 --pfy-nav-elem-height:
 --pfy-nav-line-height:
---pfy-nav-top-sub-width);
+--pfy-nav-top-sub-width:
 --pfy-nav-horizontal-padding:
---pfy-nav-horizontal-padding:
---pfy-nav-animation-duration:
 --pfy-nav-horizontal-col-gap:
+--pfy-nav-animation-duration:
+--pfy-nav-arrow-size:
 
-
- // Side Markers:
+ // Side Markers (border-left of a-elements, vertical modes):
+--pfy-nav-side-marker-width:
 --pfy-nav-side-marker-color:
 --pfy-nav-side-marker-curr-color:
 --pfy-nav-side-marker-active-color:
 --pfy-nav-side-marker-hover-color:
 
-
- // indentation:
+ // indentation (applied as padding-left of a-elements):
 --pfy-nav-horizontal-first-indent:
 --pfy-nav-horizontal-indent-step:
 
+ // mobile:
+--pfy-mobile-nav-txt-size:
 
-** =====================================================
-**  To style surrogate elements:
-.pfy-nav-wrapper:not(.pfy-nav-horizontal .pfy-lvl-1) {
-	.pfy-nav-no-direct-child,
-	.pfy-has-surrogate-elem {
-		> a {
-			font-style: italic;
-			--pfy-nav-txt-color: red;
-			--pfy-nav-side-marker-curr-color: transparent;
-		}
-	}
-}
-**
 ****************************/
 
 @import '_scss-variables.scss';
 
-
- // side markers (e.g. mobile nav):
-$side-marker-width:       var(--pfy-nav-side-marker-width, 3px);
-
- // arrow:
-$nav-arrow-size:          1.3em;
-$nav-arrow-left:          1.3em;
-$nav-arrow-hover-color:   gray;
-
-
- // mobile nav:
-$mobile-nav-text-size:    var(--pfy-mobile-nav-txt-size, 5vw);
-
-
- // pfy-nav-horizontal:
-$nav-horizontal-col-gap:  10px;
-$nav-horizontal-padding:  0.5em;
-
- // pfy-nav-accordion:
-$nav-animation-duration:  0.3s;
-
- // pfy-nav-indented-no-arrow:
-$nav-first-indent:        1.2em;
-$nav-indent-step:         1.2em;
-
- //=== in-page nav:
-$in-page-first-indent:    0em;
-$in-page-indent-step:     1em;
+$max-levels:              8;
 
  // === Colors ======================================
-
  // Base color: "hue, saturation", e.g. "10, 80%":
-$base-col1: var(--nav-base-color1); // --nav-base-color1: 0, 0%;
-$base-col2: var(--nav-base-color2); // --nav-base-color2: 0, 0%;
+$base-col1: var(--nav-base-color1);
+$base-col2: var(--nav-base-color2);
 
  // Text:
 $nav-txt-size:        var(--pfy-nav-txt-size, 1rem);
 $txt-color:           var(--pfy-nav-txt-color, currentColor);
-$sub-txt-color:       var(--pfy-nav-sub-txt-color, $txt-color);
-$active-txt-color:    var(--pfy-nav-active-txt-color, $txt-color);
-$curr-txt-color:      var(--pfy-nav-curr-txt-color, $txt-color);
-$hover-txt-color:     var(--pfy-nav-hover-txt-color, $txt-color);
+$sub-txt-color:       var(--pfy-nav-sub-txt-color, #{$txt-color});
+$active-txt-color:    var(--pfy-nav-active-txt-color, #{$txt-color});
+$curr-txt-color:      var(--pfy-nav-curr-txt-color, #{$txt-color});
+$hover-txt-color:     var(--pfy-nav-hover-txt-color, #{$txt-color});
 
- // Background and border-left:
+ // Background:
 $nav-bg-color:        var(--pfy-nav-bg-color, white);
-$elem-bg-color:       var(--pfy-nav-elem-bg-color, inherit);
-$hover-bg-color:      var(--pfy-nav-hover-bg-color, inherit);
+$elem-bg-color:       var(--pfy-nav-elem-bg-color, transparent);
+$hover-bg-color:      var(--pfy-nav-hover-bg-color, #{$elem-bg-color});
 $sub-bg-color:        var(--pfy-nav-sub-bg-color, #{$elem-bg-color});
-$active-bg-color:     var(--pfy-nav-active-bg-color, $elem-bg-color);
-$curr-bg-color:       var(--pfy-nav-curr-bg-color, $elem-bg-color);
+$active-bg-color:     var(--pfy-nav-active-bg-color, #{$elem-bg-color});
+$curr-bg-color:       var(--pfy-nav-curr-bg-color, #{$elem-bg-color});
 
  // focus:
-$focus-frame-color1: var(--pfy-focus-frame-color1, #{$focus-frame-color1});
-$focus-frame-color2: var(--pfy-focus-frame-color2, #{$focus-frame-color2});
-
+$focus-color1:        var(--pfy-focus-frame-color1, #{$focus-frame-color1});
+$focus-color2:        var(--pfy-focus-frame-color2, #{$focus-frame-color2});
 
  // Layout:
-$nav-elem-height:     2em;
-$nav-line-height:     1.2em;	// -> space between wrapped lines
-$nav-sub-width:       10em;
-
 $elem-height:         var(--pfy-nav-elem-height, 2em);
-$line-height:         var(--pfy-nav-line-height, $nav-line-height);
-$sub-width:           var(--pfy-nav-top-sub-width);
-$horizontal-padding-left:  var(--pfy-nav-horizontal-padding, #{$nav-horizontal-padding});
-$horizontal-padding-right:  var(--pfy-nav-horizontal-padding, 0.5em);
-$animation-duration:  var(--pfy-nav-animation-duration, #{$nav-animation-duration});
-
+$line-height:         var(--pfy-nav-line-height, 1.2em);
+$sub-width:           var(--pfy-nav-top-sub-width, 10em);
+$horizontal-padding:  var(--pfy-nav-horizontal-padding, 0.5em);
+$col-gap:             var(--pfy-nav-horizontal-col-gap, 1em);
+$animation-duration:  var(--pfy-nav-animation-duration, 0.3s);
+$arrow-size:          var(--pfy-nav-arrow-size, 1.35em);
 
  // Side Markers:
-$navCurrSideMarker:   var(--pfy-nav-side-marker-curr-color, inherit);
-$navActiveSideMarker: var(--pfy-nav-side-marker-active-color, inherit);
-$navHoverSideMarker:  var(--pfy-nav-side-marker-hover-color, inherit);
+$side-marker-width:   var(--pfy-nav-side-marker-width, 3px);
+$side-marker-color:   var(--pfy-nav-side-marker-color, transparent);
+$curr-side-marker:    var(--pfy-nav-side-marker-curr-color, #{$side-marker-color});
+$active-side-marker:  var(--pfy-nav-side-marker-active-color, #{$side-marker-color});
+$hover-side-marker:   var(--pfy-nav-side-marker-hover-color, #{$side-marker-color});
+
+ // Indentation:
+$first-indent:        var(--pfy-nav-horizontal-first-indent, 1.2em);
+$indent-step:         var(--pfy-nav-horizontal-indent-step, 1.2em);
+
+ // Mobile:
+$mobile-nav-text-size: var(--pfy-mobile-nav-txt-size, 5vw);
 
 
- // === Computed indentation values ==================================
-$indent1: var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent});
-$indent2: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + var(--pfy-nav-horizontal-indent-step, #{$nav-indent-step}));
-$indent3: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 2 * var(--pfy-nav-horizontal-indent-step, #{$nav-indent-step}));
-$indent4: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 3 * var(--pfy-nav-horizontal-indent-step, #{$nav-indent-step}));
-$indent5: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 4 * var(--pfy-nav-horizontal-indent-step, #{$nav-indent-step}));
-$indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 * var(--pfy-nav-horizontal-indent-step, #{$nav-indent-step}));
-
-
-
- // === Generic Nav ===================
-
- // === flicker - all screen sizes =================================
+ // === Wrapper ========================================================
 .pfy-nav-wrapper {
   position: relative;
 
-  // nav placeholder to avoid flicker:
+  // placeholder (removed by nav.js) to avoid layout shift:
   .pfy-top-nav-placeholder {
     line-height: $line-height;
     width: 0;
-    height: calc(#{$line-height} + #{$elem-height} - 1.2em + 3px);
+    height: $elem-height;
     margin: 0;
     padding: 0;
     overflow: hidden;
-  }
-
-  .pfy-nav-empty,
-  &.pfy-nav-empty {
-    display: none;
-  }
-
-  //=== side marker
-  // default on li to inherit from:
-  li {
-    border-left-color: var(--pfy-nav-side-marker-color, transparent);
-    border-left-width: 0; // suppress sidebar on li
-  }
-  // all:
-  li > a {
-    border-left-color: inherit;
-    border-left-width: $side-marker-width;
-    border-left-style: solid;
-  }
-  &.pfy-nav-horizontal {
-    li {
-      > a {
-        background: $elem-bg-color;
-      }
-    }
-    li.pfy-active > a{
-      background: $active-bg-color;
-    }
-    li.pfy-curr > a {
-      background: $curr-bg-color;
-    }
-
-    // sub elems in top nav don't need surrogates as they are not collapsed:
-    .pfy-lvl-2 .pfy-surrogate-elem {
-      display: none;
-    }
-  }
-
-  &.pfy-nav-horizontal {
-    li > a {
-      border-left-width: 0;
-    }
-  }
-
-} // .pfy-nav-wrapper
-
-
-
-
- // === large screen =======================================================
-.pfy-large-screen {
-
-  // nav not .pfy-nav-colored -> apply CSS-variables:
-  .pfy-nav {
-    background: $nav-bg-color;
-
-    li {
-      color:      $txt-color;
-      background: $elem-bg-color;
-    }
-    a {
-      color:      inherit;
-      padding-right: 0.5em;
-    }
-
-    .pfy-lvl-1 > a {
-      color: $txt-color;
-      //background: $elem-bg-color;
-    }
-    .pfy-lvl-2 a {
-      color: $sub-txt-color;
-      background: $sub-bg-color;
-    }
-
-    a:hover {
-      color:      $hover-txt-color;
-      background: $hover-bg-color;
-      //background: $hover-bg-color;
-    }
-
-  } // .pfy-nav
-
-  // nav placeholder:
-  .pfy-top-nav-placeholder {
     color: transparent;
   }
 
-  &.pfy-sitemap,
-  .pfy-sitemap {
-    --pfy-nav-bg-color: transparent;
+  &.pfy-nav-empty,
+  .pfy-nav-empty {
+    display: none;
+  }
+} // .pfy-nav-wrapper
 
-    &.pfy-sitemap-horizontal {
-      nav > ol {
-        display: flex;
-        justify-content: space-between;
+.pfy-small-screen .pfy-top-nav-placeholder {
+  display: none;
+}
 
-        //gap: 10px;
-         > li {
-          flex: 1 1 auto;
-        }
-        a {
-          font-size: 0.9rem;
-          padding-left: 3px; // leave room for focus marker
+
+ // === Generic ========================================================
+.pfy-nav {
+  ol, ul, li {
+    display: block;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  li {
+    position: relative;
+    // indentation depth (overridden per mode below):
+    --pfy-nav-depth: 0;
+    --pfy-nav-indent: calc(#{$first-indent} + var(--pfy-nav-depth) * #{$indent-step});
+  }
+
+  a, a:visited,
+  .pfy-nav-toggle {
+    display: block;
+    position: relative;
+    box-sizing: border-box;
+    margin: 0;
+    font: inherit;
+    font-size: $nav-txt-size;
+    line-height: $line-height;
+    color: inherit;
+    text-align: left;
+    text-decoration: none;
+    padding-block: calc((#{$elem-height} - #{$line-height}) / 2);
+    padding-left: var(--pfy-nav-indent);
+    padding-right: 0.5em;
+    border: none;
+    border-left: $side-marker-width solid $side-marker-color;
+    border-radius: 0;
+    background: none;
+    hyphens: auto;
+    overflow-wrap: anywhere;
+    user-select: none;
+  }
+  .pfy-nav-toggle {
+    width: 100%;
+    cursor: pointer;
+  }
+
+  .pfy-nav-arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: $arrow-size;
+    svg {
+      width: $arrow-size;
+      height: $arrow-size;
+      transition: transform $animation-duration;
+    }
+  }
+
+  // focus (inset only, so it's not clipped by sub-tree wrappers):
+  a:focus-visible,
+  .pfy-nav-toggle:focus-visible {
+    outline: none;
+    box-shadow:
+      inset 0 0 0 1px $focus-color2,
+      inset 0 0 0 2px white,
+      inset 0 0 0 3px $focus-color1;
+  }
+  :focus, a, a:visited, a:hover {
+    border-bottom: none;
+  }
+
+  // surrogates are only shown in vertical mode and horizontal drop-downs:
+  .pfy-nav-surrogate {
+    display: none;
+  }
+
+  // === sub-tree wrapper: open/close by animating grid row ===
+  .pfy-nav-sub {
+    display: grid;
+    grid-template-rows: 0fr;
+    visibility: hidden;
+    transition: grid-template-rows $animation-duration ease, visibility 0s linear $animation-duration;
+    > ol, > ul {
+      min-height: 0;
+      overflow: hidden;
+    }
+  }
+  // 'inherit' so open sub-trees inside a closed branch stay hidden:
+  .pfy-open > .pfy-nav-sub {
+    grid-template-rows: 1fr;
+    visibility: inherit;
+    transition: grid-template-rows $animation-duration ease, visibility 0s;
+  }
+} // .pfy-nav
+
+.pfy-nav-no-transition .pfy-nav * {
+  transition: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pfy-nav * {
+    transition: none !important;
+  }
+}
+
+ // indentation depth per level:
+@for $i from 1 through $max-levels {
+  .pfy-nav .pfy-lvl-#{$i} {
+    --pfy-nav-depth: #{$i - 1};
+  }
+}
+
+
+ // === Colors (not in mobile nav, which takes colors from its container) ===
+.pfy-nav-wrapper:not(.pfy-nav-mobile) .pfy-nav {
+  background: $nav-bg-color;
+
+  a, .pfy-nav-toggle {
+    color: $txt-color;
+    background: $elem-bg-color;
+  }
+  li li > a,
+  li li > .pfy-nav-toggle {
+    color: $sub-txt-color;
+    background: $sub-bg-color;
+  }
+  .pfy-active > a,
+  .pfy-active > .pfy-nav-toggle,
+  .pfy-curr > .pfy-nav-toggle {
+    color: $active-txt-color;
+    background: $active-bg-color;
+  }
+  .pfy-curr > a {
+    color: $curr-txt-color;
+    background: $curr-bg-color;
+  }
+  a:hover,
+  .pfy-nav-toggle:hover {
+    color: $hover-txt-color;
+    background: $hover-bg-color;
+  }
+} // colors
+
+
+ // === Side markers (vertical modes) ===
+.pfy-nav-vertical,
+.pfy-sitemap-horizontal {
+  .pfy-nav {
+    .pfy-active > a,
+    .pfy-active > .pfy-nav-toggle,
+    .pfy-curr > .pfy-nav-toggle {
+      border-left-color: $active-side-marker;
+    }
+    .pfy-curr > a {
+      border-left-color: $curr-side-marker;
+    }
+    a:hover,
+    .pfy-nav-toggle:hover {
+      border-left-color: $hover-side-marker;
+    }
+  }
+}
+
+
+ // === Vertical (default) =============================================
+.pfy-nav-vertical .pfy-nav {
+  // leading triangle, placed in the indentation space left of the label:
+  .pfy-nav-toggle .pfy-nav-arrow {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--pfy-nav-indent);
+    height: $elem-height;
+    justify-content: flex-end;
+    padding-right: 0.15em;
+    box-sizing: border-box;
+  }
+  .pfy-open > .pfy-nav-toggle .pfy-nav-arrow svg {
+    transform: rotate(90deg);
+  }
+
+  // elements with children: whole row toggles, the page is reached via surrogate:
+  .pfy-has-children > a {
+    display: none;
+  }
+  .pfy-nav-surrogate {
+    display: block;
+  }
+  .pfy-nav-toggle:hover .pfy-nav-arrow svg {
+    scale: 1.15;
+  }
+} // vertical
+
+
+ // === Horizontal top nav =============================================
+.pfy-nav-horizontal .pfy-nav {
+  > ol, > ul {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: $col-gap;
+  }
+
+  // sub-levels: first sub-level is not indented
+  @for $i from 2 through $max-levels {
+    .pfy-lvl-#{$i} {
+      --pfy-nav-depth: #{$i - 2};
+    }
+  }
+  .pfy-lvl-1 > .pfy-nav-sub > * > .pfy-nav-surrogate {
+    display: block;
+  }
+
+  // top level:
+  .pfy-lvl-1 {
+    > a, > .pfy-nav-toggle {
+      padding-inline: $horizontal-padding;
+      border-left-width: 0;
+      white-space: nowrap;
+    }
+    &.pfy-has-children > a {
+      display: none;
+    }
+    > .pfy-nav-toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.25em;
+      .pfy-nav-arrow {
+        order: 1;
+        svg {
+          transform: rotate(90deg);
         }
       }
     }
+
+    // drop-down:
+    > .pfy-nav-sub {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      z-index: 9999;
+      min-width: max(100%, #{$sub-width});
+      background: $nav-bg-color;
+    }
   }
-} // pfy-large-screen
+
+  // below top level: no toggles, always open:
+  li li > .pfy-nav-toggle {
+    display: none;
+  }
+  li li > .pfy-nav-sub {
+    grid-template-rows: 1fr;
+    visibility: inherit;
+    transition: none;
+  }
+} // horizontal
 
 
-// === small screen =======================================================
+ // === Horizontal sitemap =============================================
+.pfy-sitemap-horizontal .pfy-nav {
+  --pfy-nav-bg-color: transparent;
+
+  > ol, > ul {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    column-gap: $col-gap;
+    > li {
+      flex: 1 1 auto;
+    }
+  }
+  @for $i from 2 through $max-levels {
+    .pfy-lvl-#{$i} {
+      --pfy-nav-depth: #{$i - 2};
+    }
+  }
+  .pfy-lvl-1 > a {
+    padding-left: 3px; // leave room for focus marker
+  }
+  a {
+    font-size: 0.9rem;
+  }
+  .pfy-nav-toggle {
+    display: none;
+  }
+  .pfy-nav-sub {
+    grid-template-rows: 1fr;
+    visibility: inherit;
+  }
+} // sitemap
+
+
+ // === Mobile nav (primary nav on small screens) ======================
+#pfy .pfy-nav-mobile {
+  &, a, .pfy-nav-toggle {
+    font-size: $mobile-nav-text-size;
+  }
+}
+
+
+ // === Misc ===========================================================
 .pfy-small-screen {
   .pfy-footer {
     a {
@@ -286,464 +442,93 @@ $indent6: calc(var(--pfy-nav-horizontal-first-indent, #{$nav-first-indent}) + 5 
 }
 
 
+ // === SiteSearch ======================================
 
-// === generic ===================================
-//.pfy-nav,
-//&.pfy-nav {
-.pfy-nav {
-
-  // focus:
-  :focus-visible {
-    box-shadow:
-      0 0 0 1px white,
-      0 0 0 2px $focus-frame-color2,
-      inset 0 0 0 1px $focus-frame-color1,
-      inset 0 0 0 2px white,
-      inset 0 0 0 3px $focus-frame-color2;
+.pfy-sitesearch-wrapper {
+  .pfy-sitesearch-toggle {
+    margin-top: calc((var(--pfy-nav-elem-height, 2em) - 1.2em - 3px) / 2);
+    display:inline-flex;
+    align-items:center;
+    background:none;
+    border:0;
+    padding:.25em;
+    cursor:pointer;
+    color:inherit;
   }
-  :focus, a, a:visited, a:hover {
-    border-bottom: none;
+  .pfy-sitesearch-form {
+    position:relative;
+    display:inline-flex;
+    align-items:center;
   }
-
-  ul, ol, li {
-    padding: 0;
-    margin: 0;
-  }
-  ul, ol, li, a {
-    display: block;
-  }
-  li {
-    vertical-align: top;
-    position: relative;
-  }
-
-  // gap bug fix:
-  ul, ol, li {
-    font-size: 0;
-  }
-  a,
-  div {
-    font-size: $nav-txt-size;
-  }
-
-  // A element:
-  a {
-    position:         relative;
-    overflow:         hidden;
-    text-overflow:    ellipsis;
-    font-size:        $nav-txt-size;
-    line-height:      var(--pfy-nav-line-height, $nav-line-height);
-    padding-top:      calc( (var(--pfy-nav-elem-height, #{$nav-elem-height}) - 1.2em - 3px) / 2);
-    padding-bottom:   calc( (var(--pfy-nav-elem-height, #{$nav-elem-height}) - 1.2em - 3px) / 2);
-    user-select:      none;
-  }
-
-  .pfy-nav-label {
-    display: inline-block;
-  }
-  .pfy-nav-arrow {
-    display: none;
+  .pfy-sitesearch-field {
     position: absolute;
-    top: calc((#{$elem-height} - 1.2em) / 2 - 0.1em);
-    user-select: none;
-    width: $nav-arrow-size;
-    height: var(--pfy-nav-line-height, 1.2em);
-    border-radius: 50%;
-    svg {
-        width: $nav-arrow-size;
-        height: var(--pfy-nav-line-height, 1.2em);
-      }
-    border: 1px solid transparent;
+    top: calc(100% + var(--sitesearch-offset, .4em));
+    right: 0;
+    z-index: var(--sitesearch-z, 1000);
+    display: flex;
+    align-items: center;
+    gap: .4em;
+    width: var(--sitesearch-width, 20em);
+    max-width: calc(100vw - 2em);
+    box-sizing: border-box;
+    padding: var(--sitesearch-padding, .6em);
+    background: var(--sitesearch-bg, #fff);
+    color: var(--sitesearch-color, inherit);
+    border: 1px solid var(--sitesearch-border, rgba(0, 0, 0, .15));
+    border-radius: var(--sitesearch-radius, .4em);
+    box-shadow: var(--sitesearch-shadow, 0 .4em 1.2em rgba(0, 0, 0, .15));
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-.25em);
+    transition: opacity .15s, transform .15s, visibility 0s .15s;
+
+    input {
+      flex: 1;
+      min-width: 0;
+      padding: 0.5em 1em;
+      border: 1px solid #aaa;
+      border-radius: 0.2em;
+    }
   }
 
-  // make frozen state visible:
-  .pfy-branch-frozen .pfy-nav-arrow {
-    transform: scale(1.3);
+  &.pfy-sitesearch--align-left .pfy-sitesearch-field {
+    right: auto;
+    left: 0
   }
 
-  li.pfy-has-children > div {
-      overflow: hidden;
+  &.is-open .pfy-sitesearch-field {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition: opacity .15s, transform .15s;
   }
+} // .pfy-sitesearch-wrapper
 
-} // generic .pfy-nav
+.pfy-small-screen .pfy-sitesearch-field {
+  width: var(--sitesearch-width, 13em);
+  right: auto;
+  left: 0
+}
 
-
-// hide surrogate elements wherever not collapsing:
-.pfy-nav-wrapper:not(.pfy-nav-collapsible) {
-  .pfy-surrogate-elem {
-    display: none!important;
-  } // .pfy-surrogate-elem
-
-  // when surrogate is hidden, apply mark to its parent a-elem:
-  .pfy-active:has(> div > ol > .pfy-surrogate-elem.pfy-curr) > a {
-    border-left-color: var(--pfy-nav-side-marker-curr-color, inherit) !important;
+@media (prefers-reduced-motion:reduce) {
+  .pfy-sitesearch-wrapper .pfy-sitesearch-field {
+    transition:none
   }
 }
 
 
-// === horizontal top nav ============================
-.pfy-nav-horizontal {
-  li.pfy-lvl-1.pfy-open div {
-    height: unset;
-  }
-  li.pfy-lvl-1 .pfy-has-surrogate-elem > a {
-    cursor: pointer;
-  }
-}
-
-
-// === not collapsible ===============================
-.pfy-nav-wrapper.pfy-nav-not-collapsible:not(.pfy-mobile-nav) {
-  .pfy-curr > a:hover {
-    background: var(--pfy-nav-hover-bg-color, #{$curr-bg-color});
-  }
-  .pfy-curr.pfy-curr > a {
-    color: $curr-txt-color;
-    background: $curr-bg-color;
-  }
-  .pfy-active.pfy-active > a{
-    background: $active-bg-color;
-  }
-  .pfy-nav-no-direct-child > a {
-    cursor: text;
-  }
-}
-
-
-
-// === collapsed / collapsible ========================
-.pfy-nav-wrapper:not(.pfy-mobile-nav) .pfy-nav-collapsible {
-  .pfy-curr:not(.pfy-has-surrogate-elem.pfy-active) > a:hover {
-    background: var(--pfy-nav-hover-bg-color, #{$curr-bg-color});
-  }
-  .pfy-curr:not(.pfy-has-surrogate-elem.pfy-active) > a {
-    color: $curr-txt-color;
-    background: $curr-bg-color;
-  }
-//    .pfy-active:not(.pfy-has-surrogate-elem.pfy-active) > a:hover {
-//      background: var(--pfy-nav-hover-bg-color, #{$curr-bg-color});
-//    }
-//    .pfy-active:not(.pfy-has-surrogate-elem.pfy-active) > a {
-//      color: $curr-txt-color;
-//      background: $curr-bg-color;
-//    }
-}
-
-.pfy-nav-collapsed, .pfy-nav-collapsed,
-.pfy-nav-collapsible, .pfy-nav-collapsible {
-    .pfy-nav-arrow {
-        display: block;
-    }
-} // pfy-nav-collapsed / collapsible
-
-
-// === collapsible open ===============================
-li.pfy-has-children > div {
-  height: 0;
-  transition: height 0.2s;
-}
-li.pfy-has-children.pfy-open > div {
-  height: unset;
-} // pfy-open
-
-
-
-// === collapsible elements ===========================
-.pfy-nav-collapsible {
-  li a:hover .pfy-nav-label span {
-    border-bottom: 1px dotted currentColor;
-  }
-  .pfy-nav.pfy-nav .pfy-nav-reveal-controller {
-    border-bottom: none;
-  }
-  .pfy-has-children {
-    &:has(a[aria-controls]),
-    > a[aria-controls] {
-      cursor: s-resize;
-    }
-  }
-  .pfy-has-children {
-    &:has(a[aria-expanded=true]),
-    > a[aria-expanded=true] {
-      cursor: n-resize;
-    }
-  }
-}
-
-// === indented ===================================
-.pfy-nav-indented { // no-arrow indentation:
-    .pfy-lvl-1 > a {
-      padding-left: $indent1;
-    }
-    .pfy-lvl-2 > a {
-      padding-left: $indent2;
-    }
-    .pfy-lvl-3 > a {
-      padding-left: $indent3;
-    }
-    .pfy-lvl-4 > a {
-      padding-left: $indent4;
-    }
-    .pfy-lvl-5 > a {
-      padding-left: $indent5;
-    }
-    .pfy-lvl-6 > a {
-      padding-left: $indent6;
-    }
-} // indentation
-
-
-
-// === animated ===================================
-.pfy-nav-animate {
-    li.pfy-has-children > div > ol {
-        transition: margin-top $animation-duration;
-    }
-    .pfy-nav-arrow svg {
-        transition: transform $animation-duration;
-    }
-} // pfy-nav-animated
-
-
-
-// === Default: Vertical =========================:
-.pfy-nav-wrapper:not(.pfy-nav-horizontal) {
-  .pfy-hover,
-  .pfy-open {
-    > a > span.pfy-nav-arrow svg {
-      transform: rotate(90deg);
-    }
-  }
-  a:visited,
-  a {
-    position: relative;
-    border-left-color: inherit;
-    border-left-width: 3px;
-    border-left-style: solid;
-    margin: 3px; // to make focus visible
-    .pfy-nav-label {
-      display: block;
-      hyphens: auto;
-      text-overflow: ellipsis;
-      overflow-x: hidden;
-      width: 100%;
-    }
-  }
-
-  &.pfy-nav-indented {
-    .pfy-lvl-1 > a {
-      padding-left: $indent1;
-      .pfy-nav-arrow {
-        left: calc(#{$indent1} - #{$nav-arrow-left});
-      }
-    }
-
-    .pfy-lvl-2 > a {
-      padding-left: $indent2;
-
-      .pfy-nav-arrow {
-        left: calc(#{$indent2} - #{$nav-arrow-left});
-      }
-    }
-
-    .pfy-lvl-3 a {
-      padding-top: 0;
-    }
-    .pfy-lvl-3 > a {
-      padding-left: $indent3;
-
-      .pfy-nav-arrow {
-        left: calc(#{$indent3} - #{$nav-arrow-left});
-      }
-    }
-
-    .pfy-lvl-4 > a {
-      padding-left: $indent4;
-
-      .pfy-nav-arrow {
-        left: calc(#{$indent4} - #{$nav-arrow-left});
-      }
-    }
-
-    .pfy-lvl-5 > a {
-      padding-left: $indent5;
-
-      .pfy-nav-arrow {
-        left: calc(#{$indent5} - #{$nav-arrow-left});
-      }
-    }
-
-    .pfy-lvl-6 > a {
-      padding-left: $indent6;
-
-      .pfy-nav-arrow {
-        left: calc(#{$indent6} - #{$nav-arrow-left});
-      }
-    }
-  }
-} // vertical nav
-
-
-
-// === Top Nav
-.pfy-nav-horizontal {
-  nav > ol {
-    border-left-color: transparent;
-  }
-
-    a {
-      padding-left: $horizontal-padding-left;
-      padding-right: $horizontal-padding-right;
-    }
-
-    ol {
-        margin: 0;
-        padding: 0;
-    }
-
-    > ol {
-        font-size: 0;
-    }
-
-    li {
-        vertical-align: top;
-        position: relative;
-        margin: 0;
-    }
-
-  .pfy-lvl-1:not(:last-child) {
-    margin-right: var(--pfy-nav-horizontal-col-gap, #{$nav-horizontal-col-gap});
-  }
-
-    .pfy-lvl-1 {
-        display: inline-block;
-        margin: 0 2em 0 0;
-
-        > a {
-            display: inline-block;
-            .pfy-nav-arrow {
-                display: inline-block;
-                svg {
-                    transform: rotate(90deg);
-                }
-            }
-        }
-
-
-        &.pfy-has-children {
-            > a {
-                .pfy-nav-label {
-                    margin-right: calc(#{$nav-arrow-size} - 0.5em);
-                }
-                .pfy-nav-arrow {
-                    right: 0;
-                    top: calc((#{$elem-height} - 1.2em) / 2);
-                }
-            }
-            > div {
-                position: absolute;
-                top: 100%; // push below top level elem
-                left: 0;
-                width: $sub-width;
-                z-index: 9999;
-                overflow: hidden;
-            }
-        }
-    }
-
-    &.pfy-nav-indented {
-      // level 1 r&l padding:
-        .pfy-lvl-1 > a {
-            padding-left: $horizontal-padding-left;
-            padding-right: $horizontal-padding-right;
-        }
-        // below level 1 -> no arrow:
-        .pfy-lvl-2 .pfy-nav-arrow {
-            display: none;
-        }
-
-        .pfy-lvl-2 > a {
-            padding-left: $indent1;
-        }
-
-        .pfy-lvl-3 > a {
-            padding-left: $indent2;
-        }
-
-        .pfy-lvl-4 > a {
-            padding-left: $indent3;
-        }
-
-        .pfy-lvl-5 > a {
-            padding-left: $indent4;
-        }
-
-        .pfy-lvl-6 > a {
-            padding-left: $indent5;
-        }
-    }
-} // pfy-nav-horizontal
-
-
-
-// === mobile nav ======================================
-#pfy.pfy-small-screen {
-  .pfy-primary-nav {
-    &, a {
-      font-size: $mobile-nav-text-size;
-    }
-  }
-} // .pfy-nav-mobile-open
-
-
-
-
-// === small screen ======================================
-.pfy-small-screen {
-  // nav placeholder:
-  .pfy-top-nav-placeholder {
-    display: none;
-  }
-}
-
-
-
-// === side markers ======================================
-.pfy-nav-wrapper.pfy-sitemap {
-  // hover:
-  a:hover {
-    border-left-color: $navHoverSideMarker;
-  }
-
-  // active top:
-  .pfy-lvl-1.pfy-active > a {
-    border-left-color: $navActiveSideMarker;
-  }
-
-  // curr:
-  .pfy-curr > a {
-    border-left-color: $navCurrSideMarker;
-  }
-}
-
-
-// === SiteSearch ======================================
-.pfy-sitesearch-toggle {
-  margin-top: calc((var(--pfy-nav-elem-height, 2em) - 1.2em - 3px) / 2);
-}
-
-.pfy-popup-wrapper {
-  --pfy-popup-gap: 0.5rem;       // Minimum distance to the viewport edge
-  --pfy-popup-top: 2rem;         // Distance from the top edge of the window
-  --pfy-popup-max-width: 40em;   // Upper limit for the width
-  --pfy-popup-dx: 0px;           // Offset caused by dragging (set by JS)
-  --pfy-popup-dy: 0px;
+.pfy-sitesearch-popup {
+  --pfy-sitesearch-popup-gap: 0.5rem;       // Minimum distance to the viewport edge
+  --pfy-sitesearch-popup-top: 2rem;         // Distance from the top edge of the window
+  --pfy-sitesearch-popup-max-width: 40em;   // Upper limit for the width
+  --pfy-sitesearch-popup-dx: 0px;           // Offset caused by dragging (set by JS)
+  --pfy-sitesearch-popup-dy: 0px;
 
   // Modal dialogs live in the top layer: position is always relative to the window,
   // regardless of the page's scroll position.
   position: fixed;
-  inset: var(--pfy-popup-top) auto auto 50%;
-  translate: calc(-50% + var(--pfy-popup-dx)) var(--pfy-popup-dy);
+  inset: var(--pfy-sitesearch-popup-top) auto auto 50%;
+  translate: calc(-50% + var(--pfy-sitesearch-popup-dx)) var(--pfy-sitesearch-popup-dy);
   margin: 0;
   padding: 0;
   border: 0;
@@ -754,8 +539,8 @@ li.pfy-has-children.pfy-open > div {
 
   // Size follows the content, but stays within the viewport:
   width: max-content;
-  max-width: min(var(--pfy-popup-max-width), calc(100% - 2 * var(--pfy-popup-gap)));
-  max-height: calc(100% - var(--pfy-popup-top) - var(--pfy-popup-gap));
+  max-width: min(var(--pfy-sitesearch-popup-max-width), calc(100% - 2 * var(--pfy-sitesearch-popup-gap)));
+  max-height: calc(100% - var(--pfy-sitesearch-popup-top) - var(--pfy-sitesearch-popup-gap));
 
   &[open] {
     display: flex;
@@ -769,7 +554,7 @@ li.pfy-has-children.pfy-open > div {
   }
 }
 
-.pfy-popup-header {
+.pfy-sitesearch-popup-header {
   flex: 0 0 auto;
   padding: 0.5em 2.25em 0.5em 1em;   // room on the right for the close button -> text wraps before it
   background: #444;
@@ -783,7 +568,7 @@ li.pfy-has-children.pfy-open > div {
   }
 }
 
-.pfy-popup-close-button {
+.pfy-sitesearch-popup-close-button {
   position: absolute;            // relative to the (fixed) dialog, stays in place while content scrolls
   top: 0.25em;
   right: 0.25em;
@@ -803,7 +588,7 @@ li.pfy-has-children.pfy-open > div {
   }
 }
 
-.pfy-popup-container {
+.pfy-sitesearch-popup-container {
   flex: 1 1 auto;
   min-height: 0;                 // required so the flex child can scroll at all
   padding: 0.5em 1em 1em 1em;    // instead of margin: keeps the scrollbar at the dialog edge
@@ -812,73 +597,6 @@ li.pfy-has-children.pfy-open > div {
 }
 
 
-
-
-.pfy-sitesearch-sr {
-  position:absolute!important;
-  width:1px;
-  height:1px;
-  padding:0;
-  margin:-1px;
-  overflow:hidden;
-  clip:rect(0,0,0,0);
-  white-space:nowrap;
-  border:0;
-}
-.pfy-sitesearch--icon .pfy-sitesearch-form {
-  position:relative;
-  display:inline-flex;
-  align-items:center;
-}
-.pfy-sitesearch-toggle {
-  display:inline-flex;
-  align-items:center;
-  background:none;
-  border:0;
-  padding:.25em;
-  cursor:pointer;
-  color:inherit;
-}
-
- // popover – customize via the --sitesearch-* properties:
-.pfy-sitesearch--icon .pfy-sitesearch-field {
-  position:absolute;
-  top:calc(100% + var(--sitesearch-offset,.4em));
-  right:0;
-  z-index:var(--sitesearch-z,1000);
-  display:flex;
-  align-items:center;
-  gap:.4em;
-  width:var(--sitesearch-width,20em);
-  max-width:calc(100vw - 2em);
-  box-sizing:border-box;padding:
-  var(--sitesearch-padding,.6em);
-  background:var(--sitesearch-bg,#fff);
-  color:var(--sitesearch-color,inherit);
-  border:1px solid var(--sitesearch-border,rgba(0,0,0,.15));
-  border-radius:var(--sitesearch-radius,.4em);
-  box-shadow:var(--sitesearch-shadow,0 .4em 1.2em rgba(0,0,0,.15));
-  opacity:0;
-  visibility:hidden;
-  transform:translateY(-.25em);transition:opacity .15s,transform .15s,visibility 0s .15s;
-}
-.pfy-sitesearch--icon.pfy-sitesearch--align-left .pfy-sitesearch-field {
-  right:auto;
-  left:0
-}
-.pfy-sitesearch--icon.is-open .pfy-sitesearch-field {
-  opacity:1;
-  visibility:visible;
-  transform:none;
-  transition:opacity .15s,transform .15s;
-}
-.pfy-sitesearch--icon .pfy-sitesearch-field input {
-  flex:1;
-  min-width:0
-}
-@media (prefers-reduced-motion:reduce) {
-  .pfy-sitesearch--icon .pfy-sitesearch-field { transition:none}
-}
 
 
  // === typical cases ===========================================
@@ -891,10 +609,8 @@ li.pfy-has-children.pfy-open > div {
 
  // colored nav:
 @at-root .pfy-nav-colored {
-//.pfy-nav-colored {
   --pfy-nav-elem-bg-color: hsl(#{$base-col1}, 90%);
   --pfy-nav-sub-bg-color: hsl(#{$base-col1}, 90%);
-  //--pfy-nav-surrogate-bg-color: hsl(#{$base-col1}, 90%);
   --pfy-nav-active-bg-color: hsl(#{$base-col2}, 85%);
   --pfy-nav-curr-bg-color: hsl(#{$base-col2}, 80%);
 
@@ -911,6 +627,5 @@ li.pfy-has-children.pfy-open > div {
   &.pfy-nav-horizontal li.pfy-lvl-1:last-child > div {
     right: 0;
     left: unset !important;
-    text-align: right;
   }
 } // .pfy-nav-top-right-aligned
