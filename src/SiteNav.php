@@ -441,7 +441,7 @@ EOT;
         }
 
         self::$siteSearchOptions = [];
-        if ($options['siteSearch']) {
+        if ($options['siteSearch'] ?? false) {
             if (is_array($options['siteSearch'])) {
                 self::$siteSearchOptions = $options['siteSearch'] + self::$defaultSiteSearchOptions;
             } elseif ($options['isPrimary']) {

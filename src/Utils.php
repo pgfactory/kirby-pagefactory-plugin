@@ -1044,6 +1044,9 @@ EOT;
         // special case: ~assets/ -> need to get url from Kirby:
         if (preg_match_all('|~assets/([^\s"\')]*)|', $html, $m)) {
             foreach ($m[1] as $i => $item) {
+                if (!$item) {
+                    continue;
+                }
                 $filename = 'assets/'.$m[1][$i];
                 $file= site()->index()->files()->find($filename);
                 if ($file) {

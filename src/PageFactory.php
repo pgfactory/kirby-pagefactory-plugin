@@ -640,7 +640,7 @@ EOT;
         foreach ($pages as $id => $pg) {
             $GLOBALS['pfyOverridePage'] = $pg;
             if ($html = $this->renderPageContentInner($pg)) {
-                $pageContents[$id] = unshieldStr($html);
+                $pageContents[$id] = preg_replace('/\s\s+/', ' ', unshieldStr($html));
             }
         }
         $GLOBALS['pfyOverridePage'] = null;
