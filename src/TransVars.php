@@ -298,7 +298,7 @@ class TransVars
      * @param mixed $value
      * @return string
      */
-    public static function setVariable(string $varName, mixed $value, bool $propagateToField = true): string
+    public static function setVariable(string $varName, mixed $value, bool $propagateToField = true): string|array
     {
         $varName = camelCase($varName);
         self::$transVars[$varName] = $value;
@@ -317,7 +317,7 @@ class TransVars
             }
         }
 
-        return (string)$value;
+        return $value;
     } // setVariable
 
 
@@ -365,8 +365,8 @@ class TransVars
         }
         if ($out === null) {
             $out = $varNameIfNotFound ? (is_string($varNameIfNotFound) ? $varNameIfNotFound : $varName): null;
-        } elseif (is_array($out)) {
-            $out = reset($out);
+            //        } elseif (is_array($out)) {
+            //            $out = reset($out);
         }
         return $out;
     } // getVariable
@@ -402,6 +402,17 @@ class TransVars
 
 
     /**
+     * @param string $lang
+     * @return void
+     */
+    public static function setLanguage(string $lang): void
+    {
+        self::$lang = $lang;
+        self::compileVars();
+    } // setLanguage
+
+
+    /**
      * @param mixed $var
      * @param string|false $lang
      * @return mixed
@@ -417,7 +428,8 @@ class TransVars
         } else {
             $langCode = $lang;
         }
-        $val = false;
+        $val = $var;
+//        $val = false;
         if (isset($var[$lang])) {           // check base language (e.g. de2)
             $val = $var[$lang];
         } elseif (isset($var[$langCode])) { // check language-variant (e.g. de)
