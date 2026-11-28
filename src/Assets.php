@@ -363,10 +363,10 @@ class Assets
 
             // assets in ~/assets folder:
         } elseif (str_starts_with($asset, 'assets/')) {
+            $asset = PFY_BASE_OFFSET.$asset;
             if (!file_exists($asset)) {
                 return false;
             }
-            $asset = PFY_BASE_OFFSET.$asset;
             $code = ($type === 'css') ? css($asset) : js($asset);
 
             // explicitly provided urls:
