@@ -104,7 +104,12 @@ class SiteSearch
 			static::$assetsInjected = true;
 		}
 
-		$classes = 'pfy-sitesearch-wrapper'	. ($isIcon && $this->options['popoverAlign'] === 'left' ? ' pfy-sitesearch--align-left' : '');
+		$classes = 'pfy-sitesearch-wrapper';
+		if ($isIcon) {
+			$classes .= ($this->options['popoverAlign'] === 'left') ? ' pfy-sitesearch--align-left' : ' pfy-sitesearch--align-right';
+		} else {
+			$classes .= ' pfy-sitesearch--inline'; // field shown right away, no popover
+		}
 
 		$html .= '<div class="' . $classes . '">';
 		$html .= '<form class="pfy-sitesearch-form" action="' . $this->e($action) . '" method="get" role="search">';

@@ -273,6 +273,7 @@ class PfyNav {
       Object.values(PfyNav.MODE_CLASSES).forEach(cls => wrapper.classList.remove(cls));
       wrapper.classList.add(PfyNav.MODE_CLASSES[mode]);
       wrapper.classList.toggle('pfy-nav-mobile', mobile);
+      this.#placeSiteSearch(mobile);
       this.#applyInitialState();
       requestAnimationFrame(() => requestAnimationFrame(() => {
         wrapper.classList.remove('pfy-nav-no-transition');
@@ -280,6 +281,22 @@ class PfyNav {
     }
     this.syncInert();
   } // update
+
+
+  #placeSiteSearch(mobile) {
+    // mobile (vertical) nav: search field on top (shown without toggle, see nav.scss);
+    // otherwise: after the nav.
+    const search = this.wrapper.querySelector(':scope > .pfy-sitesearch-wrapper');
+    if (!search) {
+      return;
+    }
+    const nav = this.wrapper.querySelector(':scope > .pfy-nav');
+    if (mobile) {
+      this.wrapper.prepend(search);
+    } else if (nav) {
+      nav.after(search);
+    }
+  } // #placeSiteSearch
 
 
   syncInert() {
